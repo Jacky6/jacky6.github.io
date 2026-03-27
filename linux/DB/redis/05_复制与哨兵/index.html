@@ -1,1231 +1,2219 @@
-<!DOCTYPE html>
-<html lang="en" data-bs-theme="light">
-    <head>
-        <meta charset="utf-8">
-        <meta http-equiv="X-UA-Compatible" content="IE=edge">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<!doctype html>
+<html lang="zh" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="小智的技术博客 - 编程、Linux、AI 与工具技巧">
+      
+      
+        <meta name="author" content="小智">
+      
+      
+      
+      
+      
         
+      
+      
+      <link rel="icon" href="../../../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
+    
+    
+      
+        <title>05_复制与哨兵 - 一休的博客</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../../../assets/stylesheets/main.484c7ddc.min.css">
+      
         
-        
-        <link rel="shortcut icon" href="../../../../img/favicon.ico">
-        <title>05_复制与哨兵 - 博客</title>
-        <link href="../../../../css/bootstrap.min.css" rel="stylesheet">
-        <link href="../../../../css/fontawesome.min.css" rel="stylesheet">
-        <link href="../../../../css/brands.min.css" rel="stylesheet">
-        <link href="../../../../css/solid.min.css" rel="stylesheet">
-        <link href="../../../../css/v4-font-face.min.css" rel="stylesheet">
-        <link href="../../../../css/base.css" rel="stylesheet">
-        <link id="hljs-light" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" >
-        <link id="hljs-dark" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github-dark.min.css" disabled>
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
-        <script>hljs.highlightAll();</script> 
-    </head>
+        <link rel="stylesheet" href="../../../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
 
-    <body>
-        <div class="navbar fixed-top navbar-expand-lg navbar-dark bg-primary">
-            <div class="container">
-                <a class="navbar-brand" href="../../../..">博客</a>
-                <!-- Expander button -->
-                <button type="button" class="navbar-toggler" data-bs-toggle="collapse" data-bs-target="#navbar-collapse" aria-controls="navbar-collapse" aria-expanded="false" aria-label="Toggle navigation">
-                    <span class="navbar-toggler-icon"></span>
-                </button>
-
-                <!-- Expanded navigation -->
-                <div id="navbar-collapse" class="navbar-collapse collapse">
-                        <!-- Main navigation -->
-                        <ul class="nav navbar-nav">
-                            <li class="nav-item">
-                                <a href="../../../.." class="nav-link">blogs</a>
-                            </li>
-                            <li class="nav-item">
-                                <a href="../../../../KNOWLEDGE/" class="nav-link">KNOWLEDGE</a>
-                            </li>
-                            <li class="nav-item">
-                                <a href="../../../../awesom_bookes/" class="nav-link">经典编程书籍大全</a>
-                            </li>
-                            <li class="nav-item dropdown">
-                                <a href="#" class="nav-link dropdown-toggle" role="button" data-bs-toggle="dropdown"  aria-expanded="false">Fun tools</a>
-                                <ul class="dropdown-menu">
-                                    
-<li>
-    <a href="../../../../fun_tools/git/" class="dropdown-item">git</a>
-</li>
-                                    
-<li>
-    <a href="../../../../fun_tools/iterm2/" class="dropdown-item">iterm2</a>
-</li>
-                                    
-<li>
-    <a href="../../../../fun_tools/%E8%BE%93%E5%85%A5%E6%B3%95/" class="dropdown-item">输入法</a>
-</li>
-                                    
-  <li class="dropdown-submenu">
-    <a href="#" class="dropdown-item">Git</a>
-    <ul class="dropdown-menu">
-            
-<li>
-    <a href="../../../../fun_tools/git/branch/" class="dropdown-item">分支操作</a>
-</li>
-            
-<li>
-    <a href="../../../../fun_tools/git/worktree/" class="dropdown-item">Worktree</a>
-</li>
-    </ul>
-  </li>
-                                    
-  <li class="dropdown-submenu">
-    <a href="#" class="dropdown-item">Openclaw</a>
-    <ul class="dropdown-menu">
-            
-<li>
-    <a href="../../../../fun_tools/openclaw/tips/" class="dropdown-item">Tips</a>
-</li>
-    </ul>
-  </li>
-                                </ul>
-                            </li>
-                            <li class="nav-item dropdown">
-                                <a href="#" class="nav-link dropdown-toggle active" aria-current="page" role="button" data-bs-toggle="dropdown"  aria-expanded="false">Linux</a>
-                                <ul class="dropdown-menu">
-                                    
-<li>
-    <a href="../../../docker/" class="dropdown-item">docker</a>
-</li>
-                                    
-<li>
-    <a href="../../../frp_%E5%86%85%E7%BD%91%E9%80%8F%E5%87%BA/" class="dropdown-item">Frp 内网透出</a>
-</li>
-                                    
-  <li class="dropdown-submenu">
-    <a href="#" class="dropdown-item">DB</a>
-    <ul class="dropdown-menu">
-            
-<li>
-    <a href="../../Redis/" class="dropdown-item">Redis 数据库</a>
-</li>
-            
-  <li class="dropdown-submenu">
-    <a href="#" class="dropdown-item">Mysql</a>
-    <ul class="dropdown-menu">
-            
-<li>
-    <a href="../../mysql/" class="dropdown-item">MySQL 完整学习教程</a>
-</li>
-            
-<li>
-    <a href="../../mysql/01_MySQL%20%E5%85%A5%E9%97%A8/" class="dropdown-item">01_MySQL 入门</a>
-</li>
-            
-<li>
-    <a href="../../mysql/02_SQL%20%E5%9F%BA%E7%A1%80/" class="dropdown-item">02_SQL 基础</a>
-</li>
-            
-<li>
-    <a href="../../mysql/03_%E6%95%B0%E6%8D%AE%E6%9F%A5%E8%AF%A2/" class="dropdown-item">03_数据查询</a>
-</li>
-            
-<li>
-    <a href="../../mysql/04_%E6%95%B0%E6%8D%AE%E4%BF%AE%E6%94%B9/" class="dropdown-item">04_数据修改</a>
-</li>
-            
-<li>
-    <a href="../../mysql/05_%E7%B4%A2%E5%BC%95/" class="dropdown-item">05_索引</a>
-</li>
-            
-<li>
-    <a href="../../mysql/06_%E4%BA%8B%E5%8A%A1%E4%B8%8E%E9%94%81/" class="dropdown-item">06_事务与锁</a>
-</li>
-            
-<li>
-    <a href="../../mysql/07_%E5%AD%98%E5%82%A8%E5%BC%95%E6%93%8E/" class="dropdown-item">07_存储引擎</a>
-</li>
-            
-<li>
-    <a href="../../mysql/08_%E4%B8%BB%E4%BB%8E%E5%A4%8D%E5%88%B6/" class="dropdown-item">08_主从复制</a>
-</li>
-            
-<li>
-    <a href="../../mysql/09_%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96/" class="dropdown-item">09_性能优化</a>
-</li>
-            
-<li>
-    <a href="../../mysql/10_%E5%BA%94%E7%94%A8%E5%9C%BA%E6%99%AF/" class="dropdown-item">10_应用场景</a>
-</li>
-            
-<li>
-    <a href="../../mysql/11_%E5%91%BD%E4%BB%A4%E9%80%9F%E6%9F%A5/" class="dropdown-item">11_命令速查</a>
-</li>
-            
-  <li class="dropdown-submenu">
-    <a href="#" class="dropdown-item">修改</a>
-    <ul class="dropdown-menu">
-            
-<li>
-    <a href="../../mysql/%E4%BF%AE%E6%94%B9/1_%E6%8F%92%E5%85%A5%E6%95%B0%E6%8D%AE/" class="dropdown-item">1 插入数据</a>
-</li>
-            
-<li>
-    <a href="../../mysql/%E4%BF%AE%E6%94%B9/2_%E4%BF%AE%E6%94%B9%E6%95%B0%E6%8D%AE/" class="dropdown-item">2 修改数据</a>
-</li>
-            
-<li>
-    <a href="../../mysql/%E4%BF%AE%E6%94%B9/3_%E5%88%A0%E9%99%A4%E6%95%B0%E6%8D%AE/" class="dropdown-item">3 删除数据</a>
-</li>
-    </ul>
-  </li>
-            
-  <li class="dropdown-submenu">
-    <a href="#" class="dropdown-item">查询</a>
-    <ul class="dropdown-menu">
-            
-<li>
-    <a href="../../mysql/%E6%9F%A5%E8%AF%A2/1_select/" class="dropdown-item">1 select</a>
-</li>
-    </ul>
-  </li>
-    </ul>
-  </li>
-            
-  <li class="dropdown-submenu">
-    <a href="#" class="dropdown-item">Redis</a>
-    <ul class="dropdown-menu">
-            
-<li>
-    <a href="../" class="dropdown-item">Redis 完整学习教程</a>
-</li>
-            
-<li>
-    <a href="../01_Redis%20%E5%85%A5%E9%97%A8/" class="dropdown-item">01_Redis 入门</a>
-</li>
-            
-<li>
-    <a href="../02_%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84/" class="dropdown-item">02_数据结构</a>
-</li>
-            
-<li>
-    <a href="../03_%E9%AB%98%E7%BA%A7%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84/" class="dropdown-item">03_高级数据结构</a>
-</li>
-            
-<li>
-    <a href="../04_%E6%8C%81%E4%B9%85%E5%8C%96/" class="dropdown-item">04_持久化</a>
-</li>
-            
-<li>
-    <a href="./" class="dropdown-item active" aria-current="page">05_复制与哨兵</a>
-</li>
-            
-<li>
-    <a href="../06_%E9%9B%86%E7%BE%A4/" class="dropdown-item">06_集群</a>
-</li>
-            
-<li>
-    <a href="../07_%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96/" class="dropdown-item">07_性能优化</a>
-</li>
-            
-<li>
-    <a href="../08_%E5%BA%94%E7%94%A8%E5%9C%BA%E6%99%AF/" class="dropdown-item">08_应用场景</a>
-</li>
-            
-<li>
-    <a href="../09_%E5%91%BD%E4%BB%A4%E9%80%9F%E6%9F%A5/" class="dropdown-item">09_命令速查</a>
-</li>
-    </ul>
-  </li>
-    </ul>
-  </li>
-                                    
-  <li class="dropdown-submenu">
-    <a href="#" class="dropdown-item">Commands</a>
-    <ul class="dropdown-menu">
-            
-<li>
-    <a href="../../../commands/awk/" class="dropdown-item">Awk</a>
-</li>
-            
-<li>
-    <a href="../../../commands/du%26df/" class="dropdown-item">Du&df</a>
-</li>
-            
-<li>
-    <a href="../../../commands/grep/" class="dropdown-item">Grep</a>
-</li>
-    </ul>
-  </li>
-                                    
-  <li class="dropdown-submenu">
-    <a href="#" class="dropdown-item">Docker</a>
-    <ul class="dropdown-menu">
-            
-<li>
-    <a href="../../../docker/colima/" class="dropdown-item">安装</a>
-</li>
-            
-<li>
-    <a href="../../../docker/docker_command/" class="dropdown-item">docker 常用命令</a>
-</li>
-    </ul>
-  </li>
-                                </ul>
-                            </li>
-                            <li class="nav-item dropdown">
-                                <a href="#" class="nav-link dropdown-toggle" role="button" data-bs-toggle="dropdown"  aria-expanded="false">Llm</a>
-                                <ul class="dropdown-menu">
-                                    
-<li>
-    <a href="../../../../llm/tmp/" class="dropdown-item">Tmp</a>
-</li>
-                                    
-  <li class="dropdown-submenu">
-    <a href="#" class="dropdown-item">Langchain</a>
-    <ul class="dropdown-menu">
-            
-<li>
-    <a href="../../../../llm/langchain/" class="dropdown-item">LangChain 学习指南</a>
-</li>
-            
-<li>
-    <a href="../../../../llm/langchain/01-introduction/" class="dropdown-item">01. LangChain 简介</a>
-</li>
-            
-<li>
-    <a href="../../../../llm/langchain/02-quickstart/" class="dropdown-item">02. 快速开始</a>
-</li>
-            
-<li>
-    <a href="../../../../llm/langchain/03-models/" class="dropdown-item">03. 模型集成</a>
-</li>
-            
-<li>
-    <a href="../../../../llm/langchain/04-tools/" class="dropdown-item">04. 工具与函数</a>
-</li>
-            
-<li>
-    <a href="../../../../llm/langchain/05-agents/" class="dropdown-item">05. Agent 深入</a>
-</li>
-            
-<li>
-    <a href="../../../../llm/langchain/06-langgraph-basics/" class="dropdown-item">06. LangGraph 基础</a>
-</li>
-            
-<li>
-    <a href="../../../../llm/langchain/07-debugging/" class="dropdown-item">07. 调试与监控</a>
-</li>
-            
-<li>
-    <a href="../../../../llm/langchain/08-examples/" class="dropdown-item">08. 实战项目</a>
-</li>
-    </ul>
-  </li>
-                                    
-  <li class="dropdown-submenu">
-    <a href="#" class="dropdown-item">Langchain official</a>
-    <ul class="dropdown-menu">
-            
-<li>
-    <a href="../../../../llm/langchain_official/" class="dropdown-item">Index</a>
-</li>
-            
-<li>
-    <a href="../../../../llm/langchain_official/1_Get_Start/" class="dropdown-item">Install</a>
-</li>
-            
-<li>
-    <a href="../../../../llm/langchain_official/lang_Agent/" class="dropdown-item">工作流&amp;智能体</a>
-</li>
-            
-<li>
-    <a href="../../../../llm/langchain_official/lang_Graph/" class="dropdown-item">图 API</a>
-</li>
-            
-  <li class="dropdown-submenu">
-    <a href="#" class="dropdown-item">Core components</a>
-    <ul class="dropdown-menu">
-            
-<li>
-    <a href="../../../../llm/langchain_official/core_components/Agents/" class="dropdown-item">Agents</a>
-</li>
-            
-<li>
-    <a href="../../../../llm/langchain_official/core_components/Messages/" class="dropdown-item">Messages</a>
-</li>
-            
-<li>
-    <a href="../../../../llm/langchain_official/core_components/Models/" class="dropdown-item">Models</a>
-</li>
-            
-<li>
-    <a href="../../../../llm/langchain_official/core_components/Short-term_Memory/" class="dropdown-item">Short-term memory</a>
-</li>
-            
-<li>
-    <a href="../../../../llm/langchain_official/core_components/Streaming/" class="dropdown-item">Streaming</a>
-</li>
-            
-<li>
-    <a href="../../../../llm/langchain_official/core_components/Structured_output/" class="dropdown-item">Structured output</a>
-</li>
-            
-<li>
-    <a href="../../../../llm/langchain_official/core_components/Tools/" class="dropdown-item">Tools</a>
-</li>
-    </ul>
-  </li>
-    </ul>
-  </li>
-                                    
-  <li class="dropdown-submenu">
-    <a href="#" class="dropdown-item">Langgraph</a>
-    <ul class="dropdown-menu">
-            
-<li>
-    <a href="../../../../llm/langgraph/" class="dropdown-item">LangGraph 学习指南</a>
-</li>
-            
-<li>
-    <a href="../../../../llm/langgraph/01-introduction/" class="dropdown-item">01. LangGraph 简介</a>
-</li>
-            
-<li>
-    <a href="../../../../llm/langgraph/02-core-concepts/" class="dropdown-item">02. 核心概念</a>
-</li>
-            
-<li>
-    <a href="../../../../llm/langgraph/03-state-management/" class="dropdown-item">03. 状态管理</a>
-</li>
-            
-<li>
-    <a href="../../../../llm/langgraph/04-building-graphs/" class="dropdown-item">04. 构建图</a>
-</li>
-            
-<li>
-    <a href="../../../../llm/langgraph/05-advanced-features/" class="dropdown-item">05. 高级特性</a>
-</li>
-            
-<li>
-    <a href="../../../../llm/langgraph/06-examples/" class="dropdown-item">06. 实战示例</a>
-</li>
-    </ul>
-  </li>
-                                    
-  <li class="dropdown-submenu">
-    <a href="#" class="dropdown-item">Vllm</a>
-    <ul class="dropdown-menu">
-            
-<li>
-    <a href="../../../../llm/vllm/1_vllm%E4%BB%8B%E7%BB%8D/" class="dropdown-item">1 vllm介绍</a>
-</li>
-            
-  <li class="dropdown-submenu">
-    <a href="#" class="dropdown-item">推理</a>
-    <ul class="dropdown-menu">
-            
-<li>
-    <a href="../../../../llm/vllm/%E6%8E%A8%E7%90%86/0_%E6%A8%A1%E5%9E%8B%E6%8E%A8%E7%90%86%E4%BB%8B%E7%BB%8D/" class="dropdown-item">0 模型推理介绍</a>
-</li>
-            
-<li>
-    <a href="../../../../llm/vllm/%E6%8E%A8%E7%90%86/%E5%86%85%E5%AD%98%E5%8D%A0%E7%94%A8%E4%BC%98%E5%8C%96/" class="dropdown-item">内存占用优化</a>
-</li>
-            
-<li>
-    <a href="../../../../llm/vllm/%E6%8E%A8%E7%90%86/%E5%BC%95%E6%93%8E%E5%8F%82%E6%95%B0/" class="dropdown-item">引擎参数</a>
-</li>
-    </ul>
-  </li>
-    </ul>
-  </li>
-                                </ul>
-                            </li>
-                            <li class="nav-item dropdown">
-                                <a href="#" class="nav-link dropdown-toggle" role="button" data-bs-toggle="dropdown"  aria-expanded="false">Network</a>
-                                <ul class="dropdown-menu">
-                                    
-<li>
-    <a href="../../../../network/nginx/" class="dropdown-item">Nginx</a>
-</li>
-                                </ul>
-                            </li>
-                            <li class="nav-item dropdown">
-                                <a href="#" class="nav-link dropdown-toggle" role="button" data-bs-toggle="dropdown"  aria-expanded="false">Programming</a>
-                                <ul class="dropdown-menu">
-                                    
-  <li class="dropdown-submenu">
-    <a href="#" class="dropdown-item">Algorithm</a>
-    <ul class="dropdown-menu">
-            
-<li>
-    <a href="../../../../programming/algorithm/" class="dropdown-item">算法与数据结构教程</a>
-</li>
-            
-<li>
-    <a href="../../../../programming/algorithm/10_%E5%8A%A8%E6%80%81%E8%A7%84%E5%88%92/" class="dropdown-item">动态规划（Dynamic Programming）知识点</a>
-</li>
-            
-<li>
-    <a href="../../../../programming/algorithm/11_%E8%B4%AA%E5%BF%83/" class="dropdown-item">贪心算法（Greedy Algorithm）知识点</a>
-</li>
-            
-<li>
-    <a href="../../../../programming/algorithm/12_%E5%9B%9E%E6%BA%AF/" class="dropdown-item">回溯算法（Backtracking）知识点</a>
-</li>
-            
-<li>
-    <a href="../../../../programming/algorithm/13_%E6%BB%91%E5%8A%A8%E7%AA%97%E5%8F%A3/" class="dropdown-item">滑动窗口（Sliding Window）知识点</a>
-</li>
-            
-<li>
-    <a href="../../../../programming/algorithm/1_%E6%95%B0%E7%BB%84/" class="dropdown-item">数组（Array）知识点</a>
-</li>
-            
-<li>
-    <a href="../../../../programming/algorithm/2_%E9%93%BE%E8%A1%A8/" class="dropdown-item">链表（Linked List）知识点</a>
-</li>
-            
-<li>
-    <a href="../../../../programming/algorithm/3_%E6%A0%88/" class="dropdown-item">栈（Stack）知识点</a>
-</li>
-            
-<li>
-    <a href="../../../../programming/algorithm/4_%E9%98%9F%E5%88%97/" class="dropdown-item">队列（Queue）知识点</a>
-</li>
-            
-<li>
-    <a href="../../../../programming/algorithm/5_%E5%93%88%E5%B8%8C%E8%A1%A8/" class="dropdown-item">哈希表（Hash Table）知识点</a>
-</li>
-            
-<li>
-    <a href="../../../../programming/algorithm/6_%E6%A0%91/" class="dropdown-item">树（Tree）知识点</a>
-</li>
-            
-<li>
-    <a href="../../../../programming/algorithm/7_%E5%9B%BE/" class="dropdown-item">图（Graph）知识点</a>
-</li>
-            
-<li>
-    <a href="../../../../programming/algorithm/8_%E6%8E%92%E5%BA%8F/" class="dropdown-item">排序算法（Sorting）知识点</a>
-</li>
-            
-<li>
-    <a href="../../../../programming/algorithm/9_%E6%9F%A5%E6%89%BE/" class="dropdown-item">查找算法（Searching）知识点</a>
-</li>
-    </ul>
-  </li>
-                                    
-  <li class="dropdown-submenu">
-    <a href="#" class="dropdown-item">Java</a>
-    <ul class="dropdown-menu">
-            
-<li>
-    <a href="../../../../programming/java/1_JAVA%E5%AD%A6%E4%B9%A0%E4%BB%8B%E7%BB%8D_/" class="dropdown-item">Java</a>
-</li>
-            
-<li>
-    <a href="../../../../programming/java/java/" class="dropdown-item">Java</a>
-</li>
-            
-<li>
-    <a href="../../../../programming/java/%E5%9F%BA%E7%A1%80%E7%B1%BB%E5%9E%8B%E4%B8%8E%E5%8C%85%E8%A3%85%E7%B1%BB/" class="dropdown-item">基础类型与包装类</a>
-</li>
-            
-  <li class="dropdown-submenu">
-    <a href="#" class="dropdown-item">14 多线程&并发</a>
-    <ul class="dropdown-menu">
-            
-<li>
-    <a href="../../../../programming/java/14_%E5%A4%9A%E7%BA%BF%E7%A8%8B%26%E5%B9%B6%E5%8F%91/1_%E5%A4%9A%E7%BA%BF%E7%A8%8B/" class="dropdown-item">多线程</a>
-</li>
-    </ul>
-  </li>
-            
-  <li class="dropdown-submenu">
-    <a href="#" class="dropdown-item">15 构建工具</a>
-    <ul class="dropdown-menu">
-            
-<li>
-    <a href="../../../../programming/java/15_%E6%9E%84%E5%BB%BA%E5%B7%A5%E5%85%B7/" class="dropdown-item">Java 构建工具教程</a>
-</li>
-            
-<li>
-    <a href="../../../../programming/java/15_%E6%9E%84%E5%BB%BA%E5%B7%A5%E5%85%B7/Gradle/" class="dropdown-item">Gradle</a>
-</li>
-            
-<li>
-    <a href="../../../../programming/java/15_%E6%9E%84%E5%BB%BA%E5%B7%A5%E5%85%B7/Maven/" class="dropdown-item">1. Maven 介绍</a>
-</li>
-            
-<li>
-    <a href="../../../../programming/java/15_%E6%9E%84%E5%BB%BA%E5%B7%A5%E5%85%B7/best-practices/" class="dropdown-item">Java 构建工具最佳实践</a>
-</li>
-            
-<li>
-    <a href="../../../../programming/java/15_%E6%9E%84%E5%BB%BA%E5%B7%A5%E5%85%B7/comparison/" class="dropdown-item">Maven vs Gradle - 对比与选择指南</a>
-</li>
-    </ul>
-  </li>
-            
-  <li class="dropdown-submenu">
-    <a href="#" class="dropdown-item">17 XML&JSON</a>
-    <ul class="dropdown-menu">
-            
-<li>
-    <a href="../../../../programming/java/17_XML%26JSON/1_XML%E4%BB%8B%E7%BB%8D/" class="dropdown-item">1 XML介绍</a>
-</li>
-            
-<li>
-    <a href="../../../../programming/java/17_XML%26JSON/2_%E4%BD%BF%E7%94%A8DOM/" class="dropdown-item">2 使用DOM</a>
-</li>
-            
-<li>
-    <a href="../../../../programming/java/17_XML%26JSON/3_%E4%BD%BF%E7%94%A8SAX/" class="dropdown-item">3 使用SAX</a>
-</li>
-            
-<li>
-    <a href="../../../../programming/java/17_XML%26JSON/4_%E4%BD%BF%E7%94%A8Jackson/" class="dropdown-item">4 使用Jackson</a>
-</li>
-            
-<li>
-    <a href="../../../../programming/java/17_XML%26JSON/5_%E4%BD%BF%E7%94%A8JSON/" class="dropdown-item">5 使用JSON</a>
-</li>
-    </ul>
-  </li>
-            
-  <li class="dropdown-submenu">
-    <a href="#" class="dropdown-item">20 设计模式</a>
-    <ul class="dropdown-menu">
-            
-<li>
-    <a href="../../../../programming/java/20_%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/0_%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F%E5%AE%9A%E4%B9%89/" class="dropdown-item">0 设计模式定义</a>
-</li>
-            
-<li>
-    <a href="../../../../programming/java/20_%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/1_%E5%88%9B%E5%BB%BA%E5%9E%8B%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/" class="dropdown-item">1 创建型设计模式</a>
-</li>
-            
-<li>
-    <a href="../../../../programming/java/20_%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/2_%E7%BB%93%E6%9E%84%E5%9E%8B%E6%A8%A1%E5%BC%8F/" class="dropdown-item">2 结构型模式</a>
-</li>
-            
-<li>
-    <a href="../../../../programming/java/20_%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/3_%E8%A1%8C%E4%B8%BA%E5%9E%8B%E6%A8%A1%E5%BC%8F/" class="dropdown-item">3 行为型模式</a>
-</li>
-    </ul>
-  </li>
-            
-  <li class="dropdown-submenu">
-    <a href="#" class="dropdown-item">21 web</a>
-    <ul class="dropdown-menu">
-            
-<li>
-    <a href="../../../../programming/java/21_web/1_web%E5%9F%BA%E7%A1%80/" class="dropdown-item">1 web基础</a>
-</li>
-            
-<li>
-    <a href="../../../../programming/java/21_web/2_servlet%E5%85%A5%E9%97%A8/" class="dropdown-item">2 servlet入门</a>
-</li>
-            
-<li>
-    <a href="../../../../programming/java/21_web/3_servlet%E5%BC%80%E5%8F%91/" class="dropdown-item">3 servlet开发</a>
-</li>
-            
-<li>
-    <a href="../../../../programming/java/21_web/MVC/" class="dropdown-item">MVC</a>
-</li>
-    </ul>
-  </li>
-            
-  <li class="dropdown-submenu">
-    <a href="#" class="dropdown-item">22 spring</a>
-    <ul class="dropdown-menu">
-            
-<li>
-    <a href="../../../../programming/java/22_spring/" class="dropdown-item">Spring 学习指南</a>
-</li>
-            
-<li>
-    <a href="../../../../programming/java/22_spring/01-introduction/" class="dropdown-item">01. Spring 简介</a>
-</li>
-            
-<li>
-    <a href="../../../../programming/java/22_spring/02-spring-boot-basics/" class="dropdown-item">02. Spring Boot 入门</a>
-</li>
-            
-<li>
-    <a href="../../../../programming/java/22_spring/03-rest-web-services/" class="dropdown-item">03. RESTful Web 服务</a>
-</li>
-            
-<li>
-    <a href="../../../../programming/java/22_spring/04-data-access/" class="dropdown-item">04. 数据访问</a>
-</li>
-            
-<li>
-    <a href="../../../../programming/java/22_spring/05-dependency-injection/" class="dropdown-item">05. 依赖注入</a>
-</li>
-            
-<li>
-    <a href="../../../../programming/java/22_spring/06-security/" class="dropdown-item">06. 安全认证</a>
-</li>
-            
-<li>
-    <a href="../../../../programming/java/22_spring/07-testing/" class="dropdown-item">07. 测试</a>
-</li>
-            
-<li>
-    <a href="../../../../programming/java/22_spring/08-deployment/" class="dropdown-item">08. 部署与生产</a>
-</li>
-    </ul>
-  </li>
-            
-  <li class="dropdown-submenu">
-    <a href="#" class="dropdown-item">2 快速入门</a>
-    <ul class="dropdown-menu">
-            
-<li>
-    <a href="../../../../programming/java/2_%E5%BF%AB%E9%80%9F%E5%85%A5%E9%97%A8/1_java%E7%A8%8B%E5%BA%8F%E5%9F%BA%E6%9C%AC%E7%BB%93%E6%9E%84/" class="dropdown-item">1 java程序基本结构</a>
-</li>
-            
-<li>
-    <a href="../../../../programming/java/2_%E5%BF%AB%E9%80%9F%E5%85%A5%E9%97%A8/2_%E6%95%B0%E6%8D%AE%E5%9F%BA%E6%9C%AC%E7%B1%BB%E5%9E%8B/" class="dropdown-item">2 数据基本类型</a>
-</li>
-            
-<li>
-    <a href="../../../../programming/java/2_%E5%BF%AB%E9%80%9F%E5%85%A5%E9%97%A8/3_%E5%AD%97%E7%AC%A6%26%E5%AD%97%E7%AC%A6%E4%B8%B2/" class="dropdown-item">3 字符&字符串</a>
-</li>
-            
-<li>
-    <a href="../../../../programming/java/2_%E5%BF%AB%E9%80%9F%E5%85%A5%E9%97%A8/4_%E6%B5%81%E7%A8%8B%E6%8E%A7%E5%88%B6/" class="dropdown-item">4 流程控制</a>
-</li>
-            
-<li>
-    <a href="../../../../programming/java/2_%E5%BF%AB%E9%80%9F%E5%85%A5%E9%97%A8/5_%E6%95%B0%E7%BB%84/" class="dropdown-item">5 数组</a>
-</li>
-    </ul>
-  </li>
-            
-  <li class="dropdown-submenu">
-    <a href="#" class="dropdown-item">3 面向对象编程</a>
-    <ul class="dropdown-menu">
-            
-<li>
-    <a href="../../../../programming/java/3_%E9%9D%A2%E5%90%91%E5%AF%B9%E8%B1%A1%E7%BC%96%E7%A8%8B/1.1_%E6%96%B9%E6%B3%95/" class="dropdown-item">方法</a>
-</li>
-            
-<li>
-    <a href="../../../../programming/java/3_%E9%9D%A2%E5%90%91%E5%AF%B9%E8%B1%A1%E7%BC%96%E7%A8%8B/1.2_%E6%9E%84%E9%80%A0%E6%96%B9%E6%B3%95/" class="dropdown-item">构造方法</a>
-</li>
-            
-<li>
-    <a href="../../../../programming/java/3_%E9%9D%A2%E5%90%91%E5%AF%B9%E8%B1%A1%E7%BC%96%E7%A8%8B/1.3_%E6%96%B9%E6%B3%95%E9%87%8D%E8%BD%BD/" class="dropdown-item">方法重载</a>
-</li>
-            
-<li>
-    <a href="../../../../programming/java/3_%E9%9D%A2%E5%90%91%E5%AF%B9%E8%B1%A1%E7%BC%96%E7%A8%8B/1.4_%E7%BB%A7%E6%89%BF/" class="dropdown-item">继承</a>
-</li>
-            
-<li>
-    <a href="../../../../programming/java/3_%E9%9D%A2%E5%90%91%E5%AF%B9%E8%B1%A1%E7%BC%96%E7%A8%8B/1.5_%E5%A4%9A%E6%80%81/" class="dropdown-item">1.5 多态</a>
-</li>
-            
-<li>
-    <a href="../../../../programming/java/3_%E9%9D%A2%E5%90%91%E5%AF%B9%E8%B1%A1%E7%BC%96%E7%A8%8B/1_%E9%9D%A2%E5%90%91%E5%AF%B9%E8%B1%A1%E5%9F%BA%E7%A1%80/" class="dropdown-item">0. 面向对象基础</a>
-</li>
-            
-<li>
-    <a href="../../../../programming/java/3_%E9%9D%A2%E5%90%91%E5%AF%B9%E8%B1%A1%E7%BC%96%E7%A8%8B/2.1_%E5%AD%97%E7%AC%A6%E4%B8%B2%E5%92%8C%E7%BC%96%E7%A0%81/" class="dropdown-item">2.1 字符串和编码</a>
-</li>
-            
-<li>
-    <a href="../../../../programming/java/3_%E9%9D%A2%E5%90%91%E5%AF%B9%E8%B1%A1%E7%BC%96%E7%A8%8B/2_java%E6%A0%B8%E5%BF%83%E7%B1%BB/" class="dropdown-item">2 java核心类</a>
-</li>
-            
-<li>
-    <a href="../../../../programming/java/3_%E9%9D%A2%E5%90%91%E5%AF%B9%E8%B1%A1%E7%BC%96%E7%A8%8B/%E5%AF%B9%E8%B1%A1/" class="dropdown-item">对象</a>
-</li>
-    </ul>
-  </li>
-            
-  <li class="dropdown-submenu">
-    <a href="#" class="dropdown-item">三方库</a>
-    <ul class="dropdown-menu">
-            
-<li>
-    <a href="../../../../programming/java/%E4%B8%89%E6%96%B9%E5%BA%93/Lombok/" class="dropdown-item">Lombok</a>
-</li>
-    </ul>
-  </li>
-    </ul>
-  </li>
-                                    
-  <li class="dropdown-submenu">
-    <a href="#" class="dropdown-item">Java claw</a>
-    <ul class="dropdown-menu">
-            
-<li>
-    <a href="../../../../programming/java_claw/" class="dropdown-item">Java 学习教程</a>
-</li>
-            
-  <li class="dropdown-submenu">
-    <a href="#" class="dropdown-item">01 入门篇</a>
-    <ul class="dropdown-menu">
-            
-<li>
-    <a href="../../../../programming/java_claw/01_%E5%85%A5%E9%97%A8%E7%AF%87/01_Java%20%E5%85%A5%E9%97%A8/" class="dropdown-item">01_Java 入门</a>
-</li>
-            
-<li>
-    <a href="../../../../programming/java_claw/01_%E5%85%A5%E9%97%A8%E7%AF%87/02_%E5%9F%BA%E7%A1%80%E8%AF%AD%E6%B3%95/" class="dropdown-item">02_基础语法</a>
-</li>
-            
-<li>
-    <a href="../../../../programming/java_claw/01_%E5%85%A5%E9%97%A8%E7%AF%87/03_%E6%95%B0%E7%BB%84/" class="dropdown-item">03_数组</a>
-</li>
-            
-<li>
-    <a href="../../../../programming/java_claw/01_%E5%85%A5%E9%97%A8%E7%AF%87/04_%E7%B1%BB%E4%B8%8E%E5%AF%B9%E8%B1%A1/" class="dropdown-item">04_类与对象</a>
-</li>
-            
-<li>
-    <a href="../../../../programming/java_claw/01_%E5%85%A5%E9%97%A8%E7%AF%87/05_%E6%96%B9%E6%B3%95/" class="dropdown-item">05_方法</a>
-</li>
-            
-<li>
-    <a href="../../../../programming/java_claw/01_%E5%85%A5%E9%97%A8%E7%AF%87/06_%E5%86%85%E9%83%A8%E7%B1%BB/" class="dropdown-item">06_内部类</a>
-</li>
-            
-<li>
-    <a href="../../../../programming/java_claw/01_%E5%85%A5%E9%97%A8%E7%AF%87/07_%E8%AE%BF%E9%97%AE%E4%BF%AE%E9%A5%B0%E7%AC%A6/" class="dropdown-item">07_访问修饰符</a>
-</li>
-            
-<li>
-    <a href="../../../../programming/java_claw/01_%E5%85%A5%E9%97%A8%E7%AF%87/08_%E6%8A%BD%E8%B1%A1%E7%B1%BB%E4%B8%8E%E6%8E%A5%E5%8F%A3/" class="dropdown-item">08_抽象类与接口</a>
-</li>
-            
-<li>
-    <a href="../../../../programming/java_claw/01_%E5%85%A5%E9%97%A8%E7%AF%87/09_%E6%9E%9A%E4%B8%BE/" class="dropdown-item">09_枚举</a>
-</li>
-    </ul>
-  </li>
-            
-  <li class="dropdown-submenu">
-    <a href="#" class="dropdown-item">02 核心 API</a>
-    <ul class="dropdown-menu">
-            
-<li>
-    <a href="../../../../programming/java_claw/02_%E6%A0%B8%E5%BF%83%20API/01_%E5%AD%97%E7%AC%A6%E4%B8%B2/" class="dropdown-item">11_字符串</a>
-</li>
-            
-<li>
-    <a href="../../../../programming/java_claw/02_%E6%A0%B8%E5%BF%83%20API/02_%E9%9B%86%E5%90%88%E6%A1%86%E6%9E%B6/" class="dropdown-item">13_集合框架</a>
-</li>
-            
-<li>
-    <a href="../../../../programming/java_claw/02_%E6%A0%B8%E5%BF%83%20API/03_%E6%B3%9B%E5%9E%8B/" class="dropdown-item">14_泛型</a>
-</li>
-            
-<li>
-    <a href="../../../../programming/java_claw/02_%E6%A0%B8%E5%BF%83%20API/04_%E5%BC%82%E5%B8%B8%E5%A4%84%E7%90%86/" class="dropdown-item">15_异常处理</a>
-</li>
-            
-<li>
-    <a href="../../../../programming/java_claw/02_%E6%A0%B8%E5%BF%83%20API/05_IO%20%E6%B5%81/" class="dropdown-item">16_IO 流</a>
-</li>
-            
-<li>
-    <a href="../../../../programming/java_claw/02_%E6%A0%B8%E5%BF%83%20API/06_%E6%97%A5%E6%9C%9F%E6%97%B6%E9%97%B4/" class="dropdown-item">17_日期时间</a>
-</li>
-            
-<li>
-    <a href="../../../../programming/java_claw/02_%E6%A0%B8%E5%BF%83%20API/07_%E5%8C%85%E8%A3%85%E7%B1%BB/" class="dropdown-item">07_包装类</a>
-</li>
-            
-<li>
-    <a href="../../../../programming/java_claw/02_%E6%A0%B8%E5%BF%83%20API/08_%E5%B8%B8%E7%94%A8%E5%B7%A5%E5%85%B7%E7%B1%BB/" class="dropdown-item">08_常用工具类</a>
-</li>
-            
-<li>
-    <a href="../../../../programming/java_claw/02_%E6%A0%B8%E5%BF%83%20API/09_%E6%AD%A3%E5%88%99%E8%A1%A8%E8%BE%BE%E5%BC%8F/" class="dropdown-item">09_正则表达式</a>
-</li>
-    </ul>
-  </li>
-            
-  <li class="dropdown-submenu">
-    <a href="#" class="dropdown-item">03 进阶特性</a>
-    <ul class="dropdown-menu">
-            
-<li>
-    <a href="../../../../programming/java_claw/03_%E8%BF%9B%E9%98%B6%E7%89%B9%E6%80%A7/01_%E5%A4%9A%E7%BA%BF%E7%A8%8B%E5%9F%BA%E7%A1%80/" class="dropdown-item">18_多线程基础</a>
-</li>
-            
-<li>
-    <a href="../../../../programming/java_claw/03_%E8%BF%9B%E9%98%B6%E7%89%B9%E6%80%A7/02_%E5%8F%8D%E5%B0%84/" class="dropdown-item">19_反射</a>
-</li>
-            
-<li>
-    <a href="../../../../programming/java_claw/03_%E8%BF%9B%E9%98%B6%E7%89%B9%E6%80%A7/03_%E6%B3%A8%E8%A7%A3/" class="dropdown-item">20_注解</a>
-</li>
-            
-<li>
-    <a href="../../../../programming/java_claw/03_%E8%BF%9B%E9%98%B6%E7%89%B9%E6%80%A7/04_Lambda%20%E8%A1%A8%E8%BE%BE%E5%BC%8F/" class="dropdown-item">21_Lambda 表达式</a>
-</li>
-            
-<li>
-    <a href="../../../../programming/java_claw/03_%E8%BF%9B%E9%98%B6%E7%89%B9%E6%80%A7/05_Stream%20API/" class="dropdown-item">22_Stream API</a>
-</li>
-            
-<li>
-    <a href="../../../../programming/java_claw/03_%E8%BF%9B%E9%98%B6%E7%89%B9%E6%80%A7/06_Optional/" class="dropdown-item">23_Optional</a>
-</li>
-            
-<li>
-    <a href="../../../../programming/java_claw/03_%E8%BF%9B%E9%98%B6%E7%89%B9%E6%80%A7/07_%E5%B9%B6%E5%8F%91%E5%B7%A5%E5%85%B7%E7%B1%BB%E8%AF%A6%E8%A7%A3/" class="dropdown-item">07_并发工具类详解</a>
-</li>
-            
-<li>
-    <a href="../../../../programming/java_claw/03_%E8%BF%9B%E9%98%B6%E7%89%B9%E6%80%A7/08_%E5%8E%9F%E5%AD%90%E7%B1%BB/" class="dropdown-item">08_原子类</a>
-</li>
-            
-<li>
-    <a href="../../../../programming/java_claw/03_%E8%BF%9B%E9%98%B6%E7%89%B9%E6%80%A7/09_CompletableFuture/" class="dropdown-item">09_CompletableFuture</a>
-</li>
-    </ul>
-  </li>
-            
-  <li class="dropdown-submenu">
-    <a href="#" class="dropdown-item">04 开发工具</a>
-    <ul class="dropdown-menu">
-            
-<li>
-    <a href="../../../../programming/java_claw/04_%E5%BC%80%E5%8F%91%E5%B7%A5%E5%85%B7/01_Maven/" class="dropdown-item">28_Maven</a>
-</li>
-    </ul>
-  </li>
-            
-  <li class="dropdown-submenu">
-    <a href="#" class="dropdown-item">05 主流框架</a>
-    <ul class="dropdown-menu">
-            
-<li>
-    <a href="../../../../programming/java_claw/05_%E4%B8%BB%E6%B5%81%E6%A1%86%E6%9E%B6/01_Spring%20%E5%9F%BA%E7%A1%80/" class="dropdown-item">29_Spring 基础</a>
-</li>
-            
-<li>
-    <a href="../../../../programming/java_claw/05_%E4%B8%BB%E6%B5%81%E6%A1%86%E6%9E%B6/02_SpringBoot/" class="dropdown-item">30_SpringBoot</a>
-</li>
-            
-<li>
-    <a href="../../../../programming/java_claw/05_%E4%B8%BB%E6%B5%81%E6%A1%86%E6%9E%B6/03_MyBatis/" class="dropdown-item">31_MyBatis</a>
-</li>
-    </ul>
-  </li>
-            
-  <li class="dropdown-submenu">
-    <a href="#" class="dropdown-item">06 设计模式</a>
-    <ul class="dropdown-menu">
-            
-<li>
-    <a href="../../../../programming/java_claw/06_%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/01_%E5%8D%95%E4%BE%8B%E6%A8%A1%E5%BC%8F/" class="dropdown-item">32_单例模式</a>
-</li>
-            
-<li>
-    <a href="../../../../programming/java_claw/06_%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/02_%E5%B7%A5%E5%8E%82%E6%A8%A1%E5%BC%8F/" class="dropdown-item">33_工厂模式</a>
-</li>
-            
-<li>
-    <a href="../../../../programming/java_claw/06_%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/03_%E8%A7%82%E5%AF%9F%E8%80%85%E6%A8%A1%E5%BC%8F/" class="dropdown-item">34_观察者模式</a>
-</li>
-            
-<li>
-    <a href="../../../../programming/java_claw/06_%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/04_%E7%AD%96%E7%95%A5%E6%A8%A1%E5%BC%8F/" class="dropdown-item">35_策略模式</a>
-</li>
-            
-<li>
-    <a href="../../../../programming/java_claw/06_%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/05_%E5%BB%BA%E9%80%A0%E8%80%85%E6%A8%A1%E5%BC%8F/" class="dropdown-item">05_建造者模式</a>
-</li>
-            
-<li>
-    <a href="../../../../programming/java_claw/06_%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/06_%E9%80%82%E9%85%8D%E5%99%A8%E6%A8%A1%E5%BC%8F/" class="dropdown-item">06_适配器模式</a>
-</li>
-            
-<li>
-    <a href="../../../../programming/java_claw/06_%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/07_%E8%A3%85%E9%A5%B0%E5%99%A8%E6%A8%A1%E5%BC%8F/" class="dropdown-item">07_装饰器模式</a>
-</li>
-            
-<li>
-    <a href="../../../../programming/java_claw/06_%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/08_%E4%BB%A3%E7%90%86%E6%A8%A1%E5%BC%8F/" class="dropdown-item">08_代理模式</a>
-</li>
-    </ul>
-  </li>
-    </ul>
-  </li>
-                                    
-  <li class="dropdown-submenu">
-    <a href="#" class="dropdown-item">Python</a>
-    <ul class="dropdown-menu">
-            
-<li>
-    <a href="../../../../programming/python/pip/" class="dropdown-item">Pip</a>
-</li>
-            
-<li>
-    <a href="../../../../programming/python/tips/" class="dropdown-item">Tips</a>
-</li>
-            
-<li>
-    <a href="../../../../programming/python/%E5%8D%95%E4%BE%8B/" class="dropdown-item">单例</a>
-</li>
-            
-<li>
-    <a href="../../../../programming/python/%E6%AD%A3%E5%88%99%E8%A1%A8%E8%BE%BE%E5%BC%8F/" class="dropdown-item">介绍</a>
-</li>
-            
-<li>
-    <a href="../../../../programming/python/%E8%BF%90%E8%A1%8C%E7%8E%AF%E5%A2%83/" class="dropdown-item">pyenv</a>
-</li>
-            
-  <li class="dropdown-submenu">
-    <a href="#" class="dropdown-item">三方库</a>
-    <ul class="dropdown-menu">
-            
-  <li class="dropdown-submenu">
-    <a href="#" class="dropdown-item">Textwrap</a>
-    <ul class="dropdown-menu">
-            
-<li>
-    <a href="../../../../programming/python/%E4%B8%89%E6%96%B9%E5%BA%93/textwrap/textwrap/" class="dropdown-item">Textwrap</a>
-</li>
-    </ul>
-  </li>
-            
-  <li class="dropdown-submenu">
-    <a href="#" class="dropdown-item">服务部署</a>
-    <ul class="dropdown-menu">
-            
-<li>
-    <a href="../../../../programming/python/%E4%B8%89%E6%96%B9%E5%BA%93/%E6%9C%8D%E5%8A%A1%E9%83%A8%E7%BD%B2/FastAPI/" class="dropdown-item">FastAPI</a>
-</li>
-            
-<li>
-    <a href="../../../../programming/python/%E4%B8%89%E6%96%B9%E5%BA%93/%E6%9C%8D%E5%8A%A1%E9%83%A8%E7%BD%B2/Litestar/" class="dropdown-item">Litestar</a>
-</li>
-            
-<li>
-    <a href="../../../../programming/python/%E4%B8%89%E6%96%B9%E5%BA%93/%E6%9C%8D%E5%8A%A1%E9%83%A8%E7%BD%B2/circus/" class="dropdown-item">Circus</a>
-</li>
-            
-<li>
-    <a href="../../../../programming/python/%E4%B8%89%E6%96%B9%E5%BA%93/%E6%9C%8D%E5%8A%A1%E9%83%A8%E7%BD%B2/%E6%9C%8D%E5%8A%A1%E9%83%A8%E7%BD%B2%E5%B7%A5%E5%85%B7%E4%BB%8B%E7%BB%8D/" class="dropdown-item">服务部署工具介绍</a>
-</li>
-    </ul>
-  </li>
-    </ul>
-  </li>
-            
-  <li class="dropdown-submenu">
-    <a href="#" class="dropdown-item">常用内建模块</a>
-    <ul class="dropdown-menu">
-            
-<li>
-    <a href="../../../../programming/python/%E5%B8%B8%E7%94%A8%E5%86%85%E5%BB%BA%E6%A8%A1%E5%9D%97/argparse/" class="dropdown-item">Argparse</a>
-</li>
-    </ul>
-  </li>
-            
-  <li class="dropdown-submenu">
-    <a href="#" class="dropdown-item">异步IO</a>
-    <ul class="dropdown-menu">
-            
-<li>
-    <a href="../../../../programming/python/%E5%BC%82%E6%AD%A5IO/1_%E5%BC%82%E6%AD%A5%E4%BB%8B%E7%BB%8D%E5%8F%8A%E4%BD%BF%E7%94%A8/" class="dropdown-item">1 异步介绍及使用</a>
-</li>
-            
-<li>
-    <a href="../../../../programming/python/%E5%BC%82%E6%AD%A5IO/2_%E4%BA%8B%E4%BB%B6%E5%BE%AA%E7%8E%AF/" class="dropdown-item">2 事件循环</a>
-</li>
-            
-<li>
-    <a href="../../../../programming/python/%E5%BC%82%E6%AD%A5IO/3_aiohttp/" class="dropdown-item">3 aiohttp</a>
-</li>
-            
-<li>
-    <a href="../../../../programming/python/%E5%BC%82%E6%AD%A5IO/other/" class="dropdown-item">Other</a>
-</li>
-    </ul>
-  </li>
-            
-  <li class="dropdown-submenu">
-    <a href="#" class="dropdown-item">数据结构</a>
-    <ul class="dropdown-menu">
-            
-<li>
-    <a href="../../../../programming/python/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84/" class="dropdown-item">数据类型和变量</a>
-</li>
-    </ul>
-  </li>
-            
-  <li class="dropdown-submenu">
-    <a href="#" class="dropdown-item">日志</a>
-    <ul class="dropdown-menu">
-            
-<li>
-    <a href="../../../../programming/python/%E6%97%A5%E5%BF%97/" class="dropdown-item">Index</a>
-</li>
-            
-<li>
-    <a href="../../../../programming/python/%E6%97%A5%E5%BF%97/logging/" class="dropdown-item">Logging</a>
-</li>
-    </ul>
-  </li>
-            
-  <li class="dropdown-submenu">
-    <a href="#" class="dropdown-item">编码规范</a>
-    <ul class="dropdown-menu">
-            
-<li>
-    <a href="../../../../programming/python/%E7%BC%96%E7%A0%81%E8%A7%84%E8%8C%83/1_README/" class="dropdown-item">1 README</a>
-</li>
-            
-<li>
-    <a href="../../../../programming/python/%E7%BC%96%E7%A0%81%E8%A7%84%E8%8C%83/2_%E8%AF%AD%E8%A8%80%E8%A7%84%E8%8C%83/" class="dropdown-item">2 语言规范</a>
-</li>
-            
-<li>
-    <a href="../../../../programming/python/%E7%BC%96%E7%A0%81%E8%A7%84%E8%8C%83/3_%E9%A3%8E%E6%A0%BC%E8%A7%84%E8%8C%83/" class="dropdown-item">Python Style Rules</a>
-</li>
-            
-<li>
-    <a href="../../../../programming/python/%E7%BC%96%E7%A0%81%E8%A7%84%E8%8C%83/4_%E6%B3%A8%E9%87%8A%E5%92%8C%E6%96%87%E6%A1%A3%E5%AD%97%E7%AC%A6%E4%B8%B2/" class="dropdown-item">4 注释和文档字符串</a>
-</li>
-    </ul>
-  </li>
-    </ul>
-  </li>
-                                </ul>
-                            </li>
-                            <li class="nav-item dropdown">
-                                <a href="#" class="nav-link dropdown-toggle" role="button" data-bs-toggle="dropdown"  aria-expanded="false">Stock god</a>
-                                <ul class="dropdown-menu">
-                                    
-<li>
-    <a href="../../../../stock_god/gold/" class="dropdown-item">Gold</a>
-</li>
-                                    
-  <li class="dropdown-submenu">
-    <a href="#" class="dropdown-item">Wikis</a>
-    <ul class="dropdown-menu">
-            
-<li>
-    <a href="../../../../stock_god/wikis/%E5%9B%9E%E6%92%A4%E4%BF%AE%E5%A4%8D/" class="dropdown-item">回撤修复</a>
-</li>
-            
-<li>
-    <a href="../../../../stock_god/wikis/%E5%A4%A7%E7%9B%98/" class="dropdown-item">大盘</a>
-</li>
-    </ul>
-  </li>
-                                </ul>
-                            </li>
-                            <li class="nav-item dropdown">
-                                <a href="#" class="nav-link dropdown-toggle" role="button" data-bs-toggle="dropdown"  aria-expanded="false">Wikis</a>
-                                <ul class="dropdown-menu">
-                                    
-<li>
-    <a href="../../../../wikis/AI_Agent/" class="dropdown-item">AI Agent</a>
-</li>
-                                    
-<li>
-    <a href="../../../../wikis/image/" class="dropdown-item">图像</a>
-</li>
-                                </ul>
-                            </li>
-                        </ul>
-
-                    <ul class="nav navbar-nav ms-md-auto">
-                        <li class="nav-item">
-                            <a href="#" class="nav-link" data-bs-toggle="modal" data-bs-target="#mkdocs_search_modal">
-                                <i class="fa fa-search"></i> Search
-                            </a>
-                        </li>
-                            <li class="nav-item">
-                                <a rel="prev" href="../04_%E6%8C%81%E4%B9%85%E5%8C%96/" class="nav-link">
-                                    <i class="fa fa-arrow-left"></i> Previous
-                                </a>
-                            </li>
-                            <li class="nav-item">
-                                <a rel="next" href="../06_%E9%9B%86%E7%BE%A4/" class="nav-link">
-                                    Next <i class="fa fa-arrow-right"></i>
-                                </a>
-                            </li>
-                    </ul>
-                </div>
-            </div>
-        </div>
-
-        <div class="container">
-            <div class="row">
-                    <div class="col-md-3"><div class="navbar-expand-md bs-sidebar hidden-print affix" role="complementary">
-    <div class="navbar-header">
-        <button type="button" class="navbar-toggler collapsed" data-bs-toggle="collapse" data-bs-target="#toc-collapse" title="Table of Contents">
-            <span class="fa fa-angle-down"></span>
-        </button>
-    </div>
 
     
-    <div id="toc-collapse" class="navbar-collapse collapse card bg-body-tertiary">
-        <ul class="nav flex-column">
-            
-            <li class="nav-item" data-bs-level="1"><a href="#05_" class="nav-link">05_复制与哨兵</a>
-              <ul class="nav flex-column">
-            <li class="nav-item" data-bs-level="2"><a href="#1" class="nav-link">1. 主从复制</a>
-              <ul class="nav flex-column">
-              </ul>
-            </li>
-            <li class="nav-item" data-bs-level="2"><a href="#2-sentinel" class="nav-link">2. 哨兵模式（Sentinel）</a>
-              <ul class="nav flex-column">
-              </ul>
-            </li>
-            <li class="nav-item" data-bs-level="2"><a href="#3" class="nav-link">3. 高可用架构</a>
-              <ul class="nav flex-column">
-              </ul>
-            </li>
-            <li class="nav-item" data-bs-level="2"><a href="#4" class="nav-link">4. 常见问题</a>
-              <ul class="nav flex-column">
-              </ul>
-            </li>
-            <li class="nav-item" data-bs-level="2"><a href="#5" class="nav-link">5. 本章小结</a>
-              <ul class="nav flex-column">
-              </ul>
-            </li>
-              </ul>
-            </li>
-        </ul>
-    </div>
-</div></div>
-                    <div class="col-md-9" role="main">
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("../../../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
 
-<h1 id="05_">05_复制与哨兵</h1>
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#05_" class="md-skip">
+          跳转至
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="页眉">
+    <a href="../../../.." title="一休的博客" class="md-header__button md-logo" aria-label="一休的博客" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            一休的博客
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              05_复制与哨兵
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="切换到深色模式"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="切换到深色模式" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="切换到浅色模式"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="切换到浅色模式" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="搜索" placeholder="搜索" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="查找">
+        
+        <button type="reset" class="md-search__icon md-icon" title="清空当前内容" aria-label="清空当前内容" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            正在初始化搜索引擎
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/jacky6/jacky6.github.io" title="前往仓库" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    jacky6.github.io
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="标签" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../../.." class="md-tabs__link">
+        
+  
+  
+    
+  
+  首页
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../../../programming/java_claw/01_入门篇/" class="md-tabs__link">
+          
+  
+  
+  编程开发
+
+        </a>
+      </li>
+    
+  
+
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../../" class="md-tabs__link">
+          
+  
+  
+  Linux
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../../../llm/" class="md-tabs__link">
+          
+  
+  
+  AI 与 LLM
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../../../fun_tools/git/" class="md-tabs__link">
+          
+  
+  
+  工具技巧
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../../../network/nginx/" class="md-tabs__link">
+          
+  
+  
+  网络
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../../../stock_god/" class="md-tabs__link">
+          
+  
+  
+  股票与投资
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../../../fun_tools/" class="md-tabs__link">
+          
+  
+  
+  有趣工具
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../../../wikis/image/" class="md-tabs__link">
+          
+  
+  
+  知识库
+
+        </a>
+      </li>
+    
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="导航栏" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../../../.." title="一休的博客" class="md-nav__button md-logo" aria-label="一休的博客" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    一休的博客
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/jacky6/jacky6.github.io" title="前往仓库" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    jacky6.github.io
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    首页
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    编程开发
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    编程开发
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_2_1" >
+        
+          
+          <label class="md-nav__link" for="__nav_2_1" id="__nav_2_1_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Java 学习
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_2_1_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2_1">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Java 学习
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../programming/java_claw/01_入门篇/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    入门篇
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../programming/java_claw/02_核心 API/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    核心 API
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../programming/java_claw/04_开发工具/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    开发工具
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../programming/java_claw/05_主流框架/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    主流框架
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../programming/java_claw/06_设计模式/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    设计模式
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_2_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2_2" id="__nav_2_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Python
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_2_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Python
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../programming/python/异步 IO/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    异步 IO
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../programming/python/数据结构/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    数据结构
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../programming/python/三方库/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    三方库
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_2_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_2_3" id="__nav_2_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    算法与数据结构
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_2_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    算法与数据结构
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../programming/algorithm/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    算法基础
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../programming/algos/2_linked_list/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    链表
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Linux
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Linux
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Linux 技巧
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    AI 与 LLM
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    AI 与 LLM
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../llm/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    LLM 笔记
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../wikis/AI_Agent/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    AI Agent
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    工具技巧
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    工具技巧
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../fun_tools/git/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Git
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../fun_tools/iterm2/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    iTerm2
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../fun_tools/%E8%BE%93%E5%85%A5%E6%B3%95/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    输入法
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../fun_tools/openclaw/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    OpenClaw
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_6" >
+        
+          
+          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    网络
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    网络
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../network/nginx/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Nginx
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_7" >
+        
+          
+          <label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    股票与投资
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_7">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    股票与投资
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../stock_god/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    股票笔记
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_8" >
+        
+          
+          <label class="md-nav__link" for="__nav_8" id="__nav_8_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    有趣工具
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_8_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_8">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    有趣工具
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../fun_tools/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    工具集
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_9" >
+        
+          
+          <label class="md-nav__link" for="__nav_9" id="__nav_9_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    知识库
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_9_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_9">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    知识库
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../wikis/image/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    图像知识
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="目录">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      目录
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. 主从复制
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="1. 主从复制">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#11" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1.1 概述
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#12" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1.2 复制特点
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#13" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1.3 配置主从
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="1.3 配置主从">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        （1）从库配置
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        （2）动态配置
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#14" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1.4 复制过程
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#15" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1.5 查看复制状态
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#16-vs" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1.6 全量复制 vs 增量复制
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#17" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1.7 读写分离
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#18" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1.8 复制延迟监控
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2-sentinel" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. 哨兵模式（Sentinel）
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="2. 哨兵模式（Sentinel）">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#21" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2.1 概述
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#22" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2.2 哨兵配置
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#23" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2.3 启动哨兵
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#24" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2.4 哨兵命令
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#25" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2.5 故障转移过程
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#26" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2.6 客户端连接哨兵
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. 高可用架构
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="3. 高可用架构">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#31" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.1 架构对比
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#32" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.2 推荐配置
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="3.2 推荐配置">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        小型应用（主从 + 哨兵）
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        中型应用（多主从 + 哨兵）
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#33" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.3 部署脚本
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. 常见问题
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="4. 常见问题">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#q1-3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Q1: 哨兵为什么至少需要 3 个？
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#q2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Q2: 主从复制延迟怎么解决？
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#q3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Q3: 脑裂问题如何解决？
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#q4" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Q4: 如何平滑扩容从库？
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#q5-quorum" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Q5: 哨兵配置文件中的 quorum 是什么？
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#5" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5. 本章小结
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="5. 本章小结">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        核心知识点
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        最佳实践
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="05_">05_复制与哨兵<a class="headerlink" href="#05_" title="Permanent link">&para;</a></h1>
 <blockquote>
 <p>详解 Redis 主从复制、哨兵模式，实现高可用架构</p>
 </blockquote>
 <hr />
-<h2 id="1">1. 主从复制</h2>
-<h3 id="11">1.1 概述</h3>
+<h2 id="1">1. 主从复制<a class="headerlink" href="#1" title="Permanent link">&para;</a></h2>
+<h3 id="11">1.1 概述<a class="headerlink" href="#11" title="Permanent link">&para;</a></h3>
 <p><strong>主从复制</strong>是 Redis 高可用的基础，支持一主多从、链式复制。</p>
-<pre><code>架构示例：
-         ┌─────────────┐
-         │   Master    │
-         │ 192.168.1.10│
-         │   :6379     │
-         └──────┬──────┘
-                │
-       ┌────────┼────────┐
-       │        │        │
-       ▼        ▼        ▼
-┌──────────┐ ┌──────────┐ ┌──────────┐
-│  Slave1  │ │  Slave2  │ │  Slave3  │
-│192.168.1.11│ │192.168.1.12│ │192.168.1.13│
-│  :6379   │ │  :6379   │ │  :6379   │
-└──────────┘ └──────────┘ └──────────┘
-</code></pre>
-<h3 id="12">1.2 复制特点</h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>架构示例：
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>         ┌─────────────┐
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>         │   Master    │
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>         │ 192.168.1.10│
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>         │   :6379     │
+<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>         └──────┬──────┘
+<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>                │
+<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>       ┌────────┼────────┐
+<a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>       │        │        │
+<a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a>       ▼        ▼        ▼
+<a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a>┌──────────┐ ┌──────────┐ ┌──────────┐
+<a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a>│  Slave1  │ │  Slave2  │ │  Slave3  │
+<a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a>│192.168.1.11│ │192.168.1.12│ │192.168.1.13│
+<a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a>│  :6379   │ │  :6379   │ │  :6379   │
+<a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a>└──────────┘ └──────────┘ └──────────┘
+</code></pre></div>
+<h3 id="12">1.2 复制特点<a class="headerlink" href="#12" title="Permanent link">&para;</a></h3>
 <table>
 <thead>
 <tr>
@@ -1256,80 +2244,80 @@
 </tr>
 </tbody>
 </table>
-<h3 id="13">1.3 配置主从</h3>
-<h4 id="1_1">（1）从库配置</h4>
-<pre><code class="language-conf"># redis-slave.conf
-
-# 指定主库地址
-replicaof 192.168.1.10 6379
-
-# 主库密码（如果设置了）
-masterauth your-master-password
-
-# 从库只读（默认 yes）
-replica-read-only yes
-
-# 从库优先级（用于哨兵选举）
-replica-priority 100
-
-# 从库端口（如果和主库同机）
-port 6380
-</code></pre>
-<h4 id="2">（2）动态配置</h4>
-<pre><code class="language-bash"># 在从库上执行
-127.0.0.1:6380&gt; SLAVEOF 192.168.1.10 6379
-OK
-
-# 断开复制（变为独立主库）
-127.0.0.1:6380&gt; SLAVEOF NO ONE
-OK
-</code></pre>
-<h3 id="14">1.4 复制过程</h3>
-<pre><code>1. 从库连接主库
-      ↓
-2. 从库发送 PSYNC 命令
-      ↓
-3. 主库执行 BGSAVE 生成 RDB
-      ↓
-4. 主库发送 RDB 给从库
-      ↓
-5. 从库加载 RDB
-      ↓
-6. 主库发送缓冲区写命令
-      ↓
-7. 从库执行命令，数据一致
-      ↓
-8. 持续同步（命令流）
-</code></pre>
-<h3 id="15">1.5 查看复制状态</h3>
-<pre><code class="language-bash"># 主库查看
-127.0.0.1:6379&gt; INFO replication
-# Replication
-role:master
-connected_slaves:2
-slave0:ip=192.168.1.11,port=6379,state=online,offset=123456,lag=1
-slave1:ip=192.168.1.12,port=6379,state=online,offset=123455,lag=1
-master_replid:abc123...
-master_replid2:0000000000000000000000000000000000000000
-master_repl_offset:123456
-
-# 从库查看
-127.0.0.1:6380&gt; INFO replication
-# Replication
-role:slave
-master_host:192.168.1.10
-master_port:6379
-master_link_status:up
-master_last_io_seconds_ago:0
-master_sync_in_progress:0
-slave_repl_offset:123456
-slave_priority:100
-slave_read_only:1
-
-# 查看复制详情
-127.0.0.1:6379&gt; REPLICAOF 192.168.1.10 6379
-</code></pre>
-<h3 id="16-vs">1.6 全量复制 vs 增量复制</h3>
+<h3 id="13">1.3 配置主从<a class="headerlink" href="#13" title="Permanent link">&para;</a></h3>
+<h4 id="1_1">（1）从库配置<a class="headerlink" href="#1_1" title="Permanent link">&para;</a></h4>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a># redis-slave.conf
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a># 指定主库地址
+<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>replicaof 192.168.1.10 6379
+<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a>
+<a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a># 主库密码（如果设置了）
+<a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a>masterauth your-master-password
+<a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a>
+<a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a># 从库只读（默认 yes）
+<a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a>replica-read-only yes
+<a id="__codelineno-1-11" name="__codelineno-1-11" href="#__codelineno-1-11"></a>
+<a id="__codelineno-1-12" name="__codelineno-1-12" href="#__codelineno-1-12"></a># 从库优先级（用于哨兵选举）
+<a id="__codelineno-1-13" name="__codelineno-1-13" href="#__codelineno-1-13"></a>replica-priority 100
+<a id="__codelineno-1-14" name="__codelineno-1-14" href="#__codelineno-1-14"></a>
+<a id="__codelineno-1-15" name="__codelineno-1-15" href="#__codelineno-1-15"></a># 从库端口（如果和主库同机）
+<a id="__codelineno-1-16" name="__codelineno-1-16" href="#__codelineno-1-16"></a>port 6380
+</code></pre></div>
+<h4 id="2">（2）动态配置<a class="headerlink" href="#2" title="Permanent link">&para;</a></h4>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="c1"># 在从库上执行</span>
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="m">127</span>.0.0.1:6380&gt;<span class="w"> </span>SLAVEOF<span class="w"> </span><span class="m">192</span>.168.1.10<span class="w"> </span><span class="m">6379</span>
+<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>OK
+<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a>
+<a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a><span class="c1"># 断开复制（变为独立主库）</span>
+<a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a><span class="m">127</span>.0.0.1:6380&gt;<span class="w"> </span>SLAVEOF<span class="w"> </span>NO<span class="w"> </span>ONE
+<a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a>OK
+</code></pre></div>
+<h3 id="14">1.4 复制过程<a class="headerlink" href="#14" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>1. 从库连接主库
+<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>      ↓
+<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>2. 从库发送 PSYNC 命令
+<a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a>      ↓
+<a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a>3. 主库执行 BGSAVE 生成 RDB
+<a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a>      ↓
+<a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a>4. 主库发送 RDB 给从库
+<a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a>      ↓
+<a id="__codelineno-3-9" name="__codelineno-3-9" href="#__codelineno-3-9"></a>5. 从库加载 RDB
+<a id="__codelineno-3-10" name="__codelineno-3-10" href="#__codelineno-3-10"></a>      ↓
+<a id="__codelineno-3-11" name="__codelineno-3-11" href="#__codelineno-3-11"></a>6. 主库发送缓冲区写命令
+<a id="__codelineno-3-12" name="__codelineno-3-12" href="#__codelineno-3-12"></a>      ↓
+<a id="__codelineno-3-13" name="__codelineno-3-13" href="#__codelineno-3-13"></a>7. 从库执行命令，数据一致
+<a id="__codelineno-3-14" name="__codelineno-3-14" href="#__codelineno-3-14"></a>      ↓
+<a id="__codelineno-3-15" name="__codelineno-3-15" href="#__codelineno-3-15"></a>8. 持续同步（命令流）
+</code></pre></div>
+<h3 id="15">1.5 查看复制状态<a class="headerlink" href="#15" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="c1"># 主库查看</span>
+<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="m">127</span>.0.0.1:6379&gt;<span class="w"> </span>INFO<span class="w"> </span>replication
+<a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="c1"># Replication</span>
+<a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a>role:master
+<a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a>connected_slaves:2
+<a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a>slave0:ip<span class="o">=</span><span class="m">192</span>.168.1.11,port<span class="o">=</span><span class="m">6379</span>,state<span class="o">=</span>online,offset<span class="o">=</span><span class="m">123456</span>,lag<span class="o">=</span><span class="m">1</span>
+<a id="__codelineno-4-7" name="__codelineno-4-7" href="#__codelineno-4-7"></a>slave1:ip<span class="o">=</span><span class="m">192</span>.168.1.12,port<span class="o">=</span><span class="m">6379</span>,state<span class="o">=</span>online,offset<span class="o">=</span><span class="m">123455</span>,lag<span class="o">=</span><span class="m">1</span>
+<a id="__codelineno-4-8" name="__codelineno-4-8" href="#__codelineno-4-8"></a>master_replid:abc123...
+<a id="__codelineno-4-9" name="__codelineno-4-9" href="#__codelineno-4-9"></a>master_replid2:0000000000000000000000000000000000000000
+<a id="__codelineno-4-10" name="__codelineno-4-10" href="#__codelineno-4-10"></a>master_repl_offset:123456
+<a id="__codelineno-4-11" name="__codelineno-4-11" href="#__codelineno-4-11"></a>
+<a id="__codelineno-4-12" name="__codelineno-4-12" href="#__codelineno-4-12"></a><span class="c1"># 从库查看</span>
+<a id="__codelineno-4-13" name="__codelineno-4-13" href="#__codelineno-4-13"></a><span class="m">127</span>.0.0.1:6380&gt;<span class="w"> </span>INFO<span class="w"> </span>replication
+<a id="__codelineno-4-14" name="__codelineno-4-14" href="#__codelineno-4-14"></a><span class="c1"># Replication</span>
+<a id="__codelineno-4-15" name="__codelineno-4-15" href="#__codelineno-4-15"></a>role:slave
+<a id="__codelineno-4-16" name="__codelineno-4-16" href="#__codelineno-4-16"></a>master_host:192.168.1.10
+<a id="__codelineno-4-17" name="__codelineno-4-17" href="#__codelineno-4-17"></a>master_port:6379
+<a id="__codelineno-4-18" name="__codelineno-4-18" href="#__codelineno-4-18"></a>master_link_status:up
+<a id="__codelineno-4-19" name="__codelineno-4-19" href="#__codelineno-4-19"></a>master_last_io_seconds_ago:0
+<a id="__codelineno-4-20" name="__codelineno-4-20" href="#__codelineno-4-20"></a>master_sync_in_progress:0
+<a id="__codelineno-4-21" name="__codelineno-4-21" href="#__codelineno-4-21"></a>slave_repl_offset:123456
+<a id="__codelineno-4-22" name="__codelineno-4-22" href="#__codelineno-4-22"></a>slave_priority:100
+<a id="__codelineno-4-23" name="__codelineno-4-23" href="#__codelineno-4-23"></a>slave_read_only:1
+<a id="__codelineno-4-24" name="__codelineno-4-24" href="#__codelineno-4-24"></a>
+<a id="__codelineno-4-25" name="__codelineno-4-25" href="#__codelineno-4-25"></a><span class="c1"># 查看复制详情</span>
+<a id="__codelineno-4-26" name="__codelineno-4-26" href="#__codelineno-4-26"></a><span class="m">127</span>.0.0.1:6379&gt;<span class="w"> </span>REPLICAOF<span class="w"> </span><span class="m">192</span>.168.1.10<span class="w"> </span><span class="m">6379</span>
+</code></pre></div>
+<h3 id="16-vs">1.6 全量复制 vs 增量复制<a class="headerlink" href="#16-vs" title="Permanent link">&para;</a></h3>
 <table>
 <thead>
 <tr>
@@ -1351,46 +2339,46 @@ slave_read_only:1
 </tr>
 </tbody>
 </table>
-<pre><code class="language-bash"># 查看复制 ID 和偏移量
-127.0.0.1:6379&gt; INFO replication | grep replid
-master_replid:abc123def456...
-master_replid2:def456ghi789...  # 用于增量复制的备用 ID
-master_repl_offset:123456
-</code></pre>
-<h3 id="17">1.7 读写分离</h3>
-<pre><code class="language-python"># Python 示例：读写分离
-import redis
-
-# 主库（写）
-master = redis.Redis(host='192.168.1.10', port=6379, db=0)
-
-# 从库（读）
-slave1 = redis.Redis(host='192.168.1.11', port=6379, db=0)
-slave2 = redis.Redis(host='192.168.1.12', port=6379, db=0)
-
-# 写操作
-master.set('user:1001:name', '张三')
-
-# 读操作（从从库）
-name = slave1.get('user:1001:name')
-
-# 注意：主从复制有延迟，可能读到旧数据
-# 关键数据建议读主库
-</code></pre>
-<h3 id="18">1.8 复制延迟监控</h3>
-<pre><code class="language-bash"># 检查从库延迟
-127.0.0.1:6379&gt; INFO replication | grep lag
-slave0:...,lag=1  # 延迟 1 秒
-slave1:...,lag=0  # 无延迟
-
-# 从库查看同步状态
-127.0.0.1:6380&gt; INFO replication | grep master_link
-master_link_status:up  # 正常
-master_link_status:down  # 断开
-</code></pre>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="c1"># 查看复制 ID 和偏移量</span>
+<a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="m">127</span>.0.0.1:6379&gt;<span class="w"> </span>INFO<span class="w"> </span>replication<span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span>replid
+<a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a>master_replid:abc123def456...
+<a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a>master_replid2:def456ghi789...<span class="w">  </span><span class="c1"># 用于增量复制的备用 ID</span>
+<a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a>master_repl_offset:123456
+</code></pre></div>
+<h3 id="17">1.7 读写分离<a class="headerlink" href="#17" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="c1"># Python 示例：读写分离</span>
+<a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a><span class="kn">import</span><span class="w"> </span><span class="nn">redis</span>
+<a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a>
+<a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a><span class="c1"># 主库（写）</span>
+<a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a><span class="n">master</span> <span class="o">=</span> <span class="n">redis</span><span class="o">.</span><span class="n">Redis</span><span class="p">(</span><span class="n">host</span><span class="o">=</span><span class="s1">&#39;192.168.1.10&#39;</span><span class="p">,</span> <span class="n">port</span><span class="o">=</span><span class="mi">6379</span><span class="p">,</span> <span class="n">db</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+<a id="__codelineno-6-6" name="__codelineno-6-6" href="#__codelineno-6-6"></a>
+<a id="__codelineno-6-7" name="__codelineno-6-7" href="#__codelineno-6-7"></a><span class="c1"># 从库（读）</span>
+<a id="__codelineno-6-8" name="__codelineno-6-8" href="#__codelineno-6-8"></a><span class="n">slave1</span> <span class="o">=</span> <span class="n">redis</span><span class="o">.</span><span class="n">Redis</span><span class="p">(</span><span class="n">host</span><span class="o">=</span><span class="s1">&#39;192.168.1.11&#39;</span><span class="p">,</span> <span class="n">port</span><span class="o">=</span><span class="mi">6379</span><span class="p">,</span> <span class="n">db</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+<a id="__codelineno-6-9" name="__codelineno-6-9" href="#__codelineno-6-9"></a><span class="n">slave2</span> <span class="o">=</span> <span class="n">redis</span><span class="o">.</span><span class="n">Redis</span><span class="p">(</span><span class="n">host</span><span class="o">=</span><span class="s1">&#39;192.168.1.12&#39;</span><span class="p">,</span> <span class="n">port</span><span class="o">=</span><span class="mi">6379</span><span class="p">,</span> <span class="n">db</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+<a id="__codelineno-6-10" name="__codelineno-6-10" href="#__codelineno-6-10"></a>
+<a id="__codelineno-6-11" name="__codelineno-6-11" href="#__codelineno-6-11"></a><span class="c1"># 写操作</span>
+<a id="__codelineno-6-12" name="__codelineno-6-12" href="#__codelineno-6-12"></a><span class="n">master</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s1">&#39;user:1001:name&#39;</span><span class="p">,</span> <span class="s1">&#39;张三&#39;</span><span class="p">)</span>
+<a id="__codelineno-6-13" name="__codelineno-6-13" href="#__codelineno-6-13"></a>
+<a id="__codelineno-6-14" name="__codelineno-6-14" href="#__codelineno-6-14"></a><span class="c1"># 读操作（从从库）</span>
+<a id="__codelineno-6-15" name="__codelineno-6-15" href="#__codelineno-6-15"></a><span class="n">name</span> <span class="o">=</span> <span class="n">slave1</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;user:1001:name&#39;</span><span class="p">)</span>
+<a id="__codelineno-6-16" name="__codelineno-6-16" href="#__codelineno-6-16"></a>
+<a id="__codelineno-6-17" name="__codelineno-6-17" href="#__codelineno-6-17"></a><span class="c1"># 注意：主从复制有延迟，可能读到旧数据</span>
+<a id="__codelineno-6-18" name="__codelineno-6-18" href="#__codelineno-6-18"></a><span class="c1"># 关键数据建议读主库</span>
+</code></pre></div>
+<h3 id="18">1.8 复制延迟监控<a class="headerlink" href="#18" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="c1"># 检查从库延迟</span>
+<a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a><span class="m">127</span>.0.0.1:6379&gt;<span class="w"> </span>INFO<span class="w"> </span>replication<span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span>lag
+<a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a>slave0:...,lag<span class="o">=</span><span class="m">1</span><span class="w">  </span><span class="c1"># 延迟 1 秒</span>
+<a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a>slave1:...,lag<span class="o">=</span><span class="m">0</span><span class="w">  </span><span class="c1"># 无延迟</span>
+<a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a>
+<a id="__codelineno-7-6" name="__codelineno-7-6" href="#__codelineno-7-6"></a><span class="c1"># 从库查看同步状态</span>
+<a id="__codelineno-7-7" name="__codelineno-7-7" href="#__codelineno-7-7"></a><span class="m">127</span>.0.0.1:6380&gt;<span class="w"> </span>INFO<span class="w"> </span>replication<span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span>master_link
+<a id="__codelineno-7-8" name="__codelineno-7-8" href="#__codelineno-7-8"></a>master_link_status:up<span class="w">  </span><span class="c1"># 正常</span>
+<a id="__codelineno-7-9" name="__codelineno-7-9" href="#__codelineno-7-9"></a>master_link_status:down<span class="w">  </span><span class="c1"># 断开</span>
+</code></pre></div>
 <hr />
-<h2 id="2-sentinel">2. 哨兵模式（Sentinel）</h2>
-<h3 id="21">2.1 概述</h3>
+<h2 id="2-sentinel">2. 哨兵模式（Sentinel）<a class="headerlink" href="#2-sentinel" title="Permanent link">&para;</a></h2>
+<h3 id="21">2.1 概述<a class="headerlink" href="#21" title="Permanent link">&para;</a></h3>
 <p><strong>哨兵</strong>是 Redis 高可用解决方案，提供：</p>
 <ul>
 <li><strong>监控</strong>：监控主从库状态</li>
@@ -1398,217 +2386,217 @@ master_link_status:down  # 断开
 <li><strong>自动故障转移</strong>：主库故障时选举新主库</li>
 <li><strong>配置中心</strong>：提供当前主库地址</li>
 </ul>
-<pre><code>架构示例：
-         ┌─────────────┐
-         │   Master    │
-         │ 192.168.1.10│
-         └──────┬──────┘
-                │
-       ┌────────┼────────┐
-       ▼        ▼        ▼
-┌──────────┐ ┌──────────┐ ┌──────────┐
-│  Slave1  │ │  Slave2  │ │  Slave3  │
-└──────────┘ └──────────┘ └──────────┘
-       ▲        ▲        ▲
-       │        │        │
-       └────────┼────────┘
-                │
-       ┌────────┼────────┐
-       ▼        ▼        ▼
-┌──────────┐ ┌──────────┐ ┌──────────┐
-│ Sentinel1│ │ Sentinel2│ │ Sentinel3│
-│192.168.1.20│ │192.168.1.21│ │192.168.1.22│
-└──────────┘ └──────────┘ └──────────┘
-</code></pre>
-<h3 id="22">2.2 哨兵配置</h3>
-<pre><code class="language-conf"># sentinel.conf
-
-# 哨兵端口
-port 26379
-
-# 守护进程
-daemonize yes
-
-# 日志文件
-logfile &quot;/var/log/redis/sentinel.log&quot;
-
-# 工作目录
-dir /var/lib/redis/sentinel
-
-# 监控主库
-# sentinel monitor &lt;master-name&gt; &lt;ip&gt; &lt;port&gt; &lt;quorum&gt;
-sentinel monitor mymaster 192.168.1.10 6379 2
-
-# 主库密码
-sentinel auth-pass mymaster your-password
-
-# 故障判定时间（毫秒）
-# 超过此时间认为主库下线
-sentinel down-after-milliseconds mymaster 5000
-
-# 故障转移超时（毫秒）
-sentinel failover-timeout mymaster 60000
-
-# 并行同步的从库数量
-sentinel parallel-syncs mymaster 1
-
-# 通知脚本（故障时执行）
-# sentinel notification-script mymaster /var/redis/notify.sh
-
-# 客户端重定向脚本
-# sentinel client-reconfig-script mymaster /var/redis/reconfig.sh
-</code></pre>
-<h3 id="23">2.3 启动哨兵</h3>
-<pre><code class="language-bash"># 启动哨兵
-redis-sentinel /etc/redis/sentinel.conf
-
-# 或
-redis-server /etc/redis/sentinel.conf --sentinel
-
-# 后台运行
-redis-sentinel /etc/redis/sentinel.conf --daemonize yes
-
-# 查看哨兵状态
-redis-cli -p 26379
-127.0.0.1:26379&gt; INFO sentinel
-# Sentinel
-sentinel_masters:1
-sentinel_tilt:0
-sentinel_running_scripts:0
-sentinel_scripts_queue_length:0
-sentinel_simulate_failure_flags:0
-master0:name=mymaster,status=ok,address=192.168.1.10:6379,slaves=3,sentinels=3
-</code></pre>
-<h3 id="24">2.4 哨兵命令</h3>
-<pre><code class="language-bash"># 查看主库信息
-127.0.0.1:26379&gt; SENTINEL masters
-1)  1) &quot;name&quot;
-    2) &quot;mymaster&quot;
-    3) &quot;ip&quot;
-    4) &quot;192.168.1.10&quot;
-    5) &quot;port&quot;
-    6) &quot;6379&quot;
-    7) &quot;runid&quot;
-    8) &quot;abc123...&quot;
-    9) &quot;flags&quot;
-   10) &quot;master&quot;
-   11) &quot;link-down-time&quot;
-   12) &quot;0&quot;
-   13) &quot;role-reported&quot;
-   14) &quot;master&quot;
-   15) &quot;role-reported-time&quot;
-   16) &quot;123456&quot;
-   17) &quot;config-epoch&quot;
-   18) &quot;1&quot;
-   19) &quot;num-slaves&quot;
-   20) &quot;3&quot;
-   21) &quot;num-other-sentinels&quot;
-   22) &quot;2&quot;
-   23) &quot;quorum&quot;
-   24) &quot;2&quot;
-   25) &quot;failover-timeout&quot;
-   26) &quot;60000&quot;
-   27) &quot;parallel-syncs&quot;
-   28) &quot;1&quot;
-
-# 查看从库列表
-127.0.0.1:26379&gt; SENTINEL slaves mymaster
-1) 1) &quot;name&quot;
-   2) &quot;192.168.1.11:6379&quot;
-   3) &quot;ip&quot;
-   4) &quot;192.168.1.11&quot;
-   5) &quot;port&quot;
-   6) &quot;6379&quot;
-   7) &quot;flags&quot;
-   8) &quot;slave&quot;
-   ...
-
-# 获取主库地址
-127.0.0.1:26379&gt; SENTINEL get-master-addr-by-name mymaster
-1) &quot;192.168.1.10&quot;
-2) &quot;6379&quot;
-
-# 手动故障转移
-127.0.0.1:26379&gt; SENTINEL failover mymaster
-OK
-
-# 查看哨兵列表
-127.0.0.1:26379&gt; SENTINEL sentinels mymaster
-</code></pre>
-<h3 id="25">2.5 故障转移过程</h3>
-<pre><code>1. 哨兵监控到主库故障
-      ↓
-2. 主观下线（单个哨兵判定）
-      ↓
-3. 客观下线（quorum 个哨兵确认）
-      ↓
-4. 选举领头哨兵（Raft 算法）
-      ↓
-5. 领头哨兵选择新主库
-   - 优先级高（replica-priority）
-   - 复制偏移量大（数据新）
-   - 运行 ID 小
-      ↓
-6. 领头哨兵发送 SLAVEOF NO ONE 给新主库
-      ↓
-7. 其他从库复制新主库
-      ↓
-8. 更新配置，故障转移完成
-</code></pre>
-<h3 id="26">2.6 客户端连接哨兵</h3>
-<pre><code class="language-python"># Python 示例：通过哨兵连接
-from redis.sentinel import Sentinel
-
-# 哨兵列表
-sentinel = Sentinel(
-    [('192.168.1.20', 26379),
-     ('192.168.1.21', 26379),
-     ('192.168.1.22', 26379)],
-    socket_timeout=0.1
-)
-
-# 获取主库（写）
-master = sentinel.master_for('mymaster', socket_timeout=0.1)
-
-# 获取从库（读）
-slave = sentinel.slave_for('mymaster', socket_timeout=0.1)
-
-# 写操作
-master.set('user:1001:name', '张三')
-
-# 读操作（自动从从库）
-name = slave.get('user:1001:name')
-
-# 故障转移后自动重连
-# 哨兵客户端会自动获取新主库地址
-</code></pre>
-<pre><code class="language-java">// Java 示例（Jedis）
-import redis.clients.jedis.JedisSentinelPool;
-import redis.clients.jedis.Jedis;
-
-import java.util.HashSet;
-import java.util.Set;
-
-Set&lt;String&gt; sentinels = new HashSet&lt;&gt;();
-sentinels.add(&quot;192.168.1.20:26379&quot;);
-sentinels.add(&quot;192.168.1.21:26379&quot;);
-sentinels.add(&quot;192.168.1.22:26379&quot;);
-
-JedisSentinelPool pool = new JedisSentinelPool(
-    &quot;mymaster&quot;,
-    sentinels,
-    null,  // 连接池配置
-    &quot;password&quot;  // 密码
-);
-
-try (Jedis jedis = pool.getResource()) {
-    jedis.set(&quot;key&quot;, &quot;value&quot;);
-    String val = jedis.get(&quot;key&quot;);
-}
-</code></pre>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a>架构示例：
+<a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a>         ┌─────────────┐
+<a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a>         │   Master    │
+<a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a>         │ 192.168.1.10│
+<a id="__codelineno-8-5" name="__codelineno-8-5" href="#__codelineno-8-5"></a>         └──────┬──────┘
+<a id="__codelineno-8-6" name="__codelineno-8-6" href="#__codelineno-8-6"></a>                │
+<a id="__codelineno-8-7" name="__codelineno-8-7" href="#__codelineno-8-7"></a>       ┌────────┼────────┐
+<a id="__codelineno-8-8" name="__codelineno-8-8" href="#__codelineno-8-8"></a>       ▼        ▼        ▼
+<a id="__codelineno-8-9" name="__codelineno-8-9" href="#__codelineno-8-9"></a>┌──────────┐ ┌──────────┐ ┌──────────┐
+<a id="__codelineno-8-10" name="__codelineno-8-10" href="#__codelineno-8-10"></a>│  Slave1  │ │  Slave2  │ │  Slave3  │
+<a id="__codelineno-8-11" name="__codelineno-8-11" href="#__codelineno-8-11"></a>└──────────┘ └──────────┘ └──────────┘
+<a id="__codelineno-8-12" name="__codelineno-8-12" href="#__codelineno-8-12"></a>       ▲        ▲        ▲
+<a id="__codelineno-8-13" name="__codelineno-8-13" href="#__codelineno-8-13"></a>       │        │        │
+<a id="__codelineno-8-14" name="__codelineno-8-14" href="#__codelineno-8-14"></a>       └────────┼────────┘
+<a id="__codelineno-8-15" name="__codelineno-8-15" href="#__codelineno-8-15"></a>                │
+<a id="__codelineno-8-16" name="__codelineno-8-16" href="#__codelineno-8-16"></a>       ┌────────┼────────┐
+<a id="__codelineno-8-17" name="__codelineno-8-17" href="#__codelineno-8-17"></a>       ▼        ▼        ▼
+<a id="__codelineno-8-18" name="__codelineno-8-18" href="#__codelineno-8-18"></a>┌──────────┐ ┌──────────┐ ┌──────────┐
+<a id="__codelineno-8-19" name="__codelineno-8-19" href="#__codelineno-8-19"></a>│ Sentinel1│ │ Sentinel2│ │ Sentinel3│
+<a id="__codelineno-8-20" name="__codelineno-8-20" href="#__codelineno-8-20"></a>│192.168.1.20│ │192.168.1.21│ │192.168.1.22│
+<a id="__codelineno-8-21" name="__codelineno-8-21" href="#__codelineno-8-21"></a>└──────────┘ └──────────┘ └──────────┘
+</code></pre></div>
+<h3 id="22">2.2 哨兵配置<a class="headerlink" href="#22" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a># sentinel.conf
+<a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a>
+<a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a># 哨兵端口
+<a id="__codelineno-9-4" name="__codelineno-9-4" href="#__codelineno-9-4"></a>port 26379
+<a id="__codelineno-9-5" name="__codelineno-9-5" href="#__codelineno-9-5"></a>
+<a id="__codelineno-9-6" name="__codelineno-9-6" href="#__codelineno-9-6"></a># 守护进程
+<a id="__codelineno-9-7" name="__codelineno-9-7" href="#__codelineno-9-7"></a>daemonize yes
+<a id="__codelineno-9-8" name="__codelineno-9-8" href="#__codelineno-9-8"></a>
+<a id="__codelineno-9-9" name="__codelineno-9-9" href="#__codelineno-9-9"></a># 日志文件
+<a id="__codelineno-9-10" name="__codelineno-9-10" href="#__codelineno-9-10"></a>logfile &quot;/var/log/redis/sentinel.log&quot;
+<a id="__codelineno-9-11" name="__codelineno-9-11" href="#__codelineno-9-11"></a>
+<a id="__codelineno-9-12" name="__codelineno-9-12" href="#__codelineno-9-12"></a># 工作目录
+<a id="__codelineno-9-13" name="__codelineno-9-13" href="#__codelineno-9-13"></a>dir /var/lib/redis/sentinel
+<a id="__codelineno-9-14" name="__codelineno-9-14" href="#__codelineno-9-14"></a>
+<a id="__codelineno-9-15" name="__codelineno-9-15" href="#__codelineno-9-15"></a># 监控主库
+<a id="__codelineno-9-16" name="__codelineno-9-16" href="#__codelineno-9-16"></a># sentinel monitor &lt;master-name&gt; &lt;ip&gt; &lt;port&gt; &lt;quorum&gt;
+<a id="__codelineno-9-17" name="__codelineno-9-17" href="#__codelineno-9-17"></a>sentinel monitor mymaster 192.168.1.10 6379 2
+<a id="__codelineno-9-18" name="__codelineno-9-18" href="#__codelineno-9-18"></a>
+<a id="__codelineno-9-19" name="__codelineno-9-19" href="#__codelineno-9-19"></a># 主库密码
+<a id="__codelineno-9-20" name="__codelineno-9-20" href="#__codelineno-9-20"></a>sentinel auth-pass mymaster your-password
+<a id="__codelineno-9-21" name="__codelineno-9-21" href="#__codelineno-9-21"></a>
+<a id="__codelineno-9-22" name="__codelineno-9-22" href="#__codelineno-9-22"></a># 故障判定时间（毫秒）
+<a id="__codelineno-9-23" name="__codelineno-9-23" href="#__codelineno-9-23"></a># 超过此时间认为主库下线
+<a id="__codelineno-9-24" name="__codelineno-9-24" href="#__codelineno-9-24"></a>sentinel down-after-milliseconds mymaster 5000
+<a id="__codelineno-9-25" name="__codelineno-9-25" href="#__codelineno-9-25"></a>
+<a id="__codelineno-9-26" name="__codelineno-9-26" href="#__codelineno-9-26"></a># 故障转移超时（毫秒）
+<a id="__codelineno-9-27" name="__codelineno-9-27" href="#__codelineno-9-27"></a>sentinel failover-timeout mymaster 60000
+<a id="__codelineno-9-28" name="__codelineno-9-28" href="#__codelineno-9-28"></a>
+<a id="__codelineno-9-29" name="__codelineno-9-29" href="#__codelineno-9-29"></a># 并行同步的从库数量
+<a id="__codelineno-9-30" name="__codelineno-9-30" href="#__codelineno-9-30"></a>sentinel parallel-syncs mymaster 1
+<a id="__codelineno-9-31" name="__codelineno-9-31" href="#__codelineno-9-31"></a>
+<a id="__codelineno-9-32" name="__codelineno-9-32" href="#__codelineno-9-32"></a># 通知脚本（故障时执行）
+<a id="__codelineno-9-33" name="__codelineno-9-33" href="#__codelineno-9-33"></a># sentinel notification-script mymaster /var/redis/notify.sh
+<a id="__codelineno-9-34" name="__codelineno-9-34" href="#__codelineno-9-34"></a>
+<a id="__codelineno-9-35" name="__codelineno-9-35" href="#__codelineno-9-35"></a># 客户端重定向脚本
+<a id="__codelineno-9-36" name="__codelineno-9-36" href="#__codelineno-9-36"></a># sentinel client-reconfig-script mymaster /var/redis/reconfig.sh
+</code></pre></div>
+<h3 id="23">2.3 启动哨兵<a class="headerlink" href="#23" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a><span class="c1"># 启动哨兵</span>
+<a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a>redis-sentinel<span class="w"> </span>/etc/redis/sentinel.conf
+<a id="__codelineno-10-3" name="__codelineno-10-3" href="#__codelineno-10-3"></a>
+<a id="__codelineno-10-4" name="__codelineno-10-4" href="#__codelineno-10-4"></a><span class="c1"># 或</span>
+<a id="__codelineno-10-5" name="__codelineno-10-5" href="#__codelineno-10-5"></a>redis-server<span class="w"> </span>/etc/redis/sentinel.conf<span class="w"> </span>--sentinel
+<a id="__codelineno-10-6" name="__codelineno-10-6" href="#__codelineno-10-6"></a>
+<a id="__codelineno-10-7" name="__codelineno-10-7" href="#__codelineno-10-7"></a><span class="c1"># 后台运行</span>
+<a id="__codelineno-10-8" name="__codelineno-10-8" href="#__codelineno-10-8"></a>redis-sentinel<span class="w"> </span>/etc/redis/sentinel.conf<span class="w"> </span>--daemonize<span class="w"> </span>yes
+<a id="__codelineno-10-9" name="__codelineno-10-9" href="#__codelineno-10-9"></a>
+<a id="__codelineno-10-10" name="__codelineno-10-10" href="#__codelineno-10-10"></a><span class="c1"># 查看哨兵状态</span>
+<a id="__codelineno-10-11" name="__codelineno-10-11" href="#__codelineno-10-11"></a>redis-cli<span class="w"> </span>-p<span class="w"> </span><span class="m">26379</span>
+<a id="__codelineno-10-12" name="__codelineno-10-12" href="#__codelineno-10-12"></a><span class="m">127</span>.0.0.1:26379&gt;<span class="w"> </span>INFO<span class="w"> </span>sentinel
+<a id="__codelineno-10-13" name="__codelineno-10-13" href="#__codelineno-10-13"></a><span class="c1"># Sentinel</span>
+<a id="__codelineno-10-14" name="__codelineno-10-14" href="#__codelineno-10-14"></a>sentinel_masters:1
+<a id="__codelineno-10-15" name="__codelineno-10-15" href="#__codelineno-10-15"></a>sentinel_tilt:0
+<a id="__codelineno-10-16" name="__codelineno-10-16" href="#__codelineno-10-16"></a>sentinel_running_scripts:0
+<a id="__codelineno-10-17" name="__codelineno-10-17" href="#__codelineno-10-17"></a>sentinel_scripts_queue_length:0
+<a id="__codelineno-10-18" name="__codelineno-10-18" href="#__codelineno-10-18"></a>sentinel_simulate_failure_flags:0
+<a id="__codelineno-10-19" name="__codelineno-10-19" href="#__codelineno-10-19"></a>master0:name<span class="o">=</span>mymaster,status<span class="o">=</span>ok,address<span class="o">=</span><span class="m">192</span>.168.1.10:6379,slaves<span class="o">=</span><span class="m">3</span>,sentinels<span class="o">=</span><span class="m">3</span>
+</code></pre></div>
+<h3 id="24">2.4 哨兵命令<a class="headerlink" href="#24" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a><span class="c1"># 查看主库信息</span>
+<a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a><span class="m">127</span>.0.0.1:26379&gt;<span class="w"> </span>SENTINEL<span class="w"> </span>masters
+<a id="__codelineno-11-3" name="__codelineno-11-3" href="#__codelineno-11-3"></a><span class="m">1</span><span class="o">)</span><span class="w">  </span><span class="m">1</span><span class="o">)</span><span class="w"> </span><span class="s2">&quot;name&quot;</span>
+<a id="__codelineno-11-4" name="__codelineno-11-4" href="#__codelineno-11-4"></a><span class="w">    </span><span class="m">2</span><span class="o">)</span><span class="w"> </span><span class="s2">&quot;mymaster&quot;</span>
+<a id="__codelineno-11-5" name="__codelineno-11-5" href="#__codelineno-11-5"></a><span class="w">    </span><span class="m">3</span><span class="o">)</span><span class="w"> </span><span class="s2">&quot;ip&quot;</span>
+<a id="__codelineno-11-6" name="__codelineno-11-6" href="#__codelineno-11-6"></a><span class="w">    </span><span class="m">4</span><span class="o">)</span><span class="w"> </span><span class="s2">&quot;192.168.1.10&quot;</span>
+<a id="__codelineno-11-7" name="__codelineno-11-7" href="#__codelineno-11-7"></a><span class="w">    </span><span class="m">5</span><span class="o">)</span><span class="w"> </span><span class="s2">&quot;port&quot;</span>
+<a id="__codelineno-11-8" name="__codelineno-11-8" href="#__codelineno-11-8"></a><span class="w">    </span><span class="m">6</span><span class="o">)</span><span class="w"> </span><span class="s2">&quot;6379&quot;</span>
+<a id="__codelineno-11-9" name="__codelineno-11-9" href="#__codelineno-11-9"></a><span class="w">    </span><span class="m">7</span><span class="o">)</span><span class="w"> </span><span class="s2">&quot;runid&quot;</span>
+<a id="__codelineno-11-10" name="__codelineno-11-10" href="#__codelineno-11-10"></a><span class="w">    </span><span class="m">8</span><span class="o">)</span><span class="w"> </span><span class="s2">&quot;abc123...&quot;</span>
+<a id="__codelineno-11-11" name="__codelineno-11-11" href="#__codelineno-11-11"></a><span class="w">    </span><span class="m">9</span><span class="o">)</span><span class="w"> </span><span class="s2">&quot;flags&quot;</span>
+<a id="__codelineno-11-12" name="__codelineno-11-12" href="#__codelineno-11-12"></a><span class="w">   </span><span class="m">10</span><span class="o">)</span><span class="w"> </span><span class="s2">&quot;master&quot;</span>
+<a id="__codelineno-11-13" name="__codelineno-11-13" href="#__codelineno-11-13"></a><span class="w">   </span><span class="m">11</span><span class="o">)</span><span class="w"> </span><span class="s2">&quot;link-down-time&quot;</span>
+<a id="__codelineno-11-14" name="__codelineno-11-14" href="#__codelineno-11-14"></a><span class="w">   </span><span class="m">12</span><span class="o">)</span><span class="w"> </span><span class="s2">&quot;0&quot;</span>
+<a id="__codelineno-11-15" name="__codelineno-11-15" href="#__codelineno-11-15"></a><span class="w">   </span><span class="m">13</span><span class="o">)</span><span class="w"> </span><span class="s2">&quot;role-reported&quot;</span>
+<a id="__codelineno-11-16" name="__codelineno-11-16" href="#__codelineno-11-16"></a><span class="w">   </span><span class="m">14</span><span class="o">)</span><span class="w"> </span><span class="s2">&quot;master&quot;</span>
+<a id="__codelineno-11-17" name="__codelineno-11-17" href="#__codelineno-11-17"></a><span class="w">   </span><span class="m">15</span><span class="o">)</span><span class="w"> </span><span class="s2">&quot;role-reported-time&quot;</span>
+<a id="__codelineno-11-18" name="__codelineno-11-18" href="#__codelineno-11-18"></a><span class="w">   </span><span class="m">16</span><span class="o">)</span><span class="w"> </span><span class="s2">&quot;123456&quot;</span>
+<a id="__codelineno-11-19" name="__codelineno-11-19" href="#__codelineno-11-19"></a><span class="w">   </span><span class="m">17</span><span class="o">)</span><span class="w"> </span><span class="s2">&quot;config-epoch&quot;</span>
+<a id="__codelineno-11-20" name="__codelineno-11-20" href="#__codelineno-11-20"></a><span class="w">   </span><span class="m">18</span><span class="o">)</span><span class="w"> </span><span class="s2">&quot;1&quot;</span>
+<a id="__codelineno-11-21" name="__codelineno-11-21" href="#__codelineno-11-21"></a><span class="w">   </span><span class="m">19</span><span class="o">)</span><span class="w"> </span><span class="s2">&quot;num-slaves&quot;</span>
+<a id="__codelineno-11-22" name="__codelineno-11-22" href="#__codelineno-11-22"></a><span class="w">   </span><span class="m">20</span><span class="o">)</span><span class="w"> </span><span class="s2">&quot;3&quot;</span>
+<a id="__codelineno-11-23" name="__codelineno-11-23" href="#__codelineno-11-23"></a><span class="w">   </span><span class="m">21</span><span class="o">)</span><span class="w"> </span><span class="s2">&quot;num-other-sentinels&quot;</span>
+<a id="__codelineno-11-24" name="__codelineno-11-24" href="#__codelineno-11-24"></a><span class="w">   </span><span class="m">22</span><span class="o">)</span><span class="w"> </span><span class="s2">&quot;2&quot;</span>
+<a id="__codelineno-11-25" name="__codelineno-11-25" href="#__codelineno-11-25"></a><span class="w">   </span><span class="m">23</span><span class="o">)</span><span class="w"> </span><span class="s2">&quot;quorum&quot;</span>
+<a id="__codelineno-11-26" name="__codelineno-11-26" href="#__codelineno-11-26"></a><span class="w">   </span><span class="m">24</span><span class="o">)</span><span class="w"> </span><span class="s2">&quot;2&quot;</span>
+<a id="__codelineno-11-27" name="__codelineno-11-27" href="#__codelineno-11-27"></a><span class="w">   </span><span class="m">25</span><span class="o">)</span><span class="w"> </span><span class="s2">&quot;failover-timeout&quot;</span>
+<a id="__codelineno-11-28" name="__codelineno-11-28" href="#__codelineno-11-28"></a><span class="w">   </span><span class="m">26</span><span class="o">)</span><span class="w"> </span><span class="s2">&quot;60000&quot;</span>
+<a id="__codelineno-11-29" name="__codelineno-11-29" href="#__codelineno-11-29"></a><span class="w">   </span><span class="m">27</span><span class="o">)</span><span class="w"> </span><span class="s2">&quot;parallel-syncs&quot;</span>
+<a id="__codelineno-11-30" name="__codelineno-11-30" href="#__codelineno-11-30"></a><span class="w">   </span><span class="m">28</span><span class="o">)</span><span class="w"> </span><span class="s2">&quot;1&quot;</span>
+<a id="__codelineno-11-31" name="__codelineno-11-31" href="#__codelineno-11-31"></a>
+<a id="__codelineno-11-32" name="__codelineno-11-32" href="#__codelineno-11-32"></a><span class="c1"># 查看从库列表</span>
+<a id="__codelineno-11-33" name="__codelineno-11-33" href="#__codelineno-11-33"></a><span class="m">127</span>.0.0.1:26379&gt;<span class="w"> </span>SENTINEL<span class="w"> </span>slaves<span class="w"> </span>mymaster
+<a id="__codelineno-11-34" name="__codelineno-11-34" href="#__codelineno-11-34"></a><span class="m">1</span><span class="o">)</span><span class="w"> </span><span class="m">1</span><span class="o">)</span><span class="w"> </span><span class="s2">&quot;name&quot;</span>
+<a id="__codelineno-11-35" name="__codelineno-11-35" href="#__codelineno-11-35"></a><span class="w">   </span><span class="m">2</span><span class="o">)</span><span class="w"> </span><span class="s2">&quot;192.168.1.11:6379&quot;</span>
+<a id="__codelineno-11-36" name="__codelineno-11-36" href="#__codelineno-11-36"></a><span class="w">   </span><span class="m">3</span><span class="o">)</span><span class="w"> </span><span class="s2">&quot;ip&quot;</span>
+<a id="__codelineno-11-37" name="__codelineno-11-37" href="#__codelineno-11-37"></a><span class="w">   </span><span class="m">4</span><span class="o">)</span><span class="w"> </span><span class="s2">&quot;192.168.1.11&quot;</span>
+<a id="__codelineno-11-38" name="__codelineno-11-38" href="#__codelineno-11-38"></a><span class="w">   </span><span class="m">5</span><span class="o">)</span><span class="w"> </span><span class="s2">&quot;port&quot;</span>
+<a id="__codelineno-11-39" name="__codelineno-11-39" href="#__codelineno-11-39"></a><span class="w">   </span><span class="m">6</span><span class="o">)</span><span class="w"> </span><span class="s2">&quot;6379&quot;</span>
+<a id="__codelineno-11-40" name="__codelineno-11-40" href="#__codelineno-11-40"></a><span class="w">   </span><span class="m">7</span><span class="o">)</span><span class="w"> </span><span class="s2">&quot;flags&quot;</span>
+<a id="__codelineno-11-41" name="__codelineno-11-41" href="#__codelineno-11-41"></a><span class="w">   </span><span class="m">8</span><span class="o">)</span><span class="w"> </span><span class="s2">&quot;slave&quot;</span>
+<a id="__codelineno-11-42" name="__codelineno-11-42" href="#__codelineno-11-42"></a><span class="w">   </span>...
+<a id="__codelineno-11-43" name="__codelineno-11-43" href="#__codelineno-11-43"></a>
+<a id="__codelineno-11-44" name="__codelineno-11-44" href="#__codelineno-11-44"></a><span class="c1"># 获取主库地址</span>
+<a id="__codelineno-11-45" name="__codelineno-11-45" href="#__codelineno-11-45"></a><span class="m">127</span>.0.0.1:26379&gt;<span class="w"> </span>SENTINEL<span class="w"> </span>get-master-addr-by-name<span class="w"> </span>mymaster
+<a id="__codelineno-11-46" name="__codelineno-11-46" href="#__codelineno-11-46"></a><span class="m">1</span><span class="o">)</span><span class="w"> </span><span class="s2">&quot;192.168.1.10&quot;</span>
+<a id="__codelineno-11-47" name="__codelineno-11-47" href="#__codelineno-11-47"></a><span class="m">2</span><span class="o">)</span><span class="w"> </span><span class="s2">&quot;6379&quot;</span>
+<a id="__codelineno-11-48" name="__codelineno-11-48" href="#__codelineno-11-48"></a>
+<a id="__codelineno-11-49" name="__codelineno-11-49" href="#__codelineno-11-49"></a><span class="c1"># 手动故障转移</span>
+<a id="__codelineno-11-50" name="__codelineno-11-50" href="#__codelineno-11-50"></a><span class="m">127</span>.0.0.1:26379&gt;<span class="w"> </span>SENTINEL<span class="w"> </span>failover<span class="w"> </span>mymaster
+<a id="__codelineno-11-51" name="__codelineno-11-51" href="#__codelineno-11-51"></a>OK
+<a id="__codelineno-11-52" name="__codelineno-11-52" href="#__codelineno-11-52"></a>
+<a id="__codelineno-11-53" name="__codelineno-11-53" href="#__codelineno-11-53"></a><span class="c1"># 查看哨兵列表</span>
+<a id="__codelineno-11-54" name="__codelineno-11-54" href="#__codelineno-11-54"></a><span class="m">127</span>.0.0.1:26379&gt;<span class="w"> </span>SENTINEL<span class="w"> </span>sentinels<span class="w"> </span>mymaster
+</code></pre></div>
+<h3 id="25">2.5 故障转移过程<a class="headerlink" href="#25" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a>1. 哨兵监控到主库故障
+<a id="__codelineno-12-2" name="__codelineno-12-2" href="#__codelineno-12-2"></a>      ↓
+<a id="__codelineno-12-3" name="__codelineno-12-3" href="#__codelineno-12-3"></a>2. 主观下线（单个哨兵判定）
+<a id="__codelineno-12-4" name="__codelineno-12-4" href="#__codelineno-12-4"></a>      ↓
+<a id="__codelineno-12-5" name="__codelineno-12-5" href="#__codelineno-12-5"></a>3. 客观下线（quorum 个哨兵确认）
+<a id="__codelineno-12-6" name="__codelineno-12-6" href="#__codelineno-12-6"></a>      ↓
+<a id="__codelineno-12-7" name="__codelineno-12-7" href="#__codelineno-12-7"></a>4. 选举领头哨兵（Raft 算法）
+<a id="__codelineno-12-8" name="__codelineno-12-8" href="#__codelineno-12-8"></a>      ↓
+<a id="__codelineno-12-9" name="__codelineno-12-9" href="#__codelineno-12-9"></a>5. 领头哨兵选择新主库
+<a id="__codelineno-12-10" name="__codelineno-12-10" href="#__codelineno-12-10"></a>   - 优先级高（replica-priority）
+<a id="__codelineno-12-11" name="__codelineno-12-11" href="#__codelineno-12-11"></a>   - 复制偏移量大（数据新）
+<a id="__codelineno-12-12" name="__codelineno-12-12" href="#__codelineno-12-12"></a>   - 运行 ID 小
+<a id="__codelineno-12-13" name="__codelineno-12-13" href="#__codelineno-12-13"></a>      ↓
+<a id="__codelineno-12-14" name="__codelineno-12-14" href="#__codelineno-12-14"></a>6. 领头哨兵发送 SLAVEOF NO ONE 给新主库
+<a id="__codelineno-12-15" name="__codelineno-12-15" href="#__codelineno-12-15"></a>      ↓
+<a id="__codelineno-12-16" name="__codelineno-12-16" href="#__codelineno-12-16"></a>7. 其他从库复制新主库
+<a id="__codelineno-12-17" name="__codelineno-12-17" href="#__codelineno-12-17"></a>      ↓
+<a id="__codelineno-12-18" name="__codelineno-12-18" href="#__codelineno-12-18"></a>8. 更新配置，故障转移完成
+</code></pre></div>
+<h3 id="26">2.6 客户端连接哨兵<a class="headerlink" href="#26" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a><span class="c1"># Python 示例：通过哨兵连接</span>
+<a id="__codelineno-13-2" name="__codelineno-13-2" href="#__codelineno-13-2"></a><span class="kn">from</span><span class="w"> </span><span class="nn">redis.sentinel</span><span class="w"> </span><span class="kn">import</span> <span class="n">Sentinel</span>
+<a id="__codelineno-13-3" name="__codelineno-13-3" href="#__codelineno-13-3"></a>
+<a id="__codelineno-13-4" name="__codelineno-13-4" href="#__codelineno-13-4"></a><span class="c1"># 哨兵列表</span>
+<a id="__codelineno-13-5" name="__codelineno-13-5" href="#__codelineno-13-5"></a><span class="n">sentinel</span> <span class="o">=</span> <span class="n">Sentinel</span><span class="p">(</span>
+<a id="__codelineno-13-6" name="__codelineno-13-6" href="#__codelineno-13-6"></a>    <span class="p">[(</span><span class="s1">&#39;192.168.1.20&#39;</span><span class="p">,</span> <span class="mi">26379</span><span class="p">),</span>
+<a id="__codelineno-13-7" name="__codelineno-13-7" href="#__codelineno-13-7"></a>     <span class="p">(</span><span class="s1">&#39;192.168.1.21&#39;</span><span class="p">,</span> <span class="mi">26379</span><span class="p">),</span>
+<a id="__codelineno-13-8" name="__codelineno-13-8" href="#__codelineno-13-8"></a>     <span class="p">(</span><span class="s1">&#39;192.168.1.22&#39;</span><span class="p">,</span> <span class="mi">26379</span><span class="p">)],</span>
+<a id="__codelineno-13-9" name="__codelineno-13-9" href="#__codelineno-13-9"></a>    <span class="n">socket_timeout</span><span class="o">=</span><span class="mf">0.1</span>
+<a id="__codelineno-13-10" name="__codelineno-13-10" href="#__codelineno-13-10"></a><span class="p">)</span>
+<a id="__codelineno-13-11" name="__codelineno-13-11" href="#__codelineno-13-11"></a>
+<a id="__codelineno-13-12" name="__codelineno-13-12" href="#__codelineno-13-12"></a><span class="c1"># 获取主库（写）</span>
+<a id="__codelineno-13-13" name="__codelineno-13-13" href="#__codelineno-13-13"></a><span class="n">master</span> <span class="o">=</span> <span class="n">sentinel</span><span class="o">.</span><span class="n">master_for</span><span class="p">(</span><span class="s1">&#39;mymaster&#39;</span><span class="p">,</span> <span class="n">socket_timeout</span><span class="o">=</span><span class="mf">0.1</span><span class="p">)</span>
+<a id="__codelineno-13-14" name="__codelineno-13-14" href="#__codelineno-13-14"></a>
+<a id="__codelineno-13-15" name="__codelineno-13-15" href="#__codelineno-13-15"></a><span class="c1"># 获取从库（读）</span>
+<a id="__codelineno-13-16" name="__codelineno-13-16" href="#__codelineno-13-16"></a><span class="n">slave</span> <span class="o">=</span> <span class="n">sentinel</span><span class="o">.</span><span class="n">slave_for</span><span class="p">(</span><span class="s1">&#39;mymaster&#39;</span><span class="p">,</span> <span class="n">socket_timeout</span><span class="o">=</span><span class="mf">0.1</span><span class="p">)</span>
+<a id="__codelineno-13-17" name="__codelineno-13-17" href="#__codelineno-13-17"></a>
+<a id="__codelineno-13-18" name="__codelineno-13-18" href="#__codelineno-13-18"></a><span class="c1"># 写操作</span>
+<a id="__codelineno-13-19" name="__codelineno-13-19" href="#__codelineno-13-19"></a><span class="n">master</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s1">&#39;user:1001:name&#39;</span><span class="p">,</span> <span class="s1">&#39;张三&#39;</span><span class="p">)</span>
+<a id="__codelineno-13-20" name="__codelineno-13-20" href="#__codelineno-13-20"></a>
+<a id="__codelineno-13-21" name="__codelineno-13-21" href="#__codelineno-13-21"></a><span class="c1"># 读操作（自动从从库）</span>
+<a id="__codelineno-13-22" name="__codelineno-13-22" href="#__codelineno-13-22"></a><span class="n">name</span> <span class="o">=</span> <span class="n">slave</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;user:1001:name&#39;</span><span class="p">)</span>
+<a id="__codelineno-13-23" name="__codelineno-13-23" href="#__codelineno-13-23"></a>
+<a id="__codelineno-13-24" name="__codelineno-13-24" href="#__codelineno-13-24"></a><span class="c1"># 故障转移后自动重连</span>
+<a id="__codelineno-13-25" name="__codelineno-13-25" href="#__codelineno-13-25"></a><span class="c1"># 哨兵客户端会自动获取新主库地址</span>
+</code></pre></div>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a><span class="c1">// Java 示例（Jedis）</span>
+<a id="__codelineno-14-2" name="__codelineno-14-2" href="#__codelineno-14-2"></a><span class="kn">import</span><span class="w"> </span><span class="nn">redis.clients.jedis.JedisSentinelPool</span><span class="p">;</span>
+<a id="__codelineno-14-3" name="__codelineno-14-3" href="#__codelineno-14-3"></a><span class="kn">import</span><span class="w"> </span><span class="nn">redis.clients.jedis.Jedis</span><span class="p">;</span>
+<a id="__codelineno-14-4" name="__codelineno-14-4" href="#__codelineno-14-4"></a>
+<a id="__codelineno-14-5" name="__codelineno-14-5" href="#__codelineno-14-5"></a><span class="kn">import</span><span class="w"> </span><span class="nn">java.util.HashSet</span><span class="p">;</span>
+<a id="__codelineno-14-6" name="__codelineno-14-6" href="#__codelineno-14-6"></a><span class="kn">import</span><span class="w"> </span><span class="nn">java.util.Set</span><span class="p">;</span>
+<a id="__codelineno-14-7" name="__codelineno-14-7" href="#__codelineno-14-7"></a>
+<a id="__codelineno-14-8" name="__codelineno-14-8" href="#__codelineno-14-8"></a><span class="n">Set</span><span class="o">&lt;</span><span class="n">String</span><span class="o">&gt;</span><span class="w"> </span><span class="n">sentinels</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">new</span><span class="w"> </span><span class="n">HashSet</span><span class="o">&lt;&gt;</span><span class="p">();</span>
+<a id="__codelineno-14-9" name="__codelineno-14-9" href="#__codelineno-14-9"></a><span class="n">sentinels</span><span class="p">.</span><span class="na">add</span><span class="p">(</span><span class="s">&quot;192.168.1.20:26379&quot;</span><span class="p">);</span>
+<a id="__codelineno-14-10" name="__codelineno-14-10" href="#__codelineno-14-10"></a><span class="n">sentinels</span><span class="p">.</span><span class="na">add</span><span class="p">(</span><span class="s">&quot;192.168.1.21:26379&quot;</span><span class="p">);</span>
+<a id="__codelineno-14-11" name="__codelineno-14-11" href="#__codelineno-14-11"></a><span class="n">sentinels</span><span class="p">.</span><span class="na">add</span><span class="p">(</span><span class="s">&quot;192.168.1.22:26379&quot;</span><span class="p">);</span>
+<a id="__codelineno-14-12" name="__codelineno-14-12" href="#__codelineno-14-12"></a>
+<a id="__codelineno-14-13" name="__codelineno-14-13" href="#__codelineno-14-13"></a><span class="n">JedisSentinelPool</span><span class="w"> </span><span class="n">pool</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">new</span><span class="w"> </span><span class="n">JedisSentinelPool</span><span class="p">(</span>
+<a id="__codelineno-14-14" name="__codelineno-14-14" href="#__codelineno-14-14"></a><span class="w">    </span><span class="s">&quot;mymaster&quot;</span><span class="p">,</span>
+<a id="__codelineno-14-15" name="__codelineno-14-15" href="#__codelineno-14-15"></a><span class="w">    </span><span class="n">sentinels</span><span class="p">,</span>
+<a id="__codelineno-14-16" name="__codelineno-14-16" href="#__codelineno-14-16"></a><span class="w">    </span><span class="kc">null</span><span class="p">,</span><span class="w">  </span><span class="c1">// 连接池配置</span>
+<a id="__codelineno-14-17" name="__codelineno-14-17" href="#__codelineno-14-17"></a><span class="w">    </span><span class="s">&quot;password&quot;</span><span class="w">  </span><span class="c1">// 密码</span>
+<a id="__codelineno-14-18" name="__codelineno-14-18" href="#__codelineno-14-18"></a><span class="p">);</span>
+<a id="__codelineno-14-19" name="__codelineno-14-19" href="#__codelineno-14-19"></a>
+<a id="__codelineno-14-20" name="__codelineno-14-20" href="#__codelineno-14-20"></a><span class="k">try</span><span class="w"> </span><span class="p">(</span><span class="n">Jedis</span><span class="w"> </span><span class="n">jedis</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">pool</span><span class="p">.</span><span class="na">getResource</span><span class="p">())</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-14-21" name="__codelineno-14-21" href="#__codelineno-14-21"></a><span class="w">    </span><span class="n">jedis</span><span class="p">.</span><span class="na">set</span><span class="p">(</span><span class="s">&quot;key&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;value&quot;</span><span class="p">);</span>
+<a id="__codelineno-14-22" name="__codelineno-14-22" href="#__codelineno-14-22"></a><span class="w">    </span><span class="n">String</span><span class="w"> </span><span class="n">val</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">jedis</span><span class="p">.</span><span class="na">get</span><span class="p">(</span><span class="s">&quot;key&quot;</span><span class="p">);</span>
+<a id="__codelineno-14-23" name="__codelineno-14-23" href="#__codelineno-14-23"></a><span class="p">}</span>
+</code></pre></div>
 <hr />
-<h2 id="3">3. 高可用架构</h2>
-<h3 id="31">3.1 架构对比</h3>
+<h2 id="3">3. 高可用架构<a class="headerlink" href="#3" title="Permanent link">&para;</a></h2>
+<h3 id="31">3.1 架构对比<a class="headerlink" href="#31" title="Permanent link">&para;</a></h3>
 <table>
 <thead>
 <tr>
@@ -1650,118 +2638,118 @@ try (Jedis jedis = pool.getResource()) {
 </tr>
 </tbody>
 </table>
-<h3 id="32">3.2 推荐配置</h3>
-<h4 id="_1">小型应用（主从 + 哨兵）</h4>
-<pre><code>3 个哨兵 + 1 主 2 从 = 6 个节点
-
-Sentinel1 (26379) ─┐
-Sentinel2 (26379) ─┼── 监控 ── Master (6379)
-Sentinel3 (26379) ─┘              │
-                           ┌──────┴──────┐
-                           ▼             ▼
-                       Slave1(6380)  Slave2(6381)
-</code></pre>
-<h4 id="_2">中型应用（多主从 + 哨兵）</h4>
-<pre><code>3 个哨兵 + 2 主 4 从 = 9 个节点
-
-                    Master1 (6379) ── Slave1 (6380)
-                    │
-3 个哨兵 ── 监控 ──┤
-                    │
-                    Master2 (6381) ── Slave2 (6382)
-</code></pre>
-<h3 id="33">3.3 部署脚本</h3>
-<pre><code class="language-bash">#!/bin/bash
-# deploy-redis-ha.sh - 部署 Redis 高可用架构
-
-# 主库配置
-MASTER_HOST=&quot;192.168.1.10&quot;
-MASTER_PORT=&quot;6379&quot;
-
-# 从库配置
-SLAVE1_HOST=&quot;192.168.1.11&quot;
-SLAVE2_HOST=&quot;192.168.1.12&quot;
-
-# 哨兵配置
-SENTINEL1_HOST=&quot;192.168.1.20&quot;
-SENTINEL2_HOST=&quot;192.168.1.21&quot;
-SENTINEL3_HOST=&quot;192.168.1.22&quot;
-SENTINEL_PORT=&quot;26379&quot;
-QUORUM=2
-
-# 部署主库
-echo &quot;Deploying Master...&quot;
-ssh $MASTER_HOST &quot;redis-server /etc/redis/redis.conf&quot;
-
-# 部署从库
-echo &quot;Deploying Slaves...&quot;
-ssh $SLAVE1_HOST &quot;redis-server /etc/redis/redis-slave.conf&quot;
-ssh $SLAVE2_HOST &quot;redis-server /etc/redis/redis-slave.conf&quot;
-
-# 部署哨兵
-echo &quot;Deploying Sentinels...&quot;
-for host in $SENTINEL1_HOST $SENTINEL2_HOST $SENTINEL3_HOST; do
-    cat &gt; /tmp/sentinel.conf &lt;&lt;EOF
-port $SENTINEL_PORT
-daemonize yes
-logfile &quot;/var/log/redis/sentinel.log&quot;
-dir /var/lib/redis/sentinel
-sentinel monitor mymaster $MASTER_HOST $MASTER_PORT $QUORUM
-sentinel down-after-milliseconds mymaster 5000
-sentinel failover-timeout mymaster 60000
-sentinel parallel-syncs mymaster 1
-EOF
-    scp /tmp/sentinel.conf $host:/etc/redis/sentinel.conf
-    ssh $host &quot;redis-sentinel /etc/redis/sentinel.conf&quot;
-done
-
-echo &quot;Deployment complete!&quot;
-</code></pre>
+<h3 id="32">3.2 推荐配置<a class="headerlink" href="#32" title="Permanent link">&para;</a></h3>
+<h4 id="_1">小型应用（主从 + 哨兵）<a class="headerlink" href="#_1" title="Permanent link">&para;</a></h4>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-15-1" name="__codelineno-15-1" href="#__codelineno-15-1"></a>3 个哨兵 + 1 主 2 从 = 6 个节点
+<a id="__codelineno-15-2" name="__codelineno-15-2" href="#__codelineno-15-2"></a>
+<a id="__codelineno-15-3" name="__codelineno-15-3" href="#__codelineno-15-3"></a>Sentinel1 (26379) ─┐
+<a id="__codelineno-15-4" name="__codelineno-15-4" href="#__codelineno-15-4"></a>Sentinel2 (26379) ─┼── 监控 ── Master (6379)
+<a id="__codelineno-15-5" name="__codelineno-15-5" href="#__codelineno-15-5"></a>Sentinel3 (26379) ─┘              │
+<a id="__codelineno-15-6" name="__codelineno-15-6" href="#__codelineno-15-6"></a>                           ┌──────┴──────┐
+<a id="__codelineno-15-7" name="__codelineno-15-7" href="#__codelineno-15-7"></a>                           ▼             ▼
+<a id="__codelineno-15-8" name="__codelineno-15-8" href="#__codelineno-15-8"></a>                       Slave1(6380)  Slave2(6381)
+</code></pre></div>
+<h4 id="_2">中型应用（多主从 + 哨兵）<a class="headerlink" href="#_2" title="Permanent link">&para;</a></h4>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-16-1" name="__codelineno-16-1" href="#__codelineno-16-1"></a>3 个哨兵 + 2 主 4 从 = 9 个节点
+<a id="__codelineno-16-2" name="__codelineno-16-2" href="#__codelineno-16-2"></a>
+<a id="__codelineno-16-3" name="__codelineno-16-3" href="#__codelineno-16-3"></a>                    Master1 (6379) ── Slave1 (6380)
+<a id="__codelineno-16-4" name="__codelineno-16-4" href="#__codelineno-16-4"></a>                    │
+<a id="__codelineno-16-5" name="__codelineno-16-5" href="#__codelineno-16-5"></a>3 个哨兵 ── 监控 ──┤
+<a id="__codelineno-16-6" name="__codelineno-16-6" href="#__codelineno-16-6"></a>                    │
+<a id="__codelineno-16-7" name="__codelineno-16-7" href="#__codelineno-16-7"></a>                    Master2 (6381) ── Slave2 (6382)
+</code></pre></div>
+<h3 id="33">3.3 部署脚本<a class="headerlink" href="#33" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-17-1" name="__codelineno-17-1" href="#__codelineno-17-1"></a><span class="ch">#!/bin/bash</span>
+<a id="__codelineno-17-2" name="__codelineno-17-2" href="#__codelineno-17-2"></a><span class="c1"># deploy-redis-ha.sh - 部署 Redis 高可用架构</span>
+<a id="__codelineno-17-3" name="__codelineno-17-3" href="#__codelineno-17-3"></a>
+<a id="__codelineno-17-4" name="__codelineno-17-4" href="#__codelineno-17-4"></a><span class="c1"># 主库配置</span>
+<a id="__codelineno-17-5" name="__codelineno-17-5" href="#__codelineno-17-5"></a><span class="nv">MASTER_HOST</span><span class="o">=</span><span class="s2">&quot;192.168.1.10&quot;</span>
+<a id="__codelineno-17-6" name="__codelineno-17-6" href="#__codelineno-17-6"></a><span class="nv">MASTER_PORT</span><span class="o">=</span><span class="s2">&quot;6379&quot;</span>
+<a id="__codelineno-17-7" name="__codelineno-17-7" href="#__codelineno-17-7"></a>
+<a id="__codelineno-17-8" name="__codelineno-17-8" href="#__codelineno-17-8"></a><span class="c1"># 从库配置</span>
+<a id="__codelineno-17-9" name="__codelineno-17-9" href="#__codelineno-17-9"></a><span class="nv">SLAVE1_HOST</span><span class="o">=</span><span class="s2">&quot;192.168.1.11&quot;</span>
+<a id="__codelineno-17-10" name="__codelineno-17-10" href="#__codelineno-17-10"></a><span class="nv">SLAVE2_HOST</span><span class="o">=</span><span class="s2">&quot;192.168.1.12&quot;</span>
+<a id="__codelineno-17-11" name="__codelineno-17-11" href="#__codelineno-17-11"></a>
+<a id="__codelineno-17-12" name="__codelineno-17-12" href="#__codelineno-17-12"></a><span class="c1"># 哨兵配置</span>
+<a id="__codelineno-17-13" name="__codelineno-17-13" href="#__codelineno-17-13"></a><span class="nv">SENTINEL1_HOST</span><span class="o">=</span><span class="s2">&quot;192.168.1.20&quot;</span>
+<a id="__codelineno-17-14" name="__codelineno-17-14" href="#__codelineno-17-14"></a><span class="nv">SENTINEL2_HOST</span><span class="o">=</span><span class="s2">&quot;192.168.1.21&quot;</span>
+<a id="__codelineno-17-15" name="__codelineno-17-15" href="#__codelineno-17-15"></a><span class="nv">SENTINEL3_HOST</span><span class="o">=</span><span class="s2">&quot;192.168.1.22&quot;</span>
+<a id="__codelineno-17-16" name="__codelineno-17-16" href="#__codelineno-17-16"></a><span class="nv">SENTINEL_PORT</span><span class="o">=</span><span class="s2">&quot;26379&quot;</span>
+<a id="__codelineno-17-17" name="__codelineno-17-17" href="#__codelineno-17-17"></a><span class="nv">QUORUM</span><span class="o">=</span><span class="m">2</span>
+<a id="__codelineno-17-18" name="__codelineno-17-18" href="#__codelineno-17-18"></a>
+<a id="__codelineno-17-19" name="__codelineno-17-19" href="#__codelineno-17-19"></a><span class="c1"># 部署主库</span>
+<a id="__codelineno-17-20" name="__codelineno-17-20" href="#__codelineno-17-20"></a><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;Deploying Master...&quot;</span>
+<a id="__codelineno-17-21" name="__codelineno-17-21" href="#__codelineno-17-21"></a>ssh<span class="w"> </span><span class="nv">$MASTER_HOST</span><span class="w"> </span><span class="s2">&quot;redis-server /etc/redis/redis.conf&quot;</span>
+<a id="__codelineno-17-22" name="__codelineno-17-22" href="#__codelineno-17-22"></a>
+<a id="__codelineno-17-23" name="__codelineno-17-23" href="#__codelineno-17-23"></a><span class="c1"># 部署从库</span>
+<a id="__codelineno-17-24" name="__codelineno-17-24" href="#__codelineno-17-24"></a><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;Deploying Slaves...&quot;</span>
+<a id="__codelineno-17-25" name="__codelineno-17-25" href="#__codelineno-17-25"></a>ssh<span class="w"> </span><span class="nv">$SLAVE1_HOST</span><span class="w"> </span><span class="s2">&quot;redis-server /etc/redis/redis-slave.conf&quot;</span>
+<a id="__codelineno-17-26" name="__codelineno-17-26" href="#__codelineno-17-26"></a>ssh<span class="w"> </span><span class="nv">$SLAVE2_HOST</span><span class="w"> </span><span class="s2">&quot;redis-server /etc/redis/redis-slave.conf&quot;</span>
+<a id="__codelineno-17-27" name="__codelineno-17-27" href="#__codelineno-17-27"></a>
+<a id="__codelineno-17-28" name="__codelineno-17-28" href="#__codelineno-17-28"></a><span class="c1"># 部署哨兵</span>
+<a id="__codelineno-17-29" name="__codelineno-17-29" href="#__codelineno-17-29"></a><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;Deploying Sentinels...&quot;</span>
+<a id="__codelineno-17-30" name="__codelineno-17-30" href="#__codelineno-17-30"></a><span class="k">for</span><span class="w"> </span>host<span class="w"> </span><span class="k">in</span><span class="w"> </span><span class="nv">$SENTINEL1_HOST</span><span class="w"> </span><span class="nv">$SENTINEL2_HOST</span><span class="w"> </span><span class="nv">$SENTINEL3_HOST</span><span class="p">;</span><span class="w"> </span><span class="k">do</span>
+<a id="__codelineno-17-31" name="__codelineno-17-31" href="#__codelineno-17-31"></a><span class="w">    </span>cat<span class="w"> </span>&gt;<span class="w"> </span>/tmp/sentinel.conf<span class="w"> </span><span class="s">&lt;&lt;EOF</span>
+<a id="__codelineno-17-32" name="__codelineno-17-32" href="#__codelineno-17-32"></a><span class="s">port $SENTINEL_PORT</span>
+<a id="__codelineno-17-33" name="__codelineno-17-33" href="#__codelineno-17-33"></a><span class="s">daemonize yes</span>
+<a id="__codelineno-17-34" name="__codelineno-17-34" href="#__codelineno-17-34"></a><span class="s">logfile &quot;/var/log/redis/sentinel.log&quot;</span>
+<a id="__codelineno-17-35" name="__codelineno-17-35" href="#__codelineno-17-35"></a><span class="s">dir /var/lib/redis/sentinel</span>
+<a id="__codelineno-17-36" name="__codelineno-17-36" href="#__codelineno-17-36"></a><span class="s">sentinel monitor mymaster $MASTER_HOST $MASTER_PORT $QUORUM</span>
+<a id="__codelineno-17-37" name="__codelineno-17-37" href="#__codelineno-17-37"></a><span class="s">sentinel down-after-milliseconds mymaster 5000</span>
+<a id="__codelineno-17-38" name="__codelineno-17-38" href="#__codelineno-17-38"></a><span class="s">sentinel failover-timeout mymaster 60000</span>
+<a id="__codelineno-17-39" name="__codelineno-17-39" href="#__codelineno-17-39"></a><span class="s">sentinel parallel-syncs mymaster 1</span>
+<a id="__codelineno-17-40" name="__codelineno-17-40" href="#__codelineno-17-40"></a><span class="s">EOF</span>
+<a id="__codelineno-17-41" name="__codelineno-17-41" href="#__codelineno-17-41"></a><span class="w">    </span>scp<span class="w"> </span>/tmp/sentinel.conf<span class="w"> </span><span class="nv">$host</span>:/etc/redis/sentinel.conf
+<a id="__codelineno-17-42" name="__codelineno-17-42" href="#__codelineno-17-42"></a><span class="w">    </span>ssh<span class="w"> </span><span class="nv">$host</span><span class="w"> </span><span class="s2">&quot;redis-sentinel /etc/redis/sentinel.conf&quot;</span>
+<a id="__codelineno-17-43" name="__codelineno-17-43" href="#__codelineno-17-43"></a><span class="k">done</span>
+<a id="__codelineno-17-44" name="__codelineno-17-44" href="#__codelineno-17-44"></a>
+<a id="__codelineno-17-45" name="__codelineno-17-45" href="#__codelineno-17-45"></a><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;Deployment complete!&quot;</span>
+</code></pre></div>
 <hr />
-<h2 id="4">4. 常见问题</h2>
-<h3 id="q1-3">Q1: 哨兵为什么至少需要 3 个？</h3>
+<h2 id="4">4. 常见问题<a class="headerlink" href="#4" title="Permanent link">&para;</a></h2>
+<h3 id="q1-3">Q1: 哨兵为什么至少需要 3 个？<a class="headerlink" href="#q1-3" title="Permanent link">&para;</a></h3>
 <p><strong>A</strong>: 哨兵需要 <strong>quorum</strong>（法定人数）判定主库下线。如果只有 2 个哨兵：
 - quorum=1：容易误判
 - quorum=2：一个哨兵故障就无法故障转移</p>
 <p>3 个哨兵可以容忍 1 个故障，推荐<strong>奇数个</strong>哨兵。</p>
-<h3 id="q2">Q2: 主从复制延迟怎么解决？</h3>
+<h3 id="q2">Q2: 主从复制延迟怎么解决？<a class="headerlink" href="#q2" title="Permanent link">&para;</a></h3>
 <p><strong>A</strong>:
 1. 检查网络带宽
 2. 减少主库写压力
 3. 增加从库数量分散读压力
 4. 使用更强大的硬件
 5. 监控 <code>lag</code> 指标</p>
-<h3 id="q3">Q3: 脑裂问题如何解决？</h3>
-<p><strong>A</strong>: 脑裂（Split-Brain）发生在网络分区时：</p>
-<pre><code>配置参数：
-min-slaves-to-write 1      # 至少 1 个从库才接受写
-min-slaves-max-lag 10      # 从库延迟不超过 10 秒
-</code></pre>
-<h3 id="q4">Q4: 如何平滑扩容从库？</h3>
-<p><strong>A</strong>:</p>
-<pre><code class="language-bash"># 1. 启动新从库
-redis-server /etc/redis/redis-slave.conf
-
-# 2. 动态添加为主库的从库
-127.0.0.1:6380&gt; SLAVEOF 192.168.1.10 6379
-
-# 3. 哨兵会自动发现新从库
-</code></pre>
-<h3 id="q5-quorum">Q5: 哨兵配置文件中的 quorum 是什么？</h3>
+<h3 id="q3">Q3: 脑裂问题如何解决？<a class="headerlink" href="#q3" title="Permanent link">&para;</a></h3>
+<p><strong>A</strong>: 脑裂（Split-Brain）发生在网络分区时：
+<div class="highlight"><pre><span></span><code><a id="__codelineno-18-1" name="__codelineno-18-1" href="#__codelineno-18-1"></a>配置参数：
+<a id="__codelineno-18-2" name="__codelineno-18-2" href="#__codelineno-18-2"></a>min-slaves-to-write 1      # 至少 1 个从库才接受写
+<a id="__codelineno-18-3" name="__codelineno-18-3" href="#__codelineno-18-3"></a>min-slaves-max-lag 10      # 从库延迟不超过 10 秒
+</code></pre></div></p>
+<h3 id="q4">Q4: 如何平滑扩容从库？<a class="headerlink" href="#q4" title="Permanent link">&para;</a></h3>
+<p><strong>A</strong>:
+<div class="highlight"><pre><span></span><code><a id="__codelineno-19-1" name="__codelineno-19-1" href="#__codelineno-19-1"></a><span class="c1"># 1. 启动新从库</span>
+<a id="__codelineno-19-2" name="__codelineno-19-2" href="#__codelineno-19-2"></a>redis-server<span class="w"> </span>/etc/redis/redis-slave.conf
+<a id="__codelineno-19-3" name="__codelineno-19-3" href="#__codelineno-19-3"></a>
+<a id="__codelineno-19-4" name="__codelineno-19-4" href="#__codelineno-19-4"></a><span class="c1"># 2. 动态添加为主库的从库</span>
+<a id="__codelineno-19-5" name="__codelineno-19-5" href="#__codelineno-19-5"></a><span class="m">127</span>.0.0.1:6380&gt;<span class="w"> </span>SLAVEOF<span class="w"> </span><span class="m">192</span>.168.1.10<span class="w"> </span><span class="m">6379</span>
+<a id="__codelineno-19-6" name="__codelineno-19-6" href="#__codelineno-19-6"></a>
+<a id="__codelineno-19-7" name="__codelineno-19-7" href="#__codelineno-19-7"></a><span class="c1"># 3. 哨兵会自动发现新从库</span>
+</code></pre></div></p>
+<h3 id="q5-quorum">Q5: 哨兵配置文件中的 quorum 是什么？<a class="headerlink" href="#q5-quorum" title="Permanent link">&para;</a></h3>
 <p><strong>A</strong>: quorum 是判定主库下线所需的<strong>最少哨兵数量</strong>。</p>
-<pre><code>3 个哨兵，quorum=2：至少 2 个哨兵认为主库下线，才触发故障转移
-5 个哨兵，quorum=3：至少 3 个哨兵认为主库下线，才触发故障转移
-</code></pre>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-20-1" name="__codelineno-20-1" href="#__codelineno-20-1"></a>3 个哨兵，quorum=2：至少 2 个哨兵认为主库下线，才触发故障转移
+<a id="__codelineno-20-2" name="__codelineno-20-2" href="#__codelineno-20-2"></a>5 个哨兵，quorum=3：至少 3 个哨兵认为主库下线，才触发故障转移
+</code></pre></div>
 <hr />
-<h2 id="5">5. 本章小结</h2>
-<h3 id="_3">核心知识点</h3>
+<h2 id="5">5. 本章小结<a class="headerlink" href="#5" title="Permanent link">&para;</a></h2>
+<h3 id="_3">核心知识点<a class="headerlink" href="#_3" title="Permanent link">&para;</a></h3>
 <p>✅ 主从复制原理与配置<br />
 ✅ 全量复制 vs 增量复制<br />
 ✅ 哨兵模式工作原理<br />
 ✅ 故障转移流程<br />
 ✅ 客户端连接哨兵<br />
 ✅ 高可用架构设计  </p>
-<h3 id="_4">最佳实践</h3>
+<h3 id="_4">最佳实践<a class="headerlink" href="#_4" title="Permanent link">&para;</a></h3>
 <ol>
 <li><strong>哨兵数量</strong>：至少 3 个，奇数</li>
 <li><strong>quorum 设置</strong>：(哨兵数/2)+1</li>
@@ -1770,82 +2758,61 @@ redis-server /etc/redis/redis-slave.conf
 <li><strong>定期演练</strong>：手动故障转移测试</li>
 </ol>
 <hr />
-<p>🎉 <strong>恭喜完成第五章！继续学习 <a href="../06_%E9%9B%86%E7%BE%A4/">06_集群.md</a></strong></p></div>
-            </div>
-        </div>
+<p>🎉 <strong>恭喜完成第五章！继续学习 <a href="../06_%E9%9B%86%E7%BE%A4/">06_集群.md</a></strong></p>
 
-        <footer class="col-md-12">
-            <hr>
-            <p>Documentation built with <a href="https://www.mkdocs.org/">MkDocs</a>.</p>
-        </footer>
-        <script src="../../../../js/bootstrap.bundle.min.js"></script>
-        <script>
-            var base_url = "../../../..",
-                shortcuts = {"help": 191, "next": 78, "previous": 80, "search": 83};
-        </script>
-        <script src="../../../../js/base.js"></script>
-        <script src="../../../../search/main.js"></script>
 
-        <div class="modal" id="mkdocs_search_modal" tabindex="-1" role="dialog" aria-labelledby="searchModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h4 class="modal-title" id="searchModalLabel">Search</h4>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
             </div>
-            <div class="modal-body">
-                <p>From here you can search these documents. Enter your search terms below.</p>
-                <form>
-                    <div class="form-group">
-                        <input type="search" class="form-control" placeholder="Search..." id="mkdocs-search-query" title="Type search term here">
-                    </div>
-                </form>
-                <div id="mkdocs-search-results" data-no-results-text="No results found"></div>
-            </div>
-            <div class="modal-footer">
-            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
         </div>
-    </div>
-</div><div class="modal" id="mkdocs_keyboard_modal" tabindex="-1" role="dialog" aria-labelledby="keyboardModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h4 class="modal-title" id="keyboardModalLabel">Keyboard Shortcuts</h4>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-              <table class="table">
-                <thead>
-                  <tr>
-                    <th style="width: 20%;">Keys</th>
-                    <th>Action</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr>
-                    <td class="help shortcut"><kbd>?</kbd></td>
-                    <td>Open this help</td>
-                  </tr>
-                  <tr>
-                    <td class="next shortcut"><kbd>n</kbd></td>
-                    <td>Next page</td>
-                  </tr>
-                  <tr>
-                    <td class="prev shortcut"><kbd>p</kbd></td>
-                    <td>Previous page</td>
-                  </tr>
-                  <tr>
-                    <td class="search shortcut"><kbd>s</kbd></td>
-                    <td>Search</td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-            <div class="modal-footer">
-            </div>
-        </div>
-    </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
 </div>
-
-    </body>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../../../..", "features": ["navigation.tabs", "navigation.sections", "navigation.expand", "search.suggest", "search.highlight", "content.code.copy"], "search": "../../../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "\u5df2\u590d\u5236", "clipboard.copy": "\u590d\u5236", "search.result.more.one": "\u5728\u8be5\u9875\u4e0a\u8fd8\u6709 1 \u4e2a\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.more.other": "\u5728\u8be5\u9875\u4e0a\u8fd8\u6709 # \u4e2a\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.none": "\u6ca1\u6709\u627e\u5230\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.one": "\u627e\u5230 1 \u4e2a\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.other": "# \u4e2a\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.placeholder": "\u952e\u5165\u4ee5\u5f00\u59cb\u641c\u7d22", "search.result.term.missing": "\u7f3a\u5c11", "select.version": "\u9009\u62e9\u5f53\u524d\u7248\u672c"}, "version": null}</script>
+    
+    
+      <script src="../../../../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+    
+  </body>
 </html>
