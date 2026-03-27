@@ -1,0 +1,1385 @@
+
+<!doctype html>
+<html lang="zh" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="小智的技术博客 - 编程、Linux、AI 与工具技巧">
+      
+      
+        <meta name="author" content="小智">
+      
+      
+      
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
+    
+    
+      
+        <title>Redis 数据库 - 一休的博客</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../../../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../../../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("../../../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#redis" class="md-skip">
+          跳转至
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="页眉">
+    <a href="../../../.." title="一休的博客" class="md-header__button md-logo" aria-label="一休的博客" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            一休的博客
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Redis 数据库
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="切换到深色模式"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="切换到深色模式" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="切换到浅色模式"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="切换到浅色模式" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="搜索" placeholder="搜索" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="查找">
+        
+        <button type="reset" class="md-search__icon md-icon" title="清空当前内容" aria-label="清空当前内容" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            正在初始化搜索引擎
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/jacky6/jacky6.github.io" title="前往仓库" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    jacky6.github.io
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="标签" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../../.." class="md-tabs__link">
+        
+  
+  
+    
+  
+  首页
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../../programming/java_claw/01_入门篇/" class="md-tabs__link">
+          
+  
+  
+  编程开发
+
+        </a>
+      </li>
+    
+  
+
+    
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="导航栏" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../../../.." title="一休的博客" class="md-nav__button md-logo" aria-label="一休的博客" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    一休的博客
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/jacky6/jacky6.github.io" title="前往仓库" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    jacky6.github.io
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    首页
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    编程开发
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    编程开发
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_2_1" >
+        
+          
+          <label class="md-nav__link" for="__nav_2_1" id="__nav_2_1_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Java 学习
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_2_1_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2_1">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Java 学习
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../programming/java_claw/01_入门篇/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    入门篇
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../programming/java_claw/02_核心 API/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    核心 API
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../programming/java_claw/04_开发工具/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    开发工具
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../programming/java_claw/05_主流框架/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    主流框架
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../programming/java_claw/06_设计模式/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    设计模式
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_2_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2_2" id="__nav_2_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Python
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_2_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Python
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../programming/python/异步 IO/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    异步 IO
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../programming/python/数据结构/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    数据结构
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../programming/python/三方库/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    三方库
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_2_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_2_3" id="__nav_2_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    算法与数据结构
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_2_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    算法与数据结构
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../programming/algorithm/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    算法基础
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../programming/algos/2_linked_list/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    链表
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="目录">
+  
+  
+  
+    
+  
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="redis">Redis 数据库<a class="headerlink" href="#redis" title="Permanent link">&para;</a></h1>
+<aside>
+💡
+
+Redis（Remote Dictionary Server）是一个开源的、高性能的内存数据库，常被用作缓存、消息队列和实时分析等场景。以下是Redis的一些关键特点和功能：
+
+1. **内存存储**：Redis主要将数据存储在内存中，这使得其读写速度非常快，适合需要高性能的数据访问场景。
+2. **丰富的数据结构**：Redis支持多种数据类型，包括字符串（Strings）、列表（Lists）、集合（Sets）、有序集合（Sorted Sets）、哈希（Hashes）等，这使得它在处理复杂数据结构时非常灵活。
+3. **持久化机制**：虽然Redis是内存数据库，但它提供多种持久化方式，如快照（RDB）和AOF（Append-Only File），以确保数据的持久性和安全性。
+4. **高可用性和分布式支持**：Redis支持主从复制（Master-Slave Replication）、哨兵（Sentinel）和Redis集群（Redis Cluster），帮助实现高可用性和横向扩展。
+5. **丰富的功能**：
+    - **缓存**：常用于缓存频繁访问的数据，减轻数据库负载，提高系统响应速度。
+    - **消息队列**：通过发布/订阅（Pub/Sub）机制，可以用作消息队列，实现异步通信。
+    - **实时分析**：适用于实时计数、排行榜等需要快速数据处理的应用场景。
+6. **简单易用**：Redis提供了丰富的客户端库，支持多种编程语言，易于集成到各种应用中。
+
+由于其高性能和灵活性，Redis广泛应用于Web应用、游戏、物联网等多个领域，成为现代应用架构中不可或缺的组件之一。
+
+</aside>
+
+<h1 id="_1">一、数据结构<a class="headerlink" href="#_1" title="Permanent link">&para;</a></h1>
+<aside>
+💡
+
+type 命令实际返回的就是当前键的数据结构类型，她们分别是：string（字符串）、hash（哈希）、list（列表）、set（集合）、zset（有序集合）。
+
+这些是 Redis 对外的数据结构，实际上每个数据结构都有自己底层的内部编码实现，而且是多种实现，这样可以在合适的场景选择合适的内部编码实现。
+
+</aside>
+
+<p><img alt="Redis数据结构和内部编码格式" src="image.png" /></p>
+<p>Redis数据结构和内部编码格式</p>
+<h2 id="redis_1">Redis 采用单线程架构<a class="headerlink" href="#redis_1" title="Permanent link">&para;</a></h2>
+<p>Redis 使用了<strong>单线程架构和 I/O 多路复用模型</strong>来实现高性能的 内存数据库服务</p>
+<h2 id="1">1. 字符串<a class="headerlink" href="#1" title="Permanent link">&para;</a></h2>
+<p>字符串类型是 Redis 最基础的数据结构。首先键都是字符串类型，而且其他几种数据结构都是在字符串的基础上构建的。</p>
+<h3 id="11">1.1 命令<a class="headerlink" href="#11" title="Permanent link">&para;</a></h3>
+<ol>
+<li>设置字符串 键-值：<code>set key value EX seconds PX milliseconds NX XX</code>  <ol>
+<li><code>EX secondes</code>:optional, 将为键设置失效时间，单位为秒。</li>
+<li><code>PX milliseconds</code> :optional, 将为键设置失效时间，单位为毫秒。  </li>
+<li><code>NX</code> :optional, 仅在键不存在时设置值，如果 <code>key</code> 已经存在，则设置 <code>value</code> 无效。</li>
+<li><code>XX</code> :optional, 仅在键存在时更新值，如果 <code>key</code> 不存在，则设置无效，如果 <code>key</code> 存在，则更新值为 <code>value</code></li>
+</ol>
+</li>
+<li>除了set选项，Redis还提供了<code>setex</code>和<code>setnx</code>两个命令
+它们的作用和<code>ex</code>和<code>nx</code>选项是一样的</li>
+<li>获取字符串 键-值：<code>get key</code> </li>
+</ol>
+<h3 id="12">1.2 内部编码格式<a class="headerlink" href="#12" title="Permanent link">&para;</a></h3>
+<h3 id="13">1.3 使用场景<a class="headerlink" href="#13" title="Permanent link">&para;</a></h3>
+<h2 id="2">2. 哈希<a class="headerlink" href="#2" title="Permanent link">&para;</a></h2>
+<p>在Redis中，哈希类型是指键值本身又是一个键值对结构，形如value={{field1，value1}，...{fieldN，valueN}}，Redis键值对和哈希类型二者的关系可以用下图表示：</p>
+<p><img alt="image.png" src="image%201.png" /></p>
+<p>哈希类型中的映射关系叫作field-value，注意这里的value是指field对应的值，不是键对应的值，请注意value在不同上下文的作用</p>
+<h3 id="21">2.1 命令<a class="headerlink" href="#21" title="Permanent link">&para;</a></h3>
+<ol>
+<li>
+<p>设置值：<code>hset key field value</code> </p>
+<p>如果设置成功会返回1，反之会返回0。此外Redis提供了hsetnx命令，它们的关系就像set和setnx命令一样，<strong>只不过作用域由键变为field</strong></p>
+</li>
+<li>
+<p>获取值：<code>hget key field</code> 
+如果 field 不存在，则返回 nil</p>
+</li>
+<li>删除 field：<code>hdel key field [field2 …]</code></li>
+<li>计算 field 的个数：<code>hlen key</code></li>
+<li>批量设置或获取 field-value<ol>
+<li>设置：<code>hmset key field value [field value ...]</code> </li>
+<li>获取<code>hmget key field1 [field2 …]</code></li>
+</ol>
+</li>
+<li>判断 field 是否存在：<code>hexists key field</code> 存在返回1，否则返回0</li>
+<li>获取所有的 field ：<code>hkeys key</code></li>
+<li>获取所有的 value：<code>hvals key</code></li>
+<li>获取所有的 field-value：<code>hgetall key</code></li>
+</ol>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="m">127</span>.0.0.1:6379&gt;<span class="w"> </span>hset<span class="w"> </span>exa_hash<span class="w"> </span>filed1<span class="w"> </span>value1
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="o">(</span>integer<span class="o">)</span><span class="w"> </span><span class="m">1</span>
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="m">127</span>.0.0.1:6379&gt;<span class="w"> </span>keys<span class="w"> </span>*
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="m">1</span><span class="o">)</span><span class="w"> </span><span class="s2">&quot;ocr-gateway-vpc.redis.rds.aliyuncs.com&quot;</span>
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="m">2</span><span class="o">)</span><span class="w"> </span><span class="s2">&quot;hello&quot;</span>
+<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="m">3</span><span class="o">)</span><span class="w"> </span><span class="s2">&quot;exa_hash&quot;</span>
+<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="m">127</span>.0.0.1:6379&gt;<span class="w"> </span>get<span class="w"> </span>exa_hash
+<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a><span class="o">(</span>error<span class="o">)</span><span class="w"> </span>WRONGTYPE<span class="w"> </span>Operation<span class="w"> </span>against<span class="w"> </span>a<span class="w"> </span>key<span class="w"> </span>holding<span class="w"> </span>the<span class="w"> </span>wrong<span class="w"> </span>kind<span class="w"> </span>of<span class="w"> </span>value
+<a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a><span class="m">127</span>.0.0.1:6379&gt;<span class="w"> </span>hget<span class="w"> </span>exa_hash
+<a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a><span class="o">(</span>error<span class="o">)</span><span class="w"> </span>ERR<span class="w"> </span>wrong<span class="w"> </span>number<span class="w"> </span>of<span class="w"> </span>arguments<span class="w"> </span><span class="k">for</span><span class="w"> </span><span class="s1">&#39;hget&#39;</span><span class="w"> </span><span class="nb">command</span>
+<a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a><span class="m">127</span>.0.0.1:6379&gt;<span class="w"> </span>hget<span class="w"> </span>exa_hash<span class="w"> </span>filed2
+<a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a><span class="o">(</span>nil<span class="o">)</span>
+<a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a><span class="m">127</span>.0.0.1:6379&gt;<span class="w"> </span>keys<span class="w"> </span>exa_hash
+<a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a><span class="m">1</span><span class="o">)</span><span class="w"> </span><span class="s2">&quot;exa_hash&quot;</span>
+<a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a><span class="m">127</span>.0.0.1:6379&gt;<span class="w"> </span>hget<span class="w"> </span>exa_hash<span class="w"> </span>filed1
+<a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a><span class="s2">&quot;value1&quot;</span>
+<a id="__codelineno-0-17" name="__codelineno-0-17" href="#__codelineno-0-17"></a><span class="m">127</span>.0.0.1:6379&gt;<span class="w"> </span>hkeys<span class="w"> </span>exa_hash
+<a id="__codelineno-0-18" name="__codelineno-0-18" href="#__codelineno-0-18"></a><span class="m">1</span><span class="o">)</span><span class="w"> </span><span class="s2">&quot;filed1&quot;</span>
+<a id="__codelineno-0-19" name="__codelineno-0-19" href="#__codelineno-0-19"></a><span class="m">127</span>.0.0.1:6379&gt;<span class="w"> </span>hgetall<span class="w"> </span>exa_hash
+<a id="__codelineno-0-20" name="__codelineno-0-20" href="#__codelineno-0-20"></a><span class="m">1</span><span class="o">)</span><span class="w"> </span><span class="s2">&quot;filed1&quot;</span>
+<a id="__codelineno-0-21" name="__codelineno-0-21" href="#__codelineno-0-21"></a><span class="m">2</span><span class="o">)</span><span class="w"> </span><span class="s2">&quot;value1&quot;</span>
+<a id="__codelineno-0-22" name="__codelineno-0-22" href="#__codelineno-0-22"></a><span class="m">127</span>.0.0.1:6379&gt;<span class="w"> </span>
+</code></pre></div>
+<h3 id="22">2.2 内部编码<a class="headerlink" href="#22" title="Permanent link">&para;</a></h3>
+<p>哈希类型的内部编码有两种：</p>
+<ul>
+<li>ziplist（压缩列表）：当哈希类型元素个数小于hash-max-ziplist-entries配置（默认512个）、同时所有值都小于hash-max-ziplist-value配置（默认64字节）时，Redis会使用ziplist作为哈希的内部实现，ziplist使用更加紧凑的结构实现多个元素的连续存储，所以在节省内存方面比hashtable更加优秀。</li>
+<li>
+<p>hashtable（哈希表）：当哈希类型无法满足ziplist的条件时，Redis会使用hashtable作为哈希的内部实现，因为此时ziplist的读写效率会下降，而hashtable的读写时间复杂度为O（1）。</p>
+</li>
+<li>
+<p>当field个数比较少且没有大的value时，内部编码为ziplist：</p>
+</li>
+<li>当有value大于64字节，内部编码会由ziplist变为hashtable</li>
+<li>当field个数超过512，内部编码也会由ziplist变为hashtable：</li>
+</ul>
+<h3 id="23">2.3 使用场景<a class="headerlink" href="#23" title="Permanent link">&para;</a></h3>
+<p>存储用户信息，表类型的机构等。</p>
+<h2 id="3">3. 列表<a class="headerlink" href="#3" title="Permanent link">&para;</a></h2>
+<p>列表（list）类型是用来存储多个有序的字符串，如下图所示，a、b、c、d、e五个元素从左到右组成了一个有序的列表，列表中的每个字符串称为元素（element），一个列表最多可以存储 <code>2^32-1</code> 个元素。在Redis中，可以对列表两端插入（push）和弹出（pop），还可以获取指定范围的元素列表、获取指定索引下标的元素等。列表是一种比较灵活的数据结构，它可以充当栈和队列的角色，在实际开发上有很多应用场景</p>
+<p><img alt="列表" src="image%202.png" /></p>
+<p>列表</p>
+<p>列表类型有两个特点：</p>
+<p>第一、列表中的元素是有序的，这就意味着可以通过索引下标获取某个元素或者某个范围内的元素列表，例如要获取上图中的第5个元素，可以执行 <code>lindex user：1：message4</code>（索引从0算起）就可以得到元素 e。</p>
+<p>第二、列表中的元素可以是重复的</p>
+<h3 id="31">3.1 命令<a class="headerlink" href="#31" title="Permanent link">&para;</a></h3>
+<p><img alt="image.png" src="image%203.png" /></p>
+<p><img alt="列表命令时间复杂度" src="image%204.png" /></p>
+<p>列表命令时间复杂度</p>
+<ol>
+<li>添加操作<ol>
+<li>从右边添加数据：<code>rpush key value [value …]</code></li>
+<li>从左边添加数据：<code>lpush key value [value …]</code> </li>
+<li>向某个元素前或后添加元素：<code>linsert key before|after pivot value</code> <ol>
+<li>linsert命令会从列表中找到等于pivot的元素，在其前（before）或者后（after）插入一个新的元素value</li>
+</ol>
+</li>
+</ol>
+</li>
+<li>查找<ol>
+<li>获取指定范围内的元素列表：<code>lrange key start end</code><ol>
+<li>start是开始下标，（下标范围 <code>0～n-1</code>）</li>
+</ol>
+</li>
+<li>获取指定下标的元素：<code>lindex key index</code></li>
+<li>获取列表长度：<code>llen key</code></li>
+</ol>
+</li>
+<li>删除<ol>
+<li>从列表左侧弹出元素：<code>lpop key</code></li>
+<li>从列表右侧弹出元素：<code>rpop key</code> </li>
+<li>删除指定value元素：<code>lrem key count value</code> 
+<code>lrem</code>命令会从列表中找到等于<code>value</code>的元素进行删除，根据count的不同分为三种情况：<ol>
+<li>count&gt;0，从左到右，删除最多count个元素。</li>
+<li>count&lt;0，从右到左，删除最多count绝对值个元素。</li>
+<li>count=0，删除所有。</li>
+</ol>
+</li>
+<li>按照索引范围内修剪列表：<code>ltrim key start end</code> 保留 [start, end] 内的元素</li>
+</ol>
+</li>
+<li>修改制定索引下标的元素：<code>lset key index newValue</code></li>
+<li>
+<p>阻塞操作</p>
+<p>阻塞式弹出如下</p>
+<p><code>blpop key [key ...] timeout</code>
+<code>brpop key [key ...] timeout</code></p>
+<p>blpop和brpop是lpop和rpop的阻塞版本，它们除了弹出方向不同，使用方法基本相同，所以下面以brpop命令进行说明，brpop命令包含两个参数：</p>
+<ul>
+<li><code>key[key...]</code>：多个列表的键。</li>
+<li><code>timeout</code>：阻塞时间（单位：秒）。<ul>
+<li>当列表为空：如果timeout=3，那么客户端要等到3秒后返回，如果timeout=0，那么客户端一直阻塞等下去，直到列表添加了元素，客户端会理解返回元素。</li>
+<li>当列表不为空：客户端会立即返回。</li>
+</ul>
+</li>
+</ul>
+</li>
+</ol>
+<p>在使用brpop时，有两点需要注意。
+<strong>第一点，</strong>如果是多个键，那么brpop会从左至右遍历键，一旦有一个键能弹出元素，客户端立即返回</p>
+<p><strong>第二点，</strong>如果多个客户端对同一个键执行brpop，那么最先执行brpop命令的客户端可以获取到弹出的值。</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="m">127</span>.0.0.1:6379&gt;<span class="w"> </span>rpush<span class="w"> </span>l1<span class="w"> </span><span class="m">1</span><span class="w"> </span><span class="m">2</span><span class="w"> </span><span class="m">3</span>
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="o">(</span>integer<span class="o">)</span><span class="w"> </span><span class="m">3</span>
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="m">127</span>.0.0.1:6379&gt;<span class="w"> </span>lpush<span class="w"> </span>l1<span class="w"> </span><span class="m">4</span><span class="w"> </span><span class="m">5</span><span class="w"> </span><span class="m">6</span>
+<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="o">(</span>integer<span class="o">)</span><span class="w"> </span><span class="m">6</span>
+<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a><span class="m">127</span>.0.0.1:6379&gt;<span class="w"> </span>lrange<span class="w"> </span>l1<span class="w"> </span><span class="m">0</span><span class="w"> </span><span class="m">5</span>
+<a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a><span class="m">1</span><span class="o">)</span><span class="w"> </span><span class="s2">&quot;6&quot;</span>
+<a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a><span class="m">2</span><span class="o">)</span><span class="w"> </span><span class="s2">&quot;5&quot;</span>
+<a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a><span class="m">3</span><span class="o">)</span><span class="w"> </span><span class="s2">&quot;4&quot;</span>
+<a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a><span class="m">4</span><span class="o">)</span><span class="w"> </span><span class="s2">&quot;1&quot;</span>
+<a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a><span class="m">5</span><span class="o">)</span><span class="w"> </span><span class="s2">&quot;2&quot;</span>
+<a id="__codelineno-1-11" name="__codelineno-1-11" href="#__codelineno-1-11"></a><span class="m">6</span><span class="o">)</span><span class="w"> </span><span class="s2">&quot;3&quot;</span>
+<a id="__codelineno-1-12" name="__codelineno-1-12" href="#__codelineno-1-12"></a><span class="m">127</span>.0.0.1:6379&gt;<span class="w"> </span>lindex<span class="w"> </span>l1<span class="w"> </span><span class="m">0</span>
+<a id="__codelineno-1-13" name="__codelineno-1-13" href="#__codelineno-1-13"></a><span class="s2">&quot;6&quot;</span>
+<a id="__codelineno-1-14" name="__codelineno-1-14" href="#__codelineno-1-14"></a><span class="m">127</span>.0.0.1:6379&gt;<span class="w"> </span>llen<span class="w"> </span>l1
+<a id="__codelineno-1-15" name="__codelineno-1-15" href="#__codelineno-1-15"></a><span class="o">(</span>integer<span class="o">)</span><span class="w"> </span><span class="m">6</span>
+<a id="__codelineno-1-16" name="__codelineno-1-16" href="#__codelineno-1-16"></a><span class="m">127</span>.0.0.1:6379&gt;<span class="w"> </span>lpop<span class="w"> </span>l1
+<a id="__codelineno-1-17" name="__codelineno-1-17" href="#__codelineno-1-17"></a><span class="s2">&quot;6&quot;</span>
+<a id="__codelineno-1-18" name="__codelineno-1-18" href="#__codelineno-1-18"></a><span class="m">127</span>.0.0.1:6379&gt;<span class="w"> </span>rpop<span class="w"> </span>l1
+<a id="__codelineno-1-19" name="__codelineno-1-19" href="#__codelineno-1-19"></a><span class="s2">&quot;3&quot;</span>
+<a id="__codelineno-1-20" name="__codelineno-1-20" href="#__codelineno-1-20"></a><span class="m">127</span>.0.0.1:6379&gt;<span class="w"> </span>lrem<span class="w"> </span>l1<span class="w"> </span><span class="m">0</span><span class="w"> </span><span class="m">1</span>
+<a id="__codelineno-1-21" name="__codelineno-1-21" href="#__codelineno-1-21"></a><span class="o">(</span>integer<span class="o">)</span><span class="w"> </span><span class="m">1</span>
+<a id="__codelineno-1-22" name="__codelineno-1-22" href="#__codelineno-1-22"></a><span class="m">127</span>.0.0.1:6379&gt;<span class="w"> </span>llen<span class="w"> </span>l1
+<a id="__codelineno-1-23" name="__codelineno-1-23" href="#__codelineno-1-23"></a><span class="o">(</span>integer<span class="o">)</span><span class="w"> </span><span class="m">3</span>
+<a id="__codelineno-1-24" name="__codelineno-1-24" href="#__codelineno-1-24"></a><span class="m">127</span>.0.0.1:6379&gt;<span class="w"> </span>ltrim<span class="w"> </span>key<span class="w"> </span><span class="m">1</span><span class="w"> </span><span class="m">2</span>
+<a id="__codelineno-1-25" name="__codelineno-1-25" href="#__codelineno-1-25"></a>OK
+<a id="__codelineno-1-26" name="__codelineno-1-26" href="#__codelineno-1-26"></a><span class="m">127</span>.0.0.1:6379&gt;<span class="w"> </span>ltrim<span class="w"> </span>l1<span class="w"> </span><span class="m">1</span><span class="w"> </span><span class="m">2</span>
+<a id="__codelineno-1-27" name="__codelineno-1-27" href="#__codelineno-1-27"></a>OK
+<a id="__codelineno-1-28" name="__codelineno-1-28" href="#__codelineno-1-28"></a><span class="m">127</span>.0.0.1:6379&gt;<span class="w"> </span>lrange<span class="w"> </span>l1<span class="w"> </span><span class="m">0</span><span class="w"> </span><span class="m">2</span>
+<a id="__codelineno-1-29" name="__codelineno-1-29" href="#__codelineno-1-29"></a><span class="m">1</span><span class="o">)</span><span class="w"> </span><span class="s2">&quot;4&quot;</span>
+<a id="__codelineno-1-30" name="__codelineno-1-30" href="#__codelineno-1-30"></a><span class="m">2</span><span class="o">)</span><span class="w"> </span><span class="s2">&quot;2&quot;</span>
+<a id="__codelineno-1-31" name="__codelineno-1-31" href="#__codelineno-1-31"></a><span class="m">127</span>.0.0.1:6379&gt;<span class="w"> </span>lset<span class="w"> </span>l1<span class="w"> </span><span class="m">0</span><span class="w"> </span><span class="m">3</span>
+<a id="__codelineno-1-32" name="__codelineno-1-32" href="#__codelineno-1-32"></a>OK
+<a id="__codelineno-1-33" name="__codelineno-1-33" href="#__codelineno-1-33"></a><span class="m">127</span>.0.0.1:6379&gt;<span class="w"> </span>lrange<span class="w"> </span>l1<span class="w"> </span><span class="m">0</span><span class="w"> </span>-1
+<a id="__codelineno-1-34" name="__codelineno-1-34" href="#__codelineno-1-34"></a><span class="m">1</span><span class="o">)</span><span class="w"> </span><span class="s2">&quot;3&quot;</span>
+<a id="__codelineno-1-35" name="__codelineno-1-35" href="#__codelineno-1-35"></a><span class="m">2</span><span class="o">)</span><span class="w"> </span><span class="s2">&quot;2&quot;</span>
+<a id="__codelineno-1-36" name="__codelineno-1-36" href="#__codelineno-1-36"></a><span class="m">127</span>.0.0.1:6379&gt;<span class="w"> </span>blpop<span class="w"> </span>l1<span class="w"> </span><span class="m">3</span>
+<a id="__codelineno-1-37" name="__codelineno-1-37" href="#__codelineno-1-37"></a><span class="m">1</span><span class="o">)</span><span class="w"> </span><span class="s2">&quot;l1&quot;</span>
+<a id="__codelineno-1-38" name="__codelineno-1-38" href="#__codelineno-1-38"></a><span class="m">2</span><span class="o">)</span><span class="w"> </span><span class="s2">&quot;3&quot;</span>
+<a id="__codelineno-1-39" name="__codelineno-1-39" href="#__codelineno-1-39"></a><span class="m">127</span>.0.0.1:6379&gt;<span class="w"> </span>blpop<span class="w"> </span>l1<span class="w"> </span><span class="m">3</span>
+<a id="__codelineno-1-40" name="__codelineno-1-40" href="#__codelineno-1-40"></a><span class="m">1</span><span class="o">)</span><span class="w"> </span><span class="s2">&quot;l1&quot;</span>
+<a id="__codelineno-1-41" name="__codelineno-1-41" href="#__codelineno-1-41"></a><span class="m">2</span><span class="o">)</span><span class="w"> </span><span class="s2">&quot;2&quot;</span>
+<a id="__codelineno-1-42" name="__codelineno-1-42" href="#__codelineno-1-42"></a><span class="m">127</span>.0.0.1:6379&gt;<span class="w"> </span>blpop<span class="w"> </span>l1<span class="w"> </span><span class="m">3</span>
+<a id="__codelineno-1-43" name="__codelineno-1-43" href="#__codelineno-1-43"></a><span class="o">(</span>nil<span class="o">)</span>
+<a id="__codelineno-1-44" name="__codelineno-1-44" href="#__codelineno-1-44"></a><span class="o">(</span><span class="m">3</span>.08s<span class="o">)</span>
+</code></pre></div>
+<h3 id="32">3.2 内部编码<a class="headerlink" href="#32" title="Permanent link">&para;</a></h3>
+<h3 id="33">3.3 使用场景<a class="headerlink" href="#33" title="Permanent link">&para;</a></h3>
+<ol>
+<li>消息队列</li>
+<li>文章列表</li>
+</ol>
+<h2 id="4">4. 集合<a class="headerlink" href="#4" title="Permanent link">&para;</a></h2>
+<p>集合（set）类型也是用来保存多个的字符串元素，但和列表类型不一样的是，集合中不允许有重复元素，并且集合中的元素是无序的，不能通过索引下标获取元素。如下图所示，集合user：1：follow包含着"it"、"music"、"his"、"sports"四个元素，一个集合最多可以存储 $2^{32}-1$ 个元素。Redis除了支持集合内的增删改查，同时还支持多个集合取交集、并集、差集，合理地使用好集合类型，能在实际开发中解决很多实际问题。</p>
+<p><img alt="image.png" src="image%205.png" /></p>
+<h3 id="41">4.1 命令<a class="headerlink" href="#41" title="Permanent link">&para;</a></h3>
+<p>单个集合内操作：</p>
+<ol>
+<li>添加集合元素：<code>sadd key element [element …]</code><ol>
+<li>返回结果为添加成功的元素个数。</li>
+</ol>
+</li>
+<li>删除元素：<code>srem key element [element …]</code><ol>
+<li>返回结果为删除成功的元素个数。</li>
+</ol>
+</li>
+<li>计算元素个数：<code>scard key</code> <ol>
+<li><code>scard</code> 时间复杂度 <code>O(1)</code> ，它不会遍历集合，而是直接使用 Redis 内部的变量。</li>
+</ol>
+</li>
+<li>判断元素是否在集合中：<code>sismember key element</code><ol>
+<li>如果给定 <code>element</code> 在集合<code>key</code>中返回 1，否则返回0.</li>
+</ol>
+</li>
+<li>随机从集合返回指定个数的元素：<code>srandmember key [count]</code> <ol>
+<li>count 是可选参数，如果不写默认为 1.</li>
+</ol>
+</li>
+<li>从集合随机弹出元素：<code>spop key</code> </li>
+<li>获取所有元素：<code>smembers key</code> <ol>
+<li>返回结果是无序的。</li>
+</ol>
+</li>
+</ol>
+<p>集合间操作:</p>
+<p><img alt="image.png" src="image%206.png" /></p>
+<ol>
+<li>求多个集合的交集：<code>sinter key1 [key2 …]</code></li>
+<li>求多个集合的并集：<code>suinon key1 [key2 …]</code></li>
+<li>求多个集合的差集：<code>sdiff key1 [key2 …]</code></li>
+<li>将交集、并集、差集的结果保存<ol>
+<li><code>sinterstore destination key [key ...]
+suionstore  destination key [key ...]
+sdiffstore  destination key [key ...]</code></li>
+<li>保存到 <code>destination key</code> 中</li>
+</ol>
+</li>
+</ol>
+<h1 id="_2">快速使用<a class="headerlink" href="#_2" title="Permanent link">&para;</a></h1>
+<h2 id="_3">一、配置&amp;启动&amp;操作&amp;关闭<a class="headerlink" href="#_3" title="Permanent link">&para;</a></h2>
+<p>Redis 安装之后，<code>src</code> 和 <code>/usr/local/bin</code> 目录会有多几个 redis 开头的可执行文件，一般称之为 Redis Shell。</p>
+<table>
+<thead>
+<tr>
+<th>可执行文件</th>
+<th>作用</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>redis-server</td>
+<td>启动 redis 服务</td>
+</tr>
+<tr>
+<td>redis-cli</td>
+<td>Redis 命令行客户端</td>
+</tr>
+<tr>
+<td>redis-benchmark</td>
+<td>Redis 基准测试工具</td>
+</tr>
+<tr>
+<td>redis-check-aof</td>
+<td>Redis AOF 持久化文件检测和修复工具</td>
+</tr>
+<tr>
+<td>redis-check-dump</td>
+<td>Redis RDB 持久化文件检测和修复工具</td>
+</tr>
+<tr>
+<td>redis-sentinel</td>
+<td>启动 Redis Sentinel</td>
+</tr>
+</tbody>
+</table>
+<h3 id="1-redis-redis-server">1. 启动 Redis 服务（redis-server）<a class="headerlink" href="#1-redis-redis-server" title="Permanent link">&para;</a></h3>
+<p>有三种方式启动 Redis：默认配置、运行配置、配置文件启动。</p>
+<p>（1）默认配置</p>
+<p>直接运行 <code>redis-server</code> 命令，会使用默认配置启动 Redis 服务。</p>
+<p>（2）运行启动（不推荐使用）</p>
+<p><code>redis-server</code> 加上要修改的配置名和值（可以是多对），没有设置的配置将使用默认配置：</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>redis-server<span class="w"> </span>--configKey1<span class="w"> </span>configValue1<span class="w"> </span>--configKey2<span class="w"> </span>configValue2
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>
+<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="c1">#例如，设置 port 为6380</span>
+<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a>redis-server<span class="w"> </span>--port<span class="w"> </span><span class="m">6380</span>
+</code></pre></div>
+<p>（3）配置文件启动（推荐）</p>
+<p>将配置写入到指定文件里，例如将配置写入到文件 <code>/opt/redis/redis.conf</code> 中，那么启动时只需要执行如下命令：</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>redis-server<span class="w"> </span>/opt/redis/redis.conf
+</code></pre></div>
+<p>redis-server 有 60 多个配置，这里列出一些常用配置：</p>
+<table>
+<thead>
+<tr>
+<th>配置名</th>
+<th>配置说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>port</td>
+<td>端口号</td>
+</tr>
+<tr>
+<td>logfile</td>
+<td>日志文件</td>
+</tr>
+<tr>
+<td>dir</td>
+<td>Redis 工作目录（存放持久化文件和日志文件）</td>
+</tr>
+<tr>
+<td>daemonize</td>
+<td>是否以守护进程的方式启动 Redis</td>
+</tr>
+</tbody>
+</table>
+<h3 id="2-redis">2. Redis 命令行客户端<a class="headerlink" href="#2-redis" title="Permanent link">&para;</a></h3>
+<p>上面我们已经启动了 Redis 服务，现在介绍如何使用 redis-cli 连接、操作 Redis 服务。redis-cli 可以使用以下两种方式连接到 Redis 服务器。</p>
+<p>（1）交互式方式连接 Redis 服务器。（<strong>推荐使用</strong>）</p>
+<ul>
+<li><code>redis-cli</code> 默认连接 <code>127.0.0.1:6379</code>，所以可以直接使用 <code>redis-cli</code> 命令连接这个默认配置服务。</li>
+</ul>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>redis-cli<span class="w"> </span>-h<span class="w"> </span>host<span class="w"> </span>-p<span class="w"> </span>port<span class="w"> </span>-a<span class="w"> </span>password<span class="w">  </span><span class="c1"># -a 加密码 </span>
+<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>例如：
+<a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a>redis-cli<span class="w"> </span>-h<span class="w"> </span><span class="m">127</span>.0.0.1<span class="w"> </span>-p<span class="w"> </span><span class="m">6379</span>
+</code></pre></div>
+<p>（2）命令方式:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>redis-cli<span class="w"> </span>-h<span class="w"> </span>host<span class="w"> </span>-p<span class="w"> </span>port<span class="w"> </span><span class="nb">command</span>
+<a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="c1">#例如</span>
+<a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a>redis-cli<span class="w"> </span>-h<span class="w"> </span><span class="m">127</span>.0.0.1<span class="w"> </span>-p<span class="w"> </span><span class="m">6379</span><span class="w"> </span>get<span class="w"> </span>hello
+<a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a>--&gt;<span class="w"> </span><span class="s2">&quot;world&quot;</span>
+</code></pre></div>
+<h3 id="3-redis">3. 停止 Redis 服务<a class="headerlink" href="#3-redis" title="Permanent link">&para;</a></h3>
+<p>Redis 提供了 shutdown 命令来停止 Redis 服务，例如要停掉 127.0.0.1:6379 的Redis 服务，直接运行命令 <code>redis-cli shutdown</code> 即可。</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>redis-cli<span class="w"> </span>shutdown<span class="w"> </span>nosave<span class="p">|</span>save
+<a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a><span class="c1"># 使用 save 可以在关闭时生成持久化文件，避免数据丢失</span>
+</code></pre></div>
+<aside>
+💡
+
+mac上可以通过使用 brew 管理 Redis 服务
+
+启动：brew services start redis
+
+停止：brew services stop redis
+
+</aside>
+
+<h3 id="4-systemd-redis">4. 使用 systemd 管理 Redis 服务<a class="headerlink" href="#4-systemd-redis" title="Permanent link">&para;</a></h3>
+<p>可以使用 systemd 服务来管理 Redis，这更加可靠和标准化。在 <code>/etc/systemd/system/</code> 目录中创建一个名为 <code>redis.service</code> 的文件，并写入以下内容：</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="o">[</span>Unit<span class="o">]</span>
+<a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a><span class="nv">Description</span><span class="o">=</span>Redis<span class="w"> </span>In-Memory<span class="w"> </span>Data<span class="w"> </span>Store
+<a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a><span class="nv">After</span><span class="o">=</span>network.target
+<a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a>
+<a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a><span class="o">[</span>Service<span class="o">]</span>
+<a id="__codelineno-7-6" name="__codelineno-7-6" href="#__codelineno-7-6"></a><span class="nv">ExecStart</span><span class="o">=</span>/usr/local/bin/redis-server<span class="w"> </span>/etc/redis/redis.conf
+<a id="__codelineno-7-7" name="__codelineno-7-7" href="#__codelineno-7-7"></a><span class="nv">ExecStop</span><span class="o">=</span>/usr/local/bin/redis-cli<span class="w"> </span>shutdown<span class="w"> </span>save
+<a id="__codelineno-7-8" name="__codelineno-7-8" href="#__codelineno-7-8"></a><span class="nv">Restart</span><span class="o">=</span>always
+<a id="__codelineno-7-9" name="__codelineno-7-9" href="#__codelineno-7-9"></a>
+<a id="__codelineno-7-10" name="__codelineno-7-10" href="#__codelineno-7-10"></a><span class="o">[</span>Install<span class="o">]</span>
+<a id="__codelineno-7-11" name="__codelineno-7-11" href="#__codelineno-7-11"></a><span class="nv">WantedBy</span><span class="o">=</span>multi-user.target
+</code></pre></div>
+<p>确保路径和配置文件的位置与您的环境相匹配。接下来，重新加载 systemd 配置并启动 Redis：</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a>sudo<span class="w"> </span>systemctl<span class="w"> </span>daemon-reload
+<a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a>sudo<span class="w"> </span>systemctl<span class="w"> </span>start<span class="w"> </span>redis
+<a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a>sudo<span class="w"> </span>systemctl<span class="w"> </span><span class="nb">enable</span><span class="w"> </span>redis<span class="w">  </span><span class="c1"># 设置为开机启动</span>
+</code></pre></div>
+<h2 id="_4">二、常用命令<a class="headerlink" href="#_4" title="Permanent link">&para;</a></h2>
+<ol>
+<li>查看所有键： <code>keys *</code> </li>
+<li>查看键的总数： <code>dbsize</code></li>
+<li>检查键是否存在：<code>exists key</code></li>
+<li>删除键：<code>del key1 key2</code></li>
+<li>设置键过期时间：<code>expire key seconds</code></li>
+<li>
+<p>查看键是否过期：<code>ttl key</code> </p>
+<p><code>ttl</code> 命令会返回键的剩余过期时间，它有3种返回值：</p>
+<ul>
+<li>大于等于0的整数：键剩余的过期时间。</li>
+<li><code>-1</code> ：键没有设置过期时间。</li>
+<li><code>-2</code> ：键不存在。</li>
+<li>查看键的数据结构类型：<code>type key</code></li>
+<li>查看键的数据结构的 内部编码格式：<code>object encoding key</code></li>
+<li>切换数据库：<code>select db_index</code></li>
+</ul>
+</li>
+</ol>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../../../..", "features": ["navigation.tabs", "navigation.sections", "navigation.expand", "search.suggest", "search.highlight", "content.code.copy"], "search": "../../../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "\u5df2\u590d\u5236", "clipboard.copy": "\u590d\u5236", "search.result.more.one": "\u5728\u8be5\u9875\u4e0a\u8fd8\u6709 1 \u4e2a\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.more.other": "\u5728\u8be5\u9875\u4e0a\u8fd8\u6709 # \u4e2a\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.none": "\u6ca1\u6709\u627e\u5230\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.one": "\u627e\u5230 1 \u4e2a\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.other": "# \u4e2a\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.placeholder": "\u952e\u5165\u4ee5\u5f00\u59cb\u641c\u7d22", "search.result.term.missing": "\u7f3a\u5c11", "select.version": "\u9009\u62e9\u5f53\u524d\u7248\u672c"}, "version": null}</script>
+    
+    
+      <script src="../../../../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+    
+  </body>
+</html>
