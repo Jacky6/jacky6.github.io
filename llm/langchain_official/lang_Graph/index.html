@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="light">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        
+        
+        
+        <link rel="shortcut icon" href="../../../img/favicon.ico">
+        <title>图 API - My Docs</title>
+        <link href="../../../css/bootstrap.min.css" rel="stylesheet">
+        <link href="../../../css/fontawesome.min.css" rel="stylesheet">
+        <link href="../../../css/brands.min.css" rel="stylesheet">
+        <link href="../../../css/solid.min.css" rel="stylesheet">
+        <link href="../../../css/v4-font-face.min.css" rel="stylesheet">
+        <link href="../../../css/base.css" rel="stylesheet">
+        <link id="hljs-light" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" >
+        <link id="hljs-dark" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github-dark.min.css" disabled>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+        <script>hljs.highlightAll();</script> 
+    </head>
+
+    <body>
+        <div class="navbar fixed-top navbar-expand-lg navbar-dark bg-primary">
+            <div class="container">
+                <a class="navbar-brand" href="../../..">My Docs</a>
+
+                <!-- Expanded navigation -->
+                <div id="navbar-collapse" class="navbar-collapse collapse">
+
+                    <ul class="nav navbar-nav ms-md-auto">
+                        <li class="nav-item">
+                            <a href="#" class="nav-link" data-bs-toggle="modal" data-bs-target="#mkdocs_search_modal">
+                                <i class="fa fa-search"></i> Search
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="container">
+            <div class="row">
+                    <div class="col-md-3"><div class="navbar-expand-md bs-sidebar hidden-print affix" role="complementary">
+    <div class="navbar-header">
+        <button type="button" class="navbar-toggler collapsed" data-bs-toggle="collapse" data-bs-target="#toc-collapse" title="Table of Contents">
+            <span class="fa fa-angle-down"></span>
+        </button>
+    </div>
+
+    
+    <div id="toc-collapse" class="navbar-collapse collapse card bg-body-tertiary">
+        <ul class="nav flex-column">
+            
+            <li class="nav-item" data-bs-level="1"><a href="#api" class="nav-link">图 API</a>
+              <ul class="nav flex-column">
+            <li class="nav-item" data-bs-level="2"><a href="#_1" class="nav-link">概述</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+              </ul>
+            </li>
+        </ul>
+    </div>
+</div></div>
+                    <div class="col-md-9" role="main">
+
+<h1 id="api">图 API</h1>
+<h2 id="_1">概述</h2>
+<p>https://github.langchain.ac.cn/langgraph/concepts/low_level/</p>
+<h3 id="_2">图</h3>
+<p>LangGraph 的核心是将代理工作流建模为图。你使用三个关键组件来定义代理的行为：</p>
+<ol>
+<li><a href="https://github.langchain.ac.cn/langgraph/concepts/low_level/#state"><code>State</code></a>: 一个共享数据结构，表示应用程序的当前快照。它可以是任何数据类型，但通常使用共享状态 schema 进行定义。</li>
+<li><a href="https://github.langchain.ac.cn/langgraph/concepts/low_level/#nodes"><code>Nodes</code></a>: 编码代理逻辑的函数。它们接收当前状态作为输入，执行一些计算或副作用，并返回更新后的状态。</li>
+<li><a href="https://github.langchain.ac.cn/langgraph/concepts/low_level/#edges"><code>Edges</code></a>: 根据当前状态决定接下来执行哪个 <code>Node</code> 的函数。它们可以是条件分支或固定转换。</li>
+</ol>
+<p>通过组合 <code>Nodes</code> 和 <code>Edges</code>，你可以创建复杂的、循环的工作流，这些工作流会随着时间的推移演变状态。然而，真正的力量来自于 LangGraph 管理状态的方式。需要强调的是：<code>Nodes</code> 和 <code>Edges</code> 仅仅是函数——它们可以包含一个 LLM，也可以只是普通的旧代码。</p>
+<p>简而言之：<em>节点完成工作，边告诉下一步做什么</em>。</p>
+<p>LangGraph 的底层图算法使用<a href="https://en.wikipedia.org/wiki/Message_passing">消息传递</a>来定义一个通用程序。当一个节点完成其操作时，它会沿着一条或多条边向其他节点发送消息。这些接收节点随后执行它们的函数，将结果消息传递给下一组节点，这个过程持续进行。受谷歌的 <a href="https://research.google/pubs/pregel-a-system-for-large-scale-graph-processing/">Pregel</a> 系统的启发，程序以离散的“超级步骤”进行。</p>
+<p>一个超级步骤可以被认为是图节点的一次迭代。并行运行的节点属于同一个超级步骤，而顺序运行的节点则属于不同的超级步骤。在图执行开始时，所有节点都处于 <code>inactive</code> 状态。当一个节点在其任何传入边（或“通道”）上接收到新消息（状态）时，它就会变为 <code>active</code>。活跃节点随后运行其函数并返回更新。在每个超级步骤结束时，没有传入消息的节点会通过将自己标记为 <code>inactive</code> 来投票 <code>halt</code>。当所有节点都 <code>inactive</code> 且没有消息在传输时，图执行终止。</p>
+<h4 id="stategraph">状态图 (StateGraph)</h4>
+<p><code>StateGraph</code> 类是主要的图类。它由用户定义的 <code>State</code> 对象参数化。</p>
+<h4 id="_3">编译你的图</h4>
+<p>要构建你的图，你首先定义<a href="https://github.langchain.ac.cn/langgraph/concepts/low_level/#state">状态</a>，然后添加<a href="https://github.langchain.ac.cn/langgraph/concepts/low_level/#nodes">节点</a>和<a href="https://github.langchain.ac.cn/langgraph/concepts/low_level/#edges">边</a>，然后编译它。编译你的图到底是什么，为什么需要它？</p>
+<p>编译是一个非常简单的步骤。它对你的图的结构进行一些基本检查（例如，没有孤立节点）。你也可以在此处指定运行时参数，例如<a href="https://github.langchain.ac.cn/langgraph/concepts/persistence/">检查点</a>和断点。你只需调用 <code>.compile</code> 方法即可编译你的图</p>
+<pre><code class="language-python">graph = graph_builder.compile(...)
+</code></pre>
+<p>你<strong>必须</strong>在使用你的图之前对其进行编译。</p>
+<h3 id="_4">状态</h3>
+<p>​   定义图时做的第一件事是定义图的 <code>State</code>。<code>State</code> 包含<a href="https://github.langchain.ac.cn/langgraph/concepts/low_level/#schema">图的 schema</a> 以及<a href="https://github.langchain.ac.cn/langgraph/concepts/low_level/#reducers"><code>reducer</code> 函数</a>，这些函数指定如何将更新应用于状态。<code>State</code> 的 schema 将是图中所有 <code>Nodes</code> 和 <code>Edges</code> 的输入 schema，并且可以是 <code>TypedDict</code> 或 <code>Pydantic</code> 模型。所有 <code>Nodes</code> 都将发出对 <code>State</code> 的更新，然后使用指定的 <code>reducer</code> 函数应用这些更新。</p>
+<h4 id="schema">Schema</h4>
+<p>​   指定图 schema 的主要文档方式是使用 <a href="https://docs.pythonlang.cn/3/library/typing.html#typing.TypedDict"><code>TypedDict</code></a>。如果你想在状态中提供默认值，请使用 <a href="https://docs.pythonlang.cn/3/library/dataclasses.html"><code>dataclass</code></a>。我们也支持使用 Pydantic <a href="https://github.langchain.ac.cn/langgraph/how-tos/graph-api/#use-pydantic-models-for-graph-state">BaseModel</a> 作为你的图状态，如果你想要递归数据验证（但请注意，pydantic 的性能低于 <code>TypedDict</code> 或 <code>dataclass</code>）。</p>
+<p>默认情况下，图将具有相同的输入和输出 schema。如果你想更改此设置，你也可以直接指定显式的输入和输出 schema。当你有很多键，并且其中一些明确用于输入而另一些用于输出时，这会很有用。有关如何使用的信息，请参阅<a href="https://github.langchain.ac.cn/langgraph/how-tos/graph-api/#define-input-and-output-schemas">此处指南</a>。</p>
+<h5 id="schema_1">多个 Schema</h5>
+<p>通常，所有图节点都与单个 schema 通信。这意味着它们将读取和写入相同的状态通道。但是，在某些情况下，我们希望对此进行更多控制</p>
+<ul>
+<li>内部节点可以传递图中不需要的信息（输入/输出）。</li>
+<li>我们可能还希望为图使用不同的输入/输出 schema。例如，输出可能只包含一个相关的输出键。</li>
+</ul>
+<p>节点可以在图中写入私有状态通道，用于内部节点通信。我们可以简单地定义一个私有 schema，<code>PrivateState</code>。</p>
+<p>也可以为图定义显式的输入和输出 schema。在这些情况下，我们定义一个包含所有与图操作相关的键的“内部”schema。但是，我们也定义了作为“内部”schema 子集的 <code>input</code> 和 <code>output</code> schema，以限制图的输入和输出。有关更多详细信息，请参阅<a href="https://github.langchain.ac.cn/langgraph/how-tos/graph-api/#define-input-and-output-schemas">此指南</a>。</p>
+<p>我们来看一个例子</p>
+<pre><code class="language-python">class InputState(TypedDict):
+    user_input: str
+
+class OutputState(TypedDict):
+    graph_output: str
+
+class OverallState(TypedDict):
+    foo: str
+    user_input: str
+    graph_output: str
+
+class PrivateState(TypedDict):
+    bar: str
+
+def node_1(state: InputState) -&gt; OverallState:
+    # Write to OverallState
+    return {&quot;foo&quot;: state[&quot;user_input&quot;] + &quot; name&quot;}
+
+def node_2(state: OverallState) -&gt; PrivateState:
+    # Read from OverallState, write to PrivateState
+    return {&quot;bar&quot;: state[&quot;foo&quot;] + &quot; is&quot;}
+
+def node_3(state: PrivateState) -&gt; OutputState:
+    # Read from PrivateState, write to OutputState
+    return {&quot;graph_output&quot;: state[&quot;bar&quot;] + &quot; Lance&quot;}
+
+builder = StateGraph(OverallState,input_schema=InputState,output_schema=OutputState)
+builder.add_node(&quot;node_1&quot;, node_1)
+builder.add_node(&quot;node_2&quot;, node_2)
+builder.add_node(&quot;node_3&quot;, node_3)
+builder.add_edge(START, &quot;node_1&quot;)
+builder.add_edge(&quot;node_1&quot;, &quot;node_2&quot;)
+builder.add_edge(&quot;node_2&quot;, &quot;node_3&quot;)
+builder.add_edge(&quot;node_3&quot;, END)
+
+graph = builder.compile()
+graph.invoke({&quot;user_input&quot;:&quot;My&quot;})
+# {'graph_output': 'My name is Lance'}
+</code></pre>
+<p>这里有两个细微而重要的点需要注意</p>
+<ol>
+<li>
+<p>我们将 <code>state: InputState</code> 作为输入 schema 传递给 <code>node_1</code>。但是，我们写入到 <code>foo</code>，一个 <code>OverallState</code> 中的通道。我们如何写入到输入 schema 中未包含的状态通道？这是因为一个节点<em>可以写入图状态中的任何状态通道。</em>图状态是初始化时定义的状态通道的并集，其中包括 <code>OverallState</code> 以及过滤器 <code>InputState</code> 和 <code>OutputState</code>。</p>
+</li>
+<li>
+<p>我们使用 <code>StateGraph(OverallState,input_schema=InputState,output_schema=OutputState)</code> 初始化图。那么，我们如何在 <code>node_2</code> 中写入 <code>PrivateState</code> 呢？如果 <code>StateGraph</code> 初始化时没有传递此 schema，图如何访问它？</p>
+</li>
+</ol>
+<p>我们可以这样做，<strong>因为<em>节点还可以声明额外的状态通道</em>，只要状态 schema 定义存在即可</strong>。在这种情况下，<code>PrivateState</code> schema 已经定义，因此我们可以将 <code>bar</code> 添加为图中的新状态通道并写入它。</p></div>
+            </div>
+        </div>
+
+        <footer class="col-md-12">
+            <hr>
+            <p>Documentation built with <a href="https://www.mkdocs.org/">MkDocs</a>.</p>
+        </footer>
+        <script src="../../../js/bootstrap.bundle.min.js"></script>
+        <script>
+            var base_url = "../../..",
+                shortcuts = {"help": 191, "next": 78, "previous": 80, "search": 83};
+        </script>
+        <script src="../../../js/base.js"></script>
+        <script src="../../../search/main.js"></script>
+
+        <div class="modal" id="mkdocs_search_modal" tabindex="-1" role="dialog" aria-labelledby="searchModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="searchModalLabel">Search</h4>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>From here you can search these documents. Enter your search terms below.</p>
+                <form>
+                    <div class="form-group">
+                        <input type="search" class="form-control" placeholder="Search..." id="mkdocs-search-query" title="Type search term here">
+                    </div>
+                </form>
+                <div id="mkdocs-search-results" data-no-results-text="No results found"></div>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div><div class="modal" id="mkdocs_keyboard_modal" tabindex="-1" role="dialog" aria-labelledby="keyboardModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="keyboardModalLabel">Keyboard Shortcuts</h4>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th style="width: 20%;">Keys</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td class="help shortcut"><kbd>?</kbd></td>
+                    <td>Open this help</td>
+                  </tr>
+                  <tr>
+                    <td class="next shortcut"><kbd>n</kbd></td>
+                    <td>Next page</td>
+                  </tr>
+                  <tr>
+                    <td class="prev shortcut"><kbd>p</kbd></td>
+                    <td>Previous page</td>
+                  </tr>
+                  <tr>
+                    <td class="search shortcut"><kbd>s</kbd></td>
+                    <td>Search</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div>
+
+    </body>
+</html>

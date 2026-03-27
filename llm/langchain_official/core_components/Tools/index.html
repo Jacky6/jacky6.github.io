@@ -1,0 +1,488 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="light">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        
+        
+        
+        <link rel="shortcut icon" href="../../../../img/favicon.ico">
+        <title>Tools - My Docs</title>
+        <link href="../../../../css/bootstrap.min.css" rel="stylesheet">
+        <link href="../../../../css/fontawesome.min.css" rel="stylesheet">
+        <link href="../../../../css/brands.min.css" rel="stylesheet">
+        <link href="../../../../css/solid.min.css" rel="stylesheet">
+        <link href="../../../../css/v4-font-face.min.css" rel="stylesheet">
+        <link href="../../../../css/base.css" rel="stylesheet">
+        <link id="hljs-light" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" >
+        <link id="hljs-dark" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github-dark.min.css" disabled>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+        <script>hljs.highlightAll();</script> 
+    </head>
+
+    <body>
+        <div class="navbar fixed-top navbar-expand-lg navbar-dark bg-primary">
+            <div class="container">
+                <a class="navbar-brand" href="../../../..">My Docs</a>
+
+                <!-- Expanded navigation -->
+                <div id="navbar-collapse" class="navbar-collapse collapse">
+
+                    <ul class="nav navbar-nav ms-md-auto">
+                        <li class="nav-item">
+                            <a href="#" class="nav-link" data-bs-toggle="modal" data-bs-target="#mkdocs_search_modal">
+                                <i class="fa fa-search"></i> Search
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="container">
+            <div class="row">
+                    <div class="col-md-3"><div class="navbar-expand-md bs-sidebar hidden-print affix" role="complementary">
+    <div class="navbar-header">
+        <button type="button" class="navbar-toggler collapsed" data-bs-toggle="collapse" data-bs-target="#toc-collapse" title="Table of Contents">
+            <span class="fa fa-angle-down"></span>
+        </button>
+    </div>
+
+    
+    <div id="toc-collapse" class="navbar-collapse collapse card bg-body-tertiary">
+        <ul class="nav flex-column">
+            
+            <li class="nav-item" data-bs-level="1"><a href="#tools" class="nav-link">Tools</a>
+              <ul class="nav flex-column">
+            <li class="nav-item" data-bs-level="2"><a href="#create-tools" class="nav-link">Create tools</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#accessing-context" class="nav-link">Accessing Context</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+              </ul>
+            </li>
+        </ul>
+    </div>
+</div></div>
+                    <div class="col-md-9" role="main">
+
+<table>
+<thead>
+<tr>
+<th>时间</th>
+<th>修订</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>2025-11-14</td>
+<td>yixiu</td>
+</tr>
+</tbody>
+</table>
+<h1 id="tools">Tools</h1>
+<p>Many AI applications interact with users via natural language. However, some use cases require models to interface directly with external systems—such as APIs, databases, or file systems—using structured input.</p>
+<p>Tools are components that agents call to perform actions. They extend model capabilities by letting them interact with the world through well-defined inputs and outputs. Tools encapsulate a callable function and its input schema. These can be passed to compatible chat models, allowing the model to decide whether to invoke a tool and with what arguments. In these scenarios, tool calling enables models to generate requests that conform to a specified input schema.</p>
+<blockquote>
+<p>Server-side tool use \
+Some chat models (e.g., OpenAI, Anthropic, and Gemini) feature built-in tools that are executed server-side, such as web search and code interpreters. Refer to the provider overview to learn how to access these tools with your specific chat model.</p>
+</blockquote>
+<h2 id="create-tools">Create tools</h2>
+<h3 id="basic-tool-definition">Basic tool definition</h3>
+<p>The simplest way to create a tool is with the <code>@tool</code> decorator. By default, <strong>the function’s docstring becomes the tool’s description that helps the model understand when to use it</strong>:</p>
+<pre><code class="language-python">from langchain.tools import tool
+
+@tool
+def search_database(query: str, limit: int = 10) -&gt; str:
+    &quot;&quot;&quot;Search the customer database for records matching the query.
+
+    Args:
+        query: Search terms to look for
+        limit: Maximum number of results to return
+    &quot;&quot;&quot;
+    return f&quot;Found {limit} results for '{query}'&quot;
+</code></pre>
+<p>Type hints are required as they define the tool’s input schema. The docstring should be informative and concise to help the model understand the tool’s purpose.</p>
+<h3 id="customize-tool-properties">Customize(定制) tool properties</h3>
+<h4 id="custom-tool-name">Custom tool name</h4>
+<p>By default, the tool name comes from the function name. Override it when you need something more descriptive:</p>
+<pre><code class="language-python">@tool(&quot;web_search&quot;)  # Custom name
+def search(query: str) -&gt; str:
+    &quot;&quot;&quot;Search the web for information.&quot;&quot;&quot;
+    return f&quot;Results for: {query}&quot;
+
+print(search.name)  # web_search
+</code></pre>
+<h4 id="custom-tool-description">Custom tool description</h4>
+<p>Override the auto-generated tool description for clearer model guidance:</p>
+<pre><code class="language-python">@tool(&quot;calculator&quot;, description=&quot;Performs arithmetic calculations. Use this for any math problems.&quot;)
+def calc(expression: str) -&gt; str:
+    &quot;&quot;&quot;Evaluate mathematical expressions.&quot;&quot;&quot;
+    return str(eval(expression))
+</code></pre>
+<h3 id="advanced-schema-definition">Advanced schema definition</h3>
+<p>Define complex inputs with Pydantic models or JSON schemas:</p>
+<pre><code class="language-python">## pydantic model
+from pydantic import BaseModel, Field
+from typing import Literal
+
+class WeatherInput(BaseModel):
+    &quot;&quot;&quot;Input for weather queries.&quot;&quot;&quot;
+    location: str = Field(description=&quot;City name or coordinates&quot;)
+    units: Literal[&quot;celsius&quot;, &quot;fahrenheit&quot;] = Field(
+        default=&quot;celsius&quot;,
+        description=&quot;Temperature unit preference&quot;
+    )
+    include_forecast: bool = Field(
+        default=False,
+        description=&quot;Include 5-day forecast&quot;
+    )
+
+@tool(args_schema=WeatherInput)
+def get_weather(location: str, units: str = &quot;celsius&quot;, include_forecast: bool = False) -&gt; str:
+    &quot;&quot;&quot;Get current weather and optional forecast.&quot;&quot;&quot;
+    temp = 22 if units == &quot;celsius&quot; else 72
+    result = f&quot;Current weather in {location}: {temp} degrees {units[0].upper()}&quot;
+    if include_forecast:
+        result += &quot;\nNext 5 days: Sunny&quot;
+    return result
+
+## json schema
+weather_schema = {
+    &quot;type&quot;: &quot;object&quot;,
+    &quot;properties&quot;: {
+        &quot;location&quot;: {&quot;type&quot;: &quot;string&quot;},
+        &quot;units&quot;: {&quot;type&quot;: &quot;string&quot;},
+        &quot;include_forecast&quot;: {&quot;type&quot;: &quot;boolean&quot;}
+    },
+    &quot;required&quot;: [&quot;location&quot;, &quot;units&quot;, &quot;include_forecast&quot;]
+}
+
+@tool(args_schema=weather_schema)
+def get_weather(location: str, units: str = &quot;celsius&quot;, include_forecast: bool = False) -&gt; str:
+    &quot;&quot;&quot;Get current weather and optional forecast.&quot;&quot;&quot;
+    temp = 22 if units == &quot;celsius&quot; else 72
+    result = f&quot;Current weather in {location}: {temp} degrees {units[0].upper()}&quot;
+    if include_forecast:
+        result += &quot;\nNext 5 days: Sunny&quot;
+    return result
+</code></pre>
+<h2 id="accessing-context">Accessing Context</h2>
+<blockquote>
+<p>Why this matters: \
+Tools are most powerful when they can access agent state, runtime context, and long-term memory. This enables tools to make context-aware decisions, personalize responses, and maintain information across conversations. \
+\
+Runtime context provides a way to inject dependencies (like database connections, user IDs, or configuration) into your tools at runtime, making them more testable and reusable</p>
+</blockquote>
+<p>Tools can access runtime information through the <code>ToolRuntime</code> parameter, which provides:</p>
+<ul>
+<li><strong>State</strong> - Mutable data that flows through execution (e.g., messages, counters, custom fields)</li>
+<li><strong>Context</strong> - Immutable configuration like user IDs, session details, or application-specific configuration</li>
+<li><strong>Store</strong> - Persistent long-term memory across conversations</li>
+<li><strong>Stream</strong> Writer - Stream custom updates as tools execute</li>
+<li><strong>Config</strong> - RunnableConfig for the execution</li>
+<li><strong>Tool Call ID</strong> - ID of the current tool call</li>
+</ul>
+<p>```mermaid  theme={null}
+graph LR
+    %% Runtime Context
+    subgraph "🔧 Tool Runtime Context"
+        A[Tool Call] --&gt; B[ToolRuntime]
+        B --&gt; C[State Access]
+        B --&gt; D[Context Access]
+        B --&gt; E[Store Access]
+        B --&gt; F[Stream Writer]
+    end</p>
+<pre><code>%% Available Resources
+subgraph "📊 Available Resources"
+    C --&gt; G[Messages]
+    C --&gt; H[Custom State]
+    D --&gt; I[User ID]
+    D --&gt; J[Session Info]
+    E --&gt; K[Long-term Memory]
+    E --&gt; L[User Preferences]
+end
+
+%% Tool Capabilities
+subgraph "⚡ Enhanced Tool Capabilities"
+    M[Context-Aware Tools]
+    N[Stateful Tools]
+    O[Memory-Enabled Tools]
+    P[Streaming Tools]
+end
+
+%% Connections
+G --&gt; M
+H --&gt; N
+I --&gt; M
+J --&gt; M
+K --&gt; O
+L --&gt; O
+F --&gt; P
+</code></pre>
+<pre><code>
+### ToolRuntime
+
+Use `ToolRuntime` to access all runtime information in a single parameter. Simply add runtime: `ToolRuntime` to your tool signature, and it will be automatically injected without being exposed to the LLM.
+
+&gt; ToolRuntime: A unified parameter that provides tools access to state, context, store, streaming, config, and tool call ID. This replaces the older pattern of using separate InjectedState, InjectedStore, get_runtime, and InjectedToolCallId annotations. \
+&gt; The runtime automatically provides these capabilities to your tool functions without you having to pass them explicitly or use global state.
+
+#### Accessing state:
+
+Tools can access the current graph state using `ToolRuntime`:
+
+```python
+from langchain.tools import tool, ToolRuntime
+
+# Access the current conversation state
+@tool
+def summarize_conversation(
+    runtime: ToolRuntime
+) -&gt; str:
+    &quot;&quot;&quot;Summarize the conversation so far.&quot;&quot;&quot;
+    messages = runtime.state[&quot;messages&quot;]
+
+    human_msgs = sum(1 for m in messages if m.__class__.__name__ == &quot;HumanMessage&quot;)
+    ai_msgs = sum(1 for m in messages if m.__class__.__name__ == &quot;AIMessage&quot;)
+    tool_msgs = sum(1 for m in messages if m.__class__.__name__ == &quot;ToolMessage&quot;)
+
+    return f&quot;Conversation has {human_msgs} user messages, {ai_msgs} AI responses, and {tool_msgs} tool results&quot;
+
+# Access custom state fields
+@tool
+def get_user_preference(
+    pref_name: str,
+    runtime: ToolRuntime  # ToolRuntime parameter is not visible to the model
+) -&gt; str:
+    &quot;&quot;&quot;Get a user preference value.&quot;&quot;&quot;
+    preferences = runtime.state.get(&quot;user_preferences&quot;, {})
+    return preferences.get(pref_name, &quot;Not set&quot;)
+</code></pre>
+<blockquote>
+<p><strong>The tool_runtime parameter is hidden from the model</strong>. For the example above, the model only sees pref_name in the tool schema - tool_runtime is not included in the request.</p>
+</blockquote>
+<h4 id="updating-state">Updating state:</h4>
+<p>Use <a href="https://reference.langchain.com/python/langgraph/types/?_gl=1*e7ikek*_gcl_au*MTU1MTIzNzI3Ni4xNzU4MTYyMjkx*_ga*MTIzNjE0Nzc5Mi4xNzU4MTYyMjkx*_ga_47WX3HKKY2*czE3NjMwODkzMzYkbzE3JGcxJHQxNzYzMDkyNjg4JGo1OCRsMCRoMA..#langgraph.types.Command">Command</a> to update the agent’s state or control the graph’s execution flow:</p>
+<pre><code class="language-python">from langgraph.types import Command
+from langchain.messages import RemoveMessage
+from langgraph.graph.message import REMOVE_ALL_MESSAGES
+from langchain.tools import tool, ToolRuntime
+
+# Update the conversation history by removing all messages
+@tool
+def clear_conversation() -&gt; Command:
+    &quot;&quot;&quot;Clear the conversation history.&quot;&quot;&quot;
+
+    return Command(
+        update={
+            &quot;messages&quot;: [RemoveMessage(id=REMOVE_ALL_MESSAGES)],
+        }
+    )
+
+# Update the user_name in the agent state
+@tool
+def update_user_name(
+    new_name: str,
+    runtime: ToolRuntime
+) -&gt; Command:
+    &quot;&quot;&quot;Update the user's name.&quot;&quot;&quot;
+    return Command(update={&quot;user_name&quot;: new_name})
+</code></pre>
+<h4 id="context">Context</h4>
+<p>Access immutable(不可变的) configuration and contextual data like user IDs, session details, or application-specific configuration through runtime.context.</p>
+<p>Tools can access runtime context through ToolRuntime:</p>
+<pre><code class="language-python">from dataclasses import dataclass
+from langchain_openai import ChatOpenAI
+from langchain.agents import create_agent
+from langchain.tools import tool, ToolRuntime
+
+
+USER_DATABASE = {
+    &quot;user123&quot;: {
+        &quot;name&quot;: &quot;Alice Johnson&quot;,
+        &quot;account_type&quot;: &quot;Premium&quot;,
+        &quot;balance&quot;: 5000,
+        &quot;email&quot;: &quot;alice@example.com&quot;
+    },
+    &quot;user456&quot;: {
+        &quot;name&quot;: &quot;Bob Smith&quot;,
+        &quot;account_type&quot;: &quot;Standard&quot;,
+        &quot;balance&quot;: 1200,
+        &quot;email&quot;: &quot;bob@example.com&quot;
+    }
+}
+
+@dataclass
+class UserContext:
+    user_id: str
+
+@tool
+def get_account_info(runtime: ToolRuntime[UserContext]) -&gt; str:
+    &quot;&quot;&quot;Get the current user's account information.&quot;&quot;&quot;
+    user_id = runtime.context.user_id
+
+    if user_id in USER_DATABASE:
+        user = USER_DATABASE[user_id]
+        return f&quot;Account holder: {user['name']}\nType: {user['account_type']}\nBalance: ${user['balance']}&quot;
+    return &quot;User not found&quot;
+
+model = ChatOpenAI(model=&quot;gpt-4o&quot;)
+agent = create_agent(
+    model,
+    tools=[get_account_info],
+    context_schema=UserContext,
+    system_prompt=&quot;You are a financial assistant.&quot;
+)
+
+result = agent.invoke(
+    {&quot;messages&quot;: [{&quot;role&quot;: &quot;user&quot;, &quot;content&quot;: &quot;What's my current balance?&quot;}]},
+    context=UserContext(user_id=&quot;user123&quot;)
+)
+</code></pre>
+<h4 id="memory-store">Memory (Store)</h4>
+<p>Access persistent data across conversations using the store. The store is accessed via <code>runtime.store</code> and allows you to save and retrieve user-specific or application-specific data.</p>
+<p>Tools can access and update the store through ToolRuntime:</p>
+<pre><code class="language-python">from typing import Any
+from langgraph.store.memory import InMemoryStore
+from langchain.agents import create_agent
+from langchain.tools import tool, ToolRuntime
+
+
+# Access memory
+@tool
+def get_user_info(user_id: str, runtime: ToolRuntime) -&gt; str:
+    &quot;&quot;&quot;Look up user info.&quot;&quot;&quot;
+    store = runtime.store
+    user_info = store.get((&quot;users&quot;,), user_id)
+    return str(user_info.value) if user_info else &quot;Unknown user&quot;
+
+# Update memory
+@tool
+def save_user_info(user_id: str, user_info: dict[str, Any], runtime: ToolRuntime) -&gt; str:
+    &quot;&quot;&quot;Save user info.&quot;&quot;&quot;
+    store = runtime.store
+    store.put((&quot;users&quot;,), user_id, user_info)
+    return &quot;Successfully saved user info.&quot;
+
+store = InMemoryStore()
+agent = create_agent(
+    model,
+    tools=[get_user_info, save_user_info],
+    store=store
+)
+
+# First session: save user info
+agent.invoke({
+    &quot;messages&quot;: [{&quot;role&quot;: &quot;user&quot;, &quot;content&quot;: &quot;Save the following user: userid: abc123, name: Foo, age: 25, email: foo@langchain.dev&quot;}]
+})
+
+# Second session: get user info
+agent.invoke({
+    &quot;messages&quot;: [{&quot;role&quot;: &quot;user&quot;, &quot;content&quot;: &quot;Get user info for user with id 'abc123'&quot;}]
+})
+# Here is the user info for user with ID &quot;abc123&quot;:
+# - Name: Foo
+# - Age: 25
+# - Email: foo@langchain.dev
+</code></pre>
+<h4 id="stream-writer">Stream Writer</h4>
+<p>Stream custom updates from tools as they execute using <code>runtime.stream_writer</code>. This is useful for providing real-time feedback to users about what a tool is doing.</p>
+<pre><code class="language-python">from langchain.tools import tool, ToolRuntime
+
+@tool
+def get_weather(city: str, runtime: ToolRuntime) -&gt; str:
+    &quot;&quot;&quot;Get weather for a given city.&quot;&quot;&quot;
+    writer = runtime.stream_writer
+
+    # Stream custom updates as the tool executes
+    writer(f&quot;Looking up data for city: {city}&quot;)
+    writer(f&quot;Acquired data for city: {city}&quot;)
+
+    return f&quot;It's always sunny in {city}!&quot;
+</code></pre>
+<blockquote>
+<p>If you use runtime.stream_writer inside your tool, the tool must be invoked within a LangGraph execution context. See <a href="https://docs.langchain.com/oss/python/langchain/streaming">Streaming</a> for more details.</p>
+</blockquote></div>
+            </div>
+        </div>
+
+        <footer class="col-md-12">
+            <hr>
+            <p>Documentation built with <a href="https://www.mkdocs.org/">MkDocs</a>.</p>
+        </footer>
+        <script src="../../../../js/bootstrap.bundle.min.js"></script>
+        <script>
+            var base_url = "../../../..",
+                shortcuts = {"help": 191, "next": 78, "previous": 80, "search": 83};
+        </script>
+        <script src="../../../../js/base.js"></script>
+        <script src="../../../../search/main.js"></script>
+
+        <div class="modal" id="mkdocs_search_modal" tabindex="-1" role="dialog" aria-labelledby="searchModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="searchModalLabel">Search</h4>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>From here you can search these documents. Enter your search terms below.</p>
+                <form>
+                    <div class="form-group">
+                        <input type="search" class="form-control" placeholder="Search..." id="mkdocs-search-query" title="Type search term here">
+                    </div>
+                </form>
+                <div id="mkdocs-search-results" data-no-results-text="No results found"></div>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div><div class="modal" id="mkdocs_keyboard_modal" tabindex="-1" role="dialog" aria-labelledby="keyboardModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="keyboardModalLabel">Keyboard Shortcuts</h4>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th style="width: 20%;">Keys</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td class="help shortcut"><kbd>?</kbd></td>
+                    <td>Open this help</td>
+                  </tr>
+                  <tr>
+                    <td class="next shortcut"><kbd>n</kbd></td>
+                    <td>Next page</td>
+                  </tr>
+                  <tr>
+                    <td class="prev shortcut"><kbd>p</kbd></td>
+                    <td>Previous page</td>
+                  </tr>
+                  <tr>
+                    <td class="search shortcut"><kbd>s</kbd></td>
+                    <td>Search</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div>
+
+    </body>
+</html>

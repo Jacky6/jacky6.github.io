@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="light">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        
+        
+        
+        <link rel="shortcut icon" href="../../../../img/favicon.ico">
+        <title>22_Stream API - My Docs</title>
+        <link href="../../../../css/bootstrap.min.css" rel="stylesheet">
+        <link href="../../../../css/fontawesome.min.css" rel="stylesheet">
+        <link href="../../../../css/brands.min.css" rel="stylesheet">
+        <link href="../../../../css/solid.min.css" rel="stylesheet">
+        <link href="../../../../css/v4-font-face.min.css" rel="stylesheet">
+        <link href="../../../../css/base.css" rel="stylesheet">
+        <link id="hljs-light" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" >
+        <link id="hljs-dark" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github-dark.min.css" disabled>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+        <script>hljs.highlightAll();</script> 
+    </head>
+
+    <body>
+        <div class="navbar fixed-top navbar-expand-lg navbar-dark bg-primary">
+            <div class="container">
+                <a class="navbar-brand" href="../../../..">My Docs</a>
+
+                <!-- Expanded navigation -->
+                <div id="navbar-collapse" class="navbar-collapse collapse">
+
+                    <ul class="nav navbar-nav ms-md-auto">
+                        <li class="nav-item">
+                            <a href="#" class="nav-link" data-bs-toggle="modal" data-bs-target="#mkdocs_search_modal">
+                                <i class="fa fa-search"></i> Search
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="container">
+            <div class="row">
+                    <div class="col-md-3"><div class="navbar-expand-md bs-sidebar hidden-print affix" role="complementary">
+    <div class="navbar-header">
+        <button type="button" class="navbar-toggler collapsed" data-bs-toggle="collapse" data-bs-target="#toc-collapse" title="Table of Contents">
+            <span class="fa fa-angle-down"></span>
+        </button>
+    </div>
+
+    
+    <div id="toc-collapse" class="navbar-collapse collapse card bg-body-tertiary">
+        <ul class="nav flex-column">
+            
+            <li class="nav-item" data-bs-level="1"><a href="#22_stream-api" class="nav-link">22_Stream API</a>
+              <ul class="nav flex-column">
+            <li class="nav-item" data-bs-level="2"><a href="#1-stream" class="nav-link">1. Stream 概述</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#2-stream" class="nav-link">2. 创建 Stream</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#3" class="nav-link">3. 中间操作 ⭐⭐⭐</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#4" class="nav-link">4. 终端操作 ⭐⭐⭐</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#5" class="nav-link">5. 并行流 ⭐</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#6" class="nav-link">6. 实战示例</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#7" class="nav-link">7. 本章小结</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+              </ul>
+            </li>
+        </ul>
+    </div>
+</div></div>
+                    <div class="col-md-9" role="main">
+
+<h1 id="22_stream-api">22_Stream API</h1>
+<hr />
+<h2 id="1-stream">1. Stream 概述</h2>
+<h3 id="11-stream">1.1 什么是 Stream</h3>
+<p><strong>Stream</strong>（流）是数据渠道，用于操作数据源（集合、数组等）产生的元素。</p>
+<p><strong>特点</strong>：
+- ✅ <strong>声明式</strong>：关注做什么，而非怎么做
+- ✅ <strong>可组合</strong>：多个操作链式调用
+- ✅ <strong>可并行</strong>：轻松实现并行处理
+- ✅ <strong>不存储</strong>：Stream 不存储数据
+- ✅ <strong>不修改源</strong>：不会修改原始数据源</p>
+<pre><code>数据源 → Stream → 中间操作 → 终端操作 → 结果
+
+        ┌─────────────────────────┐
+        │      惰性求值           │
+        │  （直到终端操作才执行） │
+        └─────────────────────────┘
+</code></pre>
+<hr />
+<h2 id="2-stream">2. 创建 Stream</h2>
+<h3 id="21">2.1 从集合创建</h3>
+<pre><code class="language-java">List&lt;String&gt; list = Arrays.asList(&quot;Java&quot;, &quot;Python&quot;, &quot;C++&quot;);
+
+// Collection 默认方法
+Stream&lt;String&gt; stream1 = list.stream();           // 顺序流
+Stream&lt;String&gt; stream2 = list.parallelStream();   // 并行流
+</code></pre>
+<h3 id="22">2.2 从数组创建</h3>
+<pre><code class="language-java">// 对象数组
+Stream&lt;String&gt; stream1 = Arrays.stream(new String[]{&quot;A&quot;, &quot;B&quot;, &quot;C&quot;});
+
+// 基本类型数组
+IntStream intStream = Arrays.stream(new int[]{1, 2, 3});
+</code></pre>
+<h3 id="23-streamof">2.3 使用 Stream.of()</h3>
+<pre><code class="language-java">// 直接创建
+Stream&lt;String&gt; stream1 = Stream.of(&quot;Java&quot;, &quot;Python&quot;, &quot;C++&quot;);
+Stream&lt;Integer&gt; stream2 = Stream.of(1, 2, 3, 4, 5);
+
+// 空 Stream
+Stream&lt;String&gt; empty = Stream.empty();
+</code></pre>
+<h3 id="24-stream">2.4 生成无限 Stream</h3>
+<pre><code class="language-java">// iterate（迭代）
+Stream&lt;Integer&gt; numbers = Stream.iterate(0, n -&gt; n + 2);
+numbers.limit(5).forEach(System.out::println);  // 0, 2, 4, 6, 8
+
+// generate（生成）
+Stream&lt;Double&gt; randoms = Stream.generate(Math::random);
+randoms.limit(3).forEach(System.out::println);
+</code></pre>
+<hr />
+<h2 id="3">3. 中间操作 ⭐⭐⭐</h2>
+<p>中间操作返回新的 Stream，可以链式调用，<strong>惰性求值</strong>。</p>
+<h3 id="31">3.1 筛选与切片</h3>
+<pre><code class="language-java">List&lt;Integer&gt; numbers = Arrays.asList(1, 2, 3, 4, 5, 6, 7, 8, 9, 10);
+
+// filter - 过滤
+List&lt;Integer&gt; evens = numbers.stream()
+    .filter(n -&gt; n % 2 == 0)
+    .collect(Collectors.toList());  // [2, 4, 6, 8, 10]
+
+// distinct - 去重
+List&lt;Integer&gt; distinct = Stream.of(1, 2, 2, 3, 3, 4)
+    .distinct()
+    .collect(Collectors.toList());  // [1, 2, 3, 4]
+
+// limit - 限制数量
+List&lt;Integer&gt; limited = numbers.stream()
+    .limit(5)
+    .collect(Collectors.toList());  // [1, 2, 3, 4, 5]
+
+// skip - 跳过前 n 个
+List&lt;Integer&gt; skipped = numbers.stream()
+    .skip(5)
+    .collect(Collectors.toList());  // [6, 7, 8, 9, 10]
+</code></pre>
+<h3 id="32">3.2 映射</h3>
+<pre><code class="language-java">List&lt;String&gt; words = Arrays.asList(&quot;Java&quot;, &quot;Python&quot;, &quot;C++&quot;);
+
+// map - 一对一转换
+List&lt;Integer&gt; lengths = words.stream()
+    .map(String::length)
+    .collect(Collectors.toList());  // [4, 6, 2]
+
+// flatMap - 一对多转换（扁平化）
+List&lt;List&lt;Integer&gt;&gt; nested = Arrays.asList(
+    Arrays.asList(1, 2, 3),
+    Arrays.asList(4, 5, 6)
+);
+
+List&lt;Integer&gt; flat = nested.stream()
+    .flatMap(List::stream)
+    .collect(Collectors.toList());  // [1,2,3,4,5,6]
+</code></pre>
+<h3 id="33">3.3 排序</h3>
+<pre><code class="language-java">List&lt;Integer&gt; numbers = Arrays.asList(5, 2, 8, 1, 9);
+
+// sorted - 自然排序
+List&lt;Integer&gt; sorted = numbers.stream()
+    .sorted()
+    .collect(Collectors.toList());  // [1, 2, 5, 8, 9]
+
+// 自定义排序
+List&lt;String&gt; words = Arrays.asList(&quot;Java&quot;, &quot;Python&quot;, &quot;C++&quot;);
+
+// 按长度排序
+List&lt;String&gt; byLength = words.stream()
+    .sorted(Comparator.comparingInt(String::length))
+    .collect(Collectors.toList());  // [C++, Java, Python]
+
+// 降序
+List&lt;Integer&gt; desc = numbers.stream()
+    .sorted(Comparator.reverseOrder())
+    .collect(Collectors.toList());  // [9, 8, 5, 2, 1]
+</code></pre>
+<hr />
+<h2 id="4">4. 终端操作 ⭐⭐⭐</h2>
+<p>终端操作产生结果或副作用，<strong>执行后 Stream 关闭</strong>。</p>
+<h3 id="41">4.1 查找与匹配</h3>
+<pre><code class="language-java">List&lt;Integer&gt; numbers = Arrays.asList(1, 2, 3, 4, 5);
+
+// findFirst - 查找第一个
+Optional&lt;Integer&gt; first = numbers.stream()
+    .filter(n -&gt; n &gt; 3)
+    .findFirst();  // Optional[4]
+
+// anyMatch - 是否至少有一个匹配
+boolean hasEven = numbers.stream()
+    .anyMatch(n -&gt; n % 2 == 0);  // true
+
+// allMatch - 是否全部匹配
+boolean allPositive = numbers.stream()
+    .allMatch(n -&gt; n &gt; 0);  // true
+
+// noneMatch - 是否都不匹配
+boolean noNegative = numbers.stream()
+    .noneMatch(n -&gt; n &lt; 0);  // true
+
+// max/min
+Optional&lt;Integer&gt; max = numbers.stream()
+    .max(Integer::compareTo);  // Optional[5]
+
+// count
+long count = numbers.stream()
+    .filter(n -&gt; n % 2 == 0)
+    .count();  // 2
+</code></pre>
+<h3 id="42-reduce">4.2 归约（reduce）</h3>
+<pre><code class="language-java">List&lt;Integer&gt; numbers = Arrays.asList(1, 2, 3, 4, 5);
+
+// 求和
+Optional&lt;Integer&gt; sum = numbers.stream()
+    .reduce((a, b) -&gt; a + b);  // Optional[15]
+
+// 带初始值
+Integer sum2 = numbers.stream()
+    .reduce(0, (a, b) -&gt; a + b);  // 15
+
+// 方法引用
+Integer sum3 = numbers.stream()
+    .reduce(0, Integer::sum);  // 15
+
+// 最大值
+Optional&lt;Integer&gt; max = numbers.stream()
+    .reduce(Integer::max);  // Optional[5]
+</code></pre>
+<h3 id="43-collect">4.3 收集（collect）⭐</h3>
+<pre><code class="language-java">List&lt;String&gt; words = Arrays.asList(&quot;Java&quot;, &quot;Python&quot;, &quot;C++&quot;);
+
+// 转列表
+List&lt;String&gt; list = words.stream()
+    .collect(Collectors.toList());
+
+// 转集合
+Set&lt;String&gt; set = words.stream()
+    .collect(Collectors.toSet());
+
+// 转 Map
+Map&lt;String, Integer&gt; map = words.stream()
+    .collect(Collectors.toMap(
+        w -&gt; w,           // key
+        String::length    // value
+    ));
+
+// 分组
+Map&lt;Integer, List&lt;String&gt;&gt; byLength = words.stream()
+    .collect(Collectors.groupingBy(String::length));
+// {2=[C++], 4=[Java], 6=[Python]}
+
+// 连接字符串
+String joined = words.stream()
+    .collect(Collectors.joining(&quot;, &quot;));  // &quot;Java, Python, C++&quot;
+
+// 带前后缀
+String joined2 = words.stream()
+    .collect(Collectors.joining(&quot;, &quot;, &quot;[&quot;, &quot;]&quot;));  // &quot;[Java, Python, C++]&quot;
+
+// 统计
+List&lt;Integer&gt; numbers = Arrays.asList(1, 2, 3, 4, 5);
+
+IntSummaryStatistics stats = numbers.stream()
+    .mapToInt(Integer::intValue)
+    .summaryStatistics();
+
+System.out.println(&quot;总数：&quot; + stats.getCount());    // 5
+System.out.println(&quot;总和：&quot; + stats.getSum());      // 15
+System.out.println(&quot;平均：&quot; + stats.getAverage());  // 3.0
+System.out.println(&quot;最大：&quot; + stats.getMax());      // 5
+System.out.println(&quot;最小：&quot; + stats.getMin());      // 1
+</code></pre>
+<h3 id="44-foreach">4.4 forEach</h3>
+<pre><code class="language-java">List&lt;String&gt; words = Arrays.asList(&quot;Java&quot;, &quot;Python&quot;, &quot;C++&quot;);
+
+// 遍历（终端操作）
+words.stream().forEach(System.out::println);
+</code></pre>
+<hr />
+<h2 id="5">5. 并行流 ⭐</h2>
+<h3 id="51">5.1 创建并行流</h3>
+<pre><code class="language-java">List&lt;Integer&gt; numbers = Arrays.asList(1, 2, 3, 4, 5, 6, 7, 8, 9, 10);
+
+// 方式 1：parallelStream()
+Stream&lt;Integer&gt; parallel1 = numbers.parallelStream();
+
+// 方式 2：stream().parallel()
+Stream&lt;Integer&gt; parallel2 = numbers.stream().parallel();
+
+// 方式 3：stream().sequential() 转回顺序流
+Stream&lt;Integer&gt; sequential = numbers.parallelStream().sequential();
+</code></pre>
+<h3 id="52">5.2 注意事项</h3>
+<pre><code class="language-java">// ❌ 避免：共享状态
+List&lt;Integer&gt; results = new ArrayList&lt;&gt;();
+numbers.parallelStream()
+    .forEach(n -&gt; results.add(n * 2));  // 线程不安全
+
+// ✅ 正确：使用 collect
+List&lt;Integer&gt; results = numbers.parallelStream()
+    .map(n -&gt; n * 2)
+    .collect(Collectors.toList());
+
+// ❌ 避免：依赖顺序
+numbers.parallelStream()
+    .forEach(System.out::println);  // 顺序不确定
+
+// ✅ 正确：保证顺序
+numbers.parallelStream()
+    .forEachOrdered(System.out::println);
+</code></pre>
+<hr />
+<h2 id="6">6. 实战示例</h2>
+<h3 id="61">6.1 数据处理</h3>
+<pre><code class="language-java">List&lt;Transaction&gt; transactions = ...;
+
+// 找出所有 2020 年的交易，按值排序，转成列表
+List&lt;Transaction&gt; result = transactions.stream()
+    .filter(t -&gt; t.getYear() == 2020)
+    .sorted(Comparator.comparing(Transaction::getValue))
+    .collect(Collectors.toList());
+
+// 计算所有交易的总额
+int total = transactions.stream()
+    .mapToInt(Transaction::getValue)
+    .sum();
+
+// 按年份分组
+Map&lt;Integer, List&lt;Transaction&gt;&gt; byYear = transactions.stream()
+    .collect(Collectors.groupingBy(Transaction::getYear));
+</code></pre>
+<h3 id="62">6.2 字符串处理</h3>
+<pre><code class="language-java">List&lt;String&gt; words = Arrays.asList(&quot;Hello&quot;, &quot;World&quot;, &quot;Java&quot;);
+
+// 转大写并用逗号连接
+String result = words.stream()
+    .map(String::toUpperCase)
+    .collect(Collectors.joining(&quot;, &quot;));  // &quot;HELLO, WORLD, JAVA&quot;
+
+// 找出所有以 J 开头的单词
+List&lt;String&gt; jWords = words.stream()
+    .filter(w -&gt; w.startsWith(&quot;J&quot;))
+    .collect(Collectors.toList());  // [&quot;Java&quot;]
+</code></pre>
+<h3 id="63">6.3 数值计算</h3>
+<pre><code class="language-java">List&lt;Integer&gt; numbers = Arrays.asList(1, 2, 3, 4, 5, 6, 7, 8, 9, 10);
+
+// 平方和
+int sumOfSquares = numbers.stream()
+    .mapToInt(n -&gt; n * n)
+    .sum();  // 385
+
+// 平均值
+OptionalDouble avg = numbers.stream()
+    .mapToInt(Integer::intValue)
+    .average();  // 5.5
+
+// 去重后求和
+int distinctSum = Stream.of(1, 2, 2, 3, 3, 4)
+    .distinct()
+    .mapToInt(Integer::intValue)
+    .sum();  // 10
+</code></pre>
+<hr />
+<h2 id="7">7. 本章小结</h2>
+<h3 id="_1">核心知识点</h3>
+<p>✅ <strong>创建 Stream</strong>：集合、数组、of()、generate()<br />
+✅ <strong>中间操作</strong>：filter、map、flatMap、sorted、limit、skip<br />
+✅ <strong>终端操作</strong>：collect、reduce、forEach、find、match<br />
+✅ <strong>收集器</strong>：toList、toSet、toMap、groupingBy、joining<br />
+✅ <strong>并行流</strong>：parallelStream()、注意事项  </p>
+<h3 id="_2">最佳实践</h3>
+<ol>
+<li><strong>优先使用 Stream</strong>：代码更简洁</li>
+<li><strong>方法引用</strong>：比 Lambda 更简洁</li>
+<li><strong>避免副作用</strong>：不要在 Stream 中修改外部状态</li>
+<li><strong>合理使用并行流</strong>：大数据量才有效</li>
+<li><strong>注意空值</strong>：使用 Optional 处理</li>
+</ol>
+<hr />
+<p>🎉 <strong>恭喜完成 Stream API 学习！继续学习 <a href="../06_Optional/">Optional</a></strong></p></div>
+            </div>
+        </div>
+
+        <footer class="col-md-12">
+            <hr>
+            <p>Documentation built with <a href="https://www.mkdocs.org/">MkDocs</a>.</p>
+        </footer>
+        <script src="../../../../js/bootstrap.bundle.min.js"></script>
+        <script>
+            var base_url = "../../../..",
+                shortcuts = {"help": 191, "next": 78, "previous": 80, "search": 83};
+        </script>
+        <script src="../../../../js/base.js"></script>
+        <script src="../../../../search/main.js"></script>
+
+        <div class="modal" id="mkdocs_search_modal" tabindex="-1" role="dialog" aria-labelledby="searchModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="searchModalLabel">Search</h4>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>From here you can search these documents. Enter your search terms below.</p>
+                <form>
+                    <div class="form-group">
+                        <input type="search" class="form-control" placeholder="Search..." id="mkdocs-search-query" title="Type search term here">
+                    </div>
+                </form>
+                <div id="mkdocs-search-results" data-no-results-text="No results found"></div>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div><div class="modal" id="mkdocs_keyboard_modal" tabindex="-1" role="dialog" aria-labelledby="keyboardModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="keyboardModalLabel">Keyboard Shortcuts</h4>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th style="width: 20%;">Keys</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td class="help shortcut"><kbd>?</kbd></td>
+                    <td>Open this help</td>
+                  </tr>
+                  <tr>
+                    <td class="next shortcut"><kbd>n</kbd></td>
+                    <td>Next page</td>
+                  </tr>
+                  <tr>
+                    <td class="prev shortcut"><kbd>p</kbd></td>
+                    <td>Previous page</td>
+                  </tr>
+                  <tr>
+                    <td class="search shortcut"><kbd>s</kbd></td>
+                    <td>Search</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div>
+
+    </body>
+</html>

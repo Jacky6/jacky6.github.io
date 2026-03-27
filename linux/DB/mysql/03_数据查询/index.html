@@ -1,0 +1,713 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="light">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        
+        
+        
+        <link rel="shortcut icon" href="../../../../img/favicon.ico">
+        <title>03_数据查询 - My Docs</title>
+        <link href="../../../../css/bootstrap.min.css" rel="stylesheet">
+        <link href="../../../../css/fontawesome.min.css" rel="stylesheet">
+        <link href="../../../../css/brands.min.css" rel="stylesheet">
+        <link href="../../../../css/solid.min.css" rel="stylesheet">
+        <link href="../../../../css/v4-font-face.min.css" rel="stylesheet">
+        <link href="../../../../css/base.css" rel="stylesheet">
+        <link id="hljs-light" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" >
+        <link id="hljs-dark" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github-dark.min.css" disabled>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+        <script>hljs.highlightAll();</script> 
+    </head>
+
+    <body>
+        <div class="navbar fixed-top navbar-expand-lg navbar-dark bg-primary">
+            <div class="container">
+                <a class="navbar-brand" href="../../../..">My Docs</a>
+
+                <!-- Expanded navigation -->
+                <div id="navbar-collapse" class="navbar-collapse collapse">
+
+                    <ul class="nav navbar-nav ms-md-auto">
+                        <li class="nav-item">
+                            <a href="#" class="nav-link" data-bs-toggle="modal" data-bs-target="#mkdocs_search_modal">
+                                <i class="fa fa-search"></i> Search
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="container">
+            <div class="row">
+                    <div class="col-md-3"><div class="navbar-expand-md bs-sidebar hidden-print affix" role="complementary">
+    <div class="navbar-header">
+        <button type="button" class="navbar-toggler collapsed" data-bs-toggle="collapse" data-bs-target="#toc-collapse" title="Table of Contents">
+            <span class="fa fa-angle-down"></span>
+        </button>
+    </div>
+
+    
+    <div id="toc-collapse" class="navbar-collapse collapse card bg-body-tertiary">
+        <ul class="nav flex-column">
+            
+            <li class="nav-item" data-bs-level="1"><a href="#03_" class="nav-link">03_数据查询</a>
+              <ul class="nav flex-column">
+            <li class="nav-item" data-bs-level="2"><a href="#1-select" class="nav-link">1. SELECT 基础</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#2-where" class="nav-link">2. WHERE 条件过滤</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#3-order-by" class="nav-link">3. ORDER BY 排序</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#4-limit" class="nav-link">4. LIMIT 分页</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#5" class="nav-link">5. 聚合函数</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#6-join" class="nav-link">6. JOIN 连接查询</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#7" class="nav-link">7. 子查询</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#8-union" class="nav-link">8. 联合查询（UNION）</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#9" class="nav-link">9. 常用函数</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#10" class="nav-link">10. 实战示例</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#11_1" class="nav-link">11. 本章小结</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+              </ul>
+            </li>
+        </ul>
+    </div>
+</div></div>
+                    <div class="col-md-9" role="main">
+
+<h1 id="03_">03_数据查询</h1>
+<blockquote>
+<p>SELECT 详解：WHERE、JOIN、聚合函数、子查询、联合查询</p>
+</blockquote>
+<hr />
+<h2 id="1-select">1. SELECT 基础</h2>
+<h3 id="11">1.1 基本语法</h3>
+<pre><code class="language-sql">SELECT [DISTINCT] column1, column2, ...
+FROM table_name
+[WHERE condition]
+[GROUP BY column]
+[HAVING condition]
+[ORDER BY column [ASC|DESC]]
+[LIMIT offset, count];
+</code></pre>
+<h3 id="12">1.2 查询所有列</h3>
+<pre><code class="language-sql">-- 查询所有列（不推荐在生产环境使用）
+SELECT * FROM users;
+
+-- 推荐：明确指定列
+SELECT id, username, email FROM users;
+</code></pre>
+<h3 id="13">1.3 使用别名</h3>
+<pre><code class="language-sql">-- 列别名
+SELECT 
+    username AS user_name,
+    email AS user_email,
+    created_at AS register_date
+FROM users;
+
+-- 表别名
+SELECT 
+    u.username,
+    o.order_no,
+    o.total_amount
+FROM users u
+JOIN orders o ON u.id = o.user_id;
+</code></pre>
+<h3 id="14">1.4 去重查询</h3>
+<pre><code class="language-sql">-- DISTINCT 去重
+SELECT DISTINCT status FROM users;
+
+-- 多列去重
+SELECT DISTINCT status, gender FROM users;
+</code></pre>
+<hr />
+<h2 id="2-where">2. WHERE 条件过滤</h2>
+<h3 id="21">2.1 比较运算符</h3>
+<pre><code class="language-sql">-- 等于
+SELECT * FROM users WHERE status = 1;
+
+-- 不等于
+SELECT * FROM users WHERE status != 0;
+SELECT * FROM users WHERE status &lt;&gt; 0;
+
+-- 大于/小于
+SELECT * FROM products WHERE price &gt; 100;
+SELECT * FROM products WHERE price &lt; 50;
+
+-- 大于等于/小于等于
+SELECT * FROM products WHERE stock &gt;= 100;
+SELECT * FROM products WHERE price &lt;= 1000;
+
+-- IS NULL / IS NOT NULL
+SELECT * FROM users WHERE phone IS NULL;
+SELECT * FROM users WHERE phone IS NOT NULL;
+</code></pre>
+<h3 id="22">2.2 逻辑运算符</h3>
+<pre><code class="language-sql">-- AND
+SELECT * FROM users WHERE status = 1 AND gender = 1;
+
+-- OR
+SELECT * FROM users WHERE gender = 1 OR gender = 2;
+
+-- NOT
+SELECT * FROM users WHERE NOT status = 0;
+
+-- 组合使用
+SELECT * FROM products 
+WHERE price &gt; 100 AND price &lt; 1000 AND stock &gt; 0;
+</code></pre>
+<h3 id="23-in-not-in">2.3 IN 和 NOT IN</h3>
+<pre><code class="language-sql">-- IN
+SELECT * FROM users WHERE status IN (1, 2, 3);
+
+-- 等价于
+SELECT * FROM users WHERE status = 1 OR status = 2 OR status = 3;
+
+-- NOT IN
+SELECT * FROM users WHERE status NOT IN (0, 3);
+
+-- 子查询中使用
+SELECT * FROM products 
+WHERE category_id IN (SELECT id FROM categories WHERE level = 1);
+</code></pre>
+<h3 id="24-between">2.4 BETWEEN</h3>
+<pre><code class="language-sql">-- BETWEEN（包含边界）
+SELECT * FROM products WHERE price BETWEEN 100 AND 500;
+
+-- 等价于
+SELECT * FROM products WHERE price &gt;= 100 AND price &lt;= 500;
+
+-- NOT BETWEEN
+SELECT * FROM products WHERE price NOT BETWEEN 100 AND 500;
+</code></pre>
+<h3 id="25-like">2.5 LIKE 模糊匹配</h3>
+<pre><code class="language-sql">-- % 匹配任意字符
+SELECT * FROM users WHERE username LIKE '张%';  -- 张开头
+SELECT * FROM users WHERE username LIKE '%三';  -- 三结尾
+SELECT * FROM users WHERE username LIKE '%三%'; -- 包含三
+
+-- _ 匹配单个字符
+SELECT * FROM users WHERE phone LIKE '138____8888';
+
+-- 转义
+SELECT * FROM users WHERE username LIKE '%\%%' ESCAPE '\';
+
+-- 正则表达式（8.0+）
+SELECT * FROM users WHERE username REGEXP '^张.*三$';
+</code></pre>
+<h3 id="26">2.6 日期条件</h3>
+<pre><code class="language-sql">-- 日期比较
+SELECT * FROM orders 
+WHERE created_at &gt;= '2024-01-01' AND created_at &lt; '2024-02-01';
+
+-- 使用日期函数
+SELECT * FROM orders 
+WHERE DATE(created_at) = '2024-03-25';
+
+-- 最近 7 天
+SELECT * FROM orders 
+WHERE created_at &gt;= DATE_SUB(NOW(), INTERVAL 7 DAY);
+
+-- 本月
+SELECT * FROM orders 
+WHERE YEAR(created_at) = YEAR(NOW()) 
+  AND MONTH(created_at) = MONTH(NOW());
+</code></pre>
+<hr />
+<h2 id="3-order-by">3. ORDER BY 排序</h2>
+<pre><code class="language-sql">-- 单列排序（默认 ASC）
+SELECT * FROM products ORDER BY price;
+
+-- 降序
+SELECT * FROM products ORDER BY price DESC;
+
+-- 多列排序
+SELECT * FROM products ORDER BY category_id ASC, price DESC;
+
+-- 按表达式排序
+SELECT *, price * stock AS total_value 
+FROM products 
+ORDER BY total_value DESC;
+
+-- 按 FIELD 自定义排序
+SELECT * FROM products 
+ORDER BY FIELD(status, 1, 2, 0);  -- 1 在前，2 其次，0 最后
+
+-- 按 NULL 排序
+SELECT * FROM users ORDER BY phone IS NULL, phone;
+</code></pre>
+<hr />
+<h2 id="4-limit">4. LIMIT 分页</h2>
+<pre><code class="language-sql">-- 限制数量
+SELECT * FROM products LIMIT 10;
+
+-- 偏移量 + 数量
+SELECT * FROM products LIMIT 0, 10;  -- 第 1-10 条
+SELECT * FROM products LIMIT 10, 10; -- 第 11-20 条
+SELECT * FROM products LIMIT 20, 10; -- 第 21-30 条
+
+-- 分页公式
+-- 第 N 页，每页 M 条：LIMIT (N-1)*M, M
+SELECT * FROM products LIMIT 90, 10;  -- 第 10 页，每页 10 条
+
+-- 带排序的分页
+SELECT * FROM products ORDER BY created_at DESC LIMIT 0, 10;
+</code></pre>
+<hr />
+<h2 id="5">5. 聚合函数</h2>
+<h3 id="51">5.1 常用聚合函数</h3>
+<pre><code class="language-sql">-- COUNT 计数
+SELECT COUNT(*) FROM users;           -- 所有行数
+SELECT COUNT(id) FROM users;          -- id 非 NULL 的行数
+SELECT COUNT(DISTINCT status) FROM users;  -- 不同状态数
+
+-- SUM 求和
+SELECT SUM(price * stock) AS total_value FROM products;
+
+-- AVG 平均值
+SELECT AVG(price) AS avg_price FROM products;
+
+-- MAX/MAX 最大/最小值
+SELECT MAX(price) AS max_price FROM products;
+SELECT MIN(price) AS min_price FROM products;
+
+-- GROUP_CONCAT 字符串拼接
+SELECT status, GROUP_CONCAT(username) AS users 
+FROM users GROUP BY status;
+</code></pre>
+<h3 id="52-group-by">5.2 GROUP BY 分组</h3>
+<pre><code class="language-sql">-- 单列分组
+SELECT status, COUNT(*) AS count 
+FROM users 
+GROUP BY status;
+
+-- 多列分组
+SELECT category_id, status, COUNT(*) AS count, SUM(price) AS total
+FROM products 
+GROUP BY category_id, status;
+
+-- 分组后排序
+SELECT status, COUNT(*) AS count 
+FROM users 
+GROUP BY status 
+ORDER BY count DESC;
+
+-- 分组后过滤（HAVING）
+SELECT status, COUNT(*) AS count 
+FROM users 
+GROUP BY status 
+HAVING count &gt; 100;
+
+-- WHERE vs HAVING
+-- WHERE: 分组前过滤，不能使用聚合函数
+-- HAVING: 分组后过滤，可以使用聚合函数
+SELECT status, COUNT(*) AS count 
+FROM users 
+WHERE created_at &gt;= '2024-01-01'
+GROUP BY status 
+HAVING count &gt; 10;
+</code></pre>
+<hr />
+<h2 id="6-join">6. JOIN 连接查询</h2>
+<h3 id="61-inner-join">6.1 内连接（INNER JOIN）</h3>
+<pre><code class="language-sql">-- 标准语法
+SELECT u.username, o.order_no, o.total_amount
+FROM users u
+INNER JOIN orders o ON u.id = o.user_id;
+
+-- 省略 INNER
+SELECT u.username, o.order_no
+FROM users u
+JOIN orders o ON u.id = o.user_id;
+
+-- 多表连接
+SELECT u.username, o.order_no, p.product_name, oi.quantity
+FROM users u
+JOIN orders o ON u.id = o.user_id
+JOIN order_items oi ON o.id = oi.order_id
+JOIN products p ON oi.product_id = p.id;
+</code></pre>
+<h3 id="62-left-join">6.2 左连接（LEFT JOIN）</h3>
+<pre><code class="language-sql">-- 左表所有记录 + 右表匹配记录
+SELECT u.username, o.order_no
+FROM users u
+LEFT JOIN orders o ON u.id = o.user_id;
+
+-- 查询没有订单的用户
+SELECT u.username
+FROM users u
+LEFT JOIN orders o ON u.id = o.user_id
+WHERE o.id IS NULL;
+</code></pre>
+<h3 id="63-right-join">6.3 右连接（RIGHT JOIN）</h3>
+<pre><code class="language-sql">-- 右表所有记录 + 左表匹配记录
+SELECT u.username, o.order_no
+FROM users u
+RIGHT JOIN orders o ON u.id = o.user_id;
+
+-- 查询没有用户的订单（理论上不应该存在）
+SELECT o.order_no
+FROM users u
+RIGHT JOIN orders o ON u.id = o.user_id
+WHERE u.id IS NULL;
+</code></pre>
+<h3 id="64-cross-join">6.4 交叉连接（CROSS JOIN）</h3>
+<pre><code class="language-sql">-- 笛卡尔积
+SELECT * FROM colors CROSS JOIN sizes;
+
+-- 等价于
+SELECT * FROM colors, sizes;
+</code></pre>
+<h3 id="65">6.5 自连接</h3>
+<pre><code class="language-sql">-- 查询员工及其上级
+SELECT 
+    e.name AS employee,
+    m.name AS manager
+FROM employees e
+LEFT JOIN employees m ON e.manager_id = m.id;
+
+-- 查询同一分类下的商品
+SELECT p1.name, p2.name
+FROM products p1
+JOIN products p2 ON p1.category_id = p2.category_id
+WHERE p1.id &lt; p2.id;
+</code></pre>
+<hr />
+<h2 id="7">7. 子查询</h2>
+<h3 id="71-where">7.1 WHERE 子句中的子查询</h3>
+<pre><code class="language-sql">-- 返回单值
+SELECT * FROM products 
+WHERE price &gt; (SELECT AVG(price) FROM products);
+
+-- 返回列表
+SELECT * FROM products 
+WHERE category_id IN (SELECT id FROM categories WHERE level = 1);
+
+-- 使用 EXISTS
+SELECT * FROM users u
+WHERE EXISTS (SELECT 1 FROM orders o WHERE o.user_id = u.id);
+
+-- 使用 NOT EXISTS
+SELECT * FROM users u
+WHERE NOT EXISTS (SELECT 1 FROM orders o WHERE o.user_id = u.id);
+</code></pre>
+<h3 id="72-from">7.2 FROM 子句中的子查询</h3>
+<pre><code class="language-sql">-- 派生表
+SELECT category_id, avg_price
+FROM (
+    SELECT category_id, AVG(price) AS avg_price
+    FROM products
+    GROUP BY category_id
+) AS subquery
+WHERE avg_price &gt; 100;
+</code></pre>
+<h3 id="73-select">7.3 SELECT 子句中的子查询</h3>
+<pre><code class="language-sql">-- 标量子查询
+SELECT 
+    p.name,
+    p.price,
+    (SELECT AVG(price) FROM products) AS avg_price,
+    (SELECT name FROM categories WHERE id = p.category_id) AS category_name
+FROM products p;
+</code></pre>
+<h3 id="74">7.4 相关子查询</h3>
+<pre><code class="language-sql">-- 查询每个分类下价格最高的商品
+SELECT p1.*
+FROM products p1
+WHERE p1.price = (
+    SELECT MAX(p2.price)
+    FROM products p2
+    WHERE p2.category_id = p1.category_id
+);
+</code></pre>
+<hr />
+<h2 id="8-union">8. 联合查询（UNION）</h2>
+<pre><code class="language-sql">-- UNION（去重）
+SELECT username, email FROM users WHERE status = 1
+UNION
+SELECT username, email FROM users WHERE created_at &gt;= '2024-01-01';
+
+-- UNION ALL（不去重，性能更好）
+SELECT username, email FROM users WHERE status = 1
+UNION ALL
+SELECT username, email FROM users WHERE created_at &gt;= '2024-01-01';
+
+-- 多表联合
+SELECT 'user' AS type, id, username FROM users
+UNION ALL
+SELECT 'admin' AS type, id, username FROM admins;
+
+-- ORDER BY 和 LIMIT
+(SELECT * FROM products WHERE price &lt; 100 ORDER BY price LIMIT 10)
+UNION ALL
+(SELECT * FROM products WHERE price &gt; 1000 ORDER BY price DESC LIMIT 10)
+ORDER BY price;
+</code></pre>
+<hr />
+<h2 id="9">9. 常用函数</h2>
+<h3 id="91">9.1 字符串函数</h3>
+<pre><code class="language-sql">SELECT 
+    CONCAT(username, '@example.com') AS email,  -- 拼接
+    LENGTH(username) AS len,                     -- 长度（字节）
+    CHAR_LENGTH(username) AS char_len,           -- 长度（字符）
+    UPPER(username) AS upper_name,               -- 大写
+    LOWER(username) AS lower_name,               -- 小写
+    TRIM('  hello  ') AS trimmed,                -- 去空格
+    SUBSTRING(username, 1, 3) AS prefix,         -- 子串
+    REPLACE(username, 'old', 'new') AS replaced, -- 替换
+    INSTR(username, 'test') AS position,         -- 位置
+    LPAD(id, 6, '0') AS padded_id                -- 左填充
+FROM users;
+</code></pre>
+<h3 id="92">9.2 数值函数</h3>
+<pre><code class="language-sql">SELECT 
+    ROUND(3.14159, 2) AS rounded,      -- 四舍五入
+    CEIL(3.14) AS ceiled,              -- 向上取整
+    FLOOR(3.14) AS floored,            -- 向下取整
+    ABS(-10) AS absolute,              -- 绝对值
+    MOD(10, 3) AS remainder,           -- 取模
+    POWER(2, 3) AS powered,            -- 幂运算
+    RAND() AS random,                  -- 随机数
+    TRUNCATE(3.14159, 2) AS truncated  -- 截断
+FROM dual;
+</code></pre>
+<h3 id="93">9.3 日期函数</h3>
+<pre><code class="language-sql">SELECT 
+    NOW() AS now,                      -- 当前日期时间
+    CURDATE() AS today,                -- 当前日期
+    CURTIME() AS current_time,         -- 当前时间
+    DATE(NOW()) AS date_part,          -- 日期部分
+    TIME(NOW()) AS time_part,          -- 时间部分
+    YEAR(NOW()) AS year,               -- 年
+    MONTH(NOW()) AS month,             -- 月
+    DAY(NOW()) AS day,                 -- 日
+    HOUR(NOW()) AS hour,               -- 时
+    MINUTE(NOW()) AS minute,           -- 分
+    SECOND(NOW()) AS second,           -- 秒
+    WEEKDAY(NOW()) AS weekday,         -- 星期几（0-6）
+    DATE_FORMAT(NOW(), '%Y-%m-%d') AS formatted,  -- 格式化
+    DATE_ADD(NOW(), INTERVAL 7 DAY) AS next_week, -- 加 7 天
+    DATE_SUB(NOW(), INTERVAL 1 MONTH) AS last_month, -- 减 1 月
+    DATEDIFF('2024-12-31', NOW()) AS days_left,  -- 日期差
+    TIMESTAMPDIFF(YEAR, '1990-01-01', NOW()) AS age  -- 时间差
+FROM dual;
+</code></pre>
+<h3 id="94">9.4 条件函数</h3>
+<pre><code class="language-sql">SELECT 
+    IF(status = 1, '正常', '禁用') AS status_text,
+    IFNULL(phone, '未填写') AS phone,
+    NULLIF(username, 'admin') AS safe_username,
+    CASE 
+        WHEN price &lt; 100 THEN '便宜'
+        WHEN price &lt; 500 THEN '中等'
+        ELSE '昂贵'
+    END AS price_level,
+    CASE status
+        WHEN 0 THEN '禁用'
+        WHEN 1 THEN '正常'
+        ELSE '未知'
+    END AS status_desc
+FROM products;
+</code></pre>
+<hr />
+<h2 id="10">10. 实战示例</h2>
+<h3 id="101">10.1 电商查询示例</h3>
+<pre><code class="language-sql">-- 1. 查询用户订单统计
+SELECT 
+    u.id,
+    u.username,
+    COUNT(o.id) AS order_count,
+    SUM(o.total_amount) AS total_spent,
+    AVG(o.total_amount) AS avg_order_value,
+    MAX(o.created_at) AS last_order_date
+FROM users u
+LEFT JOIN orders o ON u.id = o.user_id
+GROUP BY u.id, u.username
+HAVING order_count &gt; 0
+ORDER BY total_spent DESC
+LIMIT 10;
+
+-- 2. 商品销售排行
+SELECT 
+    p.id,
+    p.name,
+    p.category_id,
+    SUM(oi.quantity) AS total_sold,
+    SUM(oi.subtotal) AS total_revenue
+FROM products p
+JOIN order_items oi ON p.id = oi.product_id
+JOIN orders o ON oi.order_id = o.id
+WHERE o.status &gt;= 1  -- 已付款
+GROUP BY p.id, p.name, p.category_id
+ORDER BY total_sold DESC
+LIMIT 20;
+
+-- 3. 每月销售统计
+SELECT 
+    DATE_FORMAT(created_at, '%Y-%m') AS month,
+    COUNT(*) AS order_count,
+    SUM(total_amount) AS total_revenue,
+    AVG(total_amount) AS avg_order_value
+FROM orders
+WHERE status &gt;= 1
+GROUP BY DATE_FORMAT(created_at, '%Y-%m')
+ORDER BY month DESC;
+
+-- 4. 库存预警
+SELECT 
+    id,
+    name,
+    stock,
+    CASE 
+        WHEN stock = 0 THEN '缺货'
+        WHEN stock &lt; 10 THEN '紧张'
+        WHEN stock &lt; 50 THEN '充足'
+        ELSE '过剩'
+    END AS stock_status
+FROM products
+WHERE stock &lt; 50
+ORDER BY stock ASC;
+
+-- 5. 用户复购分析
+SELECT 
+    user_id,
+    COUNT(*) AS order_count,
+    MIN(created_at) AS first_order,
+    MAX(created_at) AS last_order,
+    DATEDIFF(MAX(created_at), MIN(created_at)) AS days_span
+FROM orders
+WHERE status &gt;= 1
+GROUP BY user_id
+HAVING order_count &gt;= 2
+ORDER BY order_count DESC;
+</code></pre>
+<hr />
+<h2 id="11_1">11. 本章小结</h2>
+<h3 id="_1">核心知识点</h3>
+<p>✅ WHERE 条件过滤<br />
+✅ ORDER BY 排序<br />
+✅ LIMIT 分页<br />
+✅ 聚合函数与 GROUP BY<br />
+✅ JOIN 连接查询<br />
+✅ 子查询<br />
+✅ UNION 联合查询<br />
+✅ 常用函数  </p>
+<h3 id="_2">最佳实践</h3>
+<ol>
+<li><strong>避免 SELECT </strong>*：明确指定需要的列</li>
+<li><strong>使用表别名</strong>：提高可读性</li>
+<li><strong>合理使用索引</strong>：WHERE、JOIN、ORDER BY 列</li>
+<li><strong>分页优化</strong>：大数据量时使用覆盖索引</li>
+<li><strong>避免 N+1 查询</strong>：使用 JOIN 替代多次查询</li>
+</ol>
+<hr />
+<p>🎉 <strong>恭喜完成第三章！继续学习 <a href="../04_%E6%95%B0%E6%8D%AE%E4%BF%AE%E6%94%B9/">04_数据修改.md</a></strong></p></div>
+            </div>
+        </div>
+
+        <footer class="col-md-12">
+            <hr>
+            <p>Documentation built with <a href="https://www.mkdocs.org/">MkDocs</a>.</p>
+        </footer>
+        <script src="../../../../js/bootstrap.bundle.min.js"></script>
+        <script>
+            var base_url = "../../../..",
+                shortcuts = {"help": 191, "next": 78, "previous": 80, "search": 83};
+        </script>
+        <script src="../../../../js/base.js"></script>
+        <script src="../../../../search/main.js"></script>
+
+        <div class="modal" id="mkdocs_search_modal" tabindex="-1" role="dialog" aria-labelledby="searchModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="searchModalLabel">Search</h4>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>From here you can search these documents. Enter your search terms below.</p>
+                <form>
+                    <div class="form-group">
+                        <input type="search" class="form-control" placeholder="Search..." id="mkdocs-search-query" title="Type search term here">
+                    </div>
+                </form>
+                <div id="mkdocs-search-results" data-no-results-text="No results found"></div>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div><div class="modal" id="mkdocs_keyboard_modal" tabindex="-1" role="dialog" aria-labelledby="keyboardModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="keyboardModalLabel">Keyboard Shortcuts</h4>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th style="width: 20%;">Keys</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td class="help shortcut"><kbd>?</kbd></td>
+                    <td>Open this help</td>
+                  </tr>
+                  <tr>
+                    <td class="next shortcut"><kbd>n</kbd></td>
+                    <td>Next page</td>
+                  </tr>
+                  <tr>
+                    <td class="prev shortcut"><kbd>p</kbd></td>
+                    <td>Previous page</td>
+                  </tr>
+                  <tr>
+                    <td class="search shortcut"><kbd>s</kbd></td>
+                    <td>Search</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div>
+
+    </body>
+</html>

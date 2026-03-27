@@ -1,0 +1,662 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="light">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        
+        
+        
+        <link rel="shortcut icon" href="../../../../img/favicon.ico">
+        <title>07_存储引擎 - My Docs</title>
+        <link href="../../../../css/bootstrap.min.css" rel="stylesheet">
+        <link href="../../../../css/fontawesome.min.css" rel="stylesheet">
+        <link href="../../../../css/brands.min.css" rel="stylesheet">
+        <link href="../../../../css/solid.min.css" rel="stylesheet">
+        <link href="../../../../css/v4-font-face.min.css" rel="stylesheet">
+        <link href="../../../../css/base.css" rel="stylesheet">
+        <link id="hljs-light" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" >
+        <link id="hljs-dark" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github-dark.min.css" disabled>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+        <script>hljs.highlightAll();</script> 
+    </head>
+
+    <body>
+        <div class="navbar fixed-top navbar-expand-lg navbar-dark bg-primary">
+            <div class="container">
+                <a class="navbar-brand" href="../../../..">My Docs</a>
+
+                <!-- Expanded navigation -->
+                <div id="navbar-collapse" class="navbar-collapse collapse">
+
+                    <ul class="nav navbar-nav ms-md-auto">
+                        <li class="nav-item">
+                            <a href="#" class="nav-link" data-bs-toggle="modal" data-bs-target="#mkdocs_search_modal">
+                                <i class="fa fa-search"></i> Search
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="container">
+            <div class="row">
+                    <div class="col-md-3"><div class="navbar-expand-md bs-sidebar hidden-print affix" role="complementary">
+    <div class="navbar-header">
+        <button type="button" class="navbar-toggler collapsed" data-bs-toggle="collapse" data-bs-target="#toc-collapse" title="Table of Contents">
+            <span class="fa fa-angle-down"></span>
+        </button>
+    </div>
+
+    
+    <div id="toc-collapse" class="navbar-collapse collapse card bg-body-tertiary">
+        <ul class="nav flex-column">
+            
+            <li class="nav-item" data-bs-level="1"><a href="#07_" class="nav-link">07_存储引擎</a>
+              <ul class="nav flex-column">
+            <li class="nav-item" data-bs-level="2"><a href="#1" class="nav-link">1. 存储引擎概述</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#2-innodb" class="nav-link">2. InnoDB 引擎</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#3-myisam" class="nav-link">3. MyISAM 引擎</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#4-memory" class="nav-link">4. Memory 引擎</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#5" class="nav-link">5. 其他存储引擎</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#6" class="nav-link">6. 引擎选择指南</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#7" class="nav-link">7. 引擎监控</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#8" class="nav-link">8. 本章小结</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+              </ul>
+            </li>
+        </ul>
+    </div>
+</div></div>
+                    <div class="col-md-9" role="main">
+
+<h1 id="07_">07_存储引擎</h1>
+<blockquote>
+<p>InnoDB、MyISAM、Memory 等存储引擎详解</p>
+</blockquote>
+<hr />
+<h2 id="1">1. 存储引擎概述</h2>
+<h3 id="11">1.1 什么是存储引擎？</h3>
+<p><strong>存储引擎</strong>是 MySQL 中负责<strong>数据存储和提取</strong>的组件，MySQL 采用插件式架构，支持多种存储引擎。</p>
+<pre><code>MySQL 架构：
+┌─────────────────────────────────────┐
+│           SQL 层（Server）            │
+│   解析器 | 优化器 | 执行器 | 缓存    │
+└─────────────────────────────────────┘
+                    │
+┌─────────────────────────────────────┐
+│          存储引擎层（Engine）          │
+│  ┌───────┐ ┌───────┐ ┌───────┐      │
+│  │InnoDB │ │MyISAM │ │Memory │ ...  │
+│  └───────┘ └───────┘ └───────┘      │
+└─────────────────────────────────────┘
+</code></pre>
+<h3 id="12">1.2 查看存储引擎</h3>
+<pre><code class="language-sql">-- 查看所有存储引擎
+SHOW ENGINES;
+
+-- 查看默认存储引擎
+SELECT @@default_storage_engine;
+
+-- 查看表使用的存储引擎
+SHOW TABLE STATUS LIKE 'table_name';
+
+-- 或
+SELECT table_name, engine 
+FROM information_schema.tables 
+WHERE table_schema = 'database_name';
+</code></pre>
+<h3 id="13">1.3 设置存储引擎</h3>
+<pre><code class="language-sql">-- 设置全局默认存储引擎
+SET GLOBAL default_storage_engine = InnoDB;
+
+-- 创建表时指定
+CREATE TABLE users (
+    id INT PRIMARY KEY,
+    username VARCHAR(50)
+) ENGINE=InnoDB;
+
+-- 修改表存储引擎
+ALTER TABLE users ENGINE=MyISAM;
+</code></pre>
+<hr />
+<h2 id="2-innodb">2. InnoDB 引擎</h2>
+<h3 id="21">2.1 特点</h3>
+<table>
+<thead>
+<tr>
+<th>特性</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>事务支持</strong></td>
+<td>✅ 支持 ACID 事务</td>
+</tr>
+<tr>
+<td><strong>行级锁</strong></td>
+<td>✅ 支持行级锁，高并发</td>
+</tr>
+<tr>
+<td><strong>外键</strong></td>
+<td>✅ 支持外键约束</td>
+</tr>
+<tr>
+<td><strong>聚簇索引</strong></td>
+<td>✅ 数据按主键存储</td>
+</tr>
+<tr>
+<td><strong>MVCC</strong></td>
+<td>✅ 支持多版本并发控制</td>
+</tr>
+<tr>
+<td><strong>崩溃恢复</strong></td>
+<td>✅ 支持自动崩溃恢复</td>
+</tr>
+<tr>
+<td><strong>全文索引</strong></td>
+<td>✅ 5.6+ 支持</td>
+</tr>
+<tr>
+<td><strong>适用场景</strong></td>
+<td>OLTP、高并发读写</td>
+</tr>
+</tbody>
+</table>
+<h3 id="22">2.2 物理存储结构</h3>
+<pre><code>InnoDB 文件：
+- ibdata1: 系统表空间（数据字典、undo log 等）
+- ib_logfile0, ib_logfile1: redo log
+- .ibd: 表空间文件（每表一个，innodb_file_per_table=1）
+
+表空间结构：
+┌─────────────────────────────────────┐
+│            表空间（.ibd）             │
+│  ┌─────┬─────┬─────┬─────┬─────┐    │
+│  │Page │Page │Page │Page │Page │    │
+│  │  1  │  2  │  3  │ ... │  N  │    │
+│  └─────┴─────┴─────┴─────┴─────┘    │
+│  Page 大小：默认 16KB                 │
+└─────────────────────────────────────┘
+</code></pre>
+<h3 id="23">2.3 关键配置</h3>
+<pre><code class="language-ini">[mysqld]
+# 存储引擎
+default-storage-engine = InnoDB
+
+# 缓冲池大小（重要！设置为物理内存的 50-80%）
+innodb_buffer_pool_size = 4G
+
+# 缓冲池实例数
+innodb_buffer_pool_instances = 8
+
+# 日志文件大小
+innodb_log_file_size = 256M
+
+# 日志文件数量
+innodb_log_files_in_group = 2
+
+# 刷新方式（1=最安全，0=最快）
+innodb_flush_log_at_trx_commit = 1
+
+# 每表一个表空间
+innodb_file_per_table = 1
+
+# 页大小
+innodb_page_size = 16K
+
+# 线程并发数
+innodb_thread_concurrency = 0
+
+# IO 能力（根据磁盘性能设置）
+innodb_io_capacity = 200
+innodb_io_capacity_max = 400
+</code></pre>
+<h3 id="24-innodb">2.4 InnoDB 日志</h3>
+<pre><code>redo log（重做日志）:
+- 物理日志，记录&quot;在某个数据页上做了什么修改&quot;
+- 循环写入，空间固定
+- 崩溃恢复使用
+- 保证持久性
+
+undo log（回滚日志）:
+- 逻辑日志，记录&quot;相反的 SQL&quot;
+- 事务回滚和 MVCC 使用
+- 保证原子性
+</code></pre>
+<hr />
+<h2 id="3-myisam">3. MyISAM 引擎</h2>
+<h3 id="31">3.1 特点</h3>
+<table>
+<thead>
+<tr>
+<th>特性</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>事务支持</strong></td>
+<td>❌ 不支持</td>
+</tr>
+<tr>
+<td><strong>锁粒度</strong></td>
+<td>表锁</td>
+</tr>
+<tr>
+<td><strong>外键</strong></td>
+<td>❌ 不支持</td>
+</tr>
+<tr>
+<td><strong>崩溃恢复</strong></td>
+<td>❌ 不支持</td>
+</tr>
+<tr>
+<td><strong>全文索引</strong></td>
+<td>✅ 支持</td>
+</tr>
+<tr>
+<td><strong>COUNT(*)</strong></td>
+<td>✅ 内部维护，快速</td>
+</tr>
+<tr>
+<td><strong>适用场景</strong></td>
+<td>读多写少、日志记录</td>
+</tr>
+</tbody>
+</table>
+<h3 id="32">3.2 物理存储结构</h3>
+<pre><code>MyISAM 文件：
+- .frm: 表结构定义
+- .MYD: 数据文件（MYData）
+- .MYI: 索引文件（MYIndex）
+</code></pre>
+<h3 id="33">3.3 配置选项</h3>
+<pre><code class="language-ini">[mysqld]
+# 键缓存大小
+key_buffer_size = 256M
+
+# 并发插入
+concurrent_insert = 2
+
+# 延迟键写入
+delay_key_write = 1
+</code></pre>
+<h3 id="34-myisam-vs-innodb">3.4 MyISAM vs InnoDB</h3>
+<table>
+<thead>
+<tr>
+<th>特性</th>
+<th>InnoDB</th>
+<th>MyISAM</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>事务</td>
+<td>✅</td>
+<td>❌</td>
+</tr>
+<tr>
+<td>锁粒度</td>
+<td>行锁</td>
+<td>表锁</td>
+</tr>
+<tr>
+<td>外键</td>
+<td>✅</td>
+<td>❌</td>
+</tr>
+<tr>
+<td>崩溃恢复</td>
+<td>✅</td>
+<td>❌</td>
+</tr>
+<tr>
+<td>COUNT(*)</td>
+<td>全表扫描</td>
+<td>内部维护</td>
+</tr>
+<tr>
+<td>全文索引</td>
+<td>✅ (5.6+)</td>
+<td>✅</td>
+</tr>
+<tr>
+<td>存储空间</td>
+<td>较大</td>
+<td>较小</td>
+</tr>
+<tr>
+<td>写入性能</td>
+<td>高并发好</td>
+<td>低并发好</td>
+</tr>
+<tr>
+<td>读取性能</td>
+<td>好</td>
+<td>略好</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="4-memory">4. Memory 引擎</h2>
+<h3 id="41">4.1 特点</h3>
+<table>
+<thead>
+<tr>
+<th>特性</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>存储介质</strong></td>
+<td>内存</td>
+</tr>
+<tr>
+<td><strong>事务支持</strong></td>
+<td>❌</td>
+</tr>
+<tr>
+<td><strong>锁粒度</strong></td>
+<td>表锁</td>
+</tr>
+<tr>
+<td><strong>索引类型</strong></td>
+<td>哈希（默认）或 B+Tree</td>
+</tr>
+<tr>
+<td><strong>适用场景</strong></td>
+<td>临时表、缓存表、会话数据</td>
+</tr>
+</tbody>
+</table>
+<h3 id="42">4.2 使用示例</h3>
+<pre><code class="language-sql">-- 创建 Memory 表
+CREATE TABLE temp_data (
+    id INT,
+    value VARCHAR(100),
+    INDEX USING HASH (id)
+) ENGINE=Memory;
+
+-- 使用场景：临时数据、会话存储、缓存
+CREATE TABLE user_sessions (
+    session_id VARCHAR(64) PRIMARY KEY,
+    user_id INT,
+    data TEXT,
+    expires_at TIMESTAMP,
+    INDEX USING HASH (session_id)
+) ENGINE=Memory;
+</code></pre>
+<h3 id="43">4.3 注意事项</h3>
+<ul>
+<li>表重启后数据丢失</li>
+<li>表大小受 memmax_heap_table_size 限制</li>
+<li>不支持 BLOB/TEXT 类型</li>
+</ul>
+<hr />
+<h2 id="5">5. 其他存储引擎</h2>
+<h3 id="51-archive">5.1 Archive</h3>
+<pre><code class="language-sql">-- 归档引擎，只支持 INSERT 和 SELECT
+CREATE TABLE logs_archive (
+    id INT AUTO_INCREMENT,
+    log_data TEXT,
+    created_at TIMESTAMP
+) ENGINE=Archive;
+
+-- 特点：
+-- - 高压缩比
+-- - 只支持 INSERT 和 SELECT
+-- - 不支持 UPDATE、DELETE、索引
+-- - 适合日志归档
+</code></pre>
+<h3 id="52-csv">5.2 CSV</h3>
+<pre><code class="language-sql">-- CSV 引擎，数据存储为 CSV 文件
+CREATE TABLE csv_data (
+    id INT,
+    name VARCHAR(100)
+) ENGINE=CSV;
+
+-- 特点：
+-- - 数据存储为 CSV 格式
+-- - 可与外部程序交换数据
+-- - 不支持索引
+</code></pre>
+<h3 id="53-blackhole">5.3 Blackhole</h3>
+<pre><code class="language-sql">-- 黑洞引擎，接收但不存储数据
+CREATE TABLE blackhole_table (
+    id INT,
+    data VARCHAR(100)
+) ENGINE=Blackhole;
+
+-- 特点：
+-- - 写入的数据被丢弃
+-- - 用于复制中继或审计
+-- - SELECT 总是返回空
+</code></pre>
+<h3 id="54-federated">5.4 Federated</h3>
+<pre><code class="language-sql">-- 联合引擎，访问远程 MySQL 表
+CREATE TABLE federated_table (
+    id INT,
+    name VARCHAR(100)
+) ENGINE=Federated
+CONNECTION='mysql://user:pass@remote_host:3306/db/table';
+
+-- 特点：
+-- - 访问远程表
+-- - 性能较差
+-- - 已废弃，不推荐使用
+</code></pre>
+<hr />
+<h2 id="6">6. 引擎选择指南</h2>
+<h3 id="61">6.1 选择建议</h3>
+<table>
+<thead>
+<tr>
+<th>场景</th>
+<th>推荐引擎</th>
+<th>理由</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>OLTP 应用</td>
+<td>InnoDB</td>
+<td>事务、行锁、高并发</td>
+</tr>
+<tr>
+<td>读多写少</td>
+<td>MyISAM</td>
+<td>快速 COUNT、读取</td>
+</tr>
+<tr>
+<td>临时数据</td>
+<td>Memory</td>
+<td>内存存储、快速</td>
+</tr>
+<tr>
+<td>日志归档</td>
+<td>Archive</td>
+<td>高压缩、只追加</td>
+</tr>
+<tr>
+<td>数据交换</td>
+<td>CSV</td>
+<td>CSV 格式、易导入导出</td>
+</tr>
+</tbody>
+</table>
+<h3 id="62">6.2 迁移引擎</h3>
+<pre><code class="language-sql">-- 方式 1：ALTER TABLE
+ALTER TABLE table_name ENGINE=InnoDB;
+
+-- 方式 2：创建新表 + 数据迁移
+CREATE TABLE new_table LIKE old_table;
+ALTER TABLE new_table ENGINE=InnoDB;
+INSERT INTO new_table SELECT * FROM old_table;
+RENAME TABLE old_table TO backup_table, new_table TO old_table;
+
+-- 方式 3：mysqldump + 导入
+mysqldump -u root -p database table_name &gt; table.sql
+# 编辑 SQL 文件，修改 ENGINE
+mysql -u root -p database &lt; table.sql
+</code></pre>
+<hr />
+<h2 id="7">7. 引擎监控</h2>
+<h3 id="71-innodb">7.1 InnoDB 状态</h3>
+<pre><code class="language-sql">-- 查看 InnoDB 状态
+SHOW ENGINE INNODB STATUS;
+
+-- 查看缓冲池使用
+SELECT 
+    pool_id,
+    SUM(data_read) AS data_read,
+    SUM(data_written) AS data_written,
+    SUM(pages_read) AS pages_read,
+    SUM(pages_written) AS pages_written
+FROM information_schema.innodb_buffer_pool_stats
+GROUP BY pool_id;
+
+-- 查看表空间
+SELECT 
+    table_name,
+    engine,
+    data_length,
+    index_length,
+    data_free
+FROM information_schema.tables
+WHERE engine = 'InnoDB';
+</code></pre>
+<h3 id="72">7.2 性能指标</h3>
+<pre><code class="language-sql">-- 查看 InnoDB 指标
+SHOW STATUS LIKE 'Innodb_%';
+
+-- 关键指标
+-- Innodb_buffer_pool_read_requests: 逻辑读请求
+-- Innodb_buffer_pool_reads: 物理读次数
+-- Innodb_buffer_pool_wait_free: 等待空闲页次数
+-- Innodb_row_lock_time: 行锁等待时间
+-- Innodb_row_lock_waits: 行锁等待次数
+</code></pre>
+<hr />
+<h2 id="8">8. 本章小结</h2>
+<h3 id="_1">核心知识点</h3>
+<p>✅ InnoDB 引擎特性与配置<br />
+✅ MyISAM 引擎特点<br />
+✅ Memory 引擎使用<br />
+✅ 其他引擎（Archive、CSV、Blackhole）<br />
+✅ 引擎选择与迁移  </p>
+<h3 id="_2">最佳实践</h3>
+<ol>
+<li><strong>默认使用 InnoDB</strong>：除非有特殊需求</li>
+<li><strong>合理设置缓冲池</strong>：物理内存的 50-80%</li>
+<li><strong>开启每表表空间</strong>：innodb_file_per_table=1</li>
+<li><strong>定期优化表</strong>：OPTIMIZE TABLE</li>
+<li><strong>监控引擎状态</strong>：SHOW ENGINE INNODB STATUS</li>
+</ol>
+<hr />
+<p>🎉 <strong>恭喜完成第七章！继续学习 <a href="../08_%E4%B8%BB%E4%BB%8E%E5%A4%8D%E5%88%B6/">08_主从复制.md</a></strong></p></div>
+            </div>
+        </div>
+
+        <footer class="col-md-12">
+            <hr>
+            <p>Documentation built with <a href="https://www.mkdocs.org/">MkDocs</a>.</p>
+        </footer>
+        <script src="../../../../js/bootstrap.bundle.min.js"></script>
+        <script>
+            var base_url = "../../../..",
+                shortcuts = {"help": 191, "next": 78, "previous": 80, "search": 83};
+        </script>
+        <script src="../../../../js/base.js"></script>
+        <script src="../../../../search/main.js"></script>
+
+        <div class="modal" id="mkdocs_search_modal" tabindex="-1" role="dialog" aria-labelledby="searchModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="searchModalLabel">Search</h4>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>From here you can search these documents. Enter your search terms below.</p>
+                <form>
+                    <div class="form-group">
+                        <input type="search" class="form-control" placeholder="Search..." id="mkdocs-search-query" title="Type search term here">
+                    </div>
+                </form>
+                <div id="mkdocs-search-results" data-no-results-text="No results found"></div>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div><div class="modal" id="mkdocs_keyboard_modal" tabindex="-1" role="dialog" aria-labelledby="keyboardModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="keyboardModalLabel">Keyboard Shortcuts</h4>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th style="width: 20%;">Keys</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td class="help shortcut"><kbd>?</kbd></td>
+                    <td>Open this help</td>
+                  </tr>
+                  <tr>
+                    <td class="next shortcut"><kbd>n</kbd></td>
+                    <td>Next page</td>
+                  </tr>
+                  <tr>
+                    <td class="prev shortcut"><kbd>p</kbd></td>
+                    <td>Previous page</td>
+                  </tr>
+                  <tr>
+                    <td class="search shortcut"><kbd>s</kbd></td>
+                    <td>Search</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div>
+
+    </body>
+</html>

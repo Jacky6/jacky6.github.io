@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="light">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        
+        
+        
+        <link rel="shortcut icon" href="../../../../img/favicon.ico">
+        <title>5 使用JSON - My Docs</title>
+        <link href="../../../../css/bootstrap.min.css" rel="stylesheet">
+        <link href="../../../../css/fontawesome.min.css" rel="stylesheet">
+        <link href="../../../../css/brands.min.css" rel="stylesheet">
+        <link href="../../../../css/solid.min.css" rel="stylesheet">
+        <link href="../../../../css/v4-font-face.min.css" rel="stylesheet">
+        <link href="../../../../css/base.css" rel="stylesheet">
+        <link id="hljs-light" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" >
+        <link id="hljs-dark" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github-dark.min.css" disabled>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+        <script>hljs.highlightAll();</script> 
+    </head>
+
+    <body>
+        <div class="navbar fixed-top navbar-expand-lg navbar-dark bg-primary">
+            <div class="container">
+                <a class="navbar-brand" href="../../../..">My Docs</a>
+
+                <!-- Expanded navigation -->
+                <div id="navbar-collapse" class="navbar-collapse collapse">
+
+                    <ul class="nav navbar-nav ms-md-auto">
+                        <li class="nav-item">
+                            <a href="#" class="nav-link" data-bs-toggle="modal" data-bs-target="#mkdocs_search_modal">
+                                <i class="fa fa-search"></i> Search
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="container">
+            <div class="row">
+                    <div class="col-md-3"><div class="navbar-expand-md bs-sidebar hidden-print affix" role="complementary">
+    <div class="navbar-header">
+        <button type="button" class="navbar-toggler collapsed" data-bs-toggle="collapse" data-bs-target="#toc-collapse" title="Table of Contents">
+            <span class="fa fa-angle-down"></span>
+        </button>
+    </div>
+
+    
+    <div id="toc-collapse" class="navbar-collapse collapse card bg-body-tertiary">
+        <ul class="nav flex-column">
+            
+        </ul>
+    </div>
+</div></div>
+                    <div class="col-md-9" role="main">
+
+<p>​   前面我们讨论了XML这种数据格式。XML的特点是功能全面，但标签繁琐，格式复杂。在Web上使用XML现在越来越少，取而代之的是JSON这种数据结构。</p>
+<p>JSON是JavaScript Object Notation的缩写，它去除了所有JavaScript执行代码，只保留JavaScript的对象格式。一个典型的JSON如下：</p>
+<pre><code class="language-json">{
+    &quot;id&quot;: 1,
+    &quot;name&quot;: &quot;Java核心技术&quot;,
+    &quot;author&quot;: {
+        &quot;firstName&quot;: &quot;Abc&quot;,
+        &quot;lastName&quot;: &quot;Xyz&quot;
+    },
+    &quot;isbn&quot;: &quot;1234567&quot;,
+    &quot;tags&quot;: [&quot;Java&quot;, &quot;Network&quot;]
+}
+</code></pre>
+<p>JSON作为数据传输的格式，有几个显著的优点：</p>
+<ul>
+<li>JSON只允许使用UTF-8编码，不存在编码问题；</li>
+<li>JSON只允许使用双引号作为key，特殊字符用<code>\</code>转义，格式简单；</li>
+<li>浏览器内置JSON支持，如果把数据用JSON发送给浏览器，可以用JavaScript直接处理。</li>
+</ul>
+<p>因此，JSON适合表示层次结构，因为它格式简单，仅支持以下几种数据类型：</p>
+<ul>
+<li>键值对：<code>{"key": value}</code></li>
+<li>数组：<code>[1, 2, 3]</code></li>
+<li>字符串：<code>"abc"</code></li>
+<li>数值（整数和浮点数）：<code>12.34</code></li>
+<li>布尔值：<code>true</code>或<code>false</code></li>
+<li>空值：<code>null</code></li>
+</ul>
+<p>浏览器直接支持使用JavaScript对JSON进行读写：</p>
+<pre><code class="language-javascript">// JSON string to JavaScript object:
+jsObj = JSON.parse(jsonStr);
+
+// JavaScript object to JSON string:
+jsonStr = JSON.stringify(jsObj);
+</code></pre>
+<p>所以，开发Web应用的时候，使用JSON作为数据传输，在浏览器端非常方便。因为JSON天生适合JavaScript处理，所以，绝大多数REST API都选择JSON作为数据传输格式。</p>
+<p>现在问题来了：使用Java如何对JSON进行读写？</p>
+<p>​   在Java中，针对JSON也有标准的JSR 353 API，但是我们在前面讲XML的时候发现，如果能直接在XML和JavaBean之间互相转换是最好的。类似的，如果能直接在JSON和JavaBean之间转换，那么用起来就简单多了。</p>
+<p>常用的<strong>用于解析JSON的第三方库</strong>有：</p>
+<ul>
+<li><strong>Jackson</strong></li>
+<li><strong>GSON</strong></li>
+<li>JSON-lib</li>
+<li>...</li>
+</ul>
+<p>注意到上一节提到的那个可以解析XML的浓眉大眼的Jackson也可以解析JSON！因此我们只需要引入以下Maven依赖：</p>
+<ul>
+<li>com.fasterxml.jackson.core:jackson-databind:2.12.0</li>
+</ul>
+<p>就可以使用下面的代码解析一个JSON文件：</p>
+<pre><code class="language-java">InputStream input = Main.class.getResourceAsStream(&quot;/book.json&quot;);
+ObjectMapper mapper = new ObjectMapper();
+// 反序列化时忽略不存在的JavaBean属性:
+mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+Book book = mapper.readValue(input, Book.class);
+</code></pre>
+<p>​   核心代码是<strong>创建一个<code>ObjectMapper</code>对象</strong>。<strong>关闭<code>DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES</code>功能使得解析时如果JavaBean不存在该属性时解析不会报错。</strong></p>
+<p>​   <strong>把JSON解析为JavaBean的过程称为反序列化。如果把JavaBean变为JSON，那就是序列化</strong>。要实现JavaBean到JSON的序列化，只需要一行代码：</p>
+<pre><code class="language-java">String json = mapper.writeValueAsString(book);
+</code></pre>
+<p>​   要把JSON的某些值解析为特定的Java对象，例如<code>LocalDate</code>，也是完全可以的。例如：</p>
+<pre><code class="language-json">{
+    &quot;name&quot;: &quot;Java核心技术&quot;,
+    &quot;pubDate&quot;: &quot;2016-09-01&quot;
+}
+</code></pre>
+<p>​   要解析为：</p>
+<pre><code class="language-java">public class Book {
+    public String name;
+    public LocalDate pubDate;
+}
+</code></pre>
+<p>只需要引入标准的JSR 310关于JavaTime的数据格式定义至Maven：</p>
+<ul>
+<li>com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.12.0</li>
+</ul>
+<p>然后，在<strong>创建 <code>ObjectMapper</code> 时，注册一个新的<code>JavaTimeModule</code></strong>：</p>
+<pre><code class="language-java">ObjectMapper mapper = new ObjectMapper().registerModule(new JavaTimeModule());
+</code></pre>
+<p>​   有些时候，内置的解析规则和扩展的解析规则如果都不满足我们的需求，还可以自定义解析。</p>
+<p>举个例子，假设<code>Book</code>类的<code>isbn</code>是一个<code>BigInteger</code>：</p>
+<pre><code class="language-java">public class Book {
+    public String name;
+    public BigInteger isbn;
+}
+</code></pre>
+<p>​   但JSON数据并不是标准的整形格式：</p>
+<pre><code class="language-json">{
+    &quot;name&quot;: &quot;Java核心技术&quot;,
+    &quot;isbn&quot;: &quot;978-7-111-54742-6&quot;
+}
+</code></pre>
+<p>直接解析，肯定报错。这时，我们<strong>需要自定义一个<code>IsbnDeserializer</code>，用于解析含有非数字的字符串</strong>：</p>
+<pre><code class="language-java">public class IsbnDeserializer extends JsonDeserializer&lt;BigInteger&gt; {
+    public BigInteger deserialize(JsonParser p, DeserializationContext ctxt) throws IOException, JsonProcessingException {
+        // 读取原始的JSON字符串内容:
+        String s = p.getValueAsString();
+        if (s != null) {
+            try {
+                return new BigInteger(s.replace(&quot;-&quot;, &quot;&quot;));
+            } catch (NumberFormatException e) {
+                throw new JsonParseException(p, s, e);
+            }
+        }
+        return null;
+    }
+}
+</code></pre>
+<p>然后，在<code>Book</code>类中使用<strong>注解标注</strong>：</p>
+<pre><code class="language-java">public class Book {
+    public String name;
+    // 表示反序列化isbn时使用自定义的IsbnDeserializer:
+    @JsonDeserialize(using = IsbnDeserializer.class)
+    public BigInteger isbn;
+}
+</code></pre>
+<p>类似的，<strong>自定义序列化时我们需要自定义一个<code>IsbnSerializer</code>，然后在<code>Book</code>类中标注<code>@JsonSerialize(using = ...)</code>即可</strong>。</p>
+<h3 id="_1">反序列化</h3>
+<p>在反序列化时，Jackson要求Java类需要一个默认的无参数构造方法，否则，无法直接实例化此类。存在带参数构造方法的类，如果要反序列化，注意再提供一个无参数构造方法。</p>
+<p>对于<code>enum</code>字段，Jackson按String类型处理，即：</p>
+<pre><code class="language-java">class Book {
+    public DayOfWeek start = MONDAY;
+}
+</code></pre>
+<p>序列化为：</p>
+<pre><code class="language-json">{
+    &quot;start&quot;: &quot;MONDAY&quot;
+}
+</code></pre>
+<p>对于<code>record</code>类型，Jackson会自动找出它的带参数构造方法，并根据JSON的key进行匹配，可直接反序列化。对<code>record</code>类型的支持需要版本<code>2.12.0</code>以上。</p></div>
+            </div>
+        </div>
+
+        <footer class="col-md-12">
+            <hr>
+            <p>Documentation built with <a href="https://www.mkdocs.org/">MkDocs</a>.</p>
+        </footer>
+        <script src="../../../../js/bootstrap.bundle.min.js"></script>
+        <script>
+            var base_url = "../../../..",
+                shortcuts = {"help": 191, "next": 78, "previous": 80, "search": 83};
+        </script>
+        <script src="../../../../js/base.js"></script>
+        <script src="../../../../search/main.js"></script>
+
+        <div class="modal" id="mkdocs_search_modal" tabindex="-1" role="dialog" aria-labelledby="searchModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="searchModalLabel">Search</h4>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>From here you can search these documents. Enter your search terms below.</p>
+                <form>
+                    <div class="form-group">
+                        <input type="search" class="form-control" placeholder="Search..." id="mkdocs-search-query" title="Type search term here">
+                    </div>
+                </form>
+                <div id="mkdocs-search-results" data-no-results-text="No results found"></div>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div><div class="modal" id="mkdocs_keyboard_modal" tabindex="-1" role="dialog" aria-labelledby="keyboardModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="keyboardModalLabel">Keyboard Shortcuts</h4>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th style="width: 20%;">Keys</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td class="help shortcut"><kbd>?</kbd></td>
+                    <td>Open this help</td>
+                  </tr>
+                  <tr>
+                    <td class="next shortcut"><kbd>n</kbd></td>
+                    <td>Next page</td>
+                  </tr>
+                  <tr>
+                    <td class="prev shortcut"><kbd>p</kbd></td>
+                    <td>Previous page</td>
+                  </tr>
+                  <tr>
+                    <td class="search shortcut"><kbd>s</kbd></td>
+                    <td>Search</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div>
+
+    </body>
+</html>

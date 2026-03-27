@@ -1,0 +1,658 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="light">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        
+        
+        
+        <link rel="shortcut icon" href="../../../../img/favicon.ico">
+        <title>06_事务与锁 - My Docs</title>
+        <link href="../../../../css/bootstrap.min.css" rel="stylesheet">
+        <link href="../../../../css/fontawesome.min.css" rel="stylesheet">
+        <link href="../../../../css/brands.min.css" rel="stylesheet">
+        <link href="../../../../css/solid.min.css" rel="stylesheet">
+        <link href="../../../../css/v4-font-face.min.css" rel="stylesheet">
+        <link href="../../../../css/base.css" rel="stylesheet">
+        <link id="hljs-light" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" >
+        <link id="hljs-dark" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github-dark.min.css" disabled>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+        <script>hljs.highlightAll();</script> 
+    </head>
+
+    <body>
+        <div class="navbar fixed-top navbar-expand-lg navbar-dark bg-primary">
+            <div class="container">
+                <a class="navbar-brand" href="../../../..">My Docs</a>
+
+                <!-- Expanded navigation -->
+                <div id="navbar-collapse" class="navbar-collapse collapse">
+
+                    <ul class="nav navbar-nav ms-md-auto">
+                        <li class="nav-item">
+                            <a href="#" class="nav-link" data-bs-toggle="modal" data-bs-target="#mkdocs_search_modal">
+                                <i class="fa fa-search"></i> Search
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="container">
+            <div class="row">
+                    <div class="col-md-3"><div class="navbar-expand-md bs-sidebar hidden-print affix" role="complementary">
+    <div class="navbar-header">
+        <button type="button" class="navbar-toggler collapsed" data-bs-toggle="collapse" data-bs-target="#toc-collapse" title="Table of Contents">
+            <span class="fa fa-angle-down"></span>
+        </button>
+    </div>
+
+    
+    <div id="toc-collapse" class="navbar-collapse collapse card bg-body-tertiary">
+        <ul class="nav flex-column">
+            
+            <li class="nav-item" data-bs-level="1"><a href="#06_" class="nav-link">06_事务与锁</a>
+              <ul class="nav flex-column">
+            <li class="nav-item" data-bs-level="2"><a href="#1" class="nav-link">1. 事务基础</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#2" class="nav-link">2. 隔离级别</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#3" class="nav-link">3. 锁基础</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#4-mvcc" class="nav-link">4. MVCC（多版本并发控制）</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#5" class="nav-link">5. 死锁</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#6" class="nav-link">6. 锁监控</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#7" class="nav-link">7. 长事务问题</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#8" class="nav-link">8. 本章小结</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+              </ul>
+            </li>
+        </ul>
+    </div>
+</div></div>
+                    <div class="col-md-9" role="main">
+
+<h1 id="06_">06_事务与锁</h1>
+<blockquote>
+<p>事务 ACID、隔离级别、锁类型、MVCC、死锁分析</p>
+</blockquote>
+<hr />
+<h2 id="1">1. 事务基础</h2>
+<h3 id="11">1.1 什么是事务？</h3>
+<p><strong>事务</strong>是数据库操作的<strong>最小工作单元</strong>，要么全部成功，要么全部失败。</p>
+<pre><code class="language-sql">-- 转账示例
+START TRANSACTION;
+
+-- 从 A 账户扣款
+UPDATE accounts SET balance = balance - 100 WHERE id = 1;
+
+-- 向 B 账户加款
+UPDATE accounts SET balance = balance + 100 WHERE id = 2;
+
+-- 提交事务
+COMMIT;
+
+-- 或回滚
+-- ROLLBACK;
+</code></pre>
+<h3 id="12-acid">1.2 ACID 特性</h3>
+<table>
+<thead>
+<tr>
+<th>特性</th>
+<th>说明</th>
+<th>实现机制</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>原子性（Atomicity）</strong></td>
+<td>事务是不可分割的整体</td>
+<td>undo log</td>
+</tr>
+<tr>
+<td><strong>一致性（Consistency）</strong></td>
+<td>事务前后数据一致</td>
+<td>约束、触发器</td>
+</tr>
+<tr>
+<td><strong>隔离性（Isolation）</strong></td>
+<td>并发事务互不干扰</td>
+<td>锁、MVCC</td>
+</tr>
+<tr>
+<td><strong>持久性（Durability）</strong></td>
+<td>提交后永久保存</td>
+<td>redo log</td>
+</tr>
+</tbody>
+</table>
+<h3 id="13">1.3 事务操作</h3>
+<pre><code class="language-sql">-- 开启事务
+START TRANSACTION;
+-- 或
+BEGIN;
+
+-- 提交事务
+COMMIT;
+
+-- 回滚事务
+ROLLBACK;
+
+-- 设置保存点
+SAVEPOINT sp1;
+
+-- 回滚到保存点
+ROLLBACK TO sp1;
+
+-- 释放保存点
+RELEASE SAVEPOINT sp1;
+
+-- 查看事务状态
+SELECT * FROM information_schema.innodb_trx;
+</code></pre>
+<h3 id="14">1.4 自动提交</h3>
+<pre><code class="language-sql">-- 查看自动提交状态
+SELECT @@autocommit;
+
+-- 关闭自动提交
+SET autocommit = 0;
+
+-- 开启自动提交
+SET autocommit = 1;
+
+-- 注意：DDL 语句（CREATE、ALTER、DROP）会自动提交
+</code></pre>
+<hr />
+<h2 id="2">2. 隔离级别</h2>
+<h3 id="21">2.1 并发问题</h3>
+<table>
+<thead>
+<tr>
+<th>问题</th>
+<th>说明</th>
+<th>示例</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>脏读</strong></td>
+<td>读到未提交的数据</td>
+<td>A 修改未提交，B 读到</td>
+</tr>
+<tr>
+<td><strong>不可重复读</strong></td>
+<td>同一事务内多次读取结果不同</td>
+<td>A 读取后 B 修改提交，A 再读不同</td>
+</tr>
+<tr>
+<td><strong>幻读</strong></td>
+<td>同一事务内多次查询结果集不同</td>
+<td>A 查询后 B 插入，A 再查多出行</td>
+</tr>
+</tbody>
+</table>
+<h3 id="22-sql">2.2 SQL 标准隔离级别</h3>
+<table>
+<thead>
+<tr>
+<th>隔离级别</th>
+<th>脏读</th>
+<th>不可重复读</th>
+<th>幻读</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>READ UNCOMMITTED</strong></td>
+<td>✅</td>
+<td>✅</td>
+<td>✅</td>
+</tr>
+<tr>
+<td><strong>READ COMMITTED</strong></td>
+<td>❌</td>
+<td>✅</td>
+<td>✅</td>
+</tr>
+<tr>
+<td><strong>REPEATABLE READ</strong></td>
+<td>❌</td>
+<td>❌</td>
+<td>❌*</td>
+</tr>
+<tr>
+<td><strong>SERIALIZABLE</strong></td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p>*MySQL InnoDB 通过 MVCC 和间隙锁解决幻读</p>
+</blockquote>
+<h3 id="23">2.3 查看和设置隔离级别</h3>
+<pre><code class="language-sql">-- 查看全局隔离级别
+SELECT @@global.transaction_isolation;
+
+-- 查看会话隔离级别
+SELECT @@session.transaction_isolation;
+
+-- 设置全局隔离级别
+SET GLOBAL TRANSACTION ISOLATION LEVEL REPEATABLE READ;
+
+-- 设置会话隔离级别
+SET SESSION TRANSACTION ISOLATION LEVEL READ COMMITTED;
+
+-- 设置当前事务隔离级别
+SET TRANSACTION ISOLATION LEVEL SERIALIZABLE;
+</code></pre>
+<h3 id="24">2.4 各隔离级别详解</h3>
+<h4 id="read-uncommitted">READ UNCOMMITTED</h4>
+<pre><code class="language-sql">-- 会话 A
+SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;
+START TRANSACTION;
+UPDATE users SET age = 26 WHERE id = 1;  -- 未提交
+
+-- 会话 B（可以读到未提交的数据 - 脏读）
+SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;
+START TRANSACTION;
+SELECT age FROM users WHERE id = 1;  -- 读到 26（脏数据）
+</code></pre>
+<h4 id="read-committed">READ COMMITTED</h4>
+<pre><code class="language-sql">-- 会话 A
+START TRANSACTION;
+UPDATE users SET age = 26 WHERE id = 1;
+COMMIT;  -- 提交
+
+-- 会话 B（只能读到已提交的数据）
+START TRANSACTION;
+SELECT age FROM users WHERE id = 1;  -- 提交前读不到
+SELECT age FROM users WHERE id = 1;  -- 提交后读到 26（不可重复读）
+</code></pre>
+<h4 id="repeatable-readmysql">REPEATABLE READ（MySQL 默认）</h4>
+<pre><code class="language-sql">-- 会话 A
+START TRANSACTION;
+SELECT age FROM users WHERE id = 1;  -- 读到 25
+-- 会话 B 修改并提交
+-- UPDATE users SET age = 26 WHERE id = 1; COMMIT;
+SELECT age FROM users WHERE id = 1;  -- 还是 25（可重复读）
+COMMIT;
+SELECT age FROM users WHERE id = 1;  -- 提交后才能读到 26
+</code></pre>
+<h4 id="serializable">SERIALIZABLE</h4>
+<pre><code class="language-sql">-- 会话 A
+SET TRANSACTION ISOLATION LEVEL SERIALIZABLE;
+START TRANSACTION;
+SELECT * FROM users WHERE id = 1;  -- 加共享锁
+
+-- 会话 B（被阻塞）
+START TRANSACTION;
+UPDATE users SET age = 26 WHERE id = 1;  -- 等待 A 提交
+</code></pre>
+<hr />
+<h2 id="3">3. 锁基础</h2>
+<h3 id="31">3.1 锁粒度</h3>
+<table>
+<thead>
+<tr>
+<th>粒度</th>
+<th>说明</th>
+<th>开销</th>
+<th>并发</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>表锁</strong></td>
+<td>锁整张表</td>
+<td>小</td>
+<td>低</td>
+</tr>
+<tr>
+<td><strong>行锁</strong></td>
+<td>锁单行</td>
+<td>大</td>
+<td>高</td>
+</tr>
+<tr>
+<td><strong>页锁</strong></td>
+<td>锁数据页</td>
+<td>中</td>
+<td>中</td>
+</tr>
+</tbody>
+</table>
+<h3 id="32">3.2 锁类型</h3>
+<table>
+<thead>
+<tr>
+<th>锁类型</th>
+<th>说明</th>
+<th>兼容性</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>共享锁（S 锁）</strong></td>
+<td>读锁，允许其他事务读</td>
+<td>S-S 兼容，S-X 不兼容</td>
+</tr>
+<tr>
+<td><strong>排他锁（X 锁）</strong></td>
+<td>写锁，不允许其他事务读写</td>
+<td>X-X、X-S 都不兼容</td>
+</tr>
+</tbody>
+</table>
+<pre><code class="language-sql">-- 共享锁
+SELECT * FROM users WHERE id = 1 LOCK IN SHARE MODE;
+-- 或（8.0+）
+SELECT * FROM users WHERE id = 1 FOR SHARE;
+
+-- 排他锁
+SELECT * FROM users WHERE id = 1 FOR UPDATE;
+
+-- 更新自动加排他锁
+UPDATE users SET age = 26 WHERE id = 1;
+DELETE FROM users WHERE id = 1;
+INSERT INTO users ...;
+</code></pre>
+<h3 id="33-innodb">3.3 InnoDB 锁类型</h3>
+<h4 id="record-lock">记录锁（Record Lock）</h4>
+<pre><code class="language-sql">-- 锁单条记录
+SELECT * FROM users WHERE id = 1 FOR UPDATE;
+</code></pre>
+<h4 id="gap-lock">间隙锁（Gap Lock）</h4>
+<pre><code class="language-sql">-- 锁范围（不包含记录本身）
+SELECT * FROM users WHERE id &gt; 1 AND id &lt; 10 FOR UPDATE;
+-- 锁住 (1, 10) 区间，防止其他事务插入
+</code></pre>
+<h4 id="next-key-lock">临键锁（Next-Key Lock）</h4>
+<pre><code class="language-sql">-- 记录锁 + 间隙锁
+-- REPEATABLE READ 级别下，范围查询使用
+SELECT * FROM users WHERE id &gt; 1 FOR UPDATE;
+-- 锁住 (1, +∞) 区间
+</code></pre>
+<h4 id="intention-lock">意向锁（Intention Lock）</h4>
+<pre><code>意向锁是表级锁，表示事务要在某个粒度上加锁
+
+意向共享锁（IS）：事务打算给数据行加 S 锁
+意向排他锁（IX）：事务打算给数据行加 X 锁
+
+IS 和 IX 自动添加，无需手动干预
+</code></pre>
+<hr />
+<h2 id="4-mvcc">4. MVCC（多版本并发控制）</h2>
+<h3 id="41-mvcc">4.1 MVCC 原理</h3>
+<pre><code>MVCC 通过保存数据的历史版本实现读写并发：
+
+行记录结构：
+┌─────────────────────────────────────────┐
+│ 数据 │ DB_TRX_ID │ DB_ROLL_PTR │ ...   │
+│      │ 事务 ID   │ 回滚指针    │       │
+└─────────────────────────────────────────┘
+
+undo log 链：
+当前版本 → undo log1 → undo log2 → ...
+</code></pre>
+<h3 id="42-read-view">4.2 Read View</h3>
+<pre><code>Read View 包含：
+- m_ids: 活跃事务 ID 列表
+- min_trx_id: 最小活跃事务 ID
+- max_trx_id: 下一个事务 ID
+- creator_trx_id: 创建 Read View 的事务 ID
+
+可见性判断：
+1. trx_id &lt; min_trx_id → 可见（老版本）
+2. trx_id &gt;= max_trx_id → 不可见（新版本）
+3. trx_id in m_ids → 不可见（活跃事务）
+4. 其他情况 → 可见
+</code></pre>
+<h3 id="43-mvcc">4.3 隔离级别与 MVCC</h3>
+<pre><code class="language-sql">-- READ COMMITTED：每次 SELECT 生成新的 Read View
+START TRANSACTION;
+SELECT * FROM users WHERE id = 1;  -- 生成 Read View 1
+-- 其他事务提交
+SELECT * FROM users WHERE id = 1;  -- 生成 Read View 2（能看到新数据）
+
+-- REPEATABLE READ：第一次 SELECT 生成 Read View，后续复用
+START TRANSACTION;
+SELECT * FROM users WHERE id = 1;  -- 生成 Read View
+-- 其他事务提交
+SELECT * FROM users WHERE id = 1;  -- 复用 Read View（看不到新数据）
+COMMIT;
+</code></pre>
+<hr />
+<h2 id="5">5. 死锁</h2>
+<h3 id="51">5.1 死锁示例</h3>
+<pre><code>事务 A:                    事务 B:
+START TRANSACTION;         START TRANSACTION;
+UPDATE users SET ... WHERE id = 1;  -- 锁 id=1
+                            UPDATE users SET ... WHERE id = 2;  -- 锁 id=2
+UPDATE users SET ... WHERE id = 2;  -- 等待 id=2（被 B 锁）
+                            UPDATE users SET ... WHERE id = 1;  -- 等待 id=1（被 A 锁）
+                            ↓ 死锁！
+</code></pre>
+<h3 id="52">5.2 查看死锁</h3>
+<pre><code class="language-sql">-- 查看死锁日志
+SHOW ENGINE INNODB STATUS;
+
+-- 查看锁等待
+SELECT * FROM information_schema.innodb_lock_waits;
+
+-- 查看锁信息（8.0+）
+SELECT * FROM performance_schema.data_locks;
+SELECT * FROM performance_schema.data_lock_waits;
+</code></pre>
+<h3 id="53">5.3 避免死锁</h3>
+<pre><code class="language-sql">-- 1. 固定顺序访问表
+-- 所有事务都按 id 从小到大访问
+
+-- 2. 一次性锁定所有资源
+SELECT * FROM users WHERE id IN (1, 2) FOR UPDATE;
+
+-- 3. 降低隔离级别
+SET TRANSACTION ISOLATION LEVEL READ COMMITTED;
+
+-- 4. 设置锁等待超时
+SET innodb_lock_wait_timeout = 10;  -- 10 秒
+
+-- 5. 使用小事务
+-- 避免大事务长时间持有锁
+</code></pre>
+<h3 id="54">5.4 死锁处理</h3>
+<pre><code class="language-sql">-- InnoDB 会自动检测死锁并回滚其中一个事务
+-- 被回滚的事务收到错误：
+-- ERROR 1213 (40001): Deadlock found when trying to get lock; try restarting transaction
+
+-- 应用层处理：捕获异常，重试
+</code></pre>
+<hr />
+<h2 id="6">6. 锁监控</h2>
+<h3 id="61">6.1 查看锁状态</h3>
+<pre><code class="language-sql">-- 查看事务
+SELECT * FROM information_schema.innodb_trx;
+
+-- 查看锁
+SELECT * FROM information_schema.innodb_locks;  -- 5.7
+SELECT * FROM performance_schema.data_locks;    -- 8.0+
+
+-- 查看锁等待
+SELECT * FROM information_schema.innodb_lock_waits;  -- 5.7
+SELECT * FROM performance_schema.data_lock_waits;    -- 8.0+
+
+-- 查看进程
+SHOW PROCESSLIST;
+</code></pre>
+<h3 id="62">6.2 杀死阻塞会话</h3>
+<pre><code class="language-sql">-- 找到阻塞的会话
+SELECT 
+    r.trx_id AS waiting_trx_id,
+    r.trx_mysql_thread_id AS waiting_thread,
+    b.trx_id AS blocking_trx_id,
+    b.trx_mysql_thread_id AS blocking_thread
+FROM information_schema.innodb_lock_waits w
+JOIN information_schema.innodb_trx b ON b.trx_id = w.blocking_trx_id
+JOIN information_schema.innodb_trx r ON r.trx_id = w.requesting_trx_id;
+
+-- 杀死会话
+KILL 123;
+</code></pre>
+<hr />
+<h2 id="7">7. 长事务问题</h2>
+<h3 id="71">7.1 长事务危害</h3>
+<ul>
+<li>占用 undo log 空间</li>
+<li>导致主从延迟</li>
+<li>持有锁时间长，影响并发</li>
+<li>可能导致内存溢出</li>
+</ul>
+<h3 id="72">7.2 监控长事务</h3>
+<pre><code class="language-sql">-- 查看运行时间超过 60 秒的事务
+SELECT * FROM information_schema.innodb_trx
+WHERE TIME_TO_SEC(TIMEDIFF(NOW(), trx_started)) &gt; 60;
+
+-- 设置长事务阈值
+SET GLOBAL innodb_monitor_enable = 'innodb_metrics';
+
+-- 自动杀死长事务（谨慎使用）
+SET GLOBAL max_execution_time = 30000;  -- 30 秒
+</code></pre>
+<h3 id="73">7.3 避免长事务</h3>
+<pre><code class="language-sql">-- 1. 及时提交事务
+START TRANSACTION;
+-- 操作
+COMMIT;
+
+-- 2. 避免在事务中等待用户输入
+
+-- 3. 分批处理大数据
+START TRANSACTION;
+DELETE FROM logs WHERE created_at &lt; '2023-01-01' LIMIT 1000;
+COMMIT;
+-- 重复执行
+
+-- 4. 设置超时
+SET SESSION max_execution_time = 30000;
+</code></pre>
+<hr />
+<h2 id="8">8. 本章小结</h2>
+<h3 id="_1">核心知识点</h3>
+<p>✅ 事务 ACID 特性<br />
+✅ 四种隔离级别<br />
+✅ 锁类型（S/X、表/行、间隙/临键）<br />
+✅ MVCC 原理<br />
+✅ 死锁分析与避免<br />
+✅ 锁监控  </p>
+<h3 id="_2">最佳实践</h3>
+<ol>
+<li><strong>选择合适隔离级别</strong>：默认 RR，高并发用 RC</li>
+<li><strong>避免长事务</strong>：及时提交，分批处理</li>
+<li><strong>固定访问顺序</strong>：避免死锁</li>
+<li><strong>使用短索引</strong>：减少锁范围</li>
+<li><strong>监控锁等待</strong>：及时发现性能问题</li>
+</ol>
+<hr />
+<p>🎉 <strong>恭喜完成第六章！继续学习 <a href="../07_%E5%AD%98%E5%82%A8%E5%BC%95%E6%93%8E/">07_存储引擎.md</a></strong></p></div>
+            </div>
+        </div>
+
+        <footer class="col-md-12">
+            <hr>
+            <p>Documentation built with <a href="https://www.mkdocs.org/">MkDocs</a>.</p>
+        </footer>
+        <script src="../../../../js/bootstrap.bundle.min.js"></script>
+        <script>
+            var base_url = "../../../..",
+                shortcuts = {"help": 191, "next": 78, "previous": 80, "search": 83};
+        </script>
+        <script src="../../../../js/base.js"></script>
+        <script src="../../../../search/main.js"></script>
+
+        <div class="modal" id="mkdocs_search_modal" tabindex="-1" role="dialog" aria-labelledby="searchModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="searchModalLabel">Search</h4>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>From here you can search these documents. Enter your search terms below.</p>
+                <form>
+                    <div class="form-group">
+                        <input type="search" class="form-control" placeholder="Search..." id="mkdocs-search-query" title="Type search term here">
+                    </div>
+                </form>
+                <div id="mkdocs-search-results" data-no-results-text="No results found"></div>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div><div class="modal" id="mkdocs_keyboard_modal" tabindex="-1" role="dialog" aria-labelledby="keyboardModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="keyboardModalLabel">Keyboard Shortcuts</h4>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th style="width: 20%;">Keys</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td class="help shortcut"><kbd>?</kbd></td>
+                    <td>Open this help</td>
+                  </tr>
+                  <tr>
+                    <td class="next shortcut"><kbd>n</kbd></td>
+                    <td>Next page</td>
+                  </tr>
+                  <tr>
+                    <td class="prev shortcut"><kbd>p</kbd></td>
+                    <td>Previous page</td>
+                  </tr>
+                  <tr>
+                    <td class="search shortcut"><kbd>s</kbd></td>
+                    <td>Search</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div>
+
+    </body>
+</html>

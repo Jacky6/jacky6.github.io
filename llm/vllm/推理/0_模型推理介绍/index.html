@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="light">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        
+        
+        
+        <link rel="shortcut icon" href="../../../../img/favicon.ico">
+        <title>0 模型推理介绍 - My Docs</title>
+        <link href="../../../../css/bootstrap.min.css" rel="stylesheet">
+        <link href="../../../../css/fontawesome.min.css" rel="stylesheet">
+        <link href="../../../../css/brands.min.css" rel="stylesheet">
+        <link href="../../../../css/solid.min.css" rel="stylesheet">
+        <link href="../../../../css/v4-font-face.min.css" rel="stylesheet">
+        <link href="../../../../css/base.css" rel="stylesheet">
+        <link id="hljs-light" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" >
+        <link id="hljs-dark" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github-dark.min.css" disabled>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+        <script>hljs.highlightAll();</script> 
+    </head>
+
+    <body>
+        <div class="navbar fixed-top navbar-expand-lg navbar-dark bg-primary">
+            <div class="container">
+                <a class="navbar-brand" href="../../../..">My Docs</a>
+
+                <!-- Expanded navigation -->
+                <div id="navbar-collapse" class="navbar-collapse collapse">
+
+                    <ul class="nav navbar-nav ms-md-auto">
+                        <li class="nav-item">
+                            <a href="#" class="nav-link" data-bs-toggle="modal" data-bs-target="#mkdocs_search_modal">
+                                <i class="fa fa-search"></i> Search
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="container">
+            <div class="row">
+                    <div class="col-md-3"><div class="navbar-expand-md bs-sidebar hidden-print affix" role="complementary">
+    <div class="navbar-header">
+        <button type="button" class="navbar-toggler collapsed" data-bs-toggle="collapse" data-bs-target="#toc-collapse" title="Table of Contents">
+            <span class="fa fa-angle-down"></span>
+        </button>
+    </div>
+
+    
+    <div id="toc-collapse" class="navbar-collapse collapse card bg-body-tertiary">
+        <ul class="nav flex-column">
+            
+            <li class="nav-item" data-bs-level="2"><a href="#_1" class="nav-link">🧩 大模型推理的三大核心阶段</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            
+            <li class="nav-item" data-bs-level="2"><a href="#1-prefill" class="nav-link">1️⃣ Prefill 阶段：理解你的问题</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            
+            <li class="nav-item" data-bs-level="2"><a href="#2-decoding-generation" class="nav-link">2️⃣ Decoding / Generation 阶段：一个字一个字地“写答案”</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            
+            <li class="nav-item" data-bs-level="2"><a href="#3-post-processing" class="nav-link">3️⃣ Post-processing 阶段：整理输出，准备返回</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            
+            <li class="nav-item" data-bs-level="2"><a href="#_10" class="nav-link">🔄 整体流程图</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            
+            <li class="nav-item" data-bs-level="2"><a href="#vllm" class="nav-link">🚀 推理引擎如何提升效率？（以 vLLM 为例）</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            
+            <li class="nav-item" data-bs-level="2"><a href="#_11" class="nav-link">📊 不同场景下的瓶颈分析</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            
+            <li class="nav-item" data-bs-level="2"><a href="#_12" class="nav-link">✅ 总结：三大阶段对比表</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            
+            <li class="nav-item" data-bs-level="2"><a href="#_13" class="nav-link">💬 类比理解</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+        </ul>
+    </div>
+</div></div>
+                    <div class="col-md-9" role="main">
+
+<p>大模型推理（Large Language Model Inference）是指将训练好的大语言模型用于实际生成文本的过程。这个过程不是“一键输出”，而是由多个<strong>关键阶段协同完成</strong>的，每个阶段都有其特定任务和性能特征。</p>
+<hr />
+<h2 id="_1">🧩 大模型推理的三大核心阶段</h2>
+<p>大模型推理主要分为三个阶段：</p>
+<table>
+<thead>
+<tr>
+<th>阶段</th>
+<th>名称</th>
+<th>关键作用</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1️⃣</td>
+<td><strong>Prefill（预填充）</strong></td>
+<td>处理用户输入 prompt，构建上下文和 KV Cache</td>
+</tr>
+<tr>
+<td>2️⃣</td>
+<td><strong>Decoding / Generation（解码/生成）</strong></td>
+<td>自回归地逐个生成输出 token（推流的核心）</td>
+</tr>
+<tr>
+<td>3️⃣</td>
+<td><strong>Post-processing（后处理）</strong></td>
+<td>清理输出、截断、格式化、返回结果</td>
+</tr>
+</tbody>
+</table>
+<p>下面我们详细展开。</p>
+<hr />
+<h2 id="1-prefill">1️⃣ Prefill 阶段：理解你的问题</h2>
+<h3 id="_2">✅ 做了什么？</h3>
+<ul>
+<li>输入用户的 <strong>prompt</strong>（如：“请写一首关于春天的诗”）</li>
+<li>将 prompt 分词（tokenize）为 token 序列</li>
+<li>通过 Transformer 的所有层进行前向传播</li>
+<li>计算并缓存每个 token 的 <strong>Key 和 Value 向量（KV Cache）</strong></li>
+</ul>
+<h3 id="_3">🔍 特点：</h3>
+<ul>
+<li><strong>并行计算</strong>：所有 prompt tokens 可以同时处理，GPU 利用率高</li>
+<li><strong>耗时与 prompt 长度成正比</strong>：输入越长，prefill 时间越久</li>
+<li><strong>不产生输出文本</strong>，但为后续生成打基础</li>
+</ul>
+<h3 id="_4">📈 性能指标：</h3>
+<ul>
+<li><strong>TTFT（Time to First Token）</strong>：从请求开始到第一个输出 token 的时间，受 prefill 影响最大</li>
+</ul>
+<blockquote>
+<p>💡 优化手段：FlashAttention、PagedAttention、模型量化等</p>
+</blockquote>
+<hr />
+<h2 id="2-decoding-generation">2️⃣ Decoding / Generation 阶段：一个字一个字地“写答案”</h2>
+<p>这是最核心的生成阶段，也是我们看到“文字一个个蹦出来”的原因。</p>
+<h3 id="_5">✅ 做了什么？</h3>
+<ul>
+<li>每次生成一个 token（自回归）</li>
+<li>使用 <strong>KV Cache</strong> 避免重复计算历史信息</li>
+<li>重复以下步骤直到结束：</li>
+<li>输入当前上下文（prompt + 已生成内容）</li>
+<li>模型预测下一个 token 的概率分布</li>
+<li>采样（如 greedy、top-p 等）选择 token</li>
+<li>返回该 token（如果是流式）</li>
+<li>更新 KV Cache</li>
+<li>继续下一轮</li>
+</ul>
+<h3 id="_6">🔁 示例流程：</h3>
+<pre><code class="language-text">输入: &quot;你好&quot;
+→ 生成: &quot;，&quot;
+→ 生成: &quot;今&quot;
+→ 生成: &quot;天&quot;
+→ ...
+</code></pre>
+<h3 id="_7">🔍 特点：</h3>
+<ul>
+<li><strong>串行为主</strong>：每次只能生成一个 token，无法完全并行</li>
+<li><strong>延迟累积</strong>：输出越长，总时间越久</li>
+<li><strong>支持流式输出（Streaming）</strong>：每生成一个 token 就推送给客户端</li>
+</ul>
+<h3 id="_8">📈 性能指标：</h3>
+<ul>
+<li><strong>TPOT（Time Per Output Token）</strong>：每个输出 token 的平均耗时</li>
+<li><strong>吞吐量（Tokens/sec）</strong>：衡量 GPU 解码效率</li>
+</ul>
+<blockquote>
+<p>💡 优化手段：连续批处理（Continuous Batching）、推测解码（Speculative Decoding）</p>
+</blockquote>
+<hr />
+<h2 id="3-post-processing">3️⃣ Post-processing 阶段：整理输出，准备返回</h2>
+<p>当生成结束（遇到 <code>EOS</code> 标记或达到最大长度），进入后处理阶段。</p>
+<h3 id="_9">✅ 做了什么？</h3>
+<ul>
+<li>去除特殊标记（如 <code>&lt;/s&gt;</code>）</li>
+<li>截断多余内容（如重复、乱码）</li>
+<li>统计信息收集（生成长度、耗时、token 数等）</li>
+<li>构造最终响应 JSON 或 SSE 流</li>
+<li>释放 KV Cache 和显存资源</li>
+</ul>
+<h3 id="openai-api">📝 输出示例（OpenAI API 兼容格式）：</h3>
+<pre><code class="language-json">{
+  &quot;id&quot;: &quot;cmpl-123&quot;,
+  &quot;object&quot;: &quot;text_completion&quot;,
+  &quot;model&quot;: &quot;qwen3-vl-2b&quot;,
+  &quot;choices&quot;: [
+    {
+      &quot;text&quot;: &quot;春天来了，花儿开了...&quot;,
+      &quot;finish_reason&quot;: &quot;length&quot;
+    }
+  ],
+  &quot;usage&quot;: {
+    &quot;prompt_tokens&quot;: 10,
+    &quot;completion_tokens&quot;: 50,
+    &quot;total_tokens&quot;: 60
+  }
+}
+</code></pre>
+<hr />
+<h2 id="_10">🔄 整体流程图</h2>
+<pre><code class="language-text">[用户请求]
+     ↓
+  Prefill 阶段  ← 处理 prompt，生成 KV Cache
+     ↓
+Decoding 阶段  ← 自回归生成 token（可流式推送）
+     ↓
+Post-processing ← 清理输出，构造响应
+     ↓
+[返回客户端]
+</code></pre>
+<hr />
+<h2 id="vllm">🚀 推理引擎如何提升效率？（以 vLLM 为例）</h2>
+<p>你之前使用的 <code>vLLM</code> 正是通过以下技术优化这三个阶段：</p>
+<table>
+<thead>
+<tr>
+<th>技术</th>
+<th>作用</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>PagedAttention</strong></td>
+<td>将 KV Cache 分页管理，显存利用率提升 3-5 倍</td>
+</tr>
+<tr>
+<td><strong>Continuous Batching</strong></td>
+<td>动态合并多个请求的 decoding 阶段，提高 GPU 利用率</td>
+</tr>
+<tr>
+<td><strong>Chunked Prefill</strong></td>
+<td>支持超长 prompt 分块处理，边 prefill 边 streaming</td>
+</tr>
+<tr>
+<td><strong>GPU Memory Utilization 控制</strong></td>
+<td>防止 OOM，合理分配显存</td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p>⚙️ 例如你命令中的参数：
+<code>bash
+--gpu-memory-utilization=0.85
+--tensor-parallel-size 1
+--max-model-len 2000</code>
+都是在配置推理阶段的资源使用策略。</p>
+</blockquote>
+<hr />
+<h2 id="_11">📊 不同场景下的瓶颈分析</h2>
+<table>
+<thead>
+<tr>
+<th>场景</th>
+<th>主要瓶颈</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>短 prompt + 长输出（如写作）</td>
+<td><strong>Decoding 阶段</strong>（TPOT 高）</td>
+</tr>
+<tr>
+<td>超长文档输入（如摘要）</td>
+<td><strong>Prefill 阶段</strong>（TTFT 高）</td>
+</tr>
+<tr>
+<td>高并发聊天服务</td>
+<td><strong>显存 + KV Cache 管理</strong></td>
+</tr>
+<tr>
+<td>实时语音交互</td>
+<td><strong>首字延迟（TTFT）必须低</strong></td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="_12">✅ 总结：三大阶段对比表</h2>
+<table>
+<thead>
+<tr>
+<th>阶段</th>
+<th>并行性</th>
+<th>耗时因素</th>
+<th>优化重点</th>
+<th>是否流式</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Prefill</strong></td>
+<td>✅ 高（并行）</td>
+<td>prompt 长度</td>
+<td>FlashAttention, KV Cache</td>
+<td>❌</td>
+</tr>
+<tr>
+<td><strong>Decoding</strong></td>
+<td>❌ 低（串行）</td>
+<td>输出长度</td>
+<td>连续批处理, 推测解码</td>
+<td>✅ 支持流式</td>
+</tr>
+<tr>
+<td><strong>Post-process</strong></td>
+<td>✅ 快速</td>
+<td>固定开销</td>
+<td>格式化、统计、释放资源</td>
+<td>-</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="_13">💬 类比理解</h2>
+<p>你可以把大模型推理想象成一位作家写作：</p>
+<ol>
+<li><strong>Prefill</strong> → 作家认真读完你给的题目和背景材料（花时间理解）</li>
+<li><strong>Decoding</strong> → 作家一个字一个字写下答案（边想边写）</li>
+<li><strong>Post-processing</strong> → 检查错别字、排版、提交稿件</li>
+</ol>
+<hr />
+<p>如果你正在部署模型（如 Qwen、Llama 等），了解这些阶段有助于你：
+- 调优参数（如 <code>max_model_len</code>、<code>gpu_memory_utilization</code>）
+- 选择合适的推理框架（vLLM vs TGI vs llama.cpp）
+- 优化用户体验（降低首字延迟、支持流式）</p>
+<p>需要我根据你的具体模型和硬件给出优化建议吗？欢迎继续提问！</p></div>
+            </div>
+        </div>
+
+        <footer class="col-md-12">
+            <hr>
+            <p>Documentation built with <a href="https://www.mkdocs.org/">MkDocs</a>.</p>
+        </footer>
+        <script src="../../../../js/bootstrap.bundle.min.js"></script>
+        <script>
+            var base_url = "../../../..",
+                shortcuts = {"help": 191, "next": 78, "previous": 80, "search": 83};
+        </script>
+        <script src="../../../../js/base.js"></script>
+        <script src="../../../../search/main.js"></script>
+
+        <div class="modal" id="mkdocs_search_modal" tabindex="-1" role="dialog" aria-labelledby="searchModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="searchModalLabel">Search</h4>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>From here you can search these documents. Enter your search terms below.</p>
+                <form>
+                    <div class="form-group">
+                        <input type="search" class="form-control" placeholder="Search..." id="mkdocs-search-query" title="Type search term here">
+                    </div>
+                </form>
+                <div id="mkdocs-search-results" data-no-results-text="No results found"></div>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div><div class="modal" id="mkdocs_keyboard_modal" tabindex="-1" role="dialog" aria-labelledby="keyboardModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="keyboardModalLabel">Keyboard Shortcuts</h4>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th style="width: 20%;">Keys</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td class="help shortcut"><kbd>?</kbd></td>
+                    <td>Open this help</td>
+                  </tr>
+                  <tr>
+                    <td class="next shortcut"><kbd>n</kbd></td>
+                    <td>Next page</td>
+                  </tr>
+                  <tr>
+                    <td class="prev shortcut"><kbd>p</kbd></td>
+                    <td>Previous page</td>
+                  </tr>
+                  <tr>
+                    <td class="search shortcut"><kbd>s</kbd></td>
+                    <td>Search</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div>
+
+    </body>
+</html>

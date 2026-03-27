@@ -1,0 +1,732 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="light">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        
+        
+        
+        <link rel="shortcut icon" href="../../../../img/favicon.ico">
+        <title>05_复制与哨兵 - My Docs</title>
+        <link href="../../../../css/bootstrap.min.css" rel="stylesheet">
+        <link href="../../../../css/fontawesome.min.css" rel="stylesheet">
+        <link href="../../../../css/brands.min.css" rel="stylesheet">
+        <link href="../../../../css/solid.min.css" rel="stylesheet">
+        <link href="../../../../css/v4-font-face.min.css" rel="stylesheet">
+        <link href="../../../../css/base.css" rel="stylesheet">
+        <link id="hljs-light" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" >
+        <link id="hljs-dark" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github-dark.min.css" disabled>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+        <script>hljs.highlightAll();</script> 
+    </head>
+
+    <body>
+        <div class="navbar fixed-top navbar-expand-lg navbar-dark bg-primary">
+            <div class="container">
+                <a class="navbar-brand" href="../../../..">My Docs</a>
+
+                <!-- Expanded navigation -->
+                <div id="navbar-collapse" class="navbar-collapse collapse">
+
+                    <ul class="nav navbar-nav ms-md-auto">
+                        <li class="nav-item">
+                            <a href="#" class="nav-link" data-bs-toggle="modal" data-bs-target="#mkdocs_search_modal">
+                                <i class="fa fa-search"></i> Search
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="container">
+            <div class="row">
+                    <div class="col-md-3"><div class="navbar-expand-md bs-sidebar hidden-print affix" role="complementary">
+    <div class="navbar-header">
+        <button type="button" class="navbar-toggler collapsed" data-bs-toggle="collapse" data-bs-target="#toc-collapse" title="Table of Contents">
+            <span class="fa fa-angle-down"></span>
+        </button>
+    </div>
+
+    
+    <div id="toc-collapse" class="navbar-collapse collapse card bg-body-tertiary">
+        <ul class="nav flex-column">
+            
+            <li class="nav-item" data-bs-level="1"><a href="#05_" class="nav-link">05_复制与哨兵</a>
+              <ul class="nav flex-column">
+            <li class="nav-item" data-bs-level="2"><a href="#1" class="nav-link">1. 主从复制</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#2-sentinel" class="nav-link">2. 哨兵模式（Sentinel）</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#3" class="nav-link">3. 高可用架构</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#4" class="nav-link">4. 常见问题</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#5" class="nav-link">5. 本章小结</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+              </ul>
+            </li>
+        </ul>
+    </div>
+</div></div>
+                    <div class="col-md-9" role="main">
+
+<h1 id="05_">05_复制与哨兵</h1>
+<blockquote>
+<p>详解 Redis 主从复制、哨兵模式，实现高可用架构</p>
+</blockquote>
+<hr />
+<h2 id="1">1. 主从复制</h2>
+<h3 id="11">1.1 概述</h3>
+<p><strong>主从复制</strong>是 Redis 高可用的基础，支持一主多从、链式复制。</p>
+<pre><code>架构示例：
+         ┌─────────────┐
+         │   Master    │
+         │ 192.168.1.10│
+         │   :6379     │
+         └──────┬──────┘
+                │
+       ┌────────┼────────┐
+       │        │        │
+       ▼        ▼        ▼
+┌──────────┐ ┌──────────┐ ┌──────────┐
+│  Slave1  │ │  Slave2  │ │  Slave3  │
+│192.168.1.11│ │192.168.1.12│ │192.168.1.13│
+│  :6379   │ │  :6379   │ │  :6379   │
+└──────────┘ └──────────┘ └──────────┘
+</code></pre>
+<h3 id="12">1.2 复制特点</h3>
+<table>
+<thead>
+<tr>
+<th>特性</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>异步复制</td>
+<td>主库写入后异步同步到从库</td>
+</tr>
+<tr>
+<td>一主多从</td>
+<td>一个主库可以有多个从库</td>
+</tr>
+<tr>
+<td>链式复制</td>
+<td>从库可以有从库（A→B→C）</td>
+</tr>
+<tr>
+<td>读写分离</td>
+<td>主库写，从库读</td>
+</tr>
+<tr>
+<td>故障恢复</td>
+<td>从库可提升为主库</td>
+</tr>
+</tbody>
+</table>
+<h3 id="13">1.3 配置主从</h3>
+<h4 id="1_1">（1）从库配置</h4>
+<pre><code class="language-conf"># redis-slave.conf
+
+# 指定主库地址
+replicaof 192.168.1.10 6379
+
+# 主库密码（如果设置了）
+masterauth your-master-password
+
+# 从库只读（默认 yes）
+replica-read-only yes
+
+# 从库优先级（用于哨兵选举）
+replica-priority 100
+
+# 从库端口（如果和主库同机）
+port 6380
+</code></pre>
+<h4 id="2">（2）动态配置</h4>
+<pre><code class="language-bash"># 在从库上执行
+127.0.0.1:6380&gt; SLAVEOF 192.168.1.10 6379
+OK
+
+# 断开复制（变为独立主库）
+127.0.0.1:6380&gt; SLAVEOF NO ONE
+OK
+</code></pre>
+<h3 id="14">1.4 复制过程</h3>
+<pre><code>1. 从库连接主库
+      ↓
+2. 从库发送 PSYNC 命令
+      ↓
+3. 主库执行 BGSAVE 生成 RDB
+      ↓
+4. 主库发送 RDB 给从库
+      ↓
+5. 从库加载 RDB
+      ↓
+6. 主库发送缓冲区写命令
+      ↓
+7. 从库执行命令，数据一致
+      ↓
+8. 持续同步（命令流）
+</code></pre>
+<h3 id="15">1.5 查看复制状态</h3>
+<pre><code class="language-bash"># 主库查看
+127.0.0.1:6379&gt; INFO replication
+# Replication
+role:master
+connected_slaves:2
+slave0:ip=192.168.1.11,port=6379,state=online,offset=123456,lag=1
+slave1:ip=192.168.1.12,port=6379,state=online,offset=123455,lag=1
+master_replid:abc123...
+master_replid2:0000000000000000000000000000000000000000
+master_repl_offset:123456
+
+# 从库查看
+127.0.0.1:6380&gt; INFO replication
+# Replication
+role:slave
+master_host:192.168.1.10
+master_port:6379
+master_link_status:up
+master_last_io_seconds_ago:0
+master_sync_in_progress:0
+slave_repl_offset:123456
+slave_priority:100
+slave_read_only:1
+
+# 查看复制详情
+127.0.0.1:6379&gt; REPLICAOF 192.168.1.10 6379
+</code></pre>
+<h3 id="16-vs">1.6 全量复制 vs 增量复制</h3>
+<table>
+<thead>
+<tr>
+<th>类型</th>
+<th>触发条件</th>
+<th>命令</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>全量复制</strong></td>
+<td>首次复制、断开重连、ID 不匹配</td>
+<td>PSYNC ? -1</td>
+</tr>
+<tr>
+<td><strong>增量复制</strong></td>
+<td>网络闪断、ID 匹配</td>
+<td>PSYNC <replid> <offset></td>
+</tr>
+</tbody>
+</table>
+<pre><code class="language-bash"># 查看复制 ID 和偏移量
+127.0.0.1:6379&gt; INFO replication | grep replid
+master_replid:abc123def456...
+master_replid2:def456ghi789...  # 用于增量复制的备用 ID
+master_repl_offset:123456
+</code></pre>
+<h3 id="17">1.7 读写分离</h3>
+<pre><code class="language-python"># Python 示例：读写分离
+import redis
+
+# 主库（写）
+master = redis.Redis(host='192.168.1.10', port=6379, db=0)
+
+# 从库（读）
+slave1 = redis.Redis(host='192.168.1.11', port=6379, db=0)
+slave2 = redis.Redis(host='192.168.1.12', port=6379, db=0)
+
+# 写操作
+master.set('user:1001:name', '张三')
+
+# 读操作（从从库）
+name = slave1.get('user:1001:name')
+
+# 注意：主从复制有延迟，可能读到旧数据
+# 关键数据建议读主库
+</code></pre>
+<h3 id="18">1.8 复制延迟监控</h3>
+<pre><code class="language-bash"># 检查从库延迟
+127.0.0.1:6379&gt; INFO replication | grep lag
+slave0:...,lag=1  # 延迟 1 秒
+slave1:...,lag=0  # 无延迟
+
+# 从库查看同步状态
+127.0.0.1:6380&gt; INFO replication | grep master_link
+master_link_status:up  # 正常
+master_link_status:down  # 断开
+</code></pre>
+<hr />
+<h2 id="2-sentinel">2. 哨兵模式（Sentinel）</h2>
+<h3 id="21">2.1 概述</h3>
+<p><strong>哨兵</strong>是 Redis 高可用解决方案，提供：</p>
+<ul>
+<li><strong>监控</strong>：监控主从库状态</li>
+<li><strong>通知</strong>：故障时通知管理员</li>
+<li><strong>自动故障转移</strong>：主库故障时选举新主库</li>
+<li><strong>配置中心</strong>：提供当前主库地址</li>
+</ul>
+<pre><code>架构示例：
+         ┌─────────────┐
+         │   Master    │
+         │ 192.168.1.10│
+         └──────┬──────┘
+                │
+       ┌────────┼────────┐
+       ▼        ▼        ▼
+┌──────────┐ ┌──────────┐ ┌──────────┐
+│  Slave1  │ │  Slave2  │ │  Slave3  │
+└──────────┘ └──────────┘ └──────────┘
+       ▲        ▲        ▲
+       │        │        │
+       └────────┼────────┘
+                │
+       ┌────────┼────────┐
+       ▼        ▼        ▼
+┌──────────┐ ┌──────────┐ ┌──────────┐
+│ Sentinel1│ │ Sentinel2│ │ Sentinel3│
+│192.168.1.20│ │192.168.1.21│ │192.168.1.22│
+└──────────┘ └──────────┘ └──────────┘
+</code></pre>
+<h3 id="22">2.2 哨兵配置</h3>
+<pre><code class="language-conf"># sentinel.conf
+
+# 哨兵端口
+port 26379
+
+# 守护进程
+daemonize yes
+
+# 日志文件
+logfile &quot;/var/log/redis/sentinel.log&quot;
+
+# 工作目录
+dir /var/lib/redis/sentinel
+
+# 监控主库
+# sentinel monitor &lt;master-name&gt; &lt;ip&gt; &lt;port&gt; &lt;quorum&gt;
+sentinel monitor mymaster 192.168.1.10 6379 2
+
+# 主库密码
+sentinel auth-pass mymaster your-password
+
+# 故障判定时间（毫秒）
+# 超过此时间认为主库下线
+sentinel down-after-milliseconds mymaster 5000
+
+# 故障转移超时（毫秒）
+sentinel failover-timeout mymaster 60000
+
+# 并行同步的从库数量
+sentinel parallel-syncs mymaster 1
+
+# 通知脚本（故障时执行）
+# sentinel notification-script mymaster /var/redis/notify.sh
+
+# 客户端重定向脚本
+# sentinel client-reconfig-script mymaster /var/redis/reconfig.sh
+</code></pre>
+<h3 id="23">2.3 启动哨兵</h3>
+<pre><code class="language-bash"># 启动哨兵
+redis-sentinel /etc/redis/sentinel.conf
+
+# 或
+redis-server /etc/redis/sentinel.conf --sentinel
+
+# 后台运行
+redis-sentinel /etc/redis/sentinel.conf --daemonize yes
+
+# 查看哨兵状态
+redis-cli -p 26379
+127.0.0.1:26379&gt; INFO sentinel
+# Sentinel
+sentinel_masters:1
+sentinel_tilt:0
+sentinel_running_scripts:0
+sentinel_scripts_queue_length:0
+sentinel_simulate_failure_flags:0
+master0:name=mymaster,status=ok,address=192.168.1.10:6379,slaves=3,sentinels=3
+</code></pre>
+<h3 id="24">2.4 哨兵命令</h3>
+<pre><code class="language-bash"># 查看主库信息
+127.0.0.1:26379&gt; SENTINEL masters
+1)  1) &quot;name&quot;
+    2) &quot;mymaster&quot;
+    3) &quot;ip&quot;
+    4) &quot;192.168.1.10&quot;
+    5) &quot;port&quot;
+    6) &quot;6379&quot;
+    7) &quot;runid&quot;
+    8) &quot;abc123...&quot;
+    9) &quot;flags&quot;
+   10) &quot;master&quot;
+   11) &quot;link-down-time&quot;
+   12) &quot;0&quot;
+   13) &quot;role-reported&quot;
+   14) &quot;master&quot;
+   15) &quot;role-reported-time&quot;
+   16) &quot;123456&quot;
+   17) &quot;config-epoch&quot;
+   18) &quot;1&quot;
+   19) &quot;num-slaves&quot;
+   20) &quot;3&quot;
+   21) &quot;num-other-sentinels&quot;
+   22) &quot;2&quot;
+   23) &quot;quorum&quot;
+   24) &quot;2&quot;
+   25) &quot;failover-timeout&quot;
+   26) &quot;60000&quot;
+   27) &quot;parallel-syncs&quot;
+   28) &quot;1&quot;
+
+# 查看从库列表
+127.0.0.1:26379&gt; SENTINEL slaves mymaster
+1) 1) &quot;name&quot;
+   2) &quot;192.168.1.11:6379&quot;
+   3) &quot;ip&quot;
+   4) &quot;192.168.1.11&quot;
+   5) &quot;port&quot;
+   6) &quot;6379&quot;
+   7) &quot;flags&quot;
+   8) &quot;slave&quot;
+   ...
+
+# 获取主库地址
+127.0.0.1:26379&gt; SENTINEL get-master-addr-by-name mymaster
+1) &quot;192.168.1.10&quot;
+2) &quot;6379&quot;
+
+# 手动故障转移
+127.0.0.1:26379&gt; SENTINEL failover mymaster
+OK
+
+# 查看哨兵列表
+127.0.0.1:26379&gt; SENTINEL sentinels mymaster
+</code></pre>
+<h3 id="25">2.5 故障转移过程</h3>
+<pre><code>1. 哨兵监控到主库故障
+      ↓
+2. 主观下线（单个哨兵判定）
+      ↓
+3. 客观下线（quorum 个哨兵确认）
+      ↓
+4. 选举领头哨兵（Raft 算法）
+      ↓
+5. 领头哨兵选择新主库
+   - 优先级高（replica-priority）
+   - 复制偏移量大（数据新）
+   - 运行 ID 小
+      ↓
+6. 领头哨兵发送 SLAVEOF NO ONE 给新主库
+      ↓
+7. 其他从库复制新主库
+      ↓
+8. 更新配置，故障转移完成
+</code></pre>
+<h3 id="26">2.6 客户端连接哨兵</h3>
+<pre><code class="language-python"># Python 示例：通过哨兵连接
+from redis.sentinel import Sentinel
+
+# 哨兵列表
+sentinel = Sentinel(
+    [('192.168.1.20', 26379),
+     ('192.168.1.21', 26379),
+     ('192.168.1.22', 26379)],
+    socket_timeout=0.1
+)
+
+# 获取主库（写）
+master = sentinel.master_for('mymaster', socket_timeout=0.1)
+
+# 获取从库（读）
+slave = sentinel.slave_for('mymaster', socket_timeout=0.1)
+
+# 写操作
+master.set('user:1001:name', '张三')
+
+# 读操作（自动从从库）
+name = slave.get('user:1001:name')
+
+# 故障转移后自动重连
+# 哨兵客户端会自动获取新主库地址
+</code></pre>
+<pre><code class="language-java">// Java 示例（Jedis）
+import redis.clients.jedis.JedisSentinelPool;
+import redis.clients.jedis.Jedis;
+
+import java.util.HashSet;
+import java.util.Set;
+
+Set&lt;String&gt; sentinels = new HashSet&lt;&gt;();
+sentinels.add(&quot;192.168.1.20:26379&quot;);
+sentinels.add(&quot;192.168.1.21:26379&quot;);
+sentinels.add(&quot;192.168.1.22:26379&quot;);
+
+JedisSentinelPool pool = new JedisSentinelPool(
+    &quot;mymaster&quot;,
+    sentinels,
+    null,  // 连接池配置
+    &quot;password&quot;  // 密码
+);
+
+try (Jedis jedis = pool.getResource()) {
+    jedis.set(&quot;key&quot;, &quot;value&quot;);
+    String val = jedis.get(&quot;key&quot;);
+}
+</code></pre>
+<hr />
+<h2 id="3">3. 高可用架构</h2>
+<h3 id="31">3.1 架构对比</h3>
+<table>
+<thead>
+<tr>
+<th>架构</th>
+<th>节点数</th>
+<th>可用性</th>
+<th>复杂度</th>
+<th>适用场景</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>单机</td>
+<td>1</td>
+<td>低</td>
+<td>低</td>
+<td>开发测试</td>
+</tr>
+<tr>
+<td>主从</td>
+<td>2+</td>
+<td>中</td>
+<td>低</td>
+<td>读写分离</td>
+</tr>
+<tr>
+<td>哨兵</td>
+<td>3+</td>
+<td>高</td>
+<td>中</td>
+<td>高可用</td>
+</tr>
+<tr>
+<td>集群</td>
+<td>6+</td>
+<td>高</td>
+<td>高</td>
+<td>大规模</td>
+</tr>
+</tbody>
+</table>
+<h3 id="32">3.2 推荐配置</h3>
+<h4 id="_1">小型应用（主从 + 哨兵）</h4>
+<pre><code>3 个哨兵 + 1 主 2 从 = 6 个节点
+
+Sentinel1 (26379) ─┐
+Sentinel2 (26379) ─┼── 监控 ── Master (6379)
+Sentinel3 (26379) ─┘              │
+                           ┌──────┴──────┐
+                           ▼             ▼
+                       Slave1(6380)  Slave2(6381)
+</code></pre>
+<h4 id="_2">中型应用（多主从 + 哨兵）</h4>
+<pre><code>3 个哨兵 + 2 主 4 从 = 9 个节点
+
+                    Master1 (6379) ── Slave1 (6380)
+                    │
+3 个哨兵 ── 监控 ──┤
+                    │
+                    Master2 (6381) ── Slave2 (6382)
+</code></pre>
+<h3 id="33">3.3 部署脚本</h3>
+<pre><code class="language-bash">#!/bin/bash
+# deploy-redis-ha.sh - 部署 Redis 高可用架构
+
+# 主库配置
+MASTER_HOST=&quot;192.168.1.10&quot;
+MASTER_PORT=&quot;6379&quot;
+
+# 从库配置
+SLAVE1_HOST=&quot;192.168.1.11&quot;
+SLAVE2_HOST=&quot;192.168.1.12&quot;
+
+# 哨兵配置
+SENTINEL1_HOST=&quot;192.168.1.20&quot;
+SENTINEL2_HOST=&quot;192.168.1.21&quot;
+SENTINEL3_HOST=&quot;192.168.1.22&quot;
+SENTINEL_PORT=&quot;26379&quot;
+QUORUM=2
+
+# 部署主库
+echo &quot;Deploying Master...&quot;
+ssh $MASTER_HOST &quot;redis-server /etc/redis/redis.conf&quot;
+
+# 部署从库
+echo &quot;Deploying Slaves...&quot;
+ssh $SLAVE1_HOST &quot;redis-server /etc/redis/redis-slave.conf&quot;
+ssh $SLAVE2_HOST &quot;redis-server /etc/redis/redis-slave.conf&quot;
+
+# 部署哨兵
+echo &quot;Deploying Sentinels...&quot;
+for host in $SENTINEL1_HOST $SENTINEL2_HOST $SENTINEL3_HOST; do
+    cat &gt; /tmp/sentinel.conf &lt;&lt;EOF
+port $SENTINEL_PORT
+daemonize yes
+logfile &quot;/var/log/redis/sentinel.log&quot;
+dir /var/lib/redis/sentinel
+sentinel monitor mymaster $MASTER_HOST $MASTER_PORT $QUORUM
+sentinel down-after-milliseconds mymaster 5000
+sentinel failover-timeout mymaster 60000
+sentinel parallel-syncs mymaster 1
+EOF
+    scp /tmp/sentinel.conf $host:/etc/redis/sentinel.conf
+    ssh $host &quot;redis-sentinel /etc/redis/sentinel.conf&quot;
+done
+
+echo &quot;Deployment complete!&quot;
+</code></pre>
+<hr />
+<h2 id="4">4. 常见问题</h2>
+<h3 id="q1-3">Q1: 哨兵为什么至少需要 3 个？</h3>
+<p><strong>A</strong>: 哨兵需要 <strong>quorum</strong>（法定人数）判定主库下线。如果只有 2 个哨兵：
+- quorum=1：容易误判
+- quorum=2：一个哨兵故障就无法故障转移</p>
+<p>3 个哨兵可以容忍 1 个故障，推荐<strong>奇数个</strong>哨兵。</p>
+<h3 id="q2">Q2: 主从复制延迟怎么解决？</h3>
+<p><strong>A</strong>:
+1. 检查网络带宽
+2. 减少主库写压力
+3. 增加从库数量分散读压力
+4. 使用更强大的硬件
+5. 监控 <code>lag</code> 指标</p>
+<h3 id="q3">Q3: 脑裂问题如何解决？</h3>
+<p><strong>A</strong>: 脑裂（Split-Brain）发生在网络分区时：</p>
+<pre><code>配置参数：
+min-slaves-to-write 1      # 至少 1 个从库才接受写
+min-slaves-max-lag 10      # 从库延迟不超过 10 秒
+</code></pre>
+<h3 id="q4">Q4: 如何平滑扩容从库？</h3>
+<p><strong>A</strong>:</p>
+<pre><code class="language-bash"># 1. 启动新从库
+redis-server /etc/redis/redis-slave.conf
+
+# 2. 动态添加为主库的从库
+127.0.0.1:6380&gt; SLAVEOF 192.168.1.10 6379
+
+# 3. 哨兵会自动发现新从库
+</code></pre>
+<h3 id="q5-quorum">Q5: 哨兵配置文件中的 quorum 是什么？</h3>
+<p><strong>A</strong>: quorum 是判定主库下线所需的<strong>最少哨兵数量</strong>。</p>
+<pre><code>3 个哨兵，quorum=2：至少 2 个哨兵认为主库下线，才触发故障转移
+5 个哨兵，quorum=3：至少 3 个哨兵认为主库下线，才触发故障转移
+</code></pre>
+<hr />
+<h2 id="5">5. 本章小结</h2>
+<h3 id="_3">核心知识点</h3>
+<p>✅ 主从复制原理与配置<br />
+✅ 全量复制 vs 增量复制<br />
+✅ 哨兵模式工作原理<br />
+✅ 故障转移流程<br />
+✅ 客户端连接哨兵<br />
+✅ 高可用架构设计  </p>
+<h3 id="_4">最佳实践</h3>
+<ol>
+<li><strong>哨兵数量</strong>：至少 3 个，奇数</li>
+<li><strong>quorum 设置</strong>：(哨兵数/2)+1</li>
+<li><strong>从库数量</strong>：至少 2 个，用于故障转移</li>
+<li><strong>监控告警</strong>：监控主从状态、复制延迟</li>
+<li><strong>定期演练</strong>：手动故障转移测试</li>
+</ol>
+<hr />
+<p>🎉 <strong>恭喜完成第五章！继续学习 <a href="../06_%E9%9B%86%E7%BE%A4/">06_集群.md</a></strong></p></div>
+            </div>
+        </div>
+
+        <footer class="col-md-12">
+            <hr>
+            <p>Documentation built with <a href="https://www.mkdocs.org/">MkDocs</a>.</p>
+        </footer>
+        <script src="../../../../js/bootstrap.bundle.min.js"></script>
+        <script>
+            var base_url = "../../../..",
+                shortcuts = {"help": 191, "next": 78, "previous": 80, "search": 83};
+        </script>
+        <script src="../../../../js/base.js"></script>
+        <script src="../../../../search/main.js"></script>
+
+        <div class="modal" id="mkdocs_search_modal" tabindex="-1" role="dialog" aria-labelledby="searchModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="searchModalLabel">Search</h4>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>From here you can search these documents. Enter your search terms below.</p>
+                <form>
+                    <div class="form-group">
+                        <input type="search" class="form-control" placeholder="Search..." id="mkdocs-search-query" title="Type search term here">
+                    </div>
+                </form>
+                <div id="mkdocs-search-results" data-no-results-text="No results found"></div>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div><div class="modal" id="mkdocs_keyboard_modal" tabindex="-1" role="dialog" aria-labelledby="keyboardModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="keyboardModalLabel">Keyboard Shortcuts</h4>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th style="width: 20%;">Keys</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td class="help shortcut"><kbd>?</kbd></td>
+                    <td>Open this help</td>
+                  </tr>
+                  <tr>
+                    <td class="next shortcut"><kbd>n</kbd></td>
+                    <td>Next page</td>
+                  </tr>
+                  <tr>
+                    <td class="prev shortcut"><kbd>p</kbd></td>
+                    <td>Previous page</td>
+                  </tr>
+                  <tr>
+                    <td class="search shortcut"><kbd>s</kbd></td>
+                    <td>Search</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div>
+
+    </body>
+</html>

@@ -1,0 +1,487 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="light">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        
+        
+        
+        <link rel="shortcut icon" href="../../../../img/favicon.ico">
+        <title>08_原子类 - My Docs</title>
+        <link href="../../../../css/bootstrap.min.css" rel="stylesheet">
+        <link href="../../../../css/fontawesome.min.css" rel="stylesheet">
+        <link href="../../../../css/brands.min.css" rel="stylesheet">
+        <link href="../../../../css/solid.min.css" rel="stylesheet">
+        <link href="../../../../css/v4-font-face.min.css" rel="stylesheet">
+        <link href="../../../../css/base.css" rel="stylesheet">
+        <link id="hljs-light" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" >
+        <link id="hljs-dark" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github-dark.min.css" disabled>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+        <script>hljs.highlightAll();</script> 
+    </head>
+
+    <body>
+        <div class="navbar fixed-top navbar-expand-lg navbar-dark bg-primary">
+            <div class="container">
+                <a class="navbar-brand" href="../../../..">My Docs</a>
+
+                <!-- Expanded navigation -->
+                <div id="navbar-collapse" class="navbar-collapse collapse">
+
+                    <ul class="nav navbar-nav ms-md-auto">
+                        <li class="nav-item">
+                            <a href="#" class="nav-link" data-bs-toggle="modal" data-bs-target="#mkdocs_search_modal">
+                                <i class="fa fa-search"></i> Search
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="container">
+            <div class="row">
+                    <div class="col-md-3"><div class="navbar-expand-md bs-sidebar hidden-print affix" role="complementary">
+    <div class="navbar-header">
+        <button type="button" class="navbar-toggler collapsed" data-bs-toggle="collapse" data-bs-target="#toc-collapse" title="Table of Contents">
+            <span class="fa fa-angle-down"></span>
+        </button>
+    </div>
+
+    
+    <div id="toc-collapse" class="navbar-collapse collapse card bg-body-tertiary">
+        <ul class="nav flex-column">
+            
+            <li class="nav-item" data-bs-level="1"><a href="#08_" class="nav-link">08_原子类</a>
+              <ul class="nav flex-column">
+            <li class="nav-item" data-bs-level="2"><a href="#1" class="nav-link">1. 原子类概述</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#2-atomicinteger" class="nav-link">2. AtomicInteger</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#3-atomiclong-atomicboolean" class="nav-link">3. AtomicLong 和 AtomicBoolean</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#4-atomicreference" class="nav-link">4. AtomicReference</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#5" class="nav-link">5. 数组原子类</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#6" class="nav-link">6. 字段更新器</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#7-longadder" class="nav-link">7. LongAdder（高性能计数器）</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#8" class="nav-link">8. 实战示例</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#9" class="nav-link">9. 本章小结</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+              </ul>
+            </li>
+        </ul>
+    </div>
+</div></div>
+                    <div class="col-md-9" role="main">
+
+<h1 id="08_">08_原子类</h1>
+<hr />
+<h2 id="1">1. 原子类概述</h2>
+<h3 id="11">1.1 什么是原子操作</h3>
+<p><strong>原子操作</strong>（Atomic Operation）是不可中断的操作，要么全部执行成功，要么全部不执行。</p>
+<p><strong>为什么需要原子类</strong>：
+- ✅ 线程安全
+- ✅ 无需 synchronized
+- ✅ 性能更好（CAS 机制）</p>
+<h3 id="12-cas">1.2 CAS 原理</h3>
+<pre><code>CAS (Compare-And-Swap)：
+
+1. 读取内存值 V
+2. 比较 V 是否等于预期值 A
+3. 如果是，更新为新值 B
+4. 如果否，重试
+
+┌─────────┐     ┌──────────┐     ┌─────────┐
+│ 线程 1   │────▶│  主内存   │◀────│ 线程 2   │
+│ 读取 A   │     │  值：A    │     │ 读取 A   │
+└─────────┘     └──────────┘     └─────────┘
+     │                                  │
+     │ 比较 A==A，更新为 B               │ 比较 A==A，更新失败
+     ▼                                  ▼
+┌─────────┐                      ┌──────────┐
+│ 成功     │                      │ 重试      │
+└─────────┘                      └──────────┘
+</code></pre>
+<hr />
+<h2 id="2-atomicinteger">2. AtomicInteger</h2>
+<h3 id="21">2.1 基本使用</h3>
+<pre><code class="language-java">import java.util.concurrent.atomic.AtomicInteger;
+
+AtomicInteger atomic = new AtomicInteger(0);
+
+// 获取
+int value = atomic.get();  // 0
+
+// 设置
+atomic.set(10);
+
+// 增加
+atomic.incrementAndGet();  // 11（先加后返回）
+atomic.getAndIncrement();  // 11（先返回后加）
+
+atomic.addAndGet(5);  // 16
+atomic.getAndAdd(5);  // 16
+
+// 比较并设置
+boolean success = atomic.compareAndSet(16, 20);  // true
+</code></pre>
+<h3 id="22">2.2 实战：线程安全计数器</h3>
+<pre><code class="language-java">public class SafeCounter {
+    private AtomicInteger count = new AtomicInteger(0);
+
+    public void increment() {
+        count.incrementAndGet();
+    }
+
+    public int getCount() {
+        return count.get();
+    }
+
+    public static void main(String[] args) throws InterruptedException {
+        SafeCounter counter = new SafeCounter();
+
+        // 10 个线程，每个线程加 1000 次
+        List&lt;Thread&gt; threads = new ArrayList&lt;&gt;();
+        for (int i = 0; i &lt; 10; i++) {
+            threads.add(new Thread(() -&gt; {
+                for (int j = 0; j &lt; 1000; j++) {
+                    counter.increment();
+                }
+            }));
+        }
+
+        for (Thread t : threads) t.start();
+        for (Thread t : threads) t.join();
+
+        System.out.println(&quot;最终计数：&quot; + counter.getCount());  // 10000
+    }
+}
+</code></pre>
+<hr />
+<h2 id="3-atomiclong-atomicboolean">3. AtomicLong 和 AtomicBoolean</h2>
+<h3 id="31-atomiclong">3.1 AtomicLong</h3>
+<pre><code class="language-java">AtomicLong atomic = new AtomicLong(0);
+
+long value = atomic.get();
+atomic.set(100L);
+atomic.incrementAndGet();
+atomic.addAndGet(50L);
+</code></pre>
+<h3 id="32-atomicboolean">3.2 AtomicBoolean</h3>
+<pre><code class="language-java">AtomicBoolean atomic = new AtomicBoolean(false);
+
+boolean value = atomic.get();
+atomic.set(true);
+boolean oldValue = atomic.getAndSet(false);  // 返回旧值并设置新值
+</code></pre>
+<hr />
+<h2 id="4-atomicreference">4. AtomicReference</h2>
+<h3 id="41">4.1 基本使用</h3>
+<pre><code class="language-java">import java.util.concurrent.atomic.AtomicReference;
+
+class Person {
+    private String name;
+    private int age;
+    // getter/setter
+}
+
+AtomicReference&lt;Person&gt; ref = new AtomicReference&lt;&gt;();
+
+// 设置
+ref.set(new Person(&quot;张三&quot;, 25));
+
+// 获取
+Person p = ref.get();
+
+// CAS
+Person oldPerson = new Person(&quot;张三&quot;, 25);
+Person newPerson = new Person(&quot;李四&quot;, 26);
+boolean success = ref.compareAndSet(oldPerson, newPerson);
+</code></pre>
+<h3 id="42">4.2 实战：乐观锁</h3>
+<pre><code class="language-java">public class OptimisticLock {
+    private AtomicReference&lt;Integer&gt; balance = new AtomicReference&lt;&gt;(1000);
+
+    public boolean withdraw(int amount) {
+        Integer currentBalance;
+        Integer newBalance;
+
+        do {
+            currentBalance = balance.get();
+
+            if (currentBalance &lt; amount) {
+                return false;  // 余额不足
+            }
+
+            newBalance = currentBalance - amount;
+
+        } while (!balance.compareAndSet(currentBalance, newBalance));
+
+        return true;
+    }
+}
+</code></pre>
+<hr />
+<h2 id="5">5. 数组原子类</h2>
+<h3 id="51-atomicintegerarray">5.1 AtomicIntegerArray</h3>
+<pre><code class="language-java">import java.util.concurrent.atomic.AtomicIntegerArray;
+
+AtomicIntegerArray array = new AtomicIntegerArray(5);
+
+// 设置
+array.set(0, 100);
+
+// 获取
+int value = array.get(0);
+
+// 增加
+array.incrementAndGet(0);
+
+// CAS
+boolean success = array.compareAndSet(0, 101, 200);
+</code></pre>
+<h3 id="52-atomicreferencearray">5.2 AtomicReferenceArray</h3>
+<pre><code class="language-java">AtomicReferenceArray&lt;String&gt; array = new AtomicReferenceArray&lt;&gt;(3);
+
+array.set(0, &quot;Hello&quot;);
+String value = array.get(0);
+</code></pre>
+<hr />
+<h2 id="6">6. 字段更新器</h2>
+<h3 id="61-atomicintegerfieldupdater">6.1 AtomicIntegerFieldUpdater</h3>
+<pre><code class="language-java">import java.util.concurrent.atomic.AtomicIntegerFieldUpdater;
+
+class Account {
+    volatile int balance = 1000;  // 必须 volatile
+}
+
+public class Main {
+    static AtomicIntegerFieldUpdater&lt;Account&gt; updater = 
+        AtomicIntegerFieldUpdater.newUpdater(Account.class, &quot;balance&quot;);
+
+    public static void main(String[] args) {
+        Account account = new Account();
+
+        // 增加
+        updater.incrementAndGet(account);
+
+        // CAS
+        boolean success = updater.compareAndSet(account, 1001, 900);
+    }
+}
+</code></pre>
+<h3 id="62-atomicreferencefieldupdater">6.2 AtomicReferenceFieldUpdater</h3>
+<pre><code class="language-java">class Node {
+    volatile Node next = null;
+}
+
+AtomicReferenceFieldUpdater&lt;Node, Node&gt; updater = 
+    AtomicReferenceFieldUpdater.newUpdater(Node.class, Node.class, &quot;next&quot;);
+</code></pre>
+<hr />
+<h2 id="7-longadder">7. LongAdder（高性能计数器）</h2>
+<h3 id="71-longadder">7.1 为什么需要 LongAdder</h3>
+<pre><code class="language-java">// AtomicInteger 在高并发下性能下降
+// 因为所有线程竞争同一个变量
+
+// LongAdder 使用分段累加，减少竞争
+</code></pre>
+<h3 id="72">7.2 基本使用</h3>
+<pre><code class="language-java">import java.util.concurrent.atomic.LongAdder;
+
+LongAdder adder = new LongAdder();
+
+// 增加
+adder.increment();
+adder.add(10);
+
+// 获取
+long sum = adder.sum();
+
+// 重置
+adder.reset();
+</code></pre>
+<h3 id="73">7.3 性能对比</h3>
+<pre><code class="language-java">// 高并发场景性能对比
+
+// AtomicInteger
+AtomicInteger atomicInt = new AtomicInteger(0);
+// 10 线程，100 万次：约 500ms
+
+// LongAdder
+LongAdder longAdder = new LongAdder();
+// 10 线程，100 万次：约 100ms
+
+// LongAdder 性能更好，适合高并发计数场景
+</code></pre>
+<hr />
+<h2 id="8">8. 实战示例</h2>
+<h3 id="81-id">8.1 线程安全 ID 生成器</h3>
+<pre><code class="language-java">public class IdGenerator {
+    private static final AtomicLong idCounter = new AtomicLong(0);
+
+    public static long generateId() {
+        return idCounter.incrementAndGet();
+    }
+}
+</code></pre>
+<h3 id="82">8.2 限流器</h3>
+<pre><code class="language-java">public class RateLimiter {
+    private final AtomicInteger counter = new AtomicInteger(0);
+    private final int limit;
+
+    public RateLimiter(int limit) {
+        this.limit = limit;
+    }
+
+    public boolean tryAcquire() {
+        int current = counter.get();
+        if (current &gt;= limit) {
+            return false;
+        }
+        return counter.compareAndSet(current, current + 1);
+    }
+
+    public void release() {
+        counter.decrementAndGet();
+    }
+}
+</code></pre>
+<h3 id="83">8.3 自旋锁</h3>
+<pre><code class="language-java">public class SpinLock {
+    private AtomicReference&lt;Thread&gt; owner = new AtomicReference&lt;&gt;();
+
+    public void lock() {
+        Thread current = Thread.currentThread();
+        while (!owner.compareAndSet(null, current)) {
+            // 自旋等待
+        }
+    }
+
+    public void unlock() {
+        Thread current = Thread.currentThread();
+        owner.compareAndSet(current, null);
+    }
+}
+</code></pre>
+<hr />
+<h2 id="9">9. 本章小结</h2>
+<h3 id="_1">核心知识点</h3>
+<p>✅ <strong>AtomicInteger</strong>：原子整数<br />
+✅ <strong>AtomicLong/Boolean</strong>：原子长整型/布尔型<br />
+✅ <strong>AtomicReference</strong>：原子引用<br />
+✅ <strong>数组原子类</strong>：AtomicIntegerArray<br />
+✅ <strong>字段更新器</strong>：AtomicIntegerFieldUpdater<br />
+✅ <strong>LongAdder</strong>：高性能计数器  </p>
+<h3 id="_2">最佳实践</h3>
+<ol>
+<li><strong>计数器用 LongAdder</strong>：高并发性能更好</li>
+<li><strong>状态标志用 AtomicBoolean</strong>：线程安全</li>
+<li><strong>ID 生成用 AtomicLong</strong>：简单高效</li>
+<li><strong>复杂对象用 AtomicReference</strong>：CAS 操作</li>
+<li><strong>避免ABA 问题</strong>：使用 AtomicStampedReference</li>
+</ol>
+<hr />
+<p>🎉 <strong>恭喜完成原子类学习！继续学习 <a href="../09_CompletableFuture/">CompletableFuture</a></strong></p></div>
+            </div>
+        </div>
+
+        <footer class="col-md-12">
+            <hr>
+            <p>Documentation built with <a href="https://www.mkdocs.org/">MkDocs</a>.</p>
+        </footer>
+        <script src="../../../../js/bootstrap.bundle.min.js"></script>
+        <script>
+            var base_url = "../../../..",
+                shortcuts = {"help": 191, "next": 78, "previous": 80, "search": 83};
+        </script>
+        <script src="../../../../js/base.js"></script>
+        <script src="../../../../search/main.js"></script>
+
+        <div class="modal" id="mkdocs_search_modal" tabindex="-1" role="dialog" aria-labelledby="searchModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="searchModalLabel">Search</h4>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>From here you can search these documents. Enter your search terms below.</p>
+                <form>
+                    <div class="form-group">
+                        <input type="search" class="form-control" placeholder="Search..." id="mkdocs-search-query" title="Type search term here">
+                    </div>
+                </form>
+                <div id="mkdocs-search-results" data-no-results-text="No results found"></div>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div><div class="modal" id="mkdocs_keyboard_modal" tabindex="-1" role="dialog" aria-labelledby="keyboardModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="keyboardModalLabel">Keyboard Shortcuts</h4>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th style="width: 20%;">Keys</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td class="help shortcut"><kbd>?</kbd></td>
+                    <td>Open this help</td>
+                  </tr>
+                  <tr>
+                    <td class="next shortcut"><kbd>n</kbd></td>
+                    <td>Next page</td>
+                  </tr>
+                  <tr>
+                    <td class="prev shortcut"><kbd>p</kbd></td>
+                    <td>Previous page</td>
+                  </tr>
+                  <tr>
+                    <td class="search shortcut"><kbd>s</kbd></td>
+                    <td>Search</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div>
+
+    </body>
+</html>

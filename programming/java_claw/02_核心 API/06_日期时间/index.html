@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="light">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        
+        
+        
+        <link rel="shortcut icon" href="../../../../img/favicon.ico">
+        <title>17_日期时间 - My Docs</title>
+        <link href="../../../../css/bootstrap.min.css" rel="stylesheet">
+        <link href="../../../../css/fontawesome.min.css" rel="stylesheet">
+        <link href="../../../../css/brands.min.css" rel="stylesheet">
+        <link href="../../../../css/solid.min.css" rel="stylesheet">
+        <link href="../../../../css/v4-font-face.min.css" rel="stylesheet">
+        <link href="../../../../css/base.css" rel="stylesheet">
+        <link id="hljs-light" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" >
+        <link id="hljs-dark" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github-dark.min.css" disabled>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+        <script>hljs.highlightAll();</script> 
+    </head>
+
+    <body>
+        <div class="navbar fixed-top navbar-expand-lg navbar-dark bg-primary">
+            <div class="container">
+                <a class="navbar-brand" href="../../../..">My Docs</a>
+
+                <!-- Expanded navigation -->
+                <div id="navbar-collapse" class="navbar-collapse collapse">
+
+                    <ul class="nav navbar-nav ms-md-auto">
+                        <li class="nav-item">
+                            <a href="#" class="nav-link" data-bs-toggle="modal" data-bs-target="#mkdocs_search_modal">
+                                <i class="fa fa-search"></i> Search
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="container">
+            <div class="row">
+                    <div class="col-md-3"><div class="navbar-expand-md bs-sidebar hidden-print affix" role="complementary">
+    <div class="navbar-header">
+        <button type="button" class="navbar-toggler collapsed" data-bs-toggle="collapse" data-bs-target="#toc-collapse" title="Table of Contents">
+            <span class="fa fa-angle-down"></span>
+        </button>
+    </div>
+
+    
+    <div id="toc-collapse" class="navbar-collapse collapse card bg-body-tertiary">
+        <ul class="nav flex-column">
+            
+            <li class="nav-item" data-bs-level="1"><a href="#17_" class="nav-link">17_日期时间</a>
+              <ul class="nav flex-column">
+            <li class="nav-item" data-bs-level="2"><a href="#1-api" class="nav-link">1. 日期时间 API 概述</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#2-java-8-api" class="nav-link">2. Java 8+ 日期时间 API</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#3" class="nav-link">3. 日期格式化</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#4" class="nav-link">4. 时区处理</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#5" class="nav-link">5. 日期计算</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#6-api" class="nav-link">6. 旧版 API（了解）</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#7" class="nav-link">7. 实战示例</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#8" class="nav-link">8. 本章小结</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+              </ul>
+            </li>
+        </ul>
+    </div>
+</div></div>
+                    <div class="col-md-9" role="main">
+
+<h1 id="17_">17_日期时间</h1>
+<hr />
+<h2 id="1-api">1. 日期时间 API 概述</h2>
+<h3 id="11-java">1.1 Java 中的日期时间</h3>
+<p>Java 中有三代日期时间 API：</p>
+<table>
+<thead>
+<tr>
+<th>代际</th>
+<th>类</th>
+<th>问题</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>第一代</td>
+<td>Date、Calendar</td>
+<td>设计差、线程不安全</td>
+</tr>
+<tr>
+<td>第二代</td>
+<td>SimpleDateFormat</td>
+<td>线程不安全</td>
+</tr>
+<tr>
+<td>第三代</td>
+<td>Java 8+ Date/Time API</td>
+<td>设计好、线程安全 ⭐</td>
+</tr>
+</tbody>
+</table>
+<p><strong>推荐使用 Java 8+ 的 Date/Time API</strong></p>
+<hr />
+<h2 id="2-java-8-api">2. Java 8+ 日期时间 API</h2>
+<h3 id="21-localdate">2.1 LocalDate（日期）</h3>
+<pre><code class="language-java">import java.time.*;
+
+// 当前日期
+LocalDate today = LocalDate.now();
+
+// 指定日期
+LocalDate date = LocalDate.of(2026, 3, 26);
+LocalDate date2 = LocalDate.parse(&quot;2026-03-26&quot;);
+
+// 获取年月日
+int year = date.getYear();
+Month month = date.getMonth();
+int day = date.getDayOfMonth();
+
+// 计算
+LocalDate tomorrow = today.plusDays(1);
+LocalDate nextWeek = today.plusWeeks(1);
+LocalDate nextMonth = today.plusMonths(1);
+LocalDate lastYear = today.minusYears(1);
+
+// 比较
+boolean isBefore = date.isBefore(date2);
+boolean isAfter = date.isAfter(date2);
+boolean isEqual = date.isEqual(date2);
+
+// 格式化
+DateTimeFormatter formatter = DateTimeFormatter.ofPattern(&quot;yyyy-MM-dd&quot;);
+String formatted = date.format(formatter);
+</code></pre>
+<h3 id="22-localtime">2.2 LocalTime（时间）</h3>
+<pre><code class="language-java">// 当前时间
+LocalTime now = LocalTime.now();
+
+// 指定时间
+LocalTime time = LocalTime.of(14, 30, 0);
+LocalTime time2 = LocalTime.parse(&quot;14:30:00&quot;);
+
+// 获取时分秒
+int hour = time.getHour();
+int minute = time.getMinute();
+int second = time.getSecond();
+
+// 计算
+LocalTime later = time.plusHours(2);
+LocalTime earlier = time.minusMinutes(30);
+</code></pre>
+<h3 id="23-localdatetime">2.3 LocalDateTime（日期时间）</h3>
+<pre><code class="language-java">// 当前日期时间
+LocalDateTime now = LocalDateTime.now();
+
+// 指定日期时间
+LocalDateTime dt = LocalDateTime.of(2026, 3, 26, 14, 30, 0);
+LocalDateTime dt2 = LocalDateTime.parse(&quot;2026-03-26T14:30:00&quot;);
+
+// 日期和时间转换
+LocalDate date = dt.toLocalDate();
+LocalTime time = dt.toLocalTime();
+
+// 组合
+LocalDateTime dt3 = LocalDateTime.of(date, time);
+
+// 计算
+LocalDateTime tomorrow = now.plusDays(1);
+LocalDateTime nextHour = now.plusHours(1);
+
+// 格式化
+DateTimeFormatter formatter = DateTimeFormatter.ofPattern(&quot;yyyy-MM-dd HH:mm:ss&quot;);
+String formatted = now.format(formatter);
+</code></pre>
+<h3 id="24-instant">2.4 Instant（时间戳）</h3>
+<pre><code class="language-java">// 当前时间戳
+Instant now = Instant.now();
+
+// 毫秒数
+long epochMilli = now.toEpochMilli();
+long epochSecond = now.getEpochSecond();
+
+// 从毫秒创建
+Instant instant = Instant.ofEpochMilli(1679836800000L);
+
+// 计算
+Instant later = now.plusSeconds(60);
+Instant earlier = now.minusMinutes(10);
+
+// 与 LocalDateTime 转换
+LocalDateTime ldt = LocalDateTime.ofInstant(now, ZoneId.systemDefault());
+</code></pre>
+<hr />
+<h2 id="3">3. 日期格式化</h2>
+<h3 id="31-datetimeformatter">3.1 DateTimeFormatter</h3>
+<pre><code class="language-java">// 内置格式
+DateTimeFormatter f1 = DateTimeFormatter.ISO_LOCAL_DATE;
+DateTimeFormatter f2 = DateTimeFormatter.ISO_LOCAL_DATE_TIME;
+
+// 自定义格式
+DateTimeFormatter formatter = DateTimeFormatter.ofPattern(&quot;yyyy-MM-dd HH:mm:ss&quot;);
+
+// 格式化
+LocalDateTime now = LocalDateTime.now();
+String str = now.format(formatter);
+
+// 解析
+LocalDateTime parsed = LocalDateTime.parse(&quot;2026-03-26 14:30:00&quot;, formatter);
+</code></pre>
+<h3 id="32">3.2 常用格式</h3>
+<pre><code class="language-java">// 常见格式
+&quot;yyyy-MM-dd&quot;           // 2026-03-26
+&quot;yyyy/MM/dd&quot;           // 2026/03/26
+&quot;yyyy 年 MM 月 dd 日&quot;    // 2026 年 03 月 26 日
+&quot;HH:mm:ss&quot;             // 14:30:00
+&quot;yyyy-MM-dd HH:mm:ss&quot;  // 2026-03-26 14:30:00
+&quot;EEEE, MMMM dd, yyyy&quot;  // Thursday, March 26, 2026
+</code></pre>
+<hr />
+<h2 id="4">4. 时区处理</h2>
+<h3 id="41-zoneid">4.1 ZoneId（时区）</h3>
+<pre><code class="language-java">// 系统默认时区
+ZoneId systemZone = ZoneId.systemDefault();
+
+// 指定时区
+ZoneId shanghai = ZoneId.of(&quot;Asia/Shanghai&quot;);
+ZoneId tokyo = ZoneId.of(&quot;Asia/Tokyo&quot;);
+ZoneId newyork = ZoneId.of(&quot;America/New_York&quot;);
+
+// 所有可用时区
+Set&lt;String&gt; availableIds = ZoneId.getAvailableZoneIds();
+</code></pre>
+<h3 id="42-zoneddatetime">4.2 ZonedDateTime（带时区的日期时间）</h3>
+<pre><code class="language-java">// 当前时区时间
+ZonedDateTime now = ZonedDateTime.now();
+
+// 指定时区
+ZonedDateTime shanghaiTime = ZonedDateTime.now(ZoneId.of(&quot;Asia/Shanghai&quot;));
+ZonedDateTime tokyoTime = ZonedDateTime.now(ZoneId.of(&quot;Asia/Tokyo&quot;));
+
+// 转换时区
+ZonedDateTime nyTime = shanghaiTime.withZoneSameInstant(ZoneId.of(&quot;America/New_York&quot;));
+
+// 格式化
+DateTimeFormatter formatter = DateTimeFormatter.ofPattern(&quot;yyyy-MM-dd HH:mm:ss Z&quot;);
+String formatted = now.format(formatter);
+</code></pre>
+<hr />
+<h2 id="5">5. 日期计算</h2>
+<h3 id="51-period">5.1 Period（日期间隔）</h3>
+<pre><code class="language-java">// 两个日期的间隔
+LocalDate start = LocalDate.of(2020, 1, 1);
+LocalDate end = LocalDate.of(2026, 3, 26);
+Period period = Period.between(start, end);
+
+int years = period.getYears();
+int months = period.getMonths();
+int days = period.getDays();
+
+// 创建间隔
+Period oneYear = Period.ofYears(1);
+Period oneMonth = Period.ofMonths(1);
+Period oneDay = Period.ofDays(1);
+
+// 计算
+LocalDate future = start.plus(oneYear);
+</code></pre>
+<h3 id="52-duration">5.2 Duration（时间间隔）</h3>
+<pre><code class="language-java">// 两个时间的间隔
+LocalTime start = LocalTime.of(10, 0);
+LocalTime end = LocalTime.of(12, 30);
+Duration duration = Duration.between(start, end);
+
+long hours = duration.toHours();
+long minutes = duration.toMinutes();
+long seconds = duration.getSeconds();
+
+// 创建间隔
+Duration oneHour = Duration.ofHours(1);
+Duration oneMinute = Duration.ofMinutes(1);
+
+// 计算
+LocalTime later = start.plus(oneHour);
+</code></pre>
+<hr />
+<h2 id="6-api">6. 旧版 API（了解）</h2>
+<h3 id="61-date">6.1 Date</h3>
+<pre><code class="language-java">// 创建
+Date now = new Date();
+
+// 时间戳
+long time = now.getTime();
+
+// 格式化
+SimpleDateFormat sdf = new SimpleDateFormat(&quot;yyyy-MM-dd HH:mm:ss&quot;);
+String str = sdf.format(now);
+
+// 解析
+Date parsed = sdf.parse(&quot;2026-03-26 14:30:00&quot;);
+
+// 注意：SimpleDateFormat 不是线程安全的
+</code></pre>
+<h3 id="62-calendar">6.2 Calendar</h3>
+<pre><code class="language-java">// 创建
+Calendar cal = Calendar.getInstance();
+
+// 设置
+cal.set(2026, 2, 26, 14, 30, 0);  // 月份从 0 开始
+
+// 获取
+int year = cal.get(Calendar.YEAR);
+int month = cal.get(Calendar.MONTH);  // 0-11
+int day = cal.get(Calendar.DAY_OF_MONTH);
+
+// 计算
+cal.add(Calendar.DAY_OF_MONTH, 1);
+cal.add(Calendar.MONTH, -1);
+
+// 转 Date
+Date date = cal.getTime();
+</code></pre>
+<hr />
+<h2 id="7">7. 实战示例</h2>
+<h3 id="71">7.1 计算年龄</h3>
+<pre><code class="language-java">public static int calculateAge(LocalDate birthday) {
+    return Period.between(birthday, LocalDate.now()).getYears();
+}
+
+// 使用
+LocalDate birthday = LocalDate.of(1990, 5, 15);
+int age = calculateAge(birthday);
+</code></pre>
+<h3 id="72">7.2 判断闰年</h3>
+<pre><code class="language-java">public static boolean isLeapYear(int year) {
+    return Year.isLeap(year);
+}
+
+// 或使用 LocalDate
+public static boolean isLeapYear(LocalDate date) {
+    return date.isLeapYear();
+}
+</code></pre>
+<h3 id="73">7.3 获取本月第一天和最后一天</h3>
+<pre><code class="language-java">LocalDate today = LocalDate.now();
+
+// 本月第一天
+LocalDate firstDay = today.with(TemporalAdjusters.firstDayOfMonth());
+
+// 本月最后一天
+LocalDate lastDay = today.with(TemporalAdjusters.lastDayOfMonth());
+</code></pre>
+<h3 id="74">7.4 计算工作日</h3>
+<pre><code class="language-java">public static long countWorkdays(LocalDate start, LocalDate end) {
+    long count = 0;
+    LocalDate current = start;
+
+    while (!current.isAfter(end)) {
+        if (current.getDayOfWeek() != DayOfWeek.SATURDAY &amp;&amp; 
+            current.getDayOfWeek() != DayOfWeek.SUNDAY) {
+            count++;
+        }
+        current = current.plusDays(1);
+    }
+
+    return count;
+}
+</code></pre>
+<hr />
+<h2 id="8">8. 本章小结</h2>
+<h3 id="_1">核心知识点</h3>
+<p>✅ <strong>LocalDate</strong>：日期操作<br />
+✅ <strong>LocalTime</strong>：时间操作<br />
+✅ <strong>LocalDateTime</strong>：日期时间操作<br />
+✅ <strong>Instant</strong>：时间戳<br />
+✅ <strong>DateTimeFormatter</strong>：格式化<br />
+✅ <strong>ZoneId/ZonedDateTime</strong>：时区处理<br />
+✅ <strong>Period/Duration</strong>：日期时间间隔  </p>
+<h3 id="_2">最佳实践</h3>
+<ol>
+<li><strong>使用 Java 8+ API</strong>：线程安全、设计更好</li>
+<li><strong>使用 LocalDate/LocalTime</strong>：而不是 Date/Calendar</li>
+<li><strong>使用 DateTimeFormatter</strong>：而不是 SimpleDateFormat</li>
+<li><strong>注意时区</strong>：使用 ZonedDateTime 处理时区</li>
+<li><strong>使用 TemporalAdjusters</strong>：简化日期调整</li>
+</ol>
+<hr />
+<p>🎉 <strong>恭喜完成日期时间学习！继续学习 <a href="../../03_%E8%BF%9B%E9%98%B6%E7%89%B9%E6%80%A7/01_%E5%A4%9A%E7%BA%BF%E7%A8%8B%E5%9F%BA%E7%A1%80/">多线程基础</a></strong></p></div>
+            </div>
+        </div>
+
+        <footer class="col-md-12">
+            <hr>
+            <p>Documentation built with <a href="https://www.mkdocs.org/">MkDocs</a>.</p>
+        </footer>
+        <script src="../../../../js/bootstrap.bundle.min.js"></script>
+        <script>
+            var base_url = "../../../..",
+                shortcuts = {"help": 191, "next": 78, "previous": 80, "search": 83};
+        </script>
+        <script src="../../../../js/base.js"></script>
+        <script src="../../../../search/main.js"></script>
+
+        <div class="modal" id="mkdocs_search_modal" tabindex="-1" role="dialog" aria-labelledby="searchModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="searchModalLabel">Search</h4>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>From here you can search these documents. Enter your search terms below.</p>
+                <form>
+                    <div class="form-group">
+                        <input type="search" class="form-control" placeholder="Search..." id="mkdocs-search-query" title="Type search term here">
+                    </div>
+                </form>
+                <div id="mkdocs-search-results" data-no-results-text="No results found"></div>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div><div class="modal" id="mkdocs_keyboard_modal" tabindex="-1" role="dialog" aria-labelledby="keyboardModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="keyboardModalLabel">Keyboard Shortcuts</h4>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th style="width: 20%;">Keys</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td class="help shortcut"><kbd>?</kbd></td>
+                    <td>Open this help</td>
+                  </tr>
+                  <tr>
+                    <td class="next shortcut"><kbd>n</kbd></td>
+                    <td>Next page</td>
+                  </tr>
+                  <tr>
+                    <td class="prev shortcut"><kbd>p</kbd></td>
+                    <td>Previous page</td>
+                  </tr>
+                  <tr>
+                    <td class="search shortcut"><kbd>s</kbd></td>
+                    <td>Search</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div>
+
+    </body>
+</html>

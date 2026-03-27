@@ -1,0 +1,1277 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="light">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        
+        
+        
+        <link rel="shortcut icon" href="../../../../img/favicon.ico">
+        <title>08_应用场景 - My Docs</title>
+        <link href="../../../../css/bootstrap.min.css" rel="stylesheet">
+        <link href="../../../../css/fontawesome.min.css" rel="stylesheet">
+        <link href="../../../../css/brands.min.css" rel="stylesheet">
+        <link href="../../../../css/solid.min.css" rel="stylesheet">
+        <link href="../../../../css/v4-font-face.min.css" rel="stylesheet">
+        <link href="../../../../css/base.css" rel="stylesheet">
+        <link id="hljs-light" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" >
+        <link id="hljs-dark" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github-dark.min.css" disabled>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+        <script>hljs.highlightAll();</script> 
+    </head>
+
+    <body>
+        <div class="navbar fixed-top navbar-expand-lg navbar-dark bg-primary">
+            <div class="container">
+                <a class="navbar-brand" href="../../../..">My Docs</a>
+
+                <!-- Expanded navigation -->
+                <div id="navbar-collapse" class="navbar-collapse collapse">
+
+                    <ul class="nav navbar-nav ms-md-auto">
+                        <li class="nav-item">
+                            <a href="#" class="nav-link" data-bs-toggle="modal" data-bs-target="#mkdocs_search_modal">
+                                <i class="fa fa-search"></i> Search
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="container">
+            <div class="row">
+                    <div class="col-md-3"><div class="navbar-expand-md bs-sidebar hidden-print affix" role="complementary">
+    <div class="navbar-header">
+        <button type="button" class="navbar-toggler collapsed" data-bs-toggle="collapse" data-bs-target="#toc-collapse" title="Table of Contents">
+            <span class="fa fa-angle-down"></span>
+        </button>
+    </div>
+
+    
+    <div id="toc-collapse" class="navbar-collapse collapse card bg-body-tertiary">
+        <ul class="nav flex-column">
+            
+            <li class="nav-item" data-bs-level="1"><a href="#08_" class="nav-link">08_应用场景</a>
+              <ul class="nav flex-column">
+            <li class="nav-item" data-bs-level="2"><a href="#1" class="nav-link">1. 缓存设计</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#2" class="nav-link">2. 分布式锁</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#3" class="nav-link">3. 消息队列</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#4" class="nav-link">4. 会话管理</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#5" class="nav-link">5. 排行榜系统</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#6" class="nav-link">6. 其他应用场景</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#7" class="nav-link">7. 本章小结</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+              </ul>
+            </li>
+        </ul>
+    </div>
+</div></div>
+                    <div class="col-md-9" role="main">
+
+<h1 id="08_">08_应用场景</h1>
+<blockquote>
+<p>Redis 典型应用场景实战：缓存、分布式锁、消息队列、会话管理等</p>
+</blockquote>
+<hr />
+<h2 id="1">1. 缓存设计</h2>
+<h3 id="11">1.1 缓存模式</h3>
+<h4 id="1cache-aside">（1）Cache-Aside（旁路缓存）</h4>
+<pre><code>读：先读缓存 → 未命中读数据库 → 写入缓存
+写：先写数据库 → 删除缓存
+
+┌────────┐     ┌────────┐     ┌────────┐
+│  应用  │────▶│  缓存  │────▶│  数据库 │
+└────────┘     └────────┘     └────────┘
+</code></pre>
+<pre><code class="language-python">def get_user(user_id):
+    # 读缓存
+    user = redis.get(f&quot;user:{user_id}&quot;)
+    if user:
+        return json.loads(user)
+
+    # 读数据库
+    user = db.query(&quot;SELECT * FROM users WHERE id = ?&quot;, user_id)
+
+    # 写缓存
+    if user:
+        redis.setex(f&quot;user:{user_id}&quot;, 3600, json.dumps(user))
+
+    return user
+
+def update_user(user_id, data):
+    # 写数据库
+    db.execute(&quot;UPDATE users SET ? WHERE id = ?&quot;, data, user_id)
+
+    # 删缓存
+    redis.delete(f&quot;user:{user_id}&quot;)
+</code></pre>
+<h4 id="2read-through">（2）Read-Through（读穿透）</h4>
+<pre><code>应用只与缓存交互，缓存负责与数据库同步
+
+┌────────┐     ┌────────────────────────┐
+│  应用  │────▶│  缓存（含 DB 逻辑）      │
+└────────┘     └────────────────────────┘
+</code></pre>
+<h4 id="3write-through">（3）Write-Through（写穿透）</h4>
+<pre><code>写操作先写缓存，缓存同步写数据库
+
+┌────────┐     ┌────────────────────────┐
+│  应用  │────▶│  缓存（含 DB 逻辑）      │
+└────────┘     └────────────────────────┘
+</code></pre>
+<h3 id="12">1.2 缓存更新策略</h3>
+<table>
+<thead>
+<tr>
+<th>策略</th>
+<th>说明</th>
+<th>适用场景</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>删除缓存</strong></td>
+<td>写 DB 后删除缓存</td>
+<td>读多写少</td>
+</tr>
+<tr>
+<td><strong>更新缓存</strong></td>
+<td>写 DB 后更新缓存</td>
+<td>写多读少</td>
+</tr>
+<tr>
+<td><strong>带过期时间</strong></td>
+<td>设置 TTL 自动过期</td>
+<td>一般场景</td>
+</tr>
+<tr>
+<td><strong>永不过期</strong></td>
+<td>手动更新缓存</td>
+<td>配置数据</td>
+</tr>
+</tbody>
+</table>
+<h3 id="13">1.3 实战：商品缓存</h3>
+<pre><code class="language-python">import redis
+import json
+from typing import Optional
+
+class ProductCache:
+    def __init__(self, redis_client: redis.Redis):
+        self.redis = redis_client
+        self.KEY_PREFIX = &quot;product:&quot;
+        self.TTL = 3600  # 1 小时
+
+    def get(self, product_id: int) -&gt; Optional[dict]:
+        &quot;&quot;&quot;获取商品&quot;&quot;&quot;
+        key = f&quot;{self.KEY_PREFIX}{product_id}&quot;
+        data = self.redis.get(key)
+        if data:
+            return json.loads(data)
+        return None
+
+    def set(self, product_id: int, product: dict):
+        &quot;&quot;&quot;设置商品缓存&quot;&quot;&quot;
+        key = f&quot;{self.KEY_PREFIX}{product_id}&quot;
+        self.redis.setex(key, self.TTL, json.dumps(product))
+
+    def delete(self, product_id: int):
+        &quot;&quot;&quot;删除商品缓存&quot;&quot;&quot;
+        key = f&quot;{self.KEY_PREFIX}{product_id}&quot;
+        self.redis.delete(key)
+
+    def get_multi(self, product_ids: list) -&gt; dict:
+        &quot;&quot;&quot;批量获取商品&quot;&quot;&quot;
+        if not product_ids:
+            return {}
+
+        keys = [f&quot;{self.KEY_PREFIX}{pid}&quot; for pid in product_ids]
+        values = self.redis.mget(keys)
+
+        result = {}
+        for pid, val in zip(product_ids, values):
+            if val:
+                result[pid] = json.loads(val)
+        return result
+
+    def set_multi(self, products: dict):
+        &quot;&quot;&quot;批量设置商品缓存&quot;&quot;&quot;
+        pipe = self.redis.pipeline()
+        for pid, product in products.items():
+            key = f&quot;{self.KEY_PREFIX}{pid}&quot;
+            pipe.setex(key, self.TTL, json.dumps(product))
+        pipe.execute()
+</code></pre>
+<hr />
+<h2 id="2">2. 分布式锁</h2>
+<h3 id="21">2.1 基础实现</h3>
+<pre><code class="language-python">import redis
+import time
+import uuid
+
+class DistributedLock:
+    def __init__(self, redis_client: redis.Redis, lock_name: str, timeout: int = 10):
+        self.redis = redis_client
+        self.lock_name = f&quot;lock:{lock_name}&quot;
+        self.timeout = timeout
+        self.lock_id = str(uuid.uuid4())
+
+    def acquire(self) -&gt; bool:
+        &quot;&quot;&quot;获取锁&quot;&quot;&quot;
+        # SETNX + EXPIRE 原子操作
+        return self.redis.set(
+            self.lock_name,
+            self.lock_id,
+            nx=True,  # 不存在才设置
+            ex=self.timeout  # 过期时间
+        )
+
+    def release(self) -&gt; bool:
+        &quot;&quot;&quot;释放锁（Lua 脚本保证原子性）&quot;&quot;&quot;
+        script = &quot;&quot;&quot;
+        if redis.call(&quot;get&quot;, KEYS[1]) == ARGV[1] then
+            return redis.call(&quot;del&quot;, KEYS[1])
+        else
+            return 0
+        end
+        &quot;&quot;&quot;
+        return self.redis.eval(script, 1, self.lock_name, self.lock_id)
+
+    def __enter__(self):
+        if not self.acquire():
+            raise Exception(f&quot;Failed to acquire lock: {self.lock_name}&quot;)
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.release()
+
+# 使用示例
+redis_client = redis.Redis()
+
+# 方式 1：手动获取释放
+lock = DistributedLock(redis_client, &quot;order:1001&quot;)
+if lock.acquire():
+    try:
+        # 临界区代码
+        process_order()
+    finally:
+        lock.release()
+
+# 方式 2：上下文管理器
+with DistributedLock(redis_client, &quot;order:1001&quot;):
+    process_order()
+</code></pre>
+<h3 id="22-redisson-java">2.2 Redisson 实现（Java）</h3>
+<pre><code class="language-java">import org.redisson.Redisson;
+import org.redisson.api.RLock;
+import org.redisson.api.RedissonClient;
+import org.redisson.config.Config;
+
+import java.util.concurrent.TimeUnit;
+
+public class RedissonLockExample {
+
+    public static void main(String[] args) {
+        // 配置
+        Config config = new Config();
+        config.useSingleServer()
+              .setAddress(&quot;redis://127.0.0.1:6379&quot;)
+              .setPassword(&quot;password&quot;);
+
+        RedissonClient redisson = Redisson.create(config);
+
+        // 获取锁
+        RLock lock = redisson.getLock(&quot;order:1001&quot;);
+
+        // 尝试获取锁
+        boolean isLocked = false;
+        try {
+            isLocked = lock.tryLock(5, 30, TimeUnit.SECONDS);
+            if (isLocked) {
+                // 临界区代码
+                processOrder();
+            }
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        } finally {
+            if (isLocked &amp;&amp; lock.isHeldByCurrentThread()) {
+                lock.unlock();
+            }
+        }
+
+        redisson.shutdown();
+    }
+}
+</code></pre>
+<h3 id="23-redlock">2.3 红锁（RedLock）</h3>
+<pre><code class="language-python">from redis import Redis
+from redis.lock import Lock
+import time
+
+class RedLock:
+    def __init__(self, redis_instances: list, resource: str, ttl: int = 10000):
+        self.instances = redis_instances
+        self.resource = f&quot;lock:{resource}&quot;
+        self.ttl = ttl
+        self.lock_id = str(uuid.uuid4())
+
+    def acquire(self) -&gt; bool:
+        &quot;&quot;&quot;获取红锁&quot;&quot;&quot;
+        start_time = int(time.time() * 1000)
+        acquired = 0
+
+        for instance in self.instances:
+            if instance.set(self.resource, self.lock_id, nx=True, ex=self.ttl // 1000 + 1):
+                acquired += 1
+
+        elapsed = int(time.time() * 1000) - start_time
+        validity = self.ttl - elapsed
+
+        # 获取成功条件：
+        # 1. 超过半数实例获取成功
+        # 2. 锁有效期大于 0
+        if acquired &gt;= (len(self.instances) // 2 + 1) and validity &gt; 0:
+            return True
+
+        # 获取失败，释放所有锁
+        self.release()
+        return False
+
+    def release(self):
+        &quot;&quot;&quot;释放红锁&quot;&quot;&quot;
+        script = &quot;&quot;&quot;
+        if redis.call(&quot;get&quot;, KEYS[1]) == ARGV[1] then
+            return redis.call(&quot;del&quot;, KEYS[1])
+        else
+            return 0
+        end
+        &quot;&quot;&quot;
+        for instance in self.instances:
+            try:
+                instance.eval(script, 1, self.resource, self.lock_id)
+            except:
+                pass
+
+# 使用示例（5 个 Redis 实例）
+instances = [
+    Redis(host='redis1', port=6379),
+    Redis(host='redis2', port=6379),
+    Redis(host='redis3', port=6379),
+    Redis(host='redis4', port=6379),
+    Redis(host='redis5', port=6379),
+]
+
+redlock = RedLock(instances, &quot;order:1001&quot;, ttl=10000)
+if redlock.acquire():
+    try:
+        process_order()
+    finally:
+        redlock.release()
+</code></pre>
+<hr />
+<h2 id="3">3. 消息队列</h2>
+<h3 id="31-list">3.1 List 实现简单队列</h3>
+<pre><code class="language-python">import redis
+import json
+from typing import Optional, Any
+
+class SimpleQueue:
+    def __init__(self, redis_client: redis.Redis, queue_name: str):
+        self.redis = redis_client
+        self.queue_name = f&quot;queue:{queue_name}&quot;
+
+    def push(self, message: Any) -&gt; int:
+        &quot;&quot;&quot;生产者：推送消息&quot;&quot;&quot;
+        return self.redis.rpush(self.queue_name, json.dumps(message))
+
+    def pop(self, timeout: int = 0) -&gt; Optional[Any]:
+        &quot;&quot;&quot;消费者：弹出消息&quot;&quot;&quot;
+        if timeout &gt; 0:
+            # 阻塞式弹出
+            result = self.redis.brpop(self.queue_name, timeout=timeout)
+            if result:
+                return json.loads(result[1])
+            return None
+        else:
+            # 非阻塞式弹出
+            result = self.redis.lpop(self.queue_name)
+            if result:
+                return json.loads(result)
+            return None
+
+    def size(self) -&gt; int:
+        &quot;&quot;&quot;队列长度&quot;&quot;&quot;
+        return self.redis.llen(self.queue_name)
+
+    def is_empty(self) -&gt; bool:
+        &quot;&quot;&quot;是否为空&quot;&quot;&quot;
+        return self.size() == 0
+
+# 使用示例
+redis_client = redis.Redis()
+queue = SimpleQueue(redis_client, &quot;tasks&quot;)
+
+# 生产者
+queue.push({&quot;task&quot;: &quot;send_email&quot;, &quot;user_id&quot;: 1001})
+queue.push({&quot;task&quot;: &quot;generate_report&quot;, &quot;report_id&quot;: 2001})
+
+# 消费者
+while True:
+    message = queue.pop(timeout=5)  # 阻塞等待 5 秒
+    if message:
+        process_task(message)
+    else:
+        print(&quot;No tasks, waiting...&quot;)
+</code></pre>
+<h3 id="32-stream">3.2 Stream 实现可靠队列</h3>
+<pre><code class="language-python">import redis
+import json
+from typing import Optional, Dict, Any
+
+class ReliableQueue:
+    def __init__(self, redis_client: redis.Redis, stream_name: str, group_name: str, consumer_name: str):
+        self.redis = redis_client
+        self.stream_name = f&quot;stream:{stream_name}&quot;
+        self.group_name = group_name
+        self.consumer_name = consumer_name
+
+        # 创建消费者组（如果不存在）
+        try:
+            self.redis.xgroup_create(self.stream_name, group_name, id=&quot;0&quot;, mkstream=True)
+        except redis.exceptions.ResponseError:
+            pass  # 组已存在
+
+    def push(self, message: Dict[str, Any]) -&gt; str:
+        &quot;&quot;&quot;生产者：发送消息&quot;&quot;&quot;
+        return self.redis.xadd(self.stream_name, message)
+
+    def pop(self, timeout: int = 5000) -&gt; Optional[Dict[str, Any]]:
+        &quot;&quot;&quot;消费者：读取消息&quot;&quot;&quot;
+        result = self.redis.xreadgroup(
+            groupname=self.group_name,
+            consumername=self.consumer_name,
+            streams={self.stream_name: &quot;&gt;&quot;},
+            count=1,
+            block=timeout
+        )
+
+        if result:
+            stream, messages = result[0]
+            if messages:
+                message_id, message_data = messages[0]
+                return {
+                    &quot;id&quot;: message_id.decode(),
+                    &quot;data&quot;: {k.decode(): v.decode() for k, v in message_data.items()}
+                }
+        return None
+
+    def ack(self, message_id: str):
+        &quot;&quot;&quot;确认消息处理完成&quot;&quot;&quot;
+        self.redis.xack(self.stream_name, self.group_name, message_id)
+
+    def pending(self) -&gt; Dict:
+        &quot;&quot;&quot;查看待处理消息&quot;&quot;&quot;
+        return self.redis.xpending(self.stream_name, self.group_name)
+
+# 使用示例
+redis_client = redis.Redis()
+queue = ReliableQueue(redis_client, &quot;orders&quot;, &quot;order-processors&quot;, &quot;consumer-1&quot;)
+
+# 生产者
+queue.push({
+    &quot;event&quot;: &quot;order_created&quot;,
+    &quot;order_id&quot;: &quot;1001&quot;,
+    &quot;user_id&quot;: &quot;101&quot;,
+    &quot;amount&quot;: &quot;99.99&quot;
+})
+
+# 消费者
+while True:
+    message = queue.pop(timeout=5000)
+    if message:
+        try:
+            process_order(message[&quot;data&quot;])
+            queue.ack(message[&quot;id&quot;])
+        except Exception as e:
+            print(f&quot;Error processing message: {e}&quot;)
+            # 不 ack，消息会重新进入待处理队列
+    else:
+        print(&quot;No messages, waiting...&quot;)
+</code></pre>
+<h3 id="33">3.3 发布订阅模式</h3>
+<pre><code class="language-python">import redis
+import json
+
+class PubSub:
+    def __init__(self, redis_client: redis.Redis):
+        self.redis = redis_client
+        self.pubsub = redis_client.pubsub()
+
+    def publish(self, channel: str, message: Any) -&gt; int:
+        &quot;&quot;&quot;发布消息&quot;&quot;&quot;
+        return self.redis.publish(channel, json.dumps(message))
+
+    def subscribe(self, channel: str):
+        &quot;&quot;&quot;订阅频道&quot;&quot;&quot;
+        self.pubsub.subscribe(channel)
+
+    def listen(self):
+        &quot;&quot;&quot;监听消息&quot;&quot;&quot;
+        for message in self.pubsub.listen():
+            if message[&quot;type&quot;] == &quot;message&quot;:
+                yield {
+                    &quot;channel&quot;: message[&quot;channel&quot;].decode(),
+                    &quot;data&quot;: json.loads(message[&quot;data&quot;].decode())
+                }
+
+# 使用示例
+redis_client = redis.Redis()
+pubsub = PubSub(redis_client)
+
+# 发布者
+pubsub.publish(&quot;news&quot;, {&quot;title&quot;: &quot;Redis 教程发布&quot;, &quot;content&quot;: &quot;...&quot;})
+
+# 订阅者（另一个进程）
+pubsub.subscribe(&quot;news&quot;)
+for message in pubsub.listen():
+    print(f&quot;Received: {message}&quot;)
+</code></pre>
+<hr />
+<h2 id="4">4. 会话管理</h2>
+<h3 id="41-session">4.1 Session 存储</h3>
+<pre><code class="language-python">import redis
+import json
+import uuid
+from typing import Optional, Dict
+
+class SessionManager:
+    def __init__(self, redis_client: redis.Redis, session_ttl: int = 1800):
+        self.redis = redis_client
+        self.session_ttl = session_ttl
+        self.prefix = &quot;session:&quot;
+
+    def create(self, user_id: int, data: Dict = None) -&gt; str:
+        &quot;&quot;&quot;创建会话&quot;&quot;&quot;
+        session_id = str(uuid.uuid4())
+        key = f&quot;{self.prefix}{session_id}&quot;
+
+        session_data = {
+            &quot;user_id&quot;: user_id,
+            &quot;data&quot;: data or {},
+            &quot;created_at&quot;: int(time.time())
+        }
+
+        self.redis.setex(key, self.session_ttl, json.dumps(session_data))
+        return session_id
+
+    def get(self, session_id: str) -&gt; Optional[Dict]:
+        &quot;&quot;&quot;获取会话&quot;&quot;&quot;
+        key = f&quot;{self.prefix}{session_id}&quot;
+        data = self.redis.get(key)
+        if data:
+            # 刷新过期时间
+            self.redis.expire(key, self.session_ttl)
+            return json.loads(data)
+        return None
+
+    def update(self, session_id: str, data: Dict):
+        &quot;&quot;&quot;更新会话&quot;&quot;&quot;
+        session = self.get(session_id)
+        if session:
+            session[&quot;data&quot;].update(data)
+            key = f&quot;{self.prefix}{session_id}&quot;
+            self.redis.setex(key, self.session_ttl, json.dumps(session))
+
+    def delete(self, session_id: str):
+        &quot;&quot;&quot;删除会话（登出）&quot;&quot;&quot;
+        key = f&quot;{self.prefix}{session_id}&quot;
+        self.redis.delete(key)
+
+    def refresh(self, session_id: str):
+        &quot;&quot;&quot;刷新会话过期时间&quot;&quot;&quot;
+        key = f&quot;{self.prefix}{session_id}&quot;
+        self.redis.expire(key, self.session_ttl)
+
+# Flask 集成示例
+from flask import Flask, request, g
+
+app = Flask(__name__)
+redis_client = redis.Redis()
+session_manager = SessionManager(redis_client)
+
+@app.before_request
+def load_session():
+    session_id = request.cookies.get(&quot;session_id&quot;)
+    if session_id:
+        g.session = session_manager.get(session_id)
+        g.session_id = session_id
+    else:
+        g.session = None
+
+@app.route(&quot;/login&quot;, methods=[&quot;POST&quot;])
+def login():
+    user_id = authenticate(request.form[&quot;username&quot;], request.form[&quot;password&quot;])
+    if user_id:
+        session_id = session_manager.create(user_id)
+        response = make_response(&quot;Login successful&quot;)
+        response.set_cookie(&quot;session_id&quot;, session_id)
+        return response
+    return &quot;Invalid credentials&quot;, 401
+
+@app.route(&quot;/logout&quot;)
+def logout():
+    if hasattr(g, &quot;session_id&quot;):
+        session_manager.delete(g.session_id)
+    response = make_response(&quot;Logout successful&quot;)
+    response.delete_cookie(&quot;session_id&quot;)
+    return response
+</code></pre>
+<hr />
+<h2 id="5">5. 排行榜系统</h2>
+<h3 id="51">5.1 基础排行榜</h3>
+<pre><code class="language-python">import redis
+from typing import List, Tuple
+
+class Leaderboard:
+    def __init__(self, redis_client: redis.Redis, name: str):
+        self.redis = redis_client
+        self.name = f&quot;leaderboard:{name}&quot;
+
+    def add_score(self, member: str, score: float):
+        &quot;&quot;&quot;添加/更新分数&quot;&quot;&quot;
+        self.redis.zadd(self.name, {member: score})
+
+    def get_rank(self, member: str) -&gt; int:
+        &quot;&quot;&quot;获取排名（从高到低）&quot;&quot;&quot;
+        rank = self.redis.zrevrank(self.name, member)
+        return rank + 1 if rank is not None else None
+
+    def get_score(self, member: str) -&gt; float:
+        &quot;&quot;&quot;获取分数&quot;&quot;&quot;
+        score = self.redis.zscore(self.name, member)
+        return float(score) if score else None
+
+    def get_top(self, count: int = 10) -&gt; List[Tuple[str, float]]:
+        &quot;&quot;&quot;获取前 N 名&quot;&quot;&quot;
+        return self.redis.zrevrange(self.name, 0, count - 1, withscores=True)
+
+    def get_around(self, member: str, count: int = 5) -&gt; List[Tuple[str, float]]:
+        &quot;&quot;&quot;获取某成员附近的排名&quot;&quot;&quot;
+        rank = self.redis.zrevrank(self.name, member)
+        if rank is None:
+            return []
+
+        start = max(0, rank - count)
+        end = rank + count
+        return self.redis.zrevrange(self.name, start, end, withscores=True)
+
+    def remove(self, member: str):
+        &quot;&quot;&quot;移除成员&quot;&quot;&quot;
+        self.redis.zrem(self.name, member)
+
+# 使用示例
+redis_client = redis.Redis()
+leaderboard = Leaderboard(redis_client, &quot;game&quot;)
+
+# 添加分数
+leaderboard.add_score(&quot;Alice&quot;, 9500)
+leaderboard.add_score(&quot;Bob&quot;, 8700)
+leaderboard.add_score(&quot;Charlie&quot;, 9200)
+leaderboard.add_score(&quot;David&quot;, 9800)
+
+# 获取排行榜
+print(&quot;Top 3:&quot;)
+for member, score in leaderboard.get_top(3):
+    print(f&quot;  {member}: {score}&quot;)
+
+# 获取排名
+print(f&quot;Alice rank: {leaderboard.get_rank('Alice')}&quot;)
+
+# 获取附近排名
+print(&quot;Around Bob:&quot;)
+for member, score in leaderboard.get_around(&quot;Bob&quot;, 2):
+    print(f&quot;  {member}: {score}&quot;)
+</code></pre>
+<h3 id="52">5.2 多维度排行榜</h3>
+<pre><code class="language-python">class MultiLeaderboard:
+    def __init__(self, redis_client: redis.Redis, name: str):
+        self.redis = redis_client
+        self.name = name
+
+    def add_score(self, member: str, dimension: str, score: float):
+        &quot;&quot;&quot;添加维度分数&quot;&quot;&quot;
+        key = f&quot;leaderboard:{self.name}:{dimension}&quot;
+        self.redis.zadd(key, {member: score})
+
+    def get_combined_rank(self, member: str, weights: Dict[str, float]) -&gt; Tuple[int, float]:
+        &quot;&quot;&quot;计算加权综合排名&quot;&quot;&quot;
+        # 计算所有成员的加权总分
+        dimensions = self.redis.keys(f&quot;leaderboard:{self.name}:*&quot;)
+        pipe = self.redis.pipeline()
+
+        all_members = set()
+        for dim_key in dimensions:
+            dim_name = dim_key.decode().split(&quot;:&quot;)[-1]
+            weight = weights.get(dim_name, 1.0)
+            members = self.redis.zrange(dim_key, 0, -1, withscores=True)
+            for member_id, score in members:
+                pipe.zincrby(f&quot;leaderboard:{self.name}:total&quot;, weight * score, member_id)
+                all_members.add(member_id.decode())
+
+        pipe.execute()
+
+        # 获取排名
+        total_key = f&quot;leaderboard:{self.name}:total&quot;
+        rank = self.redis.zrevrank(total_key, member)
+        score = self.redis.zscore(total_key, member)
+
+        return (rank + 1, score) if rank is not None else (None, None)
+
+# 使用示例
+leaderboard = MultiLeaderboard(redis_client, &quot;student&quot;)
+
+# 添加各科成绩
+leaderboard.add_score(&quot;Alice&quot;, &quot;math&quot;, 95)
+leaderboard.add_score(&quot;Alice&quot;, &quot;english&quot;, 90)
+leaderboard.add_score(&quot;Bob&quot;, &quot;math&quot;, 88)
+leaderboard.add_score(&quot;Bob&quot;, &quot;english&quot;, 95)
+
+# 计算综合排名（数学 60%，英语 40%）
+rank, score = leaderboard.get_combined_rank(&quot;Alice&quot;, {&quot;math&quot;: 0.6, &quot;english&quot;: 0.4})
+print(f&quot;Alice 综合排名：{rank}, 总分：{score}&quot;)
+</code></pre>
+<hr />
+<h2 id="6">6. 其他应用场景</h2>
+<h3 id="61">6.1 限流器</h3>
+<pre><code class="language-python">class RateLimiter:
+    def __init__(self, redis_client: redis.Redis, key: str, max_requests: int, window_seconds: int):
+        self.redis = redis_client
+        self.key = f&quot;ratelimit:{key}&quot;
+        self.max_requests = max_requests
+        self.window_seconds = window_seconds
+
+    def is_allowed(self) -&gt; bool:
+        &quot;&quot;&quot;检查是否允许请求&quot;&quot;&quot;
+        current_time = int(time.time())
+        window_key = f&quot;{self.key}:{current_time // self.window_seconds}&quot;
+
+        # 原子操作：计数 + 设置过期时间
+        current = self.redis.incr(window_key)
+        if current == 1:
+            self.redis.expire(window_key, self.window_seconds)
+
+        return current &lt;= self.max_requests
+
+# 使用示例
+limiter = RateLimiter(redis_client, &quot;api:user:1001&quot;, max_requests=100, window_seconds=60)
+
+if limiter.is_allowed():
+    process_request()
+else:
+    return &quot;Rate limit exceeded&quot;, 429
+</code></pre>
+<p>上面限流存在两个问题：
+1. 竞态条件（Race Condition）： <code>incr</code> 和 <code>expire</code> 不是原子操作！高并发下可能出现：
+    + 线程 A 执行 incr 返回 1
+    + 线程 B 执行 incr 返回 2
+    + 线程 A 执行 expire 设置过期时间
+    + 线程 B 也判断 current == 1 ❌ 不成立，但假设并发时序不同可能导致 expire 没被设置
+   + 结果：key 永不过期，内存泄漏</p>
+<pre><code>时间线（内存泄漏场景）：
+T1: 线程 A 执行 incr，返回 1
+T2: 线程 A 宕机了/网络断了/代码抛异常了...
+T3: 线程 B、C、D... 继续 incr，但再也没有人执行 expire ❌
+</code></pre>
+<ol>
+<li>固定时间窗口边界问题:这是固定窗口限流，在窗口边界会被突破：</li>
+</ol>
+<pre><code class="language-python">window_key = f&quot;{self.key}:{current_time // self.window_seconds}&quot;
+</code></pre>
+<ul>
+<li>假设窗口 60 秒，0-60 秒一个窗口</li>
+<li>59 秒时来了 100 个请求（用满配额）</li>
+<li>61 秒时又来 100 个请求（新窗口）</li>
+<li>实际 2 秒内处理了 200 个请求，是限流值的 2 倍</li>
+</ul>
+<p>完善版本如下：
+1. 用 Lua 脚本保证 INCR + EXPIRE + 判断 的原子性
+2. 固定窗口问题仍存在，如需更精确可用滑动窗口或令牌桶算法</p>
+<pre><code class="language-python">import time
+
+class RateLimiter:
+    def __init__(self, redis_client: redis.Redis, key: str, max_requests: int, window_seconds: int):
+        self.redis = redis_client
+        self.key = f&quot;ratelimit:{key}&quot;
+        self.max_requests = max_requests
+        self.window_seconds = window_seconds
+
+    def is_allowed(self) -&gt; bool:
+        &quot;&quot;&quot;检查是否允许请求（修复版）&quot;&quot;&quot;
+        current_time = int(time.time())
+        window_key = f&quot;{self.key}:{current_time // self.window_seconds}&quot;
+
+        # 使用 Lua 脚本保证原子性
+        script = &quot;&quot;&quot;
+        local current = redis.call(&quot;INCR&quot;, KEYS[1])
+        if current == 1 then
+            redis.call(&quot;EXPIRE&quot;, KEYS[1], ARGV[1])
+        end
+        if current &lt;= tonumber(ARGV[2]) then
+            return 1
+        else
+            return 0
+        end
+        &quot;&quot;&quot;
+        return bool(self.redis.eval(script, 1, window_key, self.window_seconds, self.max_requests))
+
+# 使用示例
+limiter = RateLimiter(redis_client, &quot;api:user:1001&quot;, max_requests=100, window_seconds=60)
+
+if limiter.is_allowed():
+    process_request()
+else:
+    return &quot;Rate limit exceeded&quot;, 429
+</code></pre>
+<h5 id="zset">滑动窗口限流器：ZSET 滑动窗口（推荐）</h5>
+<pre><code class="language-python">import time
+import redis
+from typing import Tuple
+
+class SlidingWindowRateLimiter:
+    &quot;&quot;&quot;
+    基于 Redis ZSET 的滑动窗口限流器
+
+    原理：
+    - 用 ZSET 存储每个请求的时间戳（score）和唯一 ID（member）
+    - 每次请求时，删除窗口外的旧数据
+    - 统计窗口内的请求数量，判断是否超限
+    &quot;&quot;&quot;
+
+    def __init__(self, redis_client: redis.Redis, key: str, max_requests: int, window_seconds: int):
+        self.redis = redis_client
+        self.key = f&quot;ratelimit:{key}&quot;
+        self.max_requests = max_requests
+        self.window_seconds = window_seconds
+
+    def is_allowed(self) -&gt; Tuple[bool, int]:
+        &quot;&quot;&quot;
+        检查是否允许请求
+
+        Returns:
+            (是否允许, 剩余可用次数)
+        &quot;&quot;&quot;
+        now = time.time()
+        window_start = now - self.window_seconds
+
+        # 使用 Lua 脚本保证原子性
+        script = &quot;&quot;&quot;
+        local key = KEYS[1]
+        local now = tonumber(ARGV[1])
+        local window_start = tonumber(ARGV[2])
+        local max_requests = tonumber(ARGV[3])
+        local request_id = ARGV[4]
+
+        -- 1. 删除窗口外的旧数据
+        redis.call(&quot;ZREMRANGEBYSCORE&quot;, key, &quot;-inf&quot;, window_start)
+
+        -- 2. 统计当前窗口内的请求数
+        local current = redis.call(&quot;ZCARD&quot;, key)
+
+        -- 3. 判断是否超限
+        if current &lt; max_requests then
+            -- 4. 未超限，记录当前请求
+            redis.call(&quot;ZADD&quot;, key, now, request_id)
+            -- 5. 设置过期时间（自动清理）
+            redis.call(&quot;EXPIRE&quot;, key, ARGV[5])
+            return {1, max_requests - current - 1}
+        else
+            -- 6. 已超限
+            return {0, 0}
+        end
+        &quot;&quot;&quot;
+
+        # 生成唯一请求 ID（时间戳 + 随机数）
+        request_id = f&quot;{now}:{time.time_ns()}&quot;
+
+        result = self.redis.eval(
+            script, 1, 
+            self.key, 
+            now, 
+            window_start, 
+            self.max_requests, 
+            request_id,
+            self.window_seconds + 1  # 过期时间略大于窗口
+        )
+
+        return bool(result[0]), int(result[1])
+
+    def get_remaining(self) -&gt; int:
+        &quot;&quot;&quot;获取剩余可用次数（不消耗配额）&quot;&quot;&quot;
+        now = time.time()
+        window_start = now - self.window_seconds
+
+        # 清理旧数据并统计
+        pipe = self.redis.pipeline()
+        pipe.zremrangebyscore(self.key, &quot;-inf&quot;, window_start)
+        pipe.zcard(self.key)
+        results = pipe.execute()
+
+        current_count = results[1]
+        return max(0, self.max_requests - current_count)
+
+    def reset(self):
+        &quot;&quot;&quot;重置限流器&quot;&quot;&quot;
+        self.redis.delete(self.key)
+
+
+# ============ 使用示例 ============
+
+if __name__ == &quot;__main__&quot;:
+    redis_client = redis.Redis(host=&quot;localhost&quot;, port=6379, db=0)
+
+    # 创建限流器：60 秒内最多 100 次请求
+    limiter = SlidingWindowRateLimiter(
+        redis_client, 
+        key=&quot;api:user:1001&quot;,
+        max_requests=100,
+        window_seconds=60
+    )
+
+    # 模拟请求
+    for i in range(105):
+        allowed, remaining = limiter.is_allowed()
+        if allowed:
+            print(f&quot;请求 {i+1}: ✅ 允许，剩余 {remaining} 次&quot;)
+            # process_request()
+        else:
+            print(f&quot;请求 {i+1}: ❌ 限流，请等待&quot;)
+            # return &quot;Rate limit exceeded&quot;, 429
+            break
+
+    # 查询剩余次数
+    print(f&quot;剩余可用：{limiter.get_remaining()}&quot;)
+</code></pre>
+<h5 id="_1">滑动窗口限流器：令牌桶算法（更平滑）</h5>
+<pre><code class="language-python">import time
+import redis
+from typing import Tuple
+
+class TokenBucketRateLimiter:
+    &quot;&quot;&quot;
+    令牌桶限流器
+
+    原理：
+    - 桶里有固定数量的令牌
+    - 每次请求消耗 1 个令牌
+    - 令牌以固定速率自动补充
+    - 无令牌时拒绝请求
+
+    特点：允许短时突发流量，但长期平均速率受限
+    &quot;&quot;&quot;
+
+    def __init__(self, redis_client: redis.Redis, key: str, capacity: int, refill_rate: float):
+        &quot;&quot;&quot;
+        Args:
+            capacity: 桶容量（最大令牌数）
+            refill_rate: 补充速率（每秒补充多少个令牌）
+        &quot;&quot;&quot;
+        self.redis = redis_client
+        self.key = f&quot;tokenbucket:{key}&quot;
+        self.capacity = capacity
+        self.refill_rate = refill_rate
+
+    def is_allowed(self, tokens: int = 1) -&gt; Tuple[bool, int]:
+        &quot;&quot;&quot;
+        检查是否允许请求
+
+        Args:
+            tokens: 需要消耗的令牌数
+
+        Returns:
+            (是否允许, 剩余令牌数)
+        &quot;&quot;&quot;
+        now = time.time()
+
+        script = &quot;&quot;&quot;
+        local key = KEYS[1]
+        local now = tonumber(ARGV[1])
+        local capacity = tonumber(ARGV[2])
+        local refill_rate = tonumber(ARGV[3])
+        local requested = tonumber(ARGV[4])
+
+        -- 获取当前状态
+        local bucket = redis.call(&quot;HMGET&quot;, key, &quot;tokens&quot;, &quot;last_update&quot;)
+        local tokens = tonumber(bucket[1])
+        local last_update = tonumber(bucket[2])
+
+        -- 初始化
+        if not tokens then
+            tokens = capacity
+            last_update = now
+        end
+
+        -- 计算新增令牌数
+        local elapsed = now - last_update
+        local new_tokens = elapsed * refill_rate
+        tokens = math.min(capacity, tokens + new_tokens)
+
+        -- 判断是否足够
+        if tokens &gt;= requested then
+            tokens = tokens - requested
+            redis.call(&quot;HMSET&quot;, key, &quot;tokens&quot;, tokens, &quot;last_update&quot;, now)
+            redis.call(&quot;EXPIRE&quot;, key, math.ceil(capacity / refill_rate) + 1)
+            return {1, math.floor(tokens)}
+        else
+            redis.call(&quot;HMSET&quot;, key, &quot;tokens&quot;, tokens, &quot;last_update&quot;, now)
+            return {0, math.floor(tokens)}
+        end
+        &quot;&quot;&quot;
+
+        result = self.redis.eval(
+            script, 1,
+            self.key,
+            now,
+            self.capacity,
+            self.refill_rate,
+            tokens
+        )
+
+        return bool(result[0]), int(result[1])
+
+
+# ============ 使用示例 ============
+
+if __name__ == &quot;__main__&quot;:
+    redis_client = redis.Redis(host=&quot;localhost&quot;, port=6379, db=0)
+
+    # 创建令牌桶：容量 100，每秒补充 10 个令牌
+    # 意味着：平时每秒 10 次，但可以突发到 100 次
+    limiter = TokenBucketRateLimiter(
+        redis_client,
+        key=&quot;api:user:1001&quot;,
+        capacity=100,
+        refill_rate=10
+    )
+
+    # 模拟突发请求
+    for i in range(120):
+        allowed, remaining = limiter.is_allowed()
+        if allowed:
+            print(f&quot;请求 {i+1}: ✅ 允许，剩余 {remaining} 令牌&quot;)
+        else:
+            print(f&quot;请求 {i+1}: ❌ 令牌不足，剩余 {remaining}&quot;)
+</code></pre>
+<h4 id="_2">方案对比:</h4>
+<table>
+<thead>
+<tr>
+<th>特性</th>
+<th>固定窗口</th>
+<th>滑动窗口</th>
+<th>令牌桶</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>实现难度</td>
+<td>⭐ 简单</td>
+<td>⭐⭐ 中等</td>
+<td>⭐⭐ 中等</td>
+</tr>
+<tr>
+<td>内存占用</td>
+<td>低</td>
+<td>中（ZSET）</td>
+<td>低</td>
+</tr>
+<tr>
+<td>边界问题</td>
+<td>❌ 有（2 倍突破）</td>
+<td>✅ 无</td>
+<td>✅ 无</td>
+</tr>
+<tr>
+<td>突发流量</td>
+<td>不支持</td>
+<td>不支持</td>
+<td>✅ 支持</td>
+</tr>
+<tr>
+<td>精确度</td>
+<td>低</td>
+<td>高</td>
+<td>高</td>
+</tr>
+<tr>
+<td>适用场景</td>
+<td>简单限流</td>
+<td>API 限流</td>
+<td>平滑限流</td>
+</tr>
+</tbody>
+</table>
+<p>推荐使用
+1. API 限流 → 滑动窗口（方案一）
+2. 需要支持突发 → 令牌桶（方案二）
+3. 简单场景 → 固定窗口（修复原子性问题后）</p>
+<h3 id="62">6.2 签到系统</h3>
+<pre><code class="language-python">class CheckInSystem:
+    def __init__(self, redis_client: redis.Redis):
+        self.redis = redis_client
+
+    def check_in(self, user_id: int, date: str):
+        &quot;&quot;&quot;签到&quot;&quot;&quot;
+        key = f&quot;checkin:{date}&quot;
+        self.redis.setbit(key, user_id, 1)
+
+    def is_checked_in(self, user_id: int, date: str) -&gt; bool:
+        &quot;&quot;&quot;检查是否已签到&quot;&quot;&quot;
+        key = f&quot;checkin:{date}&quot;
+        return bool(self.redis.getbit(key, user_id))
+
+    def count(self, date: str) -&gt; int:
+        &quot;&quot;&quot;统计签到人数&quot;&quot;&quot;
+        key = f&quot;checkin:{date}&quot;
+        return self.redis.bitcount(key)
+
+    def get_continuous_days(self, user_id: int, end_date: str) -&gt; int:
+        &quot;&quot;&quot;获取连续签到天数&quot;&quot;&quot;
+        # 简化实现，实际需要考虑月份边界
+        continuous = 0
+        current = datetime.strptime(end_date, &quot;%Y-%m-%d&quot;)
+
+        while True:
+            date_str = current.strftime(&quot;%Y-%m-%d&quot;)
+            if self.is_checked_in(user_id, date_str):
+                continuous += 1
+                current -= timedelta(days=1)
+            else:
+                break
+
+        return continuous
+
+# 使用示例
+checkin = CheckInSystem(redis_client)
+checkin.check_in(1001, &quot;2024-03-25&quot;)
+print(f&quot;今日签到人数：{checkin.count('2024-03-25')}&quot;)
+print(f&quot;连续签到天数：{checkin.get_continuous_days(1001, '2024-03-25')}&quot;)
+</code></pre>
+<hr />
+<h2 id="7">7. 本章小结</h2>
+<h3 id="_3">核心应用场景</h3>
+<p>✅ 缓存设计（Cache-Aside、更新策略）<br />
+✅ 分布式锁（基础实现、红锁）<br />
+✅ 消息队列（List、Stream、PubSub）<br />
+✅ 会话管理（Session 存储）<br />
+✅ 排行榜系统（Sorted Set）<br />
+✅ 限流器、签到系统  </p>
+<h3 id="_4">最佳实践</h3>
+<ol>
+<li><strong>缓存</strong>：合理设置 TTL，避免缓存穿透/击穿/雪崩</li>
+<li><strong>分布式锁</strong>：使用 Lua 脚本保证原子性，设置超时</li>
+<li><strong>消息队列</strong>：Stream 比 List 更可靠</li>
+<li><strong>会话</strong>：设置合理过期时间，支持刷新</li>
+<li><strong>排行榜</strong>：使用 ZSet，注意内存控制</li>
+</ol>
+<hr />
+<p>🎉 <strong>恭喜完成第八章！继续学习 <a href="../09_%E5%91%BD%E4%BB%A4%E9%80%9F%E6%9F%A5/">09_命令速查.md</a></strong></p></div>
+            </div>
+        </div>
+
+        <footer class="col-md-12">
+            <hr>
+            <p>Documentation built with <a href="https://www.mkdocs.org/">MkDocs</a>.</p>
+        </footer>
+        <script src="../../../../js/bootstrap.bundle.min.js"></script>
+        <script>
+            var base_url = "../../../..",
+                shortcuts = {"help": 191, "next": 78, "previous": 80, "search": 83};
+        </script>
+        <script src="../../../../js/base.js"></script>
+        <script src="../../../../search/main.js"></script>
+
+        <div class="modal" id="mkdocs_search_modal" tabindex="-1" role="dialog" aria-labelledby="searchModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="searchModalLabel">Search</h4>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>From here you can search these documents. Enter your search terms below.</p>
+                <form>
+                    <div class="form-group">
+                        <input type="search" class="form-control" placeholder="Search..." id="mkdocs-search-query" title="Type search term here">
+                    </div>
+                </form>
+                <div id="mkdocs-search-results" data-no-results-text="No results found"></div>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div><div class="modal" id="mkdocs_keyboard_modal" tabindex="-1" role="dialog" aria-labelledby="keyboardModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="keyboardModalLabel">Keyboard Shortcuts</h4>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th style="width: 20%;">Keys</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td class="help shortcut"><kbd>?</kbd></td>
+                    <td>Open this help</td>
+                  </tr>
+                  <tr>
+                    <td class="next shortcut"><kbd>n</kbd></td>
+                    <td>Next page</td>
+                  </tr>
+                  <tr>
+                    <td class="prev shortcut"><kbd>p</kbd></td>
+                    <td>Previous page</td>
+                  </tr>
+                  <tr>
+                    <td class="search shortcut"><kbd>s</kbd></td>
+                    <td>Search</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div>
+
+    </body>
+</html>

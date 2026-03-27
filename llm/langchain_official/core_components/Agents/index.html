@@ -1,0 +1,623 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="light">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        
+        
+        
+        <link rel="shortcut icon" href="../../../../img/favicon.ico">
+        <title>Agents - My Docs</title>
+        <link href="../../../../css/bootstrap.min.css" rel="stylesheet">
+        <link href="../../../../css/fontawesome.min.css" rel="stylesheet">
+        <link href="../../../../css/brands.min.css" rel="stylesheet">
+        <link href="../../../../css/solid.min.css" rel="stylesheet">
+        <link href="../../../../css/v4-font-face.min.css" rel="stylesheet">
+        <link href="../../../../css/base.css" rel="stylesheet">
+        <link id="hljs-light" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" >
+        <link id="hljs-dark" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github-dark.min.css" disabled>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+        <script>hljs.highlightAll();</script> 
+    </head>
+
+    <body>
+        <div class="navbar fixed-top navbar-expand-lg navbar-dark bg-primary">
+            <div class="container">
+                <a class="navbar-brand" href="../../../..">My Docs</a>
+
+                <!-- Expanded navigation -->
+                <div id="navbar-collapse" class="navbar-collapse collapse">
+
+                    <ul class="nav navbar-nav ms-md-auto">
+                        <li class="nav-item">
+                            <a href="#" class="nav-link" data-bs-toggle="modal" data-bs-target="#mkdocs_search_modal">
+                                <i class="fa fa-search"></i> Search
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="container">
+            <div class="row">
+                    <div class="col-md-3"><div class="navbar-expand-md bs-sidebar hidden-print affix" role="complementary">
+    <div class="navbar-header">
+        <button type="button" class="navbar-toggler collapsed" data-bs-toggle="collapse" data-bs-target="#toc-collapse" title="Table of Contents">
+            <span class="fa fa-angle-down"></span>
+        </button>
+    </div>
+
+    
+    <div id="toc-collapse" class="navbar-collapse collapse card bg-body-tertiary">
+        <ul class="nav flex-column">
+            
+            <li class="nav-item" data-bs-level="1"><a href="#agents" class="nav-link">Agents</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            
+            <li class="nav-item" data-bs-level="1"><a href="#the-system-prompt-will-be-set-dynamically-based-on-context" class="nav-link">The system prompt will be set dynamically based on context</a>
+              <ul class="nav flex-column">
+            <li class="nav-item" data-bs-level="2"><a href="#advanced-concepts" class="nav-link">Advanced concepts</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+              </ul>
+            </li>
+            
+            <li class="nav-item" data-bs-level="1"><a href="#contactinfonamejohn-doe-emailjohnexamplecom-phone555-123-4567" class="nav-link">ContactInfo(name='John Doe', email='john@example.com', phone='(555) 123-4567')</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            
+            <li class="nav-item" data-bs-level="1"><a href="#the-agent-can-now-track-additional-state-beyond-messages" class="nav-link">The agent can now track additional state beyond messages</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+        </ul>
+    </div>
+</div></div>
+                    <div class="col-md-9" role="main">
+
+<table>
+<thead>
+<tr>
+<th>时间</th>
+<th>修订</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>2025-11-14</td>
+<td>yixiu</td>
+</tr>
+</tbody>
+</table>
+<h1 id="agents">Agents</h1>
+<p>Agents combine language models with <a href="/oss/python/langchain/tools">tools</a> to create systems that can reason about tasks, decide which tools to use, and iteratively work towards solutions.</p>
+<p><a href="https://reference.langchain.com/python/langchain/agents/#langchain.agents.create_agent"><code>create_agent</code></a> provides a production-ready agent implementation.</p>
+<p><a href="https://simonwillison.net/2025/Sep/18/agents/">An LLM Agent runs tools in a loop to achieve a goal</a>.
+An agent runs until a stop condition is met - i.e., when the model emits a final output or an iteration limit is reached.</p>
+<p>```mermaid  theme={null}
+%%{
+  init: {
+    "fontFamily": "monospace",
+    "flowchart": {
+      "curve": "curve"
+    },
+    "themeVariables": {"edgeLabelBackground": "transparent"}
+  }
+}%%
+graph TD
+  %% Outside the agent
+  QUERY([input])
+  LLM{model}
+  TOOL(tools)
+  ANSWER([output])</p>
+<p>%% Main flows (no inline labels)
+  QUERY --&gt; LLM
+  LLM --"action"--&gt; TOOL
+  TOOL --"observation"--&gt; LLM
+  LLM --"finish"--&gt; ANSWER</p>
+<p>classDef blueHighlight fill:#0a1c25,stroke:#0a455f,color:#bae6fd;
+  classDef greenHighlight fill:#0b1e1a,stroke:#0c4c39,color:#9ce4c4;
+  class QUERY blueHighlight;
+  class ANSWER blueHighlight;</p>
+<pre><code>
+&lt;Info&gt;
+  [`create_agent`](https://reference.langchain.com/python/langchain/agents/#langchain.agents.create_agent) builds a **graph**-based agent runtime using [LangGraph](/oss/python/langgraph/overview). A graph consists of nodes (steps) and edges (connections) that define how your agent processes information. The agent moves through this graph, executing nodes like the model node (which calls the model), the tools node (which executes tools), or middleware.
+
+  Learn more about the [Graph API](/oss/python/langgraph/graph-api).
+&lt;/Info&gt;
+
+## Core components
+
+### Model
+
+The [model](/oss/python/langchain/models) is the reasoning engine of your agent. It can be specified in multiple ways, supporting both static and dynamic model selection.
+
+#### Static model
+
+Static models are configured once when creating the agent and remain unchanged throughout execution. This is the most common and straightforward approach.
+
+To initialize a static model from a &lt;Tooltip tip=&quot;A string that follows the format `provider:model` (e.g. openai:gpt-5)&quot; cta=&quot;See mappings&quot; href=&quot;https://reference.langchain.com/python/langchain/models/#langchain.chat_models.init_chat_model(model)&quot;&gt;model identifier string&lt;/Tooltip&gt;:
+
+```python wrap theme={null}
+from langchain.agents import create_agent
+
+agent = create_agent(
+    &quot;gpt-5&quot;,
+    tools=tools
+)
+</code></pre>
+<p><Tip>
+  Model identifier strings support automatic inference (e.g., <code>"gpt-5"</code> will be inferred as <code>"openai:gpt-5"</code>). Refer to the <a href="https://reference.langchain.com/python/langchain/models/#langchain.chat_models.init_chat_model(model)">reference</a> to see a full list of model identifier string mappings.
+</Tip></p>
+<p>For more control over the model configuration, initialize a model instance directly using the provider package. In this example, we use <a href="https://reference.langchain.com/python/integrations/langchain_openai/ChatOpenAI"><code>ChatOpenAI</code></a>. See <a href="/oss/python/integrations/chat">Chat models</a> for other available chat model classes.</p>
+<p>```python wrap theme={null}
+from langchain.agents import create_agent
+from langchain_openai import ChatOpenAI</p>
+<p>model = ChatOpenAI(
+    model="gpt-5",
+    temperature=0.1,
+    max_tokens=1000,
+    timeout=30
+    # ... (other params)
+)
+agent = create_agent(model, tools=tools)</p>
+<pre><code>
+Model instances give you complete control over configuration. Use them when you need to set specific [parameters](/oss/python/langchain/models#parameters) like `temperature`, `max_tokens`, `timeouts`, `base_url`, and other provider-specific settings. Refer to the [reference](/oss/python/integrations/providers/all_providers) to see available params and methods on your model.
+
+#### Dynamic model
+
+Dynamic models are selected at &lt;Tooltip tip=&quot;The execution environment of your agent, containing immutable configuration and contextual data that persists throughout the agent's execution (e.g., user IDs, session details, or application-specific configuration).&quot;&gt;runtime&lt;/Tooltip&gt; based on the current &lt;Tooltip tip=&quot;The data that flows through your agent's execution, including messages, custom fields, and any information that needs to be tracked and potentially modified during processing (e.g., user preferences or tool usage stats).&quot;&gt;state&lt;/Tooltip&gt; and context. This enables sophisticated routing logic and cost optimization.
+
+To use a dynamic model, create middleware using the [`@wrap_model_call`](https://reference.langchain.com/python/langchain/middleware/#langchain.agents.middleware.wrap_model_call) decorator that modifies the model in the request:
+
+```python  theme={null}
+from langchain_openai import ChatOpenAI
+from langchain.agents import create_agent
+from langchain.agents.middleware import wrap_model_call, ModelRequest, ModelResponse
+
+
+basic_model = ChatOpenAI(model=&quot;gpt-4o-mini&quot;)
+advanced_model = ChatOpenAI(model=&quot;gpt-4o&quot;)
+
+@wrap_model_call
+def dynamic_model_selection(request: ModelRequest, handler) -&gt; ModelResponse:
+    &quot;&quot;&quot;Choose model based on conversation complexity.&quot;&quot;&quot;
+    message_count = len(request.state[&quot;messages&quot;])
+
+    if message_count &gt; 10:
+        # Use an advanced model for longer conversations
+        model = advanced_model
+    else:
+        model = basic_model
+
+    request.model = model
+    return handler(request)
+
+agent = create_agent(
+    model=basic_model,  # Default model
+    tools=tools,
+    middleware=[dynamic_model_selection]
+)
+</code></pre>
+<p><Warning>
+  Pre-bound models (models with <a href="https://reference.langchain.com/python/langchain_core/language_models/#langchain_core.language_models.chat_models.BaseChatModel.bind_tools"><code>bind_tools</code></a> already called) are not supported when using structured output. If you need dynamic model selection with structured output, ensure the models passed to the middleware are not pre-bound.
+</Warning></p>
+<p><Tip>
+  For model configuration details, see <a href="/oss/python/langchain/models">Models</a>. For dynamic model selection patterns, see <a href="/oss/python/langchain/middleware#dynamic-model">Dynamic model in middleware</a>.
+</Tip></p>
+<h3 id="tools">Tools</h3>
+<p>Tools give agents the ability to take actions. Agents go beyond simple model-only tool binding by facilitating:</p>
+<ul>
+<li>Multiple tool calls in sequence (triggered by a single prompt)</li>
+<li>Parallel tool calls when appropriate</li>
+<li>Dynamic tool selection based on previous results</li>
+<li>Tool retry logic and error handling</li>
+<li>State persistence across tool calls</li>
+</ul>
+<p>For more information, see <a href="/oss/python/langchain/tools">Tools</a>.</p>
+<h4 id="defining-tools">Defining tools</h4>
+<p>Pass a list of tools to the agent.</p>
+<p>```python wrap theme={null}
+from langchain.tools import tool
+from langchain.agents import create_agent</p>
+<p>@tool
+def search(query: str) -&gt; str:
+    """Search for information."""
+    return f"Results for: {query}"</p>
+<p>@tool
+def get_weather(location: str) -&gt; str:
+    """Get weather information for a location."""
+    return f"Weather in {location}: Sunny, 72°F"</p>
+<p>agent = create_agent(model, tools=[search, get_weather])</p>
+<pre><code>
+If an empty tool list is provided, the agent will consist of a single LLM node without tool-calling capabilities.
+
+#### Tool error handling
+
+To customize how tool errors are handled, use the [`@wrap_tool_call`](https://reference.langchain.com/python/langchain/middleware/#langchain.agents.middleware.wrap_tool_call) decorator to create middleware:
+
+```python wrap theme={null}
+from langchain.agents import create_agent
+from langchain.agents.middleware import wrap_tool_call
+from langchain_core.messages import ToolMessage
+
+
+@wrap_tool_call
+def handle_tool_errors(request, handler):
+    &quot;&quot;&quot;Handle tool execution errors with custom messages.&quot;&quot;&quot;
+    try:
+        return handler(request)
+    except Exception as e:
+        # Return a custom error message to the model
+        return ToolMessage(
+            content=f&quot;Tool error: Please check your input and try again. ({str(e)})&quot;,
+            tool_call_id=request.tool_call[&quot;id&quot;]
+        )
+
+agent = create_agent(
+    model=&quot;gpt-4o&quot;,
+    tools=[search, get_weather],
+    middleware=[handle_tool_errors]
+)
+</code></pre>
+<p>The agent will return a <a href="https://reference.langchain.com/python/langchain/messages/#langchain.messages.ToolMessage"><code>ToolMessage</code></a> with the custom error message when a tool fails:</p>
+<p>```python  theme={null}
+[
+    ...
+    ToolMessage(
+        content="Tool error: Please check your input and try again. (division by zero)",
+        tool_call_id="..."
+    ),
+    ...
+]</p>
+<pre><code>
+#### Tool use in the ReAct loop
+
+Agents follow the ReAct (&quot;Reasoning + Acting&quot;) pattern, alternating between brief reasoning steps with targeted tool calls and feeding the resulting observations into subsequent decisions until they can deliver a final answer.
+
+&lt;Accordion title=&quot;Example of ReAct loop&quot;&gt;
+  Prompt: Identify the current most popular wireless headphones and verify availability.
+
+  ```
+  ================================ Human Message =================================
+
+  Find the most popular wireless headphones right now and check if they're in stock
+  ```
+
+  * **Reasoning**: &quot;Popularity is time-sensitive, I need to use the provided search tool.&quot;
+  * **Acting**: Call `search_products(&quot;wireless headphones&quot;)`
+
+  ```
+  ================================== Ai Message ==================================
+  Tool Calls:
+    search_products (call_abc123)
+   Call ID: call_abc123
+    Args:
+      query: wireless headphones
+  ```
+
+  ```
+  ================================= Tool Message =================================
+
+  Found 5 products matching &quot;wireless headphones&quot;. Top 5 results: WH-1000XM5, ...
+  ```
+
+  * **Reasoning**: &quot;I need to confirm availability for the top-ranked item before answering.&quot;
+  * **Acting**: Call `check_inventory(&quot;WH-1000XM5&quot;)`
+
+  ```
+  ================================== Ai Message ==================================
+  Tool Calls:
+    check_inventory (call_def456)
+   Call ID: call_def456
+    Args:
+      product_id: WH-1000XM5
+  ```
+
+  ```
+  ================================= Tool Message =================================
+
+  Product WH-1000XM5: 10 units in stock
+  ```
+
+  * **Reasoning**: &quot;I have the most popular model and its stock status. I can now answer the user's question.&quot;
+  * **Acting**: Produce final answer
+
+  ```
+  ================================== Ai Message ==================================
+
+  I found wireless headphones (model WH-1000XM5) with 10 units in stock...
+  ```
+&lt;/Accordion&gt;
+
+&lt;Tip&gt;
+  To learn more about tools, see [Tools](/oss/python/langchain/tools).
+&lt;/Tip&gt;
+
+### System prompt
+
+You can shape how your agent approaches tasks by providing a prompt. The [`system_prompt`](https://reference.langchain.com/python/langchain/agents/#langchain.agents.create_agent\(system_prompt\)) parameter can be provided as a string:
+
+```python wrap theme={null}
+agent = create_agent(
+    model,
+    tools,
+    system_prompt=&quot;You are a helpful assistant. Be concise and accurate.&quot;
+)
+</code></pre>
+<p>When no <a href="https://reference.langchain.com/python/langchain/agents/#langchain.agents.create_agent(system_prompt)"><code>system_prompt</code></a> is provided, the agent will infer its task from the messages directly.</p>
+<h4 id="dynamic-system-prompt">Dynamic system prompt</h4>
+<p>For more advanced use cases where you need to modify the system prompt based on runtime context or agent state, you can use <a href="/oss/python/langchain/middleware">middleware</a>.</p>
+<p>The <a href="https://reference.langchain.com/python/langchain/middleware/#langchain.agents.middleware.dynamic_prompt"><code>@dynamic_prompt</code></a> decorator creates middleware that generates system prompts dynamically based on the model request:</p>
+<p>```python wrap theme={null}
+from typing import TypedDict</p>
+<p>from langchain.agents import create_agent
+from langchain.agents.middleware import dynamic_prompt, ModelRequest</p>
+<p>class Context(TypedDict):
+    user_role: str</p>
+<p>@dynamic_prompt
+def user_role_prompt(request: ModelRequest) -&gt; str:
+    """Generate system prompt based on user role."""
+    user_role = request.runtime.context.get("user_role", "user")
+    base_prompt = "You are a helpful assistant."</p>
+<pre><code>if user_role == "expert":
+    return f"{base_prompt} Provide detailed technical responses."
+elif user_role == "beginner":
+    return f"{base_prompt} Explain concepts simply and avoid jargon."
+
+return base_prompt
+</code></pre>
+<p>agent = create_agent(
+    model="gpt-4o",
+    tools=[web_search],
+    middleware=[user_role_prompt],
+    context_schema=Context
+)</p>
+<h1 id="the-system-prompt-will-be-set-dynamically-based-on-context">The system prompt will be set dynamically based on context</h1>
+<p>result = agent.invoke(
+    {"messages": [{"role": "user", "content": "Explain machine learning"}]},
+    context={"user_role": "expert"}
+)</p>
+<pre><code>
+&lt;Tip&gt;
+  For more details on message types and formatting, see [Messages](/oss/python/langchain/messages). For comprehensive middleware documentation, see [Middleware](/oss/python/langchain/middleware).
+&lt;/Tip&gt;
+
+## Invocation
+
+You can invoke an agent by passing an update to its [`State`](/oss/python/langgraph/graph-api#state). All agents include a [sequence of messages](/oss/python/langgraph/use-graph-api#messagesstate) in their state; to invoke the agent, pass a new message:
+
+```python  theme={null}
+result = agent.invoke(
+    {&quot;messages&quot;: [{&quot;role&quot;: &quot;user&quot;, &quot;content&quot;: &quot;What's the weather in San Francisco?&quot;}]}
+)
+</code></pre>
+<p>For streaming steps and / or tokens from the agent, refer to the <a href="/oss/python/langchain/streaming">streaming</a> guide.</p>
+<p>Otherwise, the agent follows the LangGraph <a href="/oss/python/langgraph/use-graph-api">Graph API</a> and supports all associated methods, such as <code>stream</code> and <code>invoke</code>.</p>
+<h2 id="advanced-concepts">Advanced concepts</h2>
+<h3 id="structured-output">Structured output</h3>
+<p>In some situations, you may want the agent to return an output in a specific format. LangChain provides strategies for structured output via the <code>response_format</code> parameter.</p>
+<h4 id="toolstrategy">ToolStrategy</h4>
+<p><code>ToolStrategy</code> uses artificial tool calling to generate structured output. This works with any model that supports tool calling:</p>
+<p>```python wrap theme={null}
+from pydantic import BaseModel
+from langchain.agents import create_agent
+from langchain.agents.structured_output import ToolStrategy</p>
+<p>class ContactInfo(BaseModel):
+    name: str
+    email: str
+    phone: str</p>
+<p>agent = create_agent(
+    model="gpt-4o-mini",
+    tools=[search_tool],
+    response_format=ToolStrategy(ContactInfo)
+)</p>
+<p>result = agent.invoke({
+    "messages": [{"role": "user", "content": "Extract contact info from: John Doe, john@example.com, (555) 123-4567"}]
+})</p>
+<p>result["structured_response"]</p>
+<h1 id="contactinfonamejohn-doe-emailjohnexamplecom-phone555-123-4567">ContactInfo(name='John Doe', email='john@example.com', phone='(555) 123-4567')</h1>
+<pre><code>
+#### ProviderStrategy
+
+`ProviderStrategy` uses the model provider's native structured output generation. This is more reliable but only works with providers that support native structured output (e.g., OpenAI):
+
+```python wrap theme={null}
+from langchain.agents.structured_output import ProviderStrategy
+
+agent = create_agent(
+    model=&quot;gpt-4o&quot;,
+    response_format=ProviderStrategy(ContactInfo)
+)
+</code></pre>
+<p><Note>
+  As of <code>langchain 1.0</code>, simply passing a schema (e.g., <code>response_format=ContactInfo</code>) is no longer supported. You must explicitly use <code>ToolStrategy</code> or <code>ProviderStrategy</code>.
+</Note></p>
+<p><Tip>
+  To learn about structured output, see <a href="/oss/python/langchain/structured-output">Structured output</a>.
+</Tip></p>
+<h3 id="memory">Memory</h3>
+<p>Agents maintain conversation history automatically through the message state. You can also configure the agent to use a custom state schema to remember additional information during the conversation.</p>
+<p>Information stored in the state can be thought of as the <a href="/oss/python/langchain/short-term-memory">short-term memory</a> of the agent:</p>
+<p>Custom state schemas must extend <a href="https://reference.langchain.com/python/langchain/agents/#langchain.agents.AgentState"><code>AgentState</code></a> as a <code>TypedDict</code>.</p>
+<p>There are two ways to define custom state:</p>
+<ol>
+<li>Via <a href="/oss/python/langchain/middleware">middleware</a> (preferred)</li>
+<li>Via <a href="https://reference.langchain.com/python/langchain/middleware/#langchain.agents.middleware.AgentMiddleware.state_schema"><code>state_schema</code></a> on <a href="https://reference.langchain.com/python/langchain/agents/#langchain.agents.create_agent"><code>create_agent</code></a></li>
+</ol>
+<p><Note>
+  Defining custom state via middleware is preferred over defining it via <a href="https://reference.langchain.com/python/langchain/middleware/#langchain.agents.middleware.AgentMiddleware.state_schema"><code>state_schema</code></a> on <a href="https://reference.langchain.com/python/langchain/agents/#langchain.agents.create_agent"><code>create_agent</code></a> because it allows you to keep state extensions conceptually scoped to the relevant middleware and tools.</p>
+<p><a href="https://reference.langchain.com/python/langchain/middleware/#langchain.agents.middleware.AgentMiddleware.state_schema"><code>state_schema</code></a> is still supported for backwards compatibility on <a href="https://reference.langchain.com/python/langchain/agents/#langchain.agents.create_agent"><code>create_agent</code></a>.
+</Note></p>
+<h4 id="defining-state-via-middleware">Defining state via middleware</h4>
+<p>Use middleware to define custom state when your custom state needs to be accessed by specific middleware hooks and tools attached to said middleware.</p>
+<p>```python  theme={null}
+from langchain.agents import AgentState
+from langchain.agents.middleware import AgentMiddleware
+from typing import Any</p>
+<p>class CustomState(AgentState):
+    user_preferences: dict</p>
+<p>class CustomMiddleware(AgentMiddleware):
+    state_schema = CustomState
+    tools = [tool1, tool2]</p>
+<pre><code>def before_model(self, state: CustomState, runtime) -&gt; dict[str, Any] | None:
+    ...
+</code></pre>
+<p>agent = create_agent(
+    model,
+    tools=tools,
+    middleware=[CustomMiddleware()]
+)</p>
+<h1 id="the-agent-can-now-track-additional-state-beyond-messages">The agent can now track additional state beyond messages</h1>
+<p>result = agent.invoke({
+    "messages": [{"role": "user", "content": "I prefer technical explanations"}],
+    "user_preferences": {"style": "technical", "verbosity": "detailed"},
+})</p>
+<pre><code>
+#### Defining state via `state_schema`
+
+Use the [`state_schema`](https://reference.langchain.com/python/langchain/middleware/#langchain.agents.middleware.AgentMiddleware.state_schema) parameter as a shortcut to define custom state that is only used in tools.
+
+```python  theme={null}
+from langchain.agents import AgentState
+
+
+class CustomState(AgentState):
+    user_preferences: dict
+
+agent = create_agent(
+    model,
+    tools=[tool1, tool2],
+    state_schema=CustomState
+)
+# The agent can now track additional state beyond messages
+result = agent.invoke({
+    &quot;messages&quot;: [{&quot;role&quot;: &quot;user&quot;, &quot;content&quot;: &quot;I prefer technical explanations&quot;}],
+    &quot;user_preferences&quot;: {&quot;style&quot;: &quot;technical&quot;, &quot;verbosity&quot;: &quot;detailed&quot;},
+})
+</code></pre>
+<p><Note>
+  As of <code>langchain 1.0</code>, custom state schemas <strong>must</strong> be <code>TypedDict</code> types. Pydantic models and dataclasses are no longer supported. See the <a href="/oss/python/migrate/langchain-v1#state-type-restrictions">v1 migration guide</a> for more details.
+</Note></p>
+<p><Tip>
+  To learn more about memory, see <a href="/oss/python/concepts/memory">Memory</a>. For information on implementing long-term memory that persists across sessions, see <a href="/oss/python/langchain/long-term-memory">Long-term memory</a>.
+</Tip></p>
+<h3 id="streaming">Streaming</h3>
+<p>We've seen how the agent can be called with <code>invoke</code> to get a final response. If the agent executes multiple steps, this may take a while. To show intermediate progress, we can stream back messages as they occur.</p>
+<p><code>python  theme={null}
+for chunk in agent.stream({
+    "messages": [{"role": "user", "content": "Search for AI news and summarize the findings"}]
+}, stream_mode="values"):
+    # Each chunk contains the full state at that point
+    latest_message = chunk["messages"][-1]
+    if latest_message.content:
+        print(f"Agent: {latest_message.content}")
+    elif latest_message.tool_calls:
+        print(f"Calling tools: {[tc['name'] for tc in latest_message.tool_calls]}")</code></p>
+<p><Tip>
+  For more details on streaming, see <a href="/oss/python/langchain/streaming">Streaming</a>.
+</Tip></p>
+<h3 id="middleware">Middleware</h3>
+<p><a href="/oss/python/langchain/middleware">Middleware</a> provides powerful extensibility for customizing agent behavior at different stages of execution. You can use middleware to:</p>
+<ul>
+<li>Process state before the model is called (e.g., message trimming, context injection)</li>
+<li>Modify or validate the model's response (e.g., guardrails, content filtering)</li>
+<li>Handle tool execution errors with custom logic</li>
+<li>Implement dynamic model selection based on state or context</li>
+<li>Add custom logging, monitoring, or analytics</li>
+</ul>
+<p>Middleware integrates seamlessly into the agent's execution graph, allowing you to intercept and modify data flow at key points without changing the core agent logic.</p>
+<p><Tip>
+  For comprehensive middleware documentation including decorators like <a href="https://reference.langchain.com/python/langchain/middleware/#langchain.agents.middleware.before_model"><code>@before_model</code></a>, <a href="https://reference.langchain.com/python/langchain/middleware/#langchain.agents.middleware.after_model"><code>@after_model</code></a>, and <a href="https://reference.langchain.com/python/langchain/middleware/#langchain.agents.middleware.wrap_tool_call"><code>@wrap_tool_call</code></a>, see <a href="/oss/python/langchain/middleware">Middleware</a>.
+</Tip></p>
+<hr />
+<p><Callout icon="pen-to-square" iconType="regular">
+  <a href="https://github.com/langchain-ai/docs/edit/main/src/oss/langchain/agents.mdx">Edit the source of this page on GitHub.</a>
+</Callout></p>
+<p><Tip icon="terminal" iconType="regular">
+  <a href="/use-these-docs">Connect these docs programmatically</a> to Claude, VSCode, and more via MCP for    real-time answers.
+</Tip></p></div>
+            </div>
+        </div>
+
+        <footer class="col-md-12">
+            <hr>
+            <p>Documentation built with <a href="https://www.mkdocs.org/">MkDocs</a>.</p>
+        </footer>
+        <script src="../../../../js/bootstrap.bundle.min.js"></script>
+        <script>
+            var base_url = "../../../..",
+                shortcuts = {"help": 191, "next": 78, "previous": 80, "search": 83};
+        </script>
+        <script src="../../../../js/base.js"></script>
+        <script src="../../../../search/main.js"></script>
+
+        <div class="modal" id="mkdocs_search_modal" tabindex="-1" role="dialog" aria-labelledby="searchModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="searchModalLabel">Search</h4>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>From here you can search these documents. Enter your search terms below.</p>
+                <form>
+                    <div class="form-group">
+                        <input type="search" class="form-control" placeholder="Search..." id="mkdocs-search-query" title="Type search term here">
+                    </div>
+                </form>
+                <div id="mkdocs-search-results" data-no-results-text="No results found"></div>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div><div class="modal" id="mkdocs_keyboard_modal" tabindex="-1" role="dialog" aria-labelledby="keyboardModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="keyboardModalLabel">Keyboard Shortcuts</h4>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th style="width: 20%;">Keys</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td class="help shortcut"><kbd>?</kbd></td>
+                    <td>Open this help</td>
+                  </tr>
+                  <tr>
+                    <td class="next shortcut"><kbd>n</kbd></td>
+                    <td>Next page</td>
+                  </tr>
+                  <tr>
+                    <td class="prev shortcut"><kbd>p</kbd></td>
+                    <td>Previous page</td>
+                  </tr>
+                  <tr>
+                    <td class="search shortcut"><kbd>s</kbd></td>
+                    <td>Search</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div>
+
+    </body>
+</html>

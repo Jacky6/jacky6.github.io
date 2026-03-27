@@ -1,0 +1,477 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="light">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        
+        
+        
+        <link rel="shortcut icon" href="../../../../img/favicon.ico">
+        <title>3 aiohttp - My Docs</title>
+        <link href="../../../../css/bootstrap.min.css" rel="stylesheet">
+        <link href="../../../../css/fontawesome.min.css" rel="stylesheet">
+        <link href="../../../../css/brands.min.css" rel="stylesheet">
+        <link href="../../../../css/solid.min.css" rel="stylesheet">
+        <link href="../../../../css/v4-font-face.min.css" rel="stylesheet">
+        <link href="../../../../css/base.css" rel="stylesheet">
+        <link id="hljs-light" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" >
+        <link id="hljs-dark" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github-dark.min.css" disabled>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+        <script>hljs.highlightAll();</script> 
+    </head>
+
+    <body>
+        <div class="navbar fixed-top navbar-expand-lg navbar-dark bg-primary">
+            <div class="container">
+                <a class="navbar-brand" href="../../../..">My Docs</a>
+
+                <!-- Expanded navigation -->
+                <div id="navbar-collapse" class="navbar-collapse collapse">
+
+                    <ul class="nav navbar-nav ms-md-auto">
+                        <li class="nav-item">
+                            <a href="#" class="nav-link" data-bs-toggle="modal" data-bs-target="#mkdocs_search_modal">
+                                <i class="fa fa-search"></i> Search
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="container">
+            <div class="row">
+                    <div class="col-md-3"><div class="navbar-expand-md bs-sidebar hidden-print affix" role="complementary">
+    <div class="navbar-header">
+        <button type="button" class="navbar-toggler collapsed" data-bs-toggle="collapse" data-bs-target="#toc-collapse" title="Table of Contents">
+            <span class="fa fa-angle-down"></span>
+        </button>
+    </div>
+
+    
+    <div id="toc-collapse" class="navbar-collapse collapse card bg-body-tertiary">
+        <ul class="nav flex-column">
+            
+            <li class="nav-item" data-bs-level="1"><a href="#client" class="nav-link">Client</a>
+              <ul class="nav flex-column">
+            <li class="nav-item" data-bs-level="2"><a href="#_1" class="nav-link">快速开始</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#advanced-client-usage" class="nav-link">Advanced Client Usage</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#client-middleware-cookbook" class="nav-link">Client Middleware Cookbook</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+              </ul>
+            </li>
+            
+            <li class="nav-item" data-bs-level="1"><a href="#server" class="nav-link">Server</a>
+              <ul class="nav flex-column">
+            <li class="nav-item" data-bs-level="2"><a href="#tutorial" class="nav-link">Tutorial</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#quick-start" class="nav-link">Quick Start</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+              </ul>
+            </li>
+        </ul>
+    </div>
+</div></div>
+                    <div class="col-md-9" role="main">
+
+<blockquote>
+<p>2025.09</p>
+</blockquote>
+<ul>
+<li>
+<p><a href="https://docs.aiohttp.org/en/stable/">官网文档</a></p>
+</li>
+<li>
+<p><a href="https://aiohttp-demos.readthedocs.io/en/latest/index.html#aiohttp-demos-polls-beginning">官方教程demo</a></p>
+</li>
+</ul>
+<pre><code class="language-python"># 安装
+pip install aiohttp
+</code></pre>
+<p>Current version is 3.12.15.</p>
+<h1 id="client">Client</h1>
+<h2 id="_1">快速开始</h2>
+<h3 id="_2">构造一个请求</h3>
+<p>https://docs.aiohttp.org/en/stable/client_quickstart.html#make-a-request</p>
+<h3 id="timeouts">Timeouts</h3>
+<p>Timeout settings are stored in <a href="https://docs.aiohttp.org/en/stable/client_reference.html#aiohttp.ClientTimeout"><code>ClientTimeout</code></a> data structure.</p>
+<p>By default <em>aiohttp</em> uses a <em>total</em> 300 seconds (5min) timeout, it means that the whole operation should finish in 5 minutes. In order to allow time for DNS fallback, the default <code>sock_connect</code> timeout is 30 seconds.</p>
+<p>The value could be overridden by <em>timeout</em> parameter for the session (specified in seconds):</p>
+<pre><code class="language-python">timeout = aiohttp.ClientTimeout(total=60)
+async with aiohttp.ClientSession(timeout=timeout) as session:
+    ...
+</code></pre>
+<p>Timeout could be overridden for a request like <a href="https://docs.aiohttp.org/en/stable/client_reference.html#aiohttp.ClientSession.get"><code>ClientSession.get()</code></a>:</p>
+<pre><code class="language-python">async with session.get(url, timeout=timeout) as resp:
+    ...
+</code></pre>
+<p>Supported <a href="https://docs.aiohttp.org/en/stable/client_reference.html#aiohttp.ClientTimeout"><code>ClientTimeout</code></a> fields are:</p>
+<ul>
+<li><code>total</code></li>
+<li>The maximal number of seconds for the whole operation including connection establishment, request sending and response reading.</li>
+<li><code>connect</code></li>
+<li>The maximal number of seconds for connection establishment of a new connection or for waiting for a free connection from a pool if pool connection limits are exceeded.</li>
+<li><code>sock_connect</code></li>
+<li>The maximal number of seconds for connecting to a peer for a new connection, not given from a pool.</li>
+<li><code>sock_read</code></li>
+<li>The maximal number of seconds allowed for period between reading a new data portion from a peer.</li>
+<li><code>ceil_threshold</code></li>
+<li>The threshold value to trigger ceiling of absolute timeout values.</li>
+</ul>
+<p>All fields are floats, <code>None</code> or <code>0</code> disables a particular timeout check, see the <a href="https://docs.aiohttp.org/en/stable/client_reference.html#aiohttp.ClientTimeout"><code>ClientTimeout</code></a> reference for defaults and additional details.</p>
+<p>Thus the default timeout is:</p>
+<pre><code class="language-python">aiohttp.ClientTimeout(total=5*60, connect=None,
+                      sock_connect=None, sock_read=None, ceil_threshold=5)
+</code></pre>
+<blockquote>
+<p><em>aiohttp</em> <strong>ceils</strong> timeout if the value is equal or greater than 5 seconds. The timeout expires at the next integer second greater than <code>current_time + timeout</code>.</p>
+<p>The ceiling is done for the sake of optimization, when many concurrent tasks are scheduled to wake-up at the almost same but different absolute times. It leads to very many event loop wakeups, which kills performance.</p>
+<p>The optimization shifts absolute wakeup times by scheduling them to exactly the same time as other neighbors, the loop wakes up once-per-second for timeout expiration.</p>
+<p>Smaller timeouts are not rounded to help testing; in the real life network timeouts usually greater than tens of seconds. However, the default threshold value of 5 seconds can be configured using the <code>ceil_threshold</code> parameter.</p>
+</blockquote>
+<h2 id="advanced-client-usage">Advanced Client Usage</h2>
+<p>https://docs.aiohttp.org/en/stable/client_advanced.html</p>
+<h3 id="client-middleware">Client Middleware</h3>
+<p>The client supports middleware to intercept requests and responses. This can be useful for authentication, logging, request/response modification, retries etc.</p>
+<p>For more examples and common middleware patterns, see the <a href="https://docs.aiohttp.org/en/stable/client_middleware_cookbook.html#aiohttp-client-middleware-cookbook">Client Middleware Cookbook</a>.</p>
+<h4 id="1-creating-a-middleware">1. Creating a middleware</h4>
+<p>To create a middleware, <strong>define an async function (or callable class)</strong> that <strong>accepts a request object and a handler function, and returns a response</strong>. Middlewares must follow the <a href="https://docs.aiohttp.org/en/stable/client_reference.html#aiohttp.ClientMiddlewareType"><code>ClientMiddlewareType</code></a> signature:</p>
+<pre><code class="language-python">async def auth_middleware(req: ClientRequest, handler: ClientHandlerType) -&gt; ClientResponse:
+    req.headers[&quot;Authorization&quot;] = get_auth_header()
+    return await handler(req)
+</code></pre>
+<h4 id="2-using-middlewares">2. Using middlewares</h4>
+<p>You can apply middlewares to <strong>a client session</strong> or to <strong>individual requests</strong>:</p>
+<pre><code class="language-python"># Apply to all requests in a session
+async with ClientSession(middlewares=(my_middleware,)) as session:
+    resp = await session.get(&quot;http://example.com&quot;)
+
+# Apply to a specific request
+async with ClientSession() as session:
+    resp = await session.get(&quot;http://example.com&quot;, middlewares=(my_middleware,))
+</code></pre>
+<h4 id="3-middlewares-chaining">3. Middlewares Chaining</h4>
+<p>Multiple middlewares are applied in the order they are listed:</p>
+<pre><code class="language-python"># Middlewares are applied in order: logging -&gt; auth -&gt; request
+async with ClientSession(middlewares=(logging_middleware, auth_middleware)) as session:
+    async with session.get(&quot;http://example.com&quot;) as resp:
+        ...
+</code></pre>
+<p>A key aspect to understand about the middleware sequence is that the execution flow follows this pattern:</p>
+<ol>
+<li>The first middleware in the list is called first and executes its code before calling the handler</li>
+<li>The handler is the next middleware in the chain (or the request handler if there are no more middlewares)</li>
+<li>When the handler returns a response, execution continues from the last middleware right after the handler call</li>
+<li>This creates a nested “onion-like” pattern for execution</li>
+</ol>
+<p>For example, with <code>middlewares=(middleware1, middleware2)</code>, the execution order would be:</p>
+<ol>
+<li>Enter <code>middleware1</code> (pre-request code)</li>
+<li>Enter <code>middleware2</code> (pre-request code)</li>
+<li>Execute the actual request handler</li>
+<li>Exit <code>middleware2</code> (post-response code)</li>
+<li>Exit <code>middleware1</code> (post-response code)</li>
+</ol>
+<p>This flat structure means that a middleware is applied on each retry attempt inside the client’s retry loop, not just once before all retries. This allows middleware to modify requests freshly on each retry attempt.</p>
+<p>For example, if we had a retry middleware and a logging middleware, and we want every retried request to be logged separately, then we’d need to specify <code>middlewares=(retry_mw, logging_mw)</code>. If we reversed the order to <code>middlewares=(logging_mw, retry_mw)</code>, then we’d only log once regardless of how many retries are done.</p>
+<blockquote>
+<p>Note:Client middleware is a powerful feature but should be used judiciously（明智地）. Each middleware adds overhead to request processing. For simple use cases like adding static headers, you can often use request parameters (e.g., <code>headers</code>) or session configuration instead.</p>
+</blockquote>
+<p>重试中间件</p>
+<pre><code class="language-python">async def retry_middleware(
+    req: ClientRequest, handler: ClientHandlerType
+) -&gt; ClientResponse:
+    for _ in range(3):  # Try up to 3 times
+        resp = await handler(req)
+        if resp.ok:
+            return resp
+    return resp
+</code></pre>
+<h3 id="connectors">Connectors</h3>
+<p>To tweak(调整) or change <em>transport</em> layer(传输层) of requests you can pass a custom(自定义) <em>connector</em> to <a href="https://docs.aiohttp.org/en/stable/client_reference.html#aiohttp.ClientSession"><code>ClientSession</code></a> and family. For example:</p>
+<pre><code class="language-python">conn = aiohttp.TCPConnector()
+session = aiohttp.ClientSession(connector=conn)
+</code></pre>
+<blockquote>
+<p>[!NOTE]</p>
+<p>By default <em>session</em> object takes the ownership(所有权) of the connector, among other things closing the connections once the <em>session</em> is closed(一旦session关闭会关闭connections). If you are keen on share the same <em>connector</em> through different <em>session</em> instances you must give the <strong>connector_owner</strong> parameter as <strong>False</strong> for each <em>session</em> instance.</p>
+<p>[!TIP]</p>
+<p><a href="https://docs.aiohttp.org/en/stable/client_reference.html#aiohttp-client-reference-connectors">Connectors</a> section for more information about different connector types and configuration options.</p>
+</blockquote>
+<h4 id="1-limiting-connection-pool-size">1. Limiting connection pool size</h4>
+<p>​   To limit amount of simultaneously(同时地) opened connections you can pass <em>limit</em> parameter to <em>connector</em>:</p>
+<pre><code class="language-python">conn = aiohttp.TCPConnector(limit=30)
+</code></pre>
+<p><strong>The default is 100.</strong></p>
+<p>​   If you explicitly(明确地) want not to have limits, pass 0. For example:</p>
+<pre><code class="language-python">conn = aiohttp.TCPConnector(limit=0)
+</code></pre>
+<p>​   To limit amount of simultaneously(同时地) opened connection to the same endpoint (<code>(host, port, is_ssl)</code> triple) you can pass <em>limit_per_host</em> parameter to <em>connector</em>:</p>
+<pre><code class="language-python">conn = aiohttp.TCPConnector(limit_per_host=30)
+</code></pre>
+<p>​   The example limits amount of parallel connections to the same to 30.</p>
+<p><strong>The default is 0 (no limit on per host bases).</strong></p>
+<h4 id="2-tuning-the-dns-cache">2. Tuning the DNS cache</h4>
+<p>​   By default <a href="https://docs.aiohttp.org/en/stable/client_reference.html#aiohttp.TCPConnector"><code>TCPConnector</code></a> comes with the DNS cache table <strong>enabled</strong>, and resolutions will be cached by default for 10 seconds. This behavior can be changed either to change of the TTL for a resolution, as can be seen in the following example:</p>
+<pre><code class="language-python">conn = aiohttp.TCPConnector(ttl_dns_cache=300)
+</code></pre>
+<p>​   or disabling the use of the DNS cache table, meaning that all requests will end up(导致) making a DNS resolution(解析), as the following example shows:</p>
+<pre><code class="language-python">conn = aiohttp.TCPConnector(use_dns_cache=False)
+</code></pre>
+<h4 id="3-resolving-using-custom-nameservers">3. Resolving using custom nameservers(使用自定义名称服务器进行解析)</h4>
+<p>​   In order to specify the nameservers to when resolving the hostnames, <a href="https://docs.aiohttp.org/en/stable/glossary.html#term-aiodns">aiodns</a> is required:</p>
+<pre><code class="language-python">from aiohttp.resolver import AsyncResolver
+
+resolver = AsyncResolver(nameservers=[&quot;8.8.8.8&quot;, &quot;8.8.4.4&quot;])
+conn = aiohttp.TCPConnector(resolver=resolver)
+</code></pre>
+<h4 id="4-unix-domain-socketsunix">4. Unix domain sockets(Unix域套接字)</h4>
+<p>​   If your HTTP server uses UNIX domain sockets you can use <a href="https://docs.aiohttp.org/en/stable/client_reference.html#aiohttp.UnixConnector"><code>UnixConnector</code></a>:</p>
+<pre><code class="language-python">conn = aiohttp.UnixConnector(path='/path/to/socket')
+session = aiohttp.ClientSession(connector=conn)
+</code></pre>
+<h4 id="5-custom-socket-creation">5. Custom socket creation</h4>
+<p>​   If the default socket is insufficient for your use case, pass an optional <code>socket_factory</code> to the <a href="https://docs.aiohttp.org/en/stable/client_reference.html#aiohttp.TCPConnector"><code>TCPConnector</code></a>, which implements <a href="https://docs.aiohttp.org/en/stable/client_reference.html#aiohttp.SocketFactoryType"><code>SocketFactoryType</code></a>. This will be used to create all sockets for the lifetime of the class object. For example, we may want to change the conditions under which we consider a connection dead. The following would make all sockets respect 9*7200 = 18 hours:</p>
+<pre><code class="language-python">import socket
+
+def socket_factory(addr_info):
+    family, type_, proto, _, _ = addr_info
+    sock = socket.socket(family=family, type=type_, proto=proto)
+    sock.setsockopt(socket.SOL_SOCKET,  socket.SO_KEEPALIVE,  True)
+    sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_KEEPIDLE,  7200)
+    sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_KEEPCNT,      9)
+    return sock
+
+conn = aiohttp.TCPConnector(socket_factory=socket_factory)
+</code></pre>
+<p>​   <code>socket_factory</code> may also be used for binding to the specific network interface on supported platforms:</p>
+<pre><code class="language-python">def socket_factory(addr_info):
+    family, type_, proto, _, _ = addr_info
+    sock = socket.socket(family=family, type=type_, proto=proto)
+    sock.setsockopt(
+        socket.SOL_SOCKET, socket.SO_BINDTODEVICE, b'eth0'
+    )
+    return sock
+
+conn = aiohttp.TCPConnector(socket_factory=socket_factory)
+</code></pre>
+<h4 id="6-named-pipes-in-windows">6. Named pipes in Windows</h4>
+<p>​   If your HTTP server uses Named pipes you can use <code>NamedPipeConnector</code>:</p>
+<pre><code class="language-python">conn = aiohttp.NamedPipeConnector(path=r'\\.\pipe\&lt;name-of-pipe&gt;')
+session = aiohttp.ClientSession(connector=conn)
+</code></pre>
+<p>​   It will only work with the ProactorEventLoop</p>
+<h3 id="ssl-control-for-tcp-sockets">SSL control for TCP sockets</h3>
+<p>​   By default <em>aiohttp</em> uses strict(严格的) checks for HTTPS protocol. Certification checks can be relaxed by setting <em>ssl</em> to <code>False</code>:</p>
+<pre><code class="language-python">r = await session.get('https://example.com', ssl=False)
+</code></pre>
+<p>​   If you need to setup custom ssl parameters (use own certification files for example) you can create a <a href="https://docs.python.org/3/library/ssl.html#ssl.SSLContext"><code>ssl.SSLContext</code></a> instance and pass it into the <a href="https://docs.aiohttp.org/en/stable/client_reference.html#aiohttp.ClientSession.request"><code>ClientSession.request()</code></a> methods or set it for the entire session with <code>ClientSession(connector=TCPConnector(ssl=ssl_context))</code>.</p>
+<p>​   There are explicit(显示) errors when ssl verification fails  </p>
+<ul>
+<li><a href="https://docs.aiohttp.org/en/stable/client_reference.html#aiohttp.ClientConnectorSSLError"><code>aiohttp.ClientConnectorSSLError</code></a>:</li>
+</ul>
+<pre><code class="language-python">try:
+    await session.get('https://expired.badssl.com/')
+except aiohttp.ClientConnectorSSLError as e:
+    assert isinstance(e, ssl.SSLError)
+</code></pre>
+<ul>
+<li><a href="https://docs.aiohttp.org/en/stable/client_reference.html#aiohttp.ClientConnectorCertificateError"><code>aiohttp.ClientConnectorCertificateError</code></a>:</li>
+</ul>
+<pre><code class="language-python">try:
+    await session.get('https://wrong.host.badssl.com/')
+except aiohttp.ClientConnectorCertificateError as e:
+    assert isinstance(e, ssl.CertificateError)
+</code></pre>
+<p>If you need to skip both ssl related errors</p>
+<ul>
+<li><a href="https://docs.aiohttp.org/en/stable/client_reference.html#aiohttp.ClientSSLError"><code>aiohttp.ClientSSLError</code></a>:</li>
+</ul>
+<pre><code class="language-python">try:
+    await session.get('https://expired.badssl.com/')
+except aiohttp.ClientSSLError as e:
+    assert isinstance(e, ssl.SSLError)
+
+try:
+    await session.get('https://wrong.host.badssl.com/')
+except aiohttp.ClientSSLError as e:
+    assert isinstance(e, ssl.CertificateError)
+</code></pre>
+<h4 id="example-1-use-certifi">Example 1: Use certifi</h4>
+<p>By default, Python uses the system CA certificates. In rare cases, these may not be installed or Python is unable to find them, resulting in a error like ssl.SSLCertVerificationError: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate</p>
+<p>One way to work around this problem is to use the <strong>certifi</strong> package:</p>
+<pre><code class="language-python">ssl_context = ssl.create_default_context(cafile=certifi.where())
+async with ClientSession(connector=TCPConnector(ssl=ssl_context)) as sess:
+    ...
+</code></pre>
+<h4 id="example-2-use-self-signed-certificate">Example 2: Use self-signed certificate</h4>
+<p>If you need to verify <em>self-signed</em> certificates, you need to add a call to <a href="https://docs.python.org/3/library/ssl.html#ssl.SSLContext.load_cert_chain"><code>ssl.SSLContext.load_cert_chain()</code></a> with the key pair:</p>
+<pre><code class="language-python">ssl_context = ssl.create_default_context()
+ssl_context.load_cert_chain(&quot;/path/to/client/public/device.pem&quot;,
+                            &quot;/path/to/client/private/device.key&quot;)
+async with sess.get(&quot;https://example.com&quot;, ssl=ssl_context) as resp:
+    ...
+</code></pre>
+<h4 id="example-3-verify-certificate-fingerprint">Example 3: Verify certificate fingerprint(验证证书指纹)</h4>
+<p>​   You may also verify certificates via <em>SHA256</em> fingerprint:</p>
+<pre><code class="language-python"># Attempt to connect to https://www.python.org
+# with a pin to a bogus certificate:
+bad_fp = b'0'*64
+exc = None
+try:
+    r = await session.get('https://www.python.org',
+                          ssl=aiohttp.Fingerprint(bad_fp))
+except aiohttp.FingerprintMismatch as e:
+    exc = e
+assert exc is not None
+assert exc.expected == bad_fp
+
+# www.python.org cert's actual fingerprint
+assert exc.got == b'...'
+</code></pre>
+<p>Note that this is the fingerprint of the DER-encoded certificate. If you have the certificate in PEM format, you can convert it to DER with e.g:</p>
+<pre><code>openssl x509 -in crt.pem -inform PEM -outform DER &gt; crt.der
+</code></pre>
+<blockquote>
+<p>[!NOTE]</p>
+<p>Tip: to convert from a hexadecimal(十六进制) digest to a binary byte-string, you can use <a href="https://docs.python.org/3/library/binascii.html#binascii.unhexlify"><code>binascii.unhexlify()</code></a>.</p>
+<p><em>ssl</em> parameter could be passed to <a href="https://docs.aiohttp.org/en/stable/client_reference.html#aiohttp.TCPConnector"><code>TCPConnector</code></a> as default, the value from <a href="https://docs.aiohttp.org/en/stable/client_reference.html#aiohttp.ClientSession.get"><code>ClientSession.get()</code></a> and others override default.</p>
+</blockquote>
+<h3 id="proxy-support">Proxy support</h3>
+<h3 id="persistent-session-session">Persistent session(持久化 session)</h3>
+<p>​   Even though creating a session on demand seems like a tempting idea, we advise against it. <a href="https://github.com/aio-libs/aiohttp/blob/master/docs/client_advanced.rst#id119"><code>aiohttp.ClientSession</code></a> maintains a connection pool. Contained connections can be reused if necessary to gain some performance improvements. If you plan on reusing the session, a.k.a. creating <strong>persistent session</strong>, you can use either <a href="https://github.com/aio-libs/aiohttp/blob/master/docs/client_advanced.rst#id121"><code>aiohttp-web-signals</code></a> or <a href="https://github.com/aio-libs/aiohttp/blob/master/docs/client_advanced.rst#id123"><code>aiohttp-web-cleanup-ctx</code></a>. If possible we advise using <a href="https://github.com/aio-libs/aiohttp/blob/master/docs/client_advanced.rst#id125"><code>aiohttp-web-cleanup-ctx</code></a>, as it results in more compact(精练) code:</p>
+<pre><code class="language-python">app.cleanup_ctx.append(persistent_session)
+persistent_session = aiohttp.web.AppKey(&quot;persistent_session&quot;, aiohttp.ClientSession)
+
+async def persistent_session(app):
+    app[persistent_session] = session = aiohttp.ClientSession()
+    yield
+    await session.close()
+
+async def my_request_handler(request):
+    session = request.app[persistent_session]
+    async with session.get(&quot;http://python.org&quot;) as resp:
+        print(resp.status)
+</code></pre>
+<p>​   This approach can be successfully used to define numerous sessions given certain requirements. It benefits from having a single location where <a href="https://github.com/aio-libs/aiohttp/blob/master/docs/client_advanced.rst#id127"><code>aiohttp.ClientSession</code></a> instances are created and where artifacts such as <a href="https://github.com/aio-libs/aiohttp/blob/master/docs/client_advanced.rst#id129"><code>aiohttp.BaseConnector</code></a> can be safely shared between sessions if needed.</p>
+<p>In the end all you have to do is to close all sessions after the yield statement:</p>
+<pre><code class="language-python">async def multiple_sessions(app):
+   app[persistent_session_1] = session_1 = aiohttp.ClientSession()
+   app[persistent_session_2] = session_2 = aiohttp.ClientSession()
+   app[persistent_session_3] = session_3 = aiohttp.ClientSession()
+
+   yield
+
+   await asyncio.gather(
+       session_1.close(),
+       session_2.close(),
+       session_3.close(),
+   )
+</code></pre>
+<h2 id="client-middleware-cookbook">Client Middleware Cookbook</h2>
+<h3 id="simple-retry-middleware">Simple Retry Middleware</h3>
+<p>It’s very easy to create middlewares that can retry a connection on a given condition:</p>
+<pre><code class="language-python">async def retry_middleware(
+    req: ClientRequest, handler: ClientHandlerType
+) -&gt; ClientResponse:
+    for _ in range(3):  # Try up to 3 times
+        resp = await handler(req)
+        if resp.ok:
+            return resp
+    return resp
+</code></pre>
+<h1 id="server">Server</h1>
+<h2 id="tutorial">Tutorial</h2>
+<h2 id="quick-start">Quick Start</h2>
+<p>https://docs.aiohttp.org/en/stable/web_quickstart.html</p></div>
+            </div>
+        </div>
+
+        <footer class="col-md-12">
+            <hr>
+            <p>Documentation built with <a href="https://www.mkdocs.org/">MkDocs</a>.</p>
+        </footer>
+        <script src="../../../../js/bootstrap.bundle.min.js"></script>
+        <script>
+            var base_url = "../../../..",
+                shortcuts = {"help": 191, "next": 78, "previous": 80, "search": 83};
+        </script>
+        <script src="../../../../js/base.js"></script>
+        <script src="../../../../search/main.js"></script>
+
+        <div class="modal" id="mkdocs_search_modal" tabindex="-1" role="dialog" aria-labelledby="searchModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="searchModalLabel">Search</h4>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>From here you can search these documents. Enter your search terms below.</p>
+                <form>
+                    <div class="form-group">
+                        <input type="search" class="form-control" placeholder="Search..." id="mkdocs-search-query" title="Type search term here">
+                    </div>
+                </form>
+                <div id="mkdocs-search-results" data-no-results-text="No results found"></div>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div><div class="modal" id="mkdocs_keyboard_modal" tabindex="-1" role="dialog" aria-labelledby="keyboardModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="keyboardModalLabel">Keyboard Shortcuts</h4>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th style="width: 20%;">Keys</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td class="help shortcut"><kbd>?</kbd></td>
+                    <td>Open this help</td>
+                  </tr>
+                  <tr>
+                    <td class="next shortcut"><kbd>n</kbd></td>
+                    <td>Next page</td>
+                  </tr>
+                  <tr>
+                    <td class="prev shortcut"><kbd>p</kbd></td>
+                    <td>Previous page</td>
+                  </tr>
+                  <tr>
+                    <td class="search shortcut"><kbd>s</kbd></td>
+                    <td>Search</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div>
+
+    </body>
+</html>

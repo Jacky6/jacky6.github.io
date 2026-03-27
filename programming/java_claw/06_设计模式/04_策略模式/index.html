@@ -1,0 +1,671 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="light">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        
+        
+        
+        <link rel="shortcut icon" href="../../../../img/favicon.ico">
+        <title>35_策略模式 - My Docs</title>
+        <link href="../../../../css/bootstrap.min.css" rel="stylesheet">
+        <link href="../../../../css/fontawesome.min.css" rel="stylesheet">
+        <link href="../../../../css/brands.min.css" rel="stylesheet">
+        <link href="../../../../css/solid.min.css" rel="stylesheet">
+        <link href="../../../../css/v4-font-face.min.css" rel="stylesheet">
+        <link href="../../../../css/base.css" rel="stylesheet">
+        <link id="hljs-light" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" >
+        <link id="hljs-dark" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github-dark.min.css" disabled>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+        <script>hljs.highlightAll();</script> 
+    </head>
+
+    <body>
+        <div class="navbar fixed-top navbar-expand-lg navbar-dark bg-primary">
+            <div class="container">
+                <a class="navbar-brand" href="../../../..">My Docs</a>
+
+                <!-- Expanded navigation -->
+                <div id="navbar-collapse" class="navbar-collapse collapse">
+
+                    <ul class="nav navbar-nav ms-md-auto">
+                        <li class="nav-item">
+                            <a href="#" class="nav-link" data-bs-toggle="modal" data-bs-target="#mkdocs_search_modal">
+                                <i class="fa fa-search"></i> Search
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="container">
+            <div class="row">
+                    <div class="col-md-3"><div class="navbar-expand-md bs-sidebar hidden-print affix" role="complementary">
+    <div class="navbar-header">
+        <button type="button" class="navbar-toggler collapsed" data-bs-toggle="collapse" data-bs-target="#toc-collapse" title="Table of Contents">
+            <span class="fa fa-angle-down"></span>
+        </button>
+    </div>
+
+    
+    <div id="toc-collapse" class="navbar-collapse collapse card bg-body-tertiary">
+        <ul class="nav flex-column">
+            
+            <li class="nav-item" data-bs-level="1"><a href="#35_" class="nav-link">35_策略模式</a>
+              <ul class="nav flex-column">
+            <li class="nav-item" data-bs-level="2"><a href="#1" class="nav-link">1. 策略模式概述</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#2" class="nav-link">2. 实现方式</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#3" class="nav-link">3. 实战示例</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#4" class="nav-link">4. 优缺点</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#5" class="nav-link">5. 与其他模式结合</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#6" class="nav-link">6. 本章小结</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#_3" class="nav-link">📚 完整教程体系</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+              </ul>
+            </li>
+        </ul>
+    </div>
+</div></div>
+                    <div class="col-md-9" role="main">
+
+<h1 id="35_">35_策略模式</h1>
+<hr />
+<h2 id="1">1. 策略模式概述</h2>
+<h3 id="11">1.1 什么是策略模式</h3>
+<p><strong>策略模式</strong>（Strategy Pattern）定义一系列算法，将每个算法封装起来，并使它们可以互换。</p>
+<p><strong>核心思想</strong>：
+- ✅ 封装变化：算法独立变化
+- ✅ 组合优于继承：运行时切换算法
+- ✅ 开闭原则：新增策略无需修改客户端</p>
+<p><strong>应用场景</strong>：
+- ✅ 多种支付方式
+- ✅ 多种排序算法
+- ✅ 多种折扣策略
+- ✅ 多种登录方式</p>
+<h3 id="12">1.2 角色</h3>
+<table>
+<thead>
+<tr>
+<th>角色</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Strategy（策略）</td>
+<td>算法接口</td>
+</tr>
+<tr>
+<td>ConcreteStrategy</td>
+<td>具体算法实现</td>
+</tr>
+<tr>
+<td>Context（上下文）</td>
+<td>使用策略的类</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="2">2. 实现方式</h2>
+<h3 id="21">2.1 策略接口</h3>
+<pre><code class="language-java">// 策略接口
+public interface PaymentStrategy {
+    void pay(BigDecimal amount);
+}
+
+// 具体策略 1：支付宝
+@Component
+public class AlipayStrategy implements PaymentStrategy {
+    @Override
+    public void pay(BigDecimal amount) {
+        System.out.println(&quot;使用支付宝支付：&quot; + amount);
+        // 支付宝支付逻辑
+    }
+}
+
+// 具体策略 2：微信
+@Component
+public class WechatPayStrategy implements PaymentStrategy {
+    @Override
+    public void pay(BigDecimal amount) {
+        System.out.println(&quot;使用微信支付：&quot; + amount);
+        // 微信支付逻辑
+    }
+}
+
+// 具体策略 3：信用卡
+@Component
+public class CreditCardStrategy implements PaymentStrategy {
+    @Override
+    public void pay(BigDecimal amount) {
+        System.out.println(&quot;使用信用卡支付：&quot; + amount);
+        // 信用卡支付逻辑
+    }
+}
+</code></pre>
+<h3 id="22">2.2 上下文</h3>
+<pre><code class="language-java">// 上下文
+@Component
+public class PaymentContext {
+
+    private PaymentStrategy strategy;
+
+    // 注入所有策略
+    @Autowired
+    private Map&lt;String, PaymentStrategy&gt; strategies;
+
+    // 根据类型获取策略
+    public PaymentStrategy getStrategy(String type) {
+        return strategies.get(type + &quot;Strategy&quot;);
+    }
+
+    // 设置策略
+    public void setStrategy(PaymentStrategy strategy) {
+        this.strategy = strategy;
+    }
+
+    // 执行支付
+    public void executePayment(BigDecimal amount) {
+        if (strategy == null) {
+            throw new IllegalStateException(&quot;Payment strategy not set&quot;);
+        }
+        strategy.pay(amount);
+    }
+}
+
+// 使用
+@Service
+public class OrderService {
+    @Autowired
+    private PaymentContext paymentContext;
+
+    public void checkout(Long orderId, String paymentType) {
+        Order order = getOrder(orderId);
+
+        // 动态选择策略
+        PaymentStrategy strategy = paymentContext.getStrategy(paymentType);
+        paymentContext.setStrategy(strategy);
+
+        // 执行支付
+        paymentContext.executePayment(order.getAmount());
+    }
+}
+</code></pre>
+<hr />
+<h2 id="3">3. 实战示例</h2>
+<h3 id="31">3.1 折扣策略</h3>
+<pre><code class="language-java">// 策略接口
+public interface DiscountStrategy {
+    BigDecimal calculate(BigDecimal price);
+}
+
+// 策略 1：无折扣
+@Component
+public class NoDiscountStrategy implements DiscountStrategy {
+    @Override
+    public BigDecimal calculate(BigDecimal price) {
+        return price;
+    }
+}
+
+// 策略 2：满减
+@Component
+public class MoneyOffStrategy implements DiscountStrategy {
+    @Override
+    public BigDecimal calculate(BigDecimal price) {
+        if (price.compareTo(new BigDecimal(&quot;100&quot;)) &gt;= 0) {
+            return price.subtract(new BigDecimal(&quot;20&quot;));
+        }
+        return price;
+    }
+}
+
+// 策略 3：打折
+@Component
+public class PercentageOffStrategy implements DiscountStrategy {
+    private final BigDecimal discount;
+
+    public PercentageOffStrategy(BigDecimal discount) {
+        this.discount = discount;
+    }
+
+    @Override
+    public BigDecimal calculate(BigDecimal price) {
+        return price.multiply(discount);
+    }
+}
+
+// 策略 4：会员折扣
+@Component
+public class VipDiscountStrategy implements DiscountStrategy {
+    @Override
+    public BigDecimal calculate(BigDecimal price) {
+        return price.multiply(new BigDecimal(&quot;0.8&quot;));
+    }
+}
+
+// 上下文
+@Component
+public class DiscountContext {
+    @Autowired
+    private Map&lt;String, DiscountStrategy&gt; strategies;
+
+    public BigDecimal calculate(String type, BigDecimal price) {
+        DiscountStrategy strategy = strategies.get(type + &quot;Strategy&quot;);
+        if (strategy == null) {
+            throw new IllegalArgumentException(&quot;Unknown discount type: &quot; + type);
+        }
+        return strategy.calculate(price);
+    }
+}
+
+// 使用
+@Service
+public class ProductService {
+    @Autowired
+    private DiscountContext discountContext;
+
+    public BigDecimal getFinalPrice(String discountType, BigDecimal price) {
+        return discountContext.calculate(discountType, price);
+    }
+}
+</code></pre>
+<h3 id="32">3.2 排序策略</h3>
+<pre><code class="language-java">// 策略接口
+public interface SortStrategy {
+    &lt;T extends Comparable&lt;T&gt;&gt; void sort(List&lt;T&gt; list);
+}
+
+// 策略 1：冒泡排序
+public class BubbleSortStrategy implements SortStrategy {
+    @Override
+    public &lt;T extends Comparable&lt;T&gt;&gt; void sort(List&lt;T&gt; list) {
+        int n = list.size();
+        for (int i = 0; i &lt; n - 1; i++) {
+            for (int j = 0; j &lt; n - i - 1; j++) {
+                if (list.get(j).compareTo(list.get(j + 1)) &gt; 0) {
+                    Collections.swap(list, j, j + 1);
+                }
+            }
+        }
+    }
+}
+
+// 策略 2：快速排序
+public class QuickSortStrategy implements SortStrategy {
+    @Override
+    public &lt;T extends Comparable&lt;T&gt;&gt; void sort(List&lt;T&gt; list) {
+        quickSort(list, 0, list.size() - 1);
+    }
+
+    private &lt;T extends Comparable&lt;T&gt;&gt; void quickSort(List&lt;T&gt; list, int low, int high) {
+        if (low &lt; high) {
+            int pi = partition(list, low, high);
+            quickSort(list, low, pi - 1);
+            quickSort(list, pi + 1, high);
+        }
+    }
+
+    private &lt;T extends Comparable&lt;T&gt;&gt; int partition(List&lt;T&gt; list, int low, int high) {
+        T pivot = list.get(high);
+        int i = low - 1;
+        for (int j = low; j &lt; high; j++) {
+            if (list.get(j).compareTo(pivot) &lt;= 0) {
+                i++;
+                Collections.swap(list, i, j);
+            }
+        }
+        Collections.swap(list, i + 1, high);
+        return i + 1;
+    }
+}
+
+// 策略 3：归并排序
+public class MergeSortStrategy implements SortStrategy {
+    @Override
+    public &lt;T extends Comparable&lt;T&gt;&gt; void sort(List&lt;T&gt; list) {
+        if (list.size() &lt;= 1) return;
+
+        int mid = list.size() / 2;
+        List&lt;T&gt; left = new ArrayList&lt;&gt;(list.subList(0, mid));
+        List&lt;T&gt; right = new ArrayList&lt;&gt;(list.subList(mid, list.size()));
+
+        sort(left);
+        sort(right);
+        merge(list, left, right);
+    }
+
+    private &lt;T extends Comparable&lt;T&gt;&gt; void merge(List&lt;T&gt; list, List&lt;T&gt; left, List&lt;T&gt; right) {
+        int i = 0, j = 0, k = 0;
+        while (i &lt; left.size() &amp;&amp; j &lt; right.size()) {
+            if (left.get(i).compareTo(right.get(j)) &lt;= 0) {
+                list.set(k++, left.get(i++));
+            } else {
+                list.set(k++, right.get(j++));
+            }
+        }
+        while (i &lt; left.size()) list.set(k++, left.get(i++));
+        while (j &lt; right.size()) list.set(k++, right.get(j++));
+    }
+}
+
+// 上下文
+public class Sorter {
+    private SortStrategy strategy;
+
+    public void setStrategy(SortStrategy strategy) {
+        this.strategy = strategy;
+    }
+
+    public &lt;T extends Comparable&lt;T&gt;&gt; void sort(List&lt;T&gt; list) {
+        if (strategy == null) {
+            throw new IllegalStateException(&quot;Sort strategy not set&quot;);
+        }
+        strategy.sort(list);
+    }
+}
+
+// 使用
+public class Main {
+    public static void main(String[] args) {
+        List&lt;Integer&gt; numbers = Arrays.asList(5, 2, 8, 1, 9);
+
+        Sorter sorter = new Sorter();
+
+        // 使用快速排序
+        sorter.setStrategy(new QuickSortStrategy());
+        sorter.sort(numbers);
+
+        // 使用归并排序
+        sorter.setStrategy(new MergeSortStrategy());
+        sorter.sort(numbers);
+    }
+}
+</code></pre>
+<h3 id="33">3.3 登录策略</h3>
+<pre><code class="language-java">// 策略接口
+public interface LoginStrategy {
+    boolean authenticate(String username, String password);
+    User login(String credential);
+}
+
+// 策略 1：账号密码登录
+@Component
+public class PasswordLoginStrategy implements LoginStrategy {
+    @Autowired
+    private UserRepository userRepository;
+
+    @Override
+    public boolean authenticate(String username, String password) {
+        User user = userRepository.findByUsername(username);
+        return user != null &amp;&amp; passwordEncoder.matches(password, user.getPassword());
+    }
+
+    @Override
+    public User login(String username) {
+        return userRepository.findByUsername(username);
+    }
+}
+
+// 策略 2：手机验证码登录
+@Component
+public class SmsLoginStrategy implements LoginStrategy {
+    @Autowired
+    private SmsService smsService;
+
+    @Override
+    public boolean authenticate(String phone, String code) {
+        return smsService.verifyCode(phone, code);
+    }
+
+    @Override
+    public User login(String phone) {
+        return userRepository.findByPhone(phone);
+    }
+}
+
+// 策略 3：微信登录
+@Component
+public class WechatLoginStrategy implements LoginStrategy {
+    @Autowired
+    private WechatService wechatService;
+
+    @Override
+    public boolean authenticate(String code, String unused) {
+        return wechatService.verifyAuthCode(code);
+    }
+
+    @Override
+    public User login(String openId) {
+        User user = userRepository.findByWechatOpenId(openId);
+        if (user == null) {
+            user = wechatService.createUser(openId);
+        }
+        return user;
+    }
+}
+
+// 上下文
+@Component
+public class LoginContext {
+    @Autowired
+    private Map&lt;String, LoginStrategy&gt; strategies;
+
+    public User login(String type, String credential, String extra) {
+        LoginStrategy strategy = strategies.get(type + &quot;LoginStrategy&quot;);
+        if (strategy == null) {
+            throw new IllegalArgumentException(&quot;Unsupported login type: &quot; + type);
+        }
+
+        if (!strategy.authenticate(credential, extra)) {
+            throw new AuthenticationException(&quot;Login failed&quot;);
+        }
+
+        return strategy.login(credential);
+    }
+}
+</code></pre>
+<hr />
+<h2 id="4">4. 优缺点</h2>
+<h3 id="41">4.1 优点</h3>
+<ul>
+<li>✅ <strong>避免多重条件</strong>：消除 if-else 或 switch</li>
+<li>✅ <strong>符合开闭原则</strong>：新增策略无需修改客户端</li>
+<li>✅ <strong>符合单一职责</strong>：每个策略类只做一件事</li>
+<li>✅ <strong>算法可互换</strong>：运行时切换算法</li>
+</ul>
+<h3 id="42">4.2 缺点</h3>
+<ul>
+<li>❌ <strong>策略类增多</strong>：每个策略一个类</li>
+<li>❌ <strong>客户端需了解策略</strong>：知道有哪些策略可选</li>
+<li>❌ <strong>策略暴露</strong>：所有策略对客户端可见</li>
+</ul>
+<hr />
+<h2 id="5">5. 与其他模式结合</h2>
+<h3 id="51">5.1 策略 + 工厂</h3>
+<pre><code class="language-java">// 工厂创建策略
+public class StrategyFactory {
+    public static PaymentStrategy createStrategy(String type) {
+        return switch (type) {
+            case &quot;alipay&quot; -&gt; new AlipayStrategy();
+            case &quot;wechat&quot; -&gt; new WechatPayStrategy();
+            case &quot;credit&quot; -&gt; new CreditCardStrategy();
+            default -&gt; throw new IllegalArgumentException(&quot;Unknown type&quot;);
+        };
+    }
+}
+</code></pre>
+<h3 id="52-spring">5.2 策略 + Spring</h3>
+<pre><code class="language-java">// Spring 自动注入所有策略
+@Component
+public class PaymentService {
+    @Autowired
+    private Map&lt;String, PaymentStrategy&gt; strategies;
+
+    public void pay(String type, BigDecimal amount) {
+        PaymentStrategy strategy = strategies.get(type + &quot;Strategy&quot;);
+        strategy.pay(amount);
+    }
+}
+</code></pre>
+<hr />
+<h2 id="6">6. 本章小结</h2>
+<h3 id="_1">核心知识点</h3>
+<p>✅ <strong>策略模式结构</strong>：Strategy、Context<br />
+✅ <strong>实现方式</strong>：接口、具体策略、上下文<br />
+✅ <strong>实战应用</strong>：支付、折扣、排序、登录<br />
+✅ <strong>与 Spring 结合</strong>：自动注入策略  </p>
+<h3 id="_2">最佳实践</h3>
+<ol>
+<li><strong>使用接口定义策略</strong>：清晰明确</li>
+<li><strong>结合工厂模式</strong>：创建策略</li>
+<li><strong>使用 Spring 注入</strong>：自动管理策略</li>
+<li><strong>策略命名规范</strong>：统一后缀（Strategy）</li>
+<li><strong>文档化策略</strong>：说明每个策略的用途</li>
+</ol>
+<hr />
+<p>🎉 <strong>恭喜完成策略模式学习！设计模式篇完成！</strong></p>
+<hr />
+<h2 id="_3">📚 完整教程体系</h2>
+<h3 id="5_1">入门篇（5 个）</h3>
+<ul>
+<li>01_Java 入门</li>
+<li>02_基础语法</li>
+<li>03_数组</li>
+<li>04_类与对象</li>
+<li>05_方法</li>
+</ul>
+<h3 id="api-6">核心 API 篇（6 个）</h3>
+<ul>
+<li>11_字符串</li>
+<li>13_集合框架</li>
+<li>14_泛型</li>
+<li>15_异常处理</li>
+<li>16_IO 流</li>
+<li>17_日期时间</li>
+</ul>
+<h3 id="6_1">进阶篇（6 个）</h3>
+<ul>
+<li>18_多线程基础</li>
+<li>19_反射</li>
+<li>20_注解</li>
+<li>21_Lambda 表达式</li>
+<li>22_Stream API</li>
+<li>23_Optional</li>
+</ul>
+<h3 id="4_1">框架篇（4 个）</h3>
+<ul>
+<li>28_Maven</li>
+<li>29_Spring 基础</li>
+<li>30_SpringBoot</li>
+<li>31_MyBatis</li>
+</ul>
+<h3 id="4_2">设计模式篇（4 个）</h3>
+<ul>
+<li>32_单例模式</li>
+<li>33_工厂模式</li>
+<li>34_观察者模式</li>
+<li>35_策略模式</li>
+</ul>
+<hr />
+<p>🎊 <strong>Java 完整教程体系完成！共 25 个文件，约 280KB！</strong></p></div>
+            </div>
+        </div>
+
+        <footer class="col-md-12">
+            <hr>
+            <p>Documentation built with <a href="https://www.mkdocs.org/">MkDocs</a>.</p>
+        </footer>
+        <script src="../../../../js/bootstrap.bundle.min.js"></script>
+        <script>
+            var base_url = "../../../..",
+                shortcuts = {"help": 191, "next": 78, "previous": 80, "search": 83};
+        </script>
+        <script src="../../../../js/base.js"></script>
+        <script src="../../../../search/main.js"></script>
+
+        <div class="modal" id="mkdocs_search_modal" tabindex="-1" role="dialog" aria-labelledby="searchModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="searchModalLabel">Search</h4>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>From here you can search these documents. Enter your search terms below.</p>
+                <form>
+                    <div class="form-group">
+                        <input type="search" class="form-control" placeholder="Search..." id="mkdocs-search-query" title="Type search term here">
+                    </div>
+                </form>
+                <div id="mkdocs-search-results" data-no-results-text="No results found"></div>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div><div class="modal" id="mkdocs_keyboard_modal" tabindex="-1" role="dialog" aria-labelledby="keyboardModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="keyboardModalLabel">Keyboard Shortcuts</h4>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th style="width: 20%;">Keys</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td class="help shortcut"><kbd>?</kbd></td>
+                    <td>Open this help</td>
+                  </tr>
+                  <tr>
+                    <td class="next shortcut"><kbd>n</kbd></td>
+                    <td>Next page</td>
+                  </tr>
+                  <tr>
+                    <td class="prev shortcut"><kbd>p</kbd></td>
+                    <td>Previous page</td>
+                  </tr>
+                  <tr>
+                    <td class="search shortcut"><kbd>s</kbd></td>
+                    <td>Search</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div>
+
+    </body>
+</html>

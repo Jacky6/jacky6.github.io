@@ -1,0 +1,702 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="light">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        
+        
+        
+        <link rel="shortcut icon" href="../../../img/favicon.ico">
+        <title>06. 实战示例 - My Docs</title>
+        <link href="../../../css/bootstrap.min.css" rel="stylesheet">
+        <link href="../../../css/fontawesome.min.css" rel="stylesheet">
+        <link href="../../../css/brands.min.css" rel="stylesheet">
+        <link href="../../../css/solid.min.css" rel="stylesheet">
+        <link href="../../../css/v4-font-face.min.css" rel="stylesheet">
+        <link href="../../../css/base.css" rel="stylesheet">
+        <link id="hljs-light" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" >
+        <link id="hljs-dark" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github-dark.min.css" disabled>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+        <script>hljs.highlightAll();</script> 
+    </head>
+
+    <body>
+        <div class="navbar fixed-top navbar-expand-lg navbar-dark bg-primary">
+            <div class="container">
+                <a class="navbar-brand" href="../../..">My Docs</a>
+
+                <!-- Expanded navigation -->
+                <div id="navbar-collapse" class="navbar-collapse collapse">
+
+                    <ul class="nav navbar-nav ms-md-auto">
+                        <li class="nav-item">
+                            <a href="#" class="nav-link" data-bs-toggle="modal" data-bs-target="#mkdocs_search_modal">
+                                <i class="fa fa-search"></i> Search
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="container">
+            <div class="row">
+                    <div class="col-md-3"><div class="navbar-expand-md bs-sidebar hidden-print affix" role="complementary">
+    <div class="navbar-header">
+        <button type="button" class="navbar-toggler collapsed" data-bs-toggle="collapse" data-bs-target="#toc-collapse" title="Table of Contents">
+            <span class="fa fa-angle-down"></span>
+        </button>
+    </div>
+
+    
+    <div id="toc-collapse" class="navbar-collapse collapse card bg-body-tertiary">
+        <ul class="nav flex-column">
+            
+            <li class="nav-item" data-bs-level="1"><a href="#06" class="nav-link">06. 实战示例</a>
+              <ul class="nav flex-column">
+            <li class="nav-item" data-bs-level="2"><a href="#1" class="nav-link">示例 1：简单的对话机器人</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#2-agent" class="nav-link">示例 2：带工具调用的 Agent</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#3" class="nav-link">示例 3：多轮对话 + 人工审核</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#4-agent" class="nav-link">示例 4：多 Agent 协作</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#5" class="nav-link">示例 5：数据处理工作流</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#6" class="nav-link">示例 6：并行处理</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#7rag" class="nav-link">示例 7：RAG（检索增强生成）</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#_1" class="nav-link">调试技巧</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#_2" class="nav-link">性能优化建议</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#_3" class="nav-link">下一步</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#_4" class="nav-link">参考资源</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+              </ul>
+            </li>
+        </ul>
+    </div>
+</div></div>
+                    <div class="col-md-9" role="main">
+
+<h1 id="06">06. 实战示例</h1>
+<h2 id="1">示例 1：简单的对话机器人</h2>
+<pre><code class="language-python">from typing import TypedDict, Annotated, List
+from langchain_openai import ChatOpenAI
+from langchain_core.messages import HumanMessage, AIMessage
+from langgraph.graph import StateGraph, START, END, add_messages
+from langgraph.checkpoint.memory import MemorySaver
+
+# 1. 定义状态
+class State(TypedDict):
+    messages: Annotated[List, add_messages]
+
+# 2. 初始化模型
+model = ChatOpenAI(model=&quot;gpt-4&quot;)
+
+# 3. 定义节点
+def chatbot(state: State) -&gt; dict:
+    response = model.invoke(state[&quot;messages&quot;])
+    return {&quot;messages&quot;: [response]}
+
+# 4. 构建图
+graph = StateGraph(State)
+graph.add_node(&quot;chatbot&quot;, chatbot)
+graph.add_edge(START, &quot;chatbot&quot;)
+graph.add_edge(&quot;chatbot&quot;, END)
+
+# 5. 编译（带记忆）
+memory = MemorySaver()
+app = graph.compile(checkpointer=memory)
+
+# 6. 使用
+config = {&quot;configurable&quot;: {&quot;thread_id&quot;: &quot;conversation-1&quot;}}
+
+# 第一轮
+result = app.invoke({&quot;messages&quot;: [HumanMessage(content=&quot;你好！&quot;)]}, config)
+print(result[&quot;messages&quot;][-1].content)
+
+# 第二轮（记住上下文）
+result = app.invoke({&quot;messages&quot;: [HumanMessage(content=&quot;我叫小明，你呢？&quot;)]}, config)
+print(result[&quot;messages&quot;][-1].content)
+</code></pre>
+<h2 id="2-agent">示例 2：带工具调用的 Agent</h2>
+<pre><code class="language-python">from typing import TypedDict, Annotated, List, Literal
+from langchain_openai import ChatOpenAI
+from langchain_core.tools import tool
+from langchain_core.messages import HumanMessage, AIMessage, ToolMessage
+from langgraph.graph import StateGraph, START, END, add_messages
+from langgraph.checkpoint.memory import MemorySaver
+
+# 1. 定义工具
+@tool
+def search_web(query: str) -&gt; str:
+    &quot;&quot;&quot;搜索网络获取信息&quot;&quot;&quot;
+    return f&quot;搜索结果：{query}&quot;
+
+@tool
+def calculate(expression: str) -&gt; str:
+    &quot;&quot;&quot;计算数学表达式&quot;&quot;&quot;
+    return f&quot;计算结果：{expression}&quot;
+
+tools = [search_web, calculate]
+
+# 2. 绑定工具到模型
+model = ChatOpenAI(model=&quot;gpt-4&quot;)
+model_with_tools = model.bind_tools(tools)
+
+# 3. 定义状态
+class State(TypedDict):
+    messages: Annotated[List, add_messages]
+
+# 4. 定义节点
+def agent(state: State) -&gt; dict:
+    response = model_with_tools.invoke(state[&quot;messages&quot;])
+    return {&quot;messages&quot;: [response]}
+
+def tools_node(state: State) -&gt; dict:
+    tool_calls = state[&quot;messages&quot;][-1].tool_calls
+    results = []
+
+    for call in tool_calls:
+        tool_name = call[&quot;name&quot;]
+        tool_input = call[&quot;args&quot;]
+
+        for t in tools:
+            if t.name == tool_name:
+                result = t.invoke(tool_input)
+                results.append(ToolMessage(
+                    content=str(result),
+                    tool_call_id=call[&quot;id&quot;]
+                ))
+
+    return {&quot;messages&quot;: results}
+
+# 5. 定义路由
+def should_continue(state: State) -&gt; Literal[&quot;tools&quot;, END]:
+    messages = state[&quot;messages&quot;]
+    last_message = messages[-1]
+
+    if last_message.tool_calls:
+        return &quot;tools&quot;
+    return END
+
+# 6. 构建图
+graph = StateGraph(State)
+graph.add_node(&quot;agent&quot;, agent)
+graph.add_node(&quot;tools&quot;, tools_node)
+
+graph.add_edge(START, &quot;agent&quot;)
+graph.add_conditional_edges(&quot;agent&quot;, should_continue)
+graph.add_edge(&quot;tools&quot;, &quot;agent&quot;)  # 工具执行后回到 agent
+
+# 7. 编译
+memory = MemorySaver()
+app = graph.compile(checkpointer=memory)
+
+# 8. 使用
+config = {&quot;configurable&quot;: {&quot;thread_id&quot;: &quot;agent-1&quot;}}
+
+result = app.invoke({
+    &quot;messages&quot;: [HumanMessage(content=&quot;帮我搜索一下 Python 的最新版本&quot;)]
+}, config)
+
+print(result[&quot;messages&quot;][-1].content)
+</code></pre>
+<h2 id="3">示例 3：多轮对话 + 人工审核</h2>
+<pre><code class="language-python">from typing import TypedDict, Annotated, List, Literal
+from langchain_openai import ChatOpenAI
+from langchain_core.messages import HumanMessage, AIMessage
+from langgraph.graph import StateGraph, START, END, add_messages
+from langgraph.checkpoint.memory import MemorySaver
+
+class State(TypedDict):
+    messages: Annotated[List, add_messages]
+    draft: str
+    approved: bool
+
+model = ChatOpenAI(model=&quot;gpt-4&quot;)
+
+def generate_draft(state: State) -&gt; dict:
+    prompt = f&quot;请为以下内容生成回复草稿：{state['messages'][-1].content}&quot;
+    response = model.invoke([HumanMessage(content=prompt)])
+    return {&quot;draft&quot;: response.content}
+
+def human_review(state: State) -&gt; dict:
+    # 实际应用中，这里会等待用户输入
+    print(f&quot;\n=== 草稿 ===&quot;)
+    print(state[&quot;draft&quot;])
+    print(f&quot;==============\n&quot;)
+
+    # 模拟人工审核（实际应该等待用户输入）
+    approved = input(&quot;是否批准？(y/n): &quot;).lower() == 'y'
+    return {&quot;approved&quot;: approved}
+
+def send_response(state: State) -&gt; dict:
+    return {&quot;messages&quot;: [AIMessage(content=state[&quot;draft&quot;])]}
+
+def reject(state: State) -&gt; dict:
+    return {&quot;messages&quot;: [AIMessage(content=&quot;抱歉，我需要重新考虑这个回答。&quot;)]}
+
+def route_after_review(state: State) -&gt; Literal[&quot;send&quot;, &quot;reject&quot;]:
+    return &quot;send&quot; if state[&quot;approved&quot;] else &quot;reject&quot;
+
+# 构建图
+graph = StateGraph(State)
+graph.add_node(&quot;generate&quot;, generate_draft)
+graph.add_node(&quot;review&quot;, human_review)
+graph.add_node(&quot;send&quot;, send_response)
+graph.add_node(&quot;reject&quot;, reject)
+
+graph.add_edge(START, &quot;generate&quot;)
+graph.add_edge(&quot;generate&quot;, &quot;review&quot;)
+graph.add_conditional_edges(&quot;review&quot;, route_after_review)
+graph.add_edge(&quot;send&quot;, END)
+graph.add_edge(&quot;reject&quot;, END)
+
+# 在 review 前中断，等待人工输入
+memory = MemorySaver()
+app = graph.compile(checkpointer=memory, interrupt_before=[&quot;review&quot;])
+
+# 使用
+config = {&quot;configurable&quot;: {&quot;thread_id&quot;: &quot;review-1&quot;}}
+
+# 第一步：生成草稿
+app.invoke({
+    &quot;messages&quot;: [HumanMessage(content=&quot;写一封感谢邮件&quot;)]
+}, config)
+
+# 查看草稿
+snapshot = app.get_state(config)
+print(f&quot;草稿：{snapshot.values['draft']}&quot;)
+
+# 人工审核后继续
+app.update_state(config, {&quot;approved&quot;: True})
+result = app.invoke(None, config)
+</code></pre>
+<h2 id="4-agent">示例 4：多 Agent 协作</h2>
+<pre><code class="language-python">from typing import TypedDict, Annotated, List, Literal
+from langchain_openai import ChatOpenAI
+from langchain_core.messages import HumanMessage, AIMessage
+from langgraph.graph import StateGraph, START, END, add_messages
+
+class State(TypedDict):
+    messages: Annotated[List, add_messages]
+    current_agent: str
+
+# 不同角色的 Agent
+researcher = ChatOpenAI(model=&quot;gpt-4&quot;, system_message=&quot;你是研究员，负责查找和分析信息&quot;)
+writer = ChatOpenAI(model=&quot;gpt-4&quot;, system_message=&quot;你是作家，负责撰写内容&quot;)
+reviewer = ChatOpenAI(model=&quot;gpt-4&quot;, system_message=&quot;你是审核员，负责检查和改进内容&quot;)
+
+def researcher_node(state: State) -&gt; dict:
+    response = researcher.invoke(state[&quot;messages&quot;])
+    return {&quot;messages&quot;: [response], &quot;current_agent&quot;: &quot;writer&quot;}
+
+def writer_node(state: State) -&gt; dict:
+    response = writer.invoke(state[&quot;messages&quot;])
+    return {&quot;messages&quot;: [response], &quot;current_agent&quot;: &quot;reviewer&quot;}
+
+def reviewer_node(state: State) -&gt; dict:
+    response = reviewer.invoke(state[&quot;messages&quot;])
+    content = response.content
+
+    # 如果需要修改
+    if &quot;需要修改&quot; in content:
+        return {&quot;messages&quot;: [response], &quot;current_agent&quot;: &quot;writer&quot;}
+
+    return {&quot;messages&quot;: [response], &quot;current_agent&quot;: END}
+
+def route(state: State) -&gt; Literal[&quot;researcher&quot;, &quot;writer&quot;, &quot;reviewer&quot;, END]:
+    if state[&quot;current_agent&quot;] == &quot;researcher&quot;:
+        return &quot;researcher&quot;
+    elif state[&quot;current_agent&quot;] == &quot;writer&quot;:
+        return &quot;writer&quot;
+    elif state[&quot;current_agent&quot;] == &quot;reviewer&quot;:
+        return &quot;reviewer&quot;
+    return END
+
+# 构建图
+graph = StateGraph(State)
+graph.add_node(&quot;researcher&quot;, researcher_node)
+graph.add_node(&quot;writer&quot;, writer_node)
+graph.add_node(&quot;reviewer&quot;, reviewer_node)
+
+graph.add_edge(START, &quot;researcher&quot;)
+graph.add_conditional_edges(&quot;researcher&quot;, lambda s: &quot;writer&quot;)
+graph.add_conditional_edges(&quot;writer&quot;, lambda s: &quot;reviewer&quot;)
+graph.add_conditional_edges(&quot;reviewer&quot;, route)
+
+app = graph.compile()
+
+# 使用
+result = app.invoke({
+    &quot;messages&quot;: [HumanMessage(content=&quot;写一篇关于 AI 的短文&quot;)],
+    &quot;current_agent&quot;: &quot;researcher&quot;
+})
+
+for msg in result[&quot;messages&quot;]:
+    print(f&quot;{msg.type}: {msg.content[:100]}...&quot;)
+</code></pre>
+<h2 id="5">示例 5：数据处理工作流</h2>
+<pre><code class="language-python">from typing import TypedDict, List
+from langgraph.graph import StateGraph, START, END
+
+class State(TypedDict):
+    input_data: str
+    cleaned_data: str
+    analyzed_data: dict
+    report: str
+
+def clean_data(state: State) -&gt; dict:
+    # 数据清洗
+    cleaned = state[&quot;input_data&quot;].strip().lower()
+    return {&quot;cleaned_data&quot;: cleaned}
+
+def analyze_data(state: State) -&gt; dict:
+    # 数据分析
+    data = state[&quot;cleaned_data&quot;]
+    analysis = {
+        &quot;length&quot;: len(data),
+        &quot;word_count&quot;: len(data.split()),
+        &quot;has_error&quot;: &quot;error&quot; in data
+    }
+    return {&quot;analyzed_data&quot;: analysis}
+
+def generate_report(state: State) -&gt; dict:
+    # 生成报告
+    analysis = state[&quot;analyzed_data&quot;]
+    report = f&quot;&quot;&quot;
+    数据分析报告
+    ==========
+    字符数：{analysis['length']}
+    单词数：{analysis['word_count']}
+    包含错误：{analysis['has_error']}
+    &quot;&quot;&quot;
+    return {&quot;report&quot;: report}
+
+# 构建线性工作流
+graph = StateGraph(State)
+graph.add_node(&quot;clean&quot;, clean_data)
+graph.add_node(&quot;analyze&quot;, analyze_data)
+graph.add_node(&quot;report&quot;, generate_report)
+
+graph.add_edge(START, &quot;clean&quot;)
+graph.add_edge(&quot;clean&quot;, &quot;analyze&quot;)
+graph.add_edge(&quot;analyze&quot;, &quot;report&quot;)
+graph.add_edge(&quot;report&quot;, END)
+
+app = graph.compile()
+
+# 使用
+result = app.invoke({
+    &quot;input_data&quot;: &quot;  Hello World, this is a TEST with ERROR handling  &quot;
+})
+
+print(result[&quot;report&quot;])
+</code></pre>
+<h2 id="6">示例 6：并行处理</h2>
+<pre><code class="language-python">from typing import TypedDict, List
+from langgraph.graph import StateGraph, START, END
+import time
+
+class State(TypedDict):
+    items: List[str]
+    results_a: List[str]
+    results_b: List[str]
+    results_c: List[str]
+    final_result: str
+
+def process_a(state: State) -&gt; dict:
+    time.sleep(1)  # 模拟耗时操作
+    results = [f&quot;A:{item}&quot; for item in state[&quot;items&quot;]]
+    return {&quot;results_a&quot;: results}
+
+def process_b(state: State) -&gt; dict:
+    time.sleep(1)
+    results = [f&quot;B:{item}&quot; for item in state[&quot;items&quot;]]
+    return {&quot;results_b&quot;: results}
+
+def process_c(state: State) -&gt; dict:
+    time.sleep(1)
+    results = [f&quot;C:{item}&quot; for item in state[&quot;items&quot;]]
+    return {&quot;results_c&quot;: results}
+
+def merge_results(state: State) -&gt; dict:
+    merged = list(zip(state[&quot;results_a&quot;], state[&quot;results_b&quot;], state[&quot;results_c&quot;]))
+    return {&quot;final_result&quot;: str(merged)}
+
+# 构建图
+graph = StateGraph(State)
+graph.add_node(&quot;process_a&quot;, process_a)
+graph.add_node(&quot;process_b&quot;, process_b)
+graph.add_node(&quot;process_c&quot;, process_c)
+graph.add_node(&quot;merge&quot;, merge_results)
+
+# 扇出：start 同时触发三个处理节点
+graph.add_edge(START, &quot;process_a&quot;)
+graph.add_edge(START, &quot;process_b&quot;)
+graph.add_edge(START, &quot;process_c&quot;)
+
+# 扇入：所有处理完成后合并
+graph.add_edge(&quot;process_a&quot;, &quot;merge&quot;)
+graph.add_edge(&quot;process_b&quot;, &quot;merge&quot;)
+graph.add_edge(&quot;process_c&quot;, &quot;merge&quot;)
+graph.add_edge(&quot;merge&quot;, END)
+
+app = graph.compile()
+
+# 使用
+result = app.invoke({&quot;items&quot;: [&quot;item1&quot;, &quot;item2&quot;, &quot;item3&quot;]})
+print(result[&quot;final_result&quot;])
+</code></pre>
+<h2 id="7rag">示例 7：RAG（检索增强生成）</h2>
+<pre><code class="language-python">from typing import TypedDict, Annotated, List, Literal
+from langchain_openai import ChatOpenAI, OpenAIEmbeddings
+from langchain_core.messages import HumanMessage, AIMessage
+from langgraph.graph import StateGraph, START, END, add_messages
+
+class State(TypedDict):
+    messages: Annotated[List, add_messages]
+    question: str
+    context: str
+    answer: str
+
+model = ChatOpenAI(model=&quot;gpt-4&quot;)
+embeddings = OpenAIEmbeddings()
+
+# 模拟向量数据库
+def retrieve_documents(question: str) -&gt; List[str]:
+    # 实际应用中这里会查询向量数据库
+    return [
+        &quot;文档 1: LangGraph 是用于构建有状态应用的库&quot;,
+        &quot;文档 2: LangGraph 支持循环、分支和并行执行&quot;,
+        &quot;文档 3: LangGraph 是 LangChain 团队开发的&quot;
+    ]
+
+def retrieve(state: State) -&gt; dict:
+    question = state[&quot;messages&quot;][-1].content
+    docs = retrieve_documents(question)
+    context = &quot;\n\n&quot;.join(docs)
+    return {&quot;question&quot;: question, &quot;context&quot;: context}
+
+def generate(state: State) -&gt; dict:
+    prompt = f&quot;&quot;&quot;基于以下上下文回答问题：
+
+上下文：
+{state['context']}
+
+问题：
+{state['question']}
+
+回答：&quot;&quot;&quot;
+
+    response = model.invoke([HumanMessage(content=prompt)])
+    return {&quot;answer&quot;: response.content, &quot;messages&quot;: [response]}
+
+def should_use_rag(state: State) -&gt; Literal[&quot;retrieve&quot;, &quot;direct&quot;]:
+    # 简单判断：如果问题包含&quot;什么&quot;、&quot;如何&quot;等词，使用 RAG
+    question = state[&quot;messages&quot;][-1].content
+    rag_keywords = [&quot;什么&quot;, &quot;如何&quot;, &quot;为什么&quot;, &quot;怎么&quot;, &quot;which&quot;, &quot;what&quot;, &quot;how&quot;]
+
+    if any(kw in question for kw in rag_keywords):
+        return &quot;retrieve&quot;
+    return &quot;direct&quot;
+
+def direct_answer(state: State) -&gt; dict:
+    response = model.invoke(state[&quot;messages&quot;])
+    return {&quot;messages&quot;: [response]}
+
+# 构建图
+graph = StateGraph(State)
+graph.add_node(&quot;retrieve&quot;, retrieve)
+graph.add_node(&quot;generate&quot;, generate)
+graph.add_node(&quot;direct&quot;, direct_answer)
+
+graph.add_edge(START, &quot;retrieve&quot;)
+graph.add_conditional_edges(&quot;retrieve&quot;, lambda s: &quot;generate&quot;)
+graph.add_edge(&quot;generate&quot;, END)
+
+app = graph.compile()
+
+# 使用
+result = app.invoke({
+    &quot;messages&quot;: [HumanMessage(content=&quot;LangGraph 是什么？&quot;)]
+})
+
+print(result[&quot;answer&quot;])
+</code></pre>
+<h2 id="_1">调试技巧</h2>
+<h3 id="1_1">1. 打印每一步的状态</h3>
+<pre><code class="language-python">for node, values in app.stream(input):
+    print(f&quot;\n{'='*40}&quot;)
+    print(f&quot;节点：{node}&quot;)
+    print(f&quot;更新：{values}&quot;)
+    print(f&quot;{'='*40}&quot;)
+</code></pre>
+<h3 id="2">2. 可视化图</h3>
+<pre><code class="language-python"># 保存为图片
+app.get_graph().draw_mermaid_png(output_file_path=&quot;workflow.png&quot;)
+
+# 打印 Mermaid 代码
+print(app.get_graph().draw_mermaid())
+</code></pre>
+<h3 id="3_1">3. 检查执行历史</h3>
+<pre><code class="language-python">config = {&quot;configurable&quot;: {&quot;thread_id&quot;: &quot;test-1&quot;}}
+
+# 获取所有检查点
+for state in app.get_state_history(config):
+    print(f&quot;检查点：{state.config}&quot;)
+    print(f&quot;状态：{state.values}&quot;)
+    print(f&quot;下一个：{state.next}&quot;)
+    print(&quot;---&quot;)
+</code></pre>
+<h2 id="_2">性能优化建议</h2>
+<ol>
+<li>
+<p><strong>使用流式输出</strong>：提升用户体验
+   <code>python
+   for chunk in app.stream(input, stream_mode="messages"):
+       yield chunk</code></p>
+</li>
+<li>
+<p><strong>合理使用检查点</strong>：只在需要断点续跑时启用</p>
+</li>
+<li>
+<p><strong>并行化独立任务</strong>：
+   <code>python
+   graph.add_edge("start", "task_a")
+   graph.add_edge("start", "task_b")  # 并行执行</code></p>
+</li>
+<li>
+<p><strong>缓存昂贵操作</strong>：
+   ```python
+   from langgraph.types import CachePolicy</p>
+</li>
+</ol>
+<p>graph.add_node(
+       "expensive",
+       expensive_fn,
+       cache_policy=CachePolicy(ttl_seconds=3600)
+   )
+   ```</p>
+<h2 id="_3">下一步</h2>
+<p>恭喜你完成了 LangGraph 学习教程！现在你可以：</p>
+<ol>
+<li>从简单示例开始，逐步构建复杂应用</li>
+<li>参考官方文档深入特定主题</li>
+<li>加入 LangChain 社区获取支持</li>
+</ol>
+<h2 id="_4">参考资源</h2>
+<ul>
+<li><a href="https://reference.langchain.com/python/langgraph">LangGraph 官方文档</a></li>
+<li><a href="https://reference.langchain.com/python/langchain">LangChain 文档</a></li>
+<li><a href="https://github.com/langchain-ai/langgraph">示例代码库</a></li>
+</ul>
+<hr />
+<p><em>教程完成！🎉</em></p></div>
+            </div>
+        </div>
+
+        <footer class="col-md-12">
+            <hr>
+            <p>Documentation built with <a href="https://www.mkdocs.org/">MkDocs</a>.</p>
+        </footer>
+        <script src="../../../js/bootstrap.bundle.min.js"></script>
+        <script>
+            var base_url = "../../..",
+                shortcuts = {"help": 191, "next": 78, "previous": 80, "search": 83};
+        </script>
+        <script src="../../../js/base.js"></script>
+        <script src="../../../search/main.js"></script>
+
+        <div class="modal" id="mkdocs_search_modal" tabindex="-1" role="dialog" aria-labelledby="searchModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="searchModalLabel">Search</h4>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>From here you can search these documents. Enter your search terms below.</p>
+                <form>
+                    <div class="form-group">
+                        <input type="search" class="form-control" placeholder="Search..." id="mkdocs-search-query" title="Type search term here">
+                    </div>
+                </form>
+                <div id="mkdocs-search-results" data-no-results-text="No results found"></div>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div><div class="modal" id="mkdocs_keyboard_modal" tabindex="-1" role="dialog" aria-labelledby="keyboardModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="keyboardModalLabel">Keyboard Shortcuts</h4>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th style="width: 20%;">Keys</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td class="help shortcut"><kbd>?</kbd></td>
+                    <td>Open this help</td>
+                  </tr>
+                  <tr>
+                    <td class="next shortcut"><kbd>n</kbd></td>
+                    <td>Next page</td>
+                  </tr>
+                  <tr>
+                    <td class="prev shortcut"><kbd>p</kbd></td>
+                    <td>Previous page</td>
+                  </tr>
+                  <tr>
+                    <td class="search shortcut"><kbd>s</kbd></td>
+                    <td>Search</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div>
+
+    </body>
+</html>

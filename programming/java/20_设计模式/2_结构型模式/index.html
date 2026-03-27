@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="light">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        
+        
+        
+        <link rel="shortcut icon" href="../../../../img/favicon.ico">
+        <title>2 结构型模式 - My Docs</title>
+        <link href="../../../../css/bootstrap.min.css" rel="stylesheet">
+        <link href="../../../../css/fontawesome.min.css" rel="stylesheet">
+        <link href="../../../../css/brands.min.css" rel="stylesheet">
+        <link href="../../../../css/solid.min.css" rel="stylesheet">
+        <link href="../../../../css/v4-font-face.min.css" rel="stylesheet">
+        <link href="../../../../css/base.css" rel="stylesheet">
+        <link id="hljs-light" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" >
+        <link id="hljs-dark" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github-dark.min.css" disabled>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+        <script>hljs.highlightAll();</script> 
+    </head>
+
+    <body>
+        <div class="navbar fixed-top navbar-expand-lg navbar-dark bg-primary">
+            <div class="container">
+                <a class="navbar-brand" href="../../../..">My Docs</a>
+
+                <!-- Expanded navigation -->
+                <div id="navbar-collapse" class="navbar-collapse collapse">
+
+                    <ul class="nav navbar-nav ms-md-auto">
+                        <li class="nav-item">
+                            <a href="#" class="nav-link" data-bs-toggle="modal" data-bs-target="#mkdocs_search_modal">
+                                <i class="fa fa-search"></i> Search
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="container">
+            <div class="row">
+                    <div class="col-md-3"><div class="navbar-expand-md bs-sidebar hidden-print affix" role="complementary">
+    <div class="navbar-header">
+        <button type="button" class="navbar-toggler collapsed" data-bs-toggle="collapse" data-bs-target="#toc-collapse" title="Table of Contents">
+            <span class="fa fa-angle-down"></span>
+        </button>
+    </div>
+
+    
+    <div id="toc-collapse" class="navbar-collapse collapse card bg-body-tertiary">
+        <ul class="nav flex-column">
+            
+            <li class="nav-item" data-bs-level="1"><a href="#_1" class="nav-link">适配器</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            
+            <li class="nav-item" data-bs-level="1"><a href="#_2" class="nav-link">桥接</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            
+            <li class="nav-item" data-bs-level="1"><a href="#_3" class="nav-link">组合</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            
+            <li class="nav-item" data-bs-level="1"><a href="#_4" class="nav-link">装饰器</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            
+            <li class="nav-item" data-bs-level="1"><a href="#_5" class="nav-link">外观</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            
+            <li class="nav-item" data-bs-level="1"><a href="#_6" class="nav-link">享元</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            
+            <li class="nav-item" data-bs-level="1"><a href="#_7" class="nav-link">代理</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+        </ul>
+    </div>
+</div></div>
+                    <div class="col-md-9" role="main">
+
+<blockquote>
+<p>结构型模式主要涉及 如何组合各种对象以便获得更好、更灵活的结构。虽然面向对象的继承机制提供了最基本的子类扩展父类的功能，但结构型模式不仅仅简单地使用继承，而更多地通过组合与运行期的动态组合来实现更灵活的功能。</p>
+</blockquote>
+<p>结构型模式有：</p>
+<p>适配器
+桥接
+组合
+装饰器
+外观
+享元
+代理</p>
+<h1 id="_1">适配器</h1>
+<blockquote>
+<p>将一个类的接口转换成客户希望的另外一个接口，使得原本由于接口不兼容而不能一起工作的那些类可以一起工作。</p>
+</blockquote>
+<ul>
+<li>适配器模式是 Adapter ，也称 Wrapper ，是指如果一个接口需要 B 接口，但是待传入的对象却是 A 接口，怎么办？</li>
+</ul>
+<p>我们举个例子。如果去美国，我们随身带的电器是无法直接使用的，因为美国的插座标准和中国不同，所以，我们需要一个适配器：
+    在程序设计中，适配器也是类似的。我们已经有一个 <code>Task</code> 类，实现了 <code>Callable</code> 接口：</p>
+<pre><code class="language-java">public class Task implements Callable&lt;Long&gt; {
+    private long num;
+    public Task(long num) {
+        this.num = num;
+    }
+
+    public Long call() throws Exception {
+        long r = 0;
+        for (long n = 1; n &lt;= this.num; n++) {
+            r = r + n;
+        }
+        System.out.println(&quot;Result: &quot; + r);
+        return r;
+    }
+}
+</code></pre>
+<p>现在，我们想通过一个线程去执行它：</p>
+<pre><code class="language-java">Callable&lt;Long&gt; callable = new Task(123450000L);
+Thread thread = new Thread(callable); // compile error!
+thread.start();
+</code></pre>
+<p>发现编译不过！因为 <code>Thread</code> 接收 <code>Runnable</code> 接口，但不接收 <code>Callable</code> 接口，肿么办？</p>
+<ul>
+<li>一个办法是改写 <code>Task</code> 类，把实现的 <code>Callable</code> 改为 <code>Runnable</code>，但这样做不好，因为 <code>Task</code> 很可能在其他地方作为 <code>Callable</code> 被引用，改写 <code>Task</code> 的接口，会导致其他正常工作的代码无法编译。</li>
+<li>另一个办法不用改写 <code>Task</code> 类，而是用一个 <code>Adapter</code>，把这个 <code>Callable</code> 接口“变成” <code>Runnable</code> 接口，这样，就可以正常编译：</li>
+</ul>
+<pre><code class="language-java">Callable&lt;Long&gt; callable = new Task(123450000L);
+Thread thread = new Thread(new RunnableAdapter(callable));
+thread.start();
+</code></pre>
+<ul>
+<li>这个 <code>RunnableAdapter</code> 类就是 <code>Adapter</code>，它接收一个<code>Callable</code>，输出一个<code>Runnable</code>。怎么实现这个<code>RunnableAdapter</code>呢？我们先看完整的代码：</li>
+</ul>
+<pre><code class="language-java">public class RunnableAdapter implements Runnable {
+    // 引用待转换接口:
+    private Callable&lt;?&gt; callable;
+
+    public RunnableAdapter(Callable&lt;?&gt; callable) {
+        this.callable = callable;
+    }
+
+    // 实现指定接口:
+    public void run() {
+        // 将指定接口调用委托给转换接口调用:
+        try {
+            callable.call();
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+}
+</code></pre>
+<h1 id="_2">桥接</h1>
+<h1 id="_3">组合</h1>
+<h1 id="_4">装饰器</h1>
+<h1 id="_5">外观</h1>
+<h1 id="_6">享元</h1>
+<h1 id="_7">代理</h1></div>
+            </div>
+        </div>
+
+        <footer class="col-md-12">
+            <hr>
+            <p>Documentation built with <a href="https://www.mkdocs.org/">MkDocs</a>.</p>
+        </footer>
+        <script src="../../../../js/bootstrap.bundle.min.js"></script>
+        <script>
+            var base_url = "../../../..",
+                shortcuts = {"help": 191, "next": 78, "previous": 80, "search": 83};
+        </script>
+        <script src="../../../../js/base.js"></script>
+        <script src="../../../../search/main.js"></script>
+
+        <div class="modal" id="mkdocs_search_modal" tabindex="-1" role="dialog" aria-labelledby="searchModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="searchModalLabel">Search</h4>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>From here you can search these documents. Enter your search terms below.</p>
+                <form>
+                    <div class="form-group">
+                        <input type="search" class="form-control" placeholder="Search..." id="mkdocs-search-query" title="Type search term here">
+                    </div>
+                </form>
+                <div id="mkdocs-search-results" data-no-results-text="No results found"></div>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div><div class="modal" id="mkdocs_keyboard_modal" tabindex="-1" role="dialog" aria-labelledby="keyboardModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="keyboardModalLabel">Keyboard Shortcuts</h4>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th style="width: 20%;">Keys</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td class="help shortcut"><kbd>?</kbd></td>
+                    <td>Open this help</td>
+                  </tr>
+                  <tr>
+                    <td class="next shortcut"><kbd>n</kbd></td>
+                    <td>Next page</td>
+                  </tr>
+                  <tr>
+                    <td class="prev shortcut"><kbd>p</kbd></td>
+                    <td>Previous page</td>
+                  </tr>
+                  <tr>
+                    <td class="search shortcut"><kbd>s</kbd></td>
+                    <td>Search</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div>
+
+    </body>
+</html>

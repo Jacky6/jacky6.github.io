@@ -1,0 +1,568 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="light">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        
+        
+        
+        <link rel="shortcut icon" href="../../../../img/favicon.ico">
+        <title>16_IO 流 - My Docs</title>
+        <link href="../../../../css/bootstrap.min.css" rel="stylesheet">
+        <link href="../../../../css/fontawesome.min.css" rel="stylesheet">
+        <link href="../../../../css/brands.min.css" rel="stylesheet">
+        <link href="../../../../css/solid.min.css" rel="stylesheet">
+        <link href="../../../../css/v4-font-face.min.css" rel="stylesheet">
+        <link href="../../../../css/base.css" rel="stylesheet">
+        <link id="hljs-light" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" >
+        <link id="hljs-dark" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github-dark.min.css" disabled>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+        <script>hljs.highlightAll();</script> 
+    </head>
+
+    <body>
+        <div class="navbar fixed-top navbar-expand-lg navbar-dark bg-primary">
+            <div class="container">
+                <a class="navbar-brand" href="../../../..">My Docs</a>
+
+                <!-- Expanded navigation -->
+                <div id="navbar-collapse" class="navbar-collapse collapse">
+
+                    <ul class="nav navbar-nav ms-md-auto">
+                        <li class="nav-item">
+                            <a href="#" class="nav-link" data-bs-toggle="modal" data-bs-target="#mkdocs_search_modal">
+                                <i class="fa fa-search"></i> Search
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="container">
+            <div class="row">
+                    <div class="col-md-3"><div class="navbar-expand-md bs-sidebar hidden-print affix" role="complementary">
+    <div class="navbar-header">
+        <button type="button" class="navbar-toggler collapsed" data-bs-toggle="collapse" data-bs-target="#toc-collapse" title="Table of Contents">
+            <span class="fa fa-angle-down"></span>
+        </button>
+    </div>
+
+    
+    <div id="toc-collapse" class="navbar-collapse collapse card bg-body-tertiary">
+        <ul class="nav flex-column">
+            
+            <li class="nav-item" data-bs-level="1"><a href="#16_io" class="nav-link">16_IO 流</a>
+              <ul class="nav flex-column">
+            <li class="nav-item" data-bs-level="2"><a href="#1-io" class="nav-link">1. IO 流概述</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#2" class="nav-link">2. 字节流</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#3" class="nav-link">3. 字符流</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#4" class="nav-link">4. 缓冲流</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#5" class="nav-link">5. 转换流</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#6" class="nav-link">6. 对象序列化</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#7-file" class="nav-link">7. File 类</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#8-java-7-nio2" class="nav-link">8. Java 7+ NIO.2</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#9" class="nav-link">9. 本章小结</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+              </ul>
+            </li>
+        </ul>
+    </div>
+</div></div>
+                    <div class="col-md-9" role="main">
+
+<h1 id="16_io">16_IO 流</h1>
+<hr />
+<h2 id="1-io">1. IO 流概述</h2>
+<h3 id="11-io">1.1 什么是 IO</h3>
+<p><strong>IO</strong>（Input/Output）是输入/输出的缩写，用于程序与外部设备（文件、网络、控制台等）之间的数据传输。</p>
+<p><strong>流的分类</strong>：</p>
+<pre><code>按流向：
+├── 输入流（Input）- 读取数据
+└── 输出流（Output）- 写入数据
+
+按数据类型：
+├── 字节流（Byte）- 所有文件
+│   ├── InputStream
+│   └── OutputStream
+└── 字符流（Char）- 文本文件
+    ├── Reader
+    └── Writer
+
+按功能：
+├── 节点流 - 直接操作数据源
+└── 处理流 - 增强功能（缓冲、转换等）
+</code></pre>
+<hr />
+<h2 id="2">2. 字节流</h2>
+<h3 id="21-fileinputstream">2.1 FileInputStream</h3>
+<pre><code class="language-java">import java.io.*;
+
+// 方式 1：基础用法
+FileInputStream fis = null;
+try {
+    fis = new FileInputStream(&quot;file.txt&quot;);
+    int data = fis.read();  // 读取一个字节
+    while (data != -1) {
+        System.out.print((char) data);
+        data = fis.read();
+    }
+} catch (IOException e) {
+    e.printStackTrace();
+} finally {
+    if (fis != null) {
+        try {
+            fis.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+}
+
+// 方式 2：try-with-resources（推荐）
+try (FileInputStream fis = new FileInputStream(&quot;file.txt&quot;)) {
+    int data = fis.read();
+    while (data != -1) {
+        System.out.print((char) data);
+        data = fis.read();
+    }
+} catch (IOException e) {
+    e.printStackTrace();
+}
+
+// 方式 3：读取到字节数组
+try (FileInputStream fis = new FileInputStream(&quot;file.txt&quot;)) {
+    byte[] buffer = new byte[1024];
+    int len;
+    while ((len = fis.read(buffer)) != -1) {
+        String str = new String(buffer, 0, len);
+        System.out.print(str);
+    }
+}
+</code></pre>
+<h3 id="22-fileoutputstream">2.2 FileOutputStream</h3>
+<pre><code class="language-java">// 写入文件（覆盖）
+try (FileOutputStream fos = new FileOutputStream(&quot;output.txt&quot;)) {
+    fos.write(&quot;Hello&quot;.getBytes());
+    fos.write('A');
+    fos.write(&quot;World&quot;.getBytes());
+} catch (IOException e) {
+    e.printStackTrace();
+}
+
+// 追加写入
+try (FileOutputStream fos = new FileOutputStream(&quot;output.txt&quot;, true)) {
+    fos.write(&quot;\n追加内容&quot;.getBytes());
+}
+</code></pre>
+<h3 id="23">2.3 文件复制</h3>
+<pre><code class="language-java">public static void copyFile(String src, String dest) {
+    try (FileInputStream fis = new FileInputStream(src);
+         FileOutputStream fos = new FileOutputStream(dest)) {
+
+        byte[] buffer = new byte[1024];
+        int len;
+        while ((len = fis.read(buffer)) != -1) {
+            fos.write(buffer, 0, len);
+        }
+    } catch (IOException e) {
+        e.printStackTrace();
+    }
+}
+</code></pre>
+<hr />
+<h2 id="3">3. 字符流</h2>
+<h3 id="31-filereader">3.1 FileReader</h3>
+<pre><code class="language-java">// 读取文本文件
+try (FileReader fr = new FileReader(&quot;file.txt&quot;);
+     BufferedReader br = new BufferedReader(fr)) {
+
+    String line;
+    while ((line = br.readLine()) != null) {
+        System.out.println(line);
+    }
+} catch (IOException e) {
+    e.printStackTrace();
+}
+</code></pre>
+<h3 id="32-filewriter">3.2 FileWriter</h3>
+<pre><code class="language-java">// 写入文本文件
+try (FileWriter fw = new FileWriter(&quot;output.txt&quot;);
+     BufferedWriter bw = new BufferedWriter(fw)) {
+
+    bw.write(&quot;Hello, World!&quot;);
+    bw.newLine();  // 换行
+    bw.write(&quot;第二行&quot;);
+} catch (IOException e) {
+    e.printStackTrace();
+}
+</code></pre>
+<h3 id="33-vs">3.3 字符流 vs 字节流</h3>
+<table>
+<thead>
+<tr>
+<th>特性</th>
+<th>字节流</th>
+<th>字符流</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>处理单元</td>
+<td>字节（8 位）</td>
+<td>字符（16 位）</td>
+</tr>
+<tr>
+<td>适用场景</td>
+<td>所有文件</td>
+<td>文本文件</td>
+</tr>
+<tr>
+<td>缓冲</td>
+<td>需手动</td>
+<td>自动</td>
+</tr>
+<tr>
+<td>类名后缀</td>
+<td>InputStream/OutputStream</td>
+<td>Reader/Writer</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="4">4. 缓冲流</h2>
+<h3 id="41-bufferedinputstream">4.1 BufferedInputStream</h3>
+<pre><code class="language-java">try (FileInputStream fis = new FileInputStream(&quot;file.txt&quot;);
+     BufferedInputStream bis = new BufferedInputStream(fis)) {
+
+    byte[] buffer = new byte[1024];
+    int len;
+    while ((len = bis.read(buffer)) != -1) {
+        System.out.write(buffer, 0, len);
+    }
+} catch (IOException e) {
+    e.printStackTrace();
+}
+</code></pre>
+<h3 id="42-bufferedreader">4.2 BufferedReader</h3>
+<pre><code class="language-java">try (FileReader fr = new FileReader(&quot;file.txt&quot;);
+     BufferedReader br = new BufferedReader(fr)) {
+
+    String line;
+    while ((line = br.readLine()) != null) {
+        System.out.println(line);
+    }
+} catch (IOException e) {
+    e.printStackTrace();
+}
+</code></pre>
+<h3 id="43-bufferedwriter">4.3 BufferedWriter</h3>
+<pre><code class="language-java">try (FileWriter fw = new FileWriter(&quot;output.txt&quot;);
+     BufferedWriter bw = new BufferedWriter(fw)) {
+
+    bw.write(&quot;第一行&quot;);
+    bw.newLine();
+    bw.write(&quot;第二行&quot;);
+    bw.flush();  // 刷新缓冲区
+} catch (IOException e) {
+    e.printStackTrace();
+}
+</code></pre>
+<hr />
+<h2 id="5">5. 转换流</h2>
+<h3 id="51-inputstreamreader">5.1 InputStreamReader</h3>
+<pre><code class="language-java">// 字节流转字符流
+try (FileInputStream fis = new FileInputStream(&quot;file.txt&quot;);
+     InputStreamReader isr = new InputStreamReader(fis, &quot;UTF-8&quot;);
+     BufferedReader br = new BufferedReader(isr)) {
+
+    String line;
+    while ((line = br.readLine()) != null) {
+        System.out.println(line);
+    }
+} catch (IOException e) {
+    e.printStackTrace();
+}
+</code></pre>
+<h3 id="52-outputstreamwriter">5.2 OutputStreamWriter</h3>
+<pre><code class="language-java">try (FileOutputStream fos = new FileOutputStream(&quot;output.txt&quot;);
+     OutputStreamWriter osw = new OutputStreamWriter(fos, &quot;UTF-8&quot;);
+     BufferedWriter bw = new BufferedWriter(osw)) {
+
+    bw.write(&quot;中文内容&quot;);
+} catch (IOException e) {
+    e.printStackTrace();
+}
+</code></pre>
+<hr />
+<h2 id="6">6. 对象序列化</h2>
+<h3 id="61-serializable">6.1 Serializable</h3>
+<pre><code class="language-java">import java.io.Serializable;
+
+public class Person implements Serializable {
+    private static final long serialVersionUID = 1L;
+
+    private String name;
+    private int age;
+    private transient String password;  // 不序列化
+
+    public Person(String name, int age) {
+        this.name = name;
+        this.age = age;
+    }
+}
+</code></pre>
+<h3 id="62-objectoutputstream">6.2 ObjectOutputStream</h3>
+<pre><code class="language-java">Person person = new Person(&quot;张三&quot;, 25);
+
+// 序列化（对象 → 字节）
+try (ObjectOutputStream oos = new ObjectOutputStream(
+        new FileOutputStream(&quot;person.dat&quot;))) {
+    oos.writeObject(person);
+} catch (IOException e) {
+    e.printStackTrace();
+}
+</code></pre>
+<h3 id="63-objectinputstream">6.3 ObjectInputStream</h3>
+<pre><code class="language-java">// 反序列化（字节 → 对象）
+try (ObjectInputStream ois = new ObjectInputStream(
+        new FileInputStream(&quot;person.dat&quot;))) {
+    Person person = (Person) ois.readObject();
+    System.out.println(person.name);
+} catch (IOException | ClassNotFoundException e) {
+    e.printStackTrace();
+}
+</code></pre>
+<hr />
+<h2 id="7-file">7. File 类</h2>
+<h3 id="71">7.1 创建和删除</h3>
+<pre><code class="language-java">File file = new File(&quot;test.txt&quot;);
+
+// 创建文件
+if (!file.exists()) {
+    file.createNewFile();
+}
+
+// 创建目录
+File dir = new File(&quot;mydir&quot;);
+dir.mkdir();  // 创建单级目录
+dir.mkdirs(); // 创建多级目录
+
+// 删除
+file.delete();
+dir.delete();
+</code></pre>
+<h3 id="72">7.2 获取信息</h3>
+<pre><code class="language-java">File file = new File(&quot;test.txt&quot;);
+
+String name = file.getName();      // 文件名
+String path = file.getPath();      // 路径
+String parent = file.getParent();  // 父目录
+long size = file.length();         // 大小
+long time = file.lastModified();   // 最后修改时间
+
+boolean isFile = file.isFile();    // 是否文件
+boolean isDir = file.isDirectory();// 是否目录
+boolean exists = file.exists();    // 是否存在
+boolean canRead = file.canRead();  // 是否可读
+boolean canWrite = file.canWrite();// 是否可写
+</code></pre>
+<h3 id="73">7.3 遍历目录</h3>
+<pre><code class="language-java">File dir = new File(&quot;.&quot;);
+
+// 列出所有文件
+File[] files = dir.listFiles();
+for (File f : files) {
+    System.out.println(f.getName());
+}
+
+// 过滤文件
+File[] txtFiles = dir.listFiles((d, name) -&gt; name.endsWith(&quot;.txt&quot;));
+for (File f : txtFiles) {
+    System.out.println(f.getName());
+}
+
+// 递归遍历
+void listAllFiles(File dir) {
+    File[] files = dir.listFiles();
+    if (files != null) {
+        for (File f : files) {
+            if (f.isDirectory()) {
+                listAllFiles(f);
+            } else {
+                System.out.println(f.getAbsolutePath());
+            }
+        }
+    }
+}
+</code></pre>
+<hr />
+<h2 id="8-java-7-nio2">8. Java 7+ NIO.2</h2>
+<h3 id="81-files">8.1 Files 类</h3>
+<pre><code class="language-java">import java.nio.file.*;
+import java.nio.charset.StandardCharsets;
+
+Path path = Paths.get(&quot;file.txt&quot;);
+
+// 读取所有行
+List&lt;String&gt; lines = Files.readAllLines(path, StandardCharsets.UTF_8);
+
+// 写入所有行
+Files.write(path, Arrays.asList(&quot;Line 1&quot;, &quot;Line 2&quot;), 
+            StandardCharsets.UTF_8);
+
+// 复制
+Files.copy(Paths.get(&quot;src.txt&quot;), Paths.get(&quot;dest.txt&quot;), 
+           StandardCopyOption.REPLACE_EXISTING);
+
+// 移动
+Files.move(Paths.get(&quot;old.txt&quot;), Paths.get(&quot;new.txt&quot;));
+
+// 删除
+Files.delete(Paths.get(&quot;file.txt&quot;));
+
+// 判断
+boolean exists = Files.exists(path);
+boolean isDir = Files.isDirectory(path);
+boolean isRegular = Files.isRegularFile(path);
+</code></pre>
+<h3 id="82">8.2 遍历文件</h3>
+<pre><code class="language-java">Path dir = Paths.get(&quot;.&quot;);
+
+// 遍历当前目录
+Files.list(dir).forEach(System.out::println);
+
+// 递归遍历
+Files.walk(dir).forEach(System.out::println);
+
+// 过滤遍历
+Files.walk(dir)
+    .filter(Files::isRegularFile)
+    .filter(p -&gt; p.toString().endsWith(&quot;.txt&quot;))
+    .forEach(System.out::println);
+</code></pre>
+<hr />
+<h2 id="9">9. 本章小结</h2>
+<h3 id="_1">核心知识点</h3>
+<p>✅ <strong>字节流</strong>：FileInputStream、FileOutputStream<br />
+✅ <strong>字符流</strong>：FileReader、FileWriter、BufferedReader<br />
+✅ <strong>缓冲流</strong>：BufferedInputStream、BufferedOutputStream<br />
+✅ <strong>转换流</strong>：InputStreamReader、OutputStreamWriter<br />
+✅ <strong>序列化</strong>：ObjectOutputStream、ObjectInputStream<br />
+✅ <strong>File 类</strong>：创建、删除、遍历<br />
+✅ <strong>NIO.2</strong>：Files、Path  </p>
+<h3 id="_2">最佳实践</h3>
+<ol>
+<li><strong>使用 try-with-resources</strong>：自动关闭资源</li>
+<li><strong>使用缓冲流</strong>：提高 IO 性能</li>
+<li><strong>文本文件用字符流</strong>：处理编码更方便</li>
+<li><strong>二进制文件用字节流</strong>：通用性强</li>
+<li><strong>注意编码</strong>：统一使用 UTF-8</li>
+</ol>
+<hr />
+<p>🎉 <strong>恭喜完成 IO 流学习！继续学习 <a href="../06_%E6%97%A5%E6%9C%9F%E6%97%B6%E9%97%B4/">日期时间</a></strong></p></div>
+            </div>
+        </div>
+
+        <footer class="col-md-12">
+            <hr>
+            <p>Documentation built with <a href="https://www.mkdocs.org/">MkDocs</a>.</p>
+        </footer>
+        <script src="../../../../js/bootstrap.bundle.min.js"></script>
+        <script>
+            var base_url = "../../../..",
+                shortcuts = {"help": 191, "next": 78, "previous": 80, "search": 83};
+        </script>
+        <script src="../../../../js/base.js"></script>
+        <script src="../../../../search/main.js"></script>
+
+        <div class="modal" id="mkdocs_search_modal" tabindex="-1" role="dialog" aria-labelledby="searchModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="searchModalLabel">Search</h4>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>From here you can search these documents. Enter your search terms below.</p>
+                <form>
+                    <div class="form-group">
+                        <input type="search" class="form-control" placeholder="Search..." id="mkdocs-search-query" title="Type search term here">
+                    </div>
+                </form>
+                <div id="mkdocs-search-results" data-no-results-text="No results found"></div>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div><div class="modal" id="mkdocs_keyboard_modal" tabindex="-1" role="dialog" aria-labelledby="keyboardModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="keyboardModalLabel">Keyboard Shortcuts</h4>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th style="width: 20%;">Keys</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td class="help shortcut"><kbd>?</kbd></td>
+                    <td>Open this help</td>
+                  </tr>
+                  <tr>
+                    <td class="next shortcut"><kbd>n</kbd></td>
+                    <td>Next page</td>
+                  </tr>
+                  <tr>
+                    <td class="prev shortcut"><kbd>p</kbd></td>
+                    <td>Previous page</td>
+                  </tr>
+                  <tr>
+                    <td class="search shortcut"><kbd>s</kbd></td>
+                    <td>Search</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div>
+
+    </body>
+</html>

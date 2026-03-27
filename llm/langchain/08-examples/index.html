@@ -1,0 +1,838 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="light">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        
+        
+        
+        <link rel="shortcut icon" href="../../../img/favicon.ico">
+        <title>08. 实战项目 - My Docs</title>
+        <link href="../../../css/bootstrap.min.css" rel="stylesheet">
+        <link href="../../../css/fontawesome.min.css" rel="stylesheet">
+        <link href="../../../css/brands.min.css" rel="stylesheet">
+        <link href="../../../css/solid.min.css" rel="stylesheet">
+        <link href="../../../css/v4-font-face.min.css" rel="stylesheet">
+        <link href="../../../css/base.css" rel="stylesheet">
+        <link id="hljs-light" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" >
+        <link id="hljs-dark" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github-dark.min.css" disabled>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+        <script>hljs.highlightAll();</script> 
+    </head>
+
+    <body>
+        <div class="navbar fixed-top navbar-expand-lg navbar-dark bg-primary">
+            <div class="container">
+                <a class="navbar-brand" href="../../..">My Docs</a>
+
+                <!-- Expanded navigation -->
+                <div id="navbar-collapse" class="navbar-collapse collapse">
+
+                    <ul class="nav navbar-nav ms-md-auto">
+                        <li class="nav-item">
+                            <a href="#" class="nav-link" data-bs-toggle="modal" data-bs-target="#mkdocs_search_modal">
+                                <i class="fa fa-search"></i> Search
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="container">
+            <div class="row">
+                    <div class="col-md-3"><div class="navbar-expand-md bs-sidebar hidden-print affix" role="complementary">
+    <div class="navbar-header">
+        <button type="button" class="navbar-toggler collapsed" data-bs-toggle="collapse" data-bs-target="#toc-collapse" title="Table of Contents">
+            <span class="fa fa-angle-down"></span>
+        </button>
+    </div>
+
+    
+    <div id="toc-collapse" class="navbar-collapse collapse card bg-body-tertiary">
+        <ul class="nav flex-column">
+            
+            <li class="nav-item" data-bs-level="1"><a href="#08" class="nav-link">08. 实战项目</a>
+              <ul class="nav flex-column">
+            <li class="nav-item" data-bs-level="2"><a href="#1" class="nav-link">项目 1：客服助手</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#2" class="nav-link">项目 2：数据分析助手</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#3" class="nav-link">项目 3：个人助理</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#_9" class="nav-link">部署建议</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#_12" class="nav-link">最佳实践总结</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#_15" class="nav-link">下一步</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#_16" class="nav-link">参考资源</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+              </ul>
+            </li>
+        </ul>
+    </div>
+</div></div>
+                    <div class="col-md-9" role="main">
+
+<h1 id="08">08. 实战项目</h1>
+<h2 id="1">项目 1：客服助手</h2>
+<h3 id="_1">场景描述</h3>
+<p>构建一个电商客服助手，能够：
+- 回答常见问题
+- 查询订单状态
+- 处理退货请求
+- 转接人工客服</p>
+<h3 id="_2">完整代码</h3>
+<pre><code class="language-python">from langchain.agents import create_agent
+from typing import Dict
+import json
+
+# 模拟数据库
+orders_db = {
+    &quot;ORD001&quot;: {&quot;status&quot;: &quot;已发货&quot;, &quot;date&quot;: &quot;2026-03-20&quot;},
+    &quot;ORD002&quot;: {&quot;status&quot;: &quot;处理中&quot;, &quot;date&quot;: &quot;2026-03-22&quot;},
+    &quot;ORD003&quot;: {&quot;status&quot;: &quot;已送达&quot;, &quot;date&quot;: &quot;2026-03-18&quot;},
+}
+
+# 工具 1：查询订单状态
+def check_order_status(order_id: str) -&gt; str:
+    &quot;&quot;&quot;查询订单状态。
+
+    Args:
+        order_id: 订单号（如 ORD001）
+
+    Returns:
+        订单状态信息
+    &quot;&quot;&quot;
+    order = orders_db.get(order_id.upper())
+    if order:
+        return f&quot;订单 {order_id}：{order['status']}，下单日期：{order['date']}&quot;
+    return f&quot;未找到订单 {order_id}&quot;
+
+# 工具 2：处理退货
+def process_return(order_id: str, reason: str) -&gt; str:
+    &quot;&quot;&quot;处理退货请求。
+
+    Args:
+        order_id: 订单号
+        reason: 退货原因
+
+    Returns:
+        退货处理结果
+    &quot;&quot;&quot;
+    order = orders_db.get(order_id.upper())
+    if not order:
+        return f&quot;未找到订单 {order_id}&quot;
+
+    if order[&quot;status&quot;] == &quot;已送达&quot;:
+        return f&quot;退货申请已提交，订单：{order_id}，原因：{reason}。客服将在 24 小时内处理。&quot;
+    else:
+        return f&quot;订单 {order_id} 尚未送达，暂不能申请退货。&quot;
+
+# 工具 3：查询常见问题
+def search_faq(question: str) -&gt; str:
+    &quot;&quot;&quot;搜索常见问题解答。
+
+    Args:
+        question: 问题关键词
+
+    Returns:
+        相关 FAQ 答案
+    &quot;&quot;&quot;
+    faq = {
+        &quot;运费&quot;: &quot;满 99 元免运费，否则运费 10 元。&quot;,
+        &quot;发货&quot;: &quot;工作日 24 小时内发货，周末和节假日顺延。&quot;,
+        &quot;退货&quot;: &quot;支持 7 天无理由退货，商品需保持完好。&quot;,
+        &quot;发票&quot;: &quot;确认收货后可在订单详情申请电子发票。&quot;,
+        &quot;客服&quot;: &quot;客服工作时间：周一至周五 9:00-18:00。&quot;,
+    }
+
+    for key, answer in faq.items():
+        if key in question:
+            return answer
+
+    return &quot;抱歉，我没有找到相关信息。您可以联系人工客服。&quot;
+
+# 创建 Agent
+system_prompt = &quot;&quot;&quot;你是电商客服助手，负责帮助客户解决问题。
+
+你的职责：
+1. 回答常见问题（使用 search_faq）
+2. 查询订单状态（使用 check_order_status）
+3. 处理退货请求（使用 process_return）
+4. 无法处理时转接人工客服
+
+服务准则：
+- 礼貌、专业、耐心
+- 先确认客户身份和订单信息
+- 提供清晰、准确的答复
+- 遇到投诉或复杂问题，建议联系人工客服
+
+可用工具：
+- search_faq: 回答常见问题
+- check_order_status: 查询订单
+- process_return: 处理退货
+
+如果客户情绪激动或问题复杂，请说：&quot;我理解您的情况，让我为您转接人工客服。&quot; &quot;&quot;&quot;
+
+agent = create_agent(
+    model=&quot;claude-sonnet-4-6&quot;,
+    tools=[search_faq, check_order_status, process_return],
+    system_prompt=system_prompt,
+)
+
+# 运行示例
+def run_customer_service():
+    &quot;&quot;&quot;运行客服助手&quot;&quot;&quot;
+    print(&quot;🤖 客服助手已就绪（输入 'exit' 退出）\n&quot;)
+
+    messages = []
+
+    while True:
+        user_input = input(&quot;客户：&quot;).strip()
+
+        if user_input.lower() in [&quot;exit&quot;, &quot;quit&quot;, &quot;退出&quot;]:
+            print(&quot;客服助手：感谢您的咨询，祝您生活愉快！再见！&quot;)
+            break
+
+        messages.append({&quot;role&quot;: &quot;user&quot;, &quot;content&quot;: user_input})
+
+        result = agent.invoke({&quot;messages&quot;: messages})
+
+        assistant_message = result[&quot;messages&quot;][-1]
+        messages.append(assistant_message)
+
+        print(f&quot;客服助手：{assistant_message.content}\n&quot;)
+
+# 测试
+if __name__ == &quot;__main__&quot;:
+    run_customer_service()
+</code></pre>
+<h3 id="_3">测试用例</h3>
+<pre><code class="language-python"># 测试场景
+test_scenarios = [
+    &quot;我的订单 ORD001 怎么样了？&quot;,
+    &quot;运费怎么算？&quot;,
+    &quot;我要退货，订单 ORD003，商品有质量问题&quot;,
+    &quot;什么时候发货？&quot;,
+    &quot;投诉！我的订单都延迟一周了！&quot;,
+]
+
+for scenario in test_scenarios:
+    result = agent.invoke({
+        &quot;messages&quot;: [{&quot;role&quot;: &quot;user&quot;, &quot;content&quot;: scenario}]
+    })
+    print(f&quot;问：{scenario}&quot;)
+    print(f&quot;答：{result['messages'][-1].content}\n&quot;)
+</code></pre>
+<h2 id="2">项目 2：数据分析助手</h2>
+<h3 id="_4">场景描述</h3>
+<p>构建一个数据分析助手，能够：
+- 执行 SQL 查询
+- 生成数据可视化
+- 解释分析结果
+- 提供业务建议</p>
+<h3 id="_5">完整代码</h3>
+<pre><code class="language-python">from langchain.agents import create_agent
+import pandas as pd
+from datetime import datetime, timedelta
+
+# 模拟销售数据
+def generate_sales_data():
+    &quot;&quot;&quot;生成模拟销售数据&quot;&quot;&quot;
+    dates = pd.date_range(end=datetime.now(), periods=30, freq='D')
+    data = {
+        'date': dates,
+        'revenue': [10000 + i * 100 + (i % 7) * 500 for i in range(30)],
+        'orders': [50 + i + (i % 7) * 10 for i in range(30)],
+        'customers': [30 + i // 2 for i in range(30)],
+    }
+    return pd.DataFrame(data)
+
+sales_df = generate_sales_data()
+
+# 工具 1：查询销售数据
+def query_sales_data(
+    start_date: str = None,
+    end_date: str = None,
+    metric: str = &quot;revenue&quot;
+) -&gt; str:
+    &quot;&quot;&quot;查询销售数据。
+
+    Args:
+        start_date: 开始日期（YYYY-MM-DD）
+        end_date: 结束日期（YYYY-MM-DD）
+        metric: 指标（revenue/orders/customers）
+
+    Returns:
+        查询结果
+    &quot;&quot;&quot;
+    df = sales_df.copy()
+
+    if start_date:
+        df = df[df['date'] &gt;= pd.to_datetime(start_date)]
+    if end_date:
+        df = df[df['date'] &lt;= pd.to_datetime(end_date)]
+
+    if metric not in df.columns:
+        return f&quot;未知指标：{metric}。可用指标：revenue, orders, customers&quot;
+
+    total = df[metric].sum()
+    avg = df[metric].mean()
+    count = len(df)
+
+    return f&quot;{metric} 统计（{count}天）：\n&quot; \
+           f&quot;  总计：{total:,.0f}\n&quot; \
+           f&quot;  平均：{avg:,.0f}/天\n&quot; \
+           f&quot;  最高：{df[metric].max():,.0f}\n&quot; \
+           f&quot;  最低：{df[metric].min():,.0f}&quot;
+
+# 工具 2：计算增长率
+def calculate_growth(metric: str = &quot;revenue&quot;, days: int = 7) -&gt; str:
+    &quot;&quot;&quot;计算增长率。
+
+    Args:
+        metric: 指标名称
+        days: 对比天数
+
+    Returns:
+        增长率信息
+    &quot;&quot;&quot;
+    df = sales_df.copy()
+
+    if metric not in df.columns:
+        return f&quot;未知指标：{metric}&quot;
+
+    recent = df.head(days)[metric].sum()
+    previous = df.iloc[days:days*2][metric].sum()
+
+    growth_rate = ((recent - previous) / previous) * 100 if previous &gt; 0 else 0
+
+    trend = &quot;增长&quot; if growth_rate &gt; 0 else &quot;下降&quot;
+
+    return f&quot;{metric} 趋势（对比前{days}天）：\n&quot; \
+           f&quot;  近期：{recent:,.0f}\n&quot; \
+           f&quot;  前期：{previous:,.0f}\n&quot; \
+           f&quot;  变化：{growth_rate:+.1f}% ({trend})&quot;
+
+# 工具 3：生成业务建议
+def generate_insights() -&gt; str:
+    &quot;&quot;&quot;生成业务洞察和建议。
+
+    Returns:
+        业务建议
+    &quot;&quot;&quot;
+    df = sales_df.copy()
+
+    # 计算关键指标
+    avg_revenue = df['revenue'].mean()
+    avg_orders = df['orders'].mean()
+    avg_order_value = avg_revenue / avg_orders if avg_orders &gt; 0 else 0
+
+    # 周末 vs 工作日
+    df['day_of_week'] = df['date'].dt.dayofweek
+    weekend_avg = df[df['day_of_week'] &gt;= 5]['revenue'].mean()
+    weekday_avg = df[df['day_of_week'] &lt; 5]['revenue'].mean()
+
+    insights = []
+    insights.append(&quot;📊 业务洞察报告&quot;)
+    insights.append(&quot;=&quot; * 40)
+    insights.append(f&quot;• 平均日收入：¥{avg_revenue:,.0f}&quot;)
+    insights.append(f&quot;• 平均日订单：{avg_orders:.0f}单&quot;)
+    insights.append(f&quot;• 平均客单价：¥{avg_order_value:.0f}&quot;)
+    insights.append(f&quot;• 周末日均收入：¥{weekend_avg:,.0f}&quot;)
+    insights.append(f&quot;• 工作日均收入：¥{weekday_avg:,.0f}&quot;)
+
+    if weekend_avg &gt; weekday_avg * 1.2:
+        insights.append(&quot;\n💡 建议：周末表现优异，可增加周末营销投入&quot;)
+    elif weekday_avg &gt; weekend_avg * 1.2:
+        insights.append(&quot;\n💡 建议：工作日表现更好，可推出工作日促销&quot;)
+
+    return &quot;\n&quot;.join(insights)
+
+# 创建 Agent
+system_prompt = &quot;&quot;&quot;你是数据分析助手，帮助业务团队分析销售数据。
+
+你的职责：
+1. 查询销售数据（使用 query_sales_data）
+2. 计算增长趋势（使用 calculate_growth）
+3. 提供业务洞察（使用 generate_insights）
+4. 用清晰的语言解释数据
+
+分析原则：
+- 数据驱动，客观准确
+- 提供具体的数字支持
+- 给出可执行的建议
+- 指出异常和趋势
+
+可用工具：
+- query_sales_data: 查询特定时间段数据
+- calculate_growth: 计算增长率
+- generate_insights: 生成业务建议
+
+回答时：
+1. 先总结关键发现
+2. 提供具体数据
+3. 给出建议&quot;&quot;&quot;
+
+agent = create_agent(
+    model=&quot;claude-sonnet-4-6&quot;,
+    tools=[query_sales_data, calculate_growth, generate_insights],
+    system_prompt=system_prompt,
+)
+
+# 运行示例
+def run_data_analyst():
+    &quot;&quot;&quot;运行数据分析助手&quot;&quot;&quot;
+    print(&quot;🤖 数据分析助手已就绪（输入 'exit' 退出）\n&quot;)
+
+    messages = []
+
+    while True:
+        user_input = input(&quot;问题：&quot;).strip()
+
+        if user_input.lower() in [&quot;exit&quot;, &quot;quit&quot;, &quot;退出&quot;]:
+            break
+
+        messages.append({&quot;role&quot;: &quot;user&quot;, &quot;content&quot;: user_input})
+
+        result = agent.invoke({&quot;messages&quot;: messages})
+
+        assistant_message = result[&quot;messages&quot;][-1]
+        messages.append(assistant_message)
+
+        print(f&quot;\n{assistant_message.content}\n&quot;)
+
+if __name__ == &quot;__main__&quot;:
+    run_data_analyst()
+</code></pre>
+<h3 id="_6">测试用例</h3>
+<pre><code class="language-python"># 测试查询
+queries = [
+    &quot;上个月的总收入是多少？&quot;,
+    &quot;最近 7 天的订单增长情况如何？&quot;,
+    &quot;生成一份业务分析报告&quot;,
+    &quot;周末和工作日哪个表现更好？&quot;,
+]
+
+for query in queries:
+    result = agent.invoke({
+        &quot;messages&quot;: [{&quot;role&quot;: &quot;user&quot;, &quot;content&quot;: query}]
+    })
+    print(f&quot;问：{query}&quot;)
+    print(f&quot;答：{result['messages'][-1].content}\n&quot;)
+</code></pre>
+<h2 id="3">项目 3：个人助理</h2>
+<h3 id="_7">场景描述</h3>
+<p>构建一个个人助理，能够：
+- 管理待办事项
+- 设置提醒
+- 记录笔记
+- 回答问题</p>
+<h3 id="_8">完整代码</h3>
+<pre><code class="language-python">from langchain.agents import create_agent
+from datetime import datetime, timedelta
+import json
+import os
+
+TODO_FILE = &quot;todos.json&quot;
+NOTES_FILE = &quot;notes.json&quot;
+
+# 加载数据
+def load_data(filename):
+    if os.path.exists(filename):
+        with open(filename, 'r', encoding='utf-8') as f:
+            return json.load(f)
+    return []
+
+# 保存数据
+def save_data(filename, data):
+    with open(filename, 'w', encoding='utf-8') as f:
+        json.dump(data, f, ensure_ascii=False, indent=2)
+
+# 工具 1：添加待办
+def add_todo(task: str, priority: str = &quot;medium&quot;, due_date: str = None) -&gt; str:
+    &quot;&quot;&quot;添加待办事项。
+
+    Args:
+        task: 任务描述
+        priority: 优先级（high/medium/low）
+        due_date: 截止日期（YYYY-MM-DD）
+
+    Returns:
+        添加结果
+    &quot;&quot;&quot;
+    todos = load_data(TODO_FILE)
+
+    todo = {
+        &quot;id&quot;: len(todos) + 1,
+        &quot;task&quot;: task,
+        &quot;priority&quot;: priority,
+        &quot;due_date&quot;: due_date,
+        &quot;created_at&quot;: datetime.now().strftime(&quot;%Y-%m-%d %H:%M&quot;),
+        &quot;completed&quot;: False,
+    }
+
+    todos.append(todo)
+    save_data(TODO_FILE, todos)
+
+    return f&quot;✅ 已添加待办 #{todo['id']}: {task}&quot;
+
+# 工具 2：查看待办
+def list_todos(show_completed: bool = False) -&gt; str:
+    &quot;&quot;&quot;查看待办事项列表。
+
+    Args:
+        show_completed: 是否显示已完成的
+
+    Returns:
+        待办列表
+    &quot;&quot;&quot;
+    todos = load_data(TODO_FILE)
+
+    if not show_completed:
+        todos = [t for t in todos if not t[&quot;completed&quot;]]
+
+    if not todos:
+        return &quot;📝 暂无待办事项&quot;
+
+    lines = [&quot;📋 待办事项：&quot;]
+    for todo in todos:
+        status = &quot;✅&quot; if todo[&quot;completed&quot;] else &quot;⬜&quot;
+        priority_icon = {&quot;high&quot;: &quot;🔴&quot;, &quot;medium&quot;: &quot;🟡&quot;, &quot;low&quot;: &quot;🟢&quot;}.get(todo[&quot;priority&quot;], &quot;&quot;)
+        lines.append(f&quot;{status} {priority_icon} #{todo['id']}: {todo['task']}&quot;)
+        if todo[&quot;due_date&quot;]:
+            lines.append(f&quot;   截止：{todo['due_date']}&quot;)
+
+    return &quot;\n&quot;.join(lines)
+
+# 工具 3：完成待办
+def complete_todo(todo_id: int) -&gt; str:
+    &quot;&quot;&quot;标记待办为已完成。
+
+    Args:
+        todo_id: 待办 ID
+
+    Returns:
+        操作结果
+    &quot;&quot;&quot;
+    todos = load_data(TODO_FILE)
+
+    for todo in todos:
+        if todo[&quot;id&quot;] == todo_id:
+            todo[&quot;completed&quot;] = True
+            todo[&quot;completed_at&quot;] = datetime.now().strftime(&quot;%Y-%m-%d %H:%M&quot;)
+            save_data(TODO_FILE, todos)
+            return f&quot;✅ 已完成待办 #{todo_id}: {todo['task']}&quot;
+
+    return f&quot;❌ 未找到待办 #{todo_id}&quot;
+
+# 工具 4：添加笔记
+def add_note(title: str, content: str) -&gt; str:
+    &quot;&quot;&quot;添加笔记。
+
+    Args:
+        title: 笔记标题
+        content: 笔记内容
+
+    Returns:
+        添加结果
+    &quot;&quot;&quot;
+    notes = load_data(NOTES_FILE)
+
+    note = {
+        &quot;id&quot;: len(notes) + 1,
+        &quot;title&quot;: title,
+        &quot;content&quot;: content,
+        &quot;created_at&quot;: datetime.now().strftime(&quot;%Y-%m-%d %H:%M&quot;),
+    }
+
+    notes.append(note)
+    save_data(NOTES_FILE, notes)
+
+    return f&quot;📝 已添加笔记 #{note['id']}: {title}&quot;
+
+# 工具 5：搜索笔记
+def search_notes(keyword: str) -&gt; str:
+    &quot;&quot;&quot;搜索笔记。
+
+    Args:
+        keyword: 搜索关键词
+
+    Returns:
+        搜索结果
+    &quot;&quot;&quot;
+    notes = load_data(NOTES_FILE)
+
+    results = [n for n in notes if keyword.lower() in n[&quot;title&quot;].lower() 
+               or keyword.lower() in n[&quot;content&quot;].lower()]
+
+    if not results:
+        return f&quot;📝 未找到包含 '{keyword}' 的笔记&quot;
+
+    lines = [f&quot;🔍 找到 {len(results)} 篇笔记：&quot;]
+    for note in results:
+        lines.append(f&quot;\n📌 #{note['id']}: {note['title']}&quot;)
+        lines.append(f&quot;   {note['content'][:100]}...&quot;)
+
+    return &quot;\n&quot;.join(lines)
+
+# 工具 6：获取时间信息
+def get_time_info() -&gt; str:
+    &quot;&quot;&quot;获取当前时间信息。
+
+    Returns:
+        时间信息
+    &quot;&quot;&quot;
+    now = datetime.now()
+    return f&quot;当前时间：{now.strftime('%Y年%m月%d日 %H:%M')}\n&quot; \
+           f&quot;星期：{now.strftime('%A')}&quot;
+
+# 创建 Agent
+system_prompt = &quot;&quot;&quot;你是个人助理，帮助用户管理日常事务。
+
+你的职责：
+1. 管理待办事项（添加、查看、完成）
+2. 管理笔记（添加、搜索）
+3. 提供时间信息
+4. 回答一般问题
+
+工作原则：
+- 友好、乐于助人
+- 主动提醒重要事项
+- 帮助用户保持条理
+- 记住用户的偏好
+
+可用工具：
+- add_todo: 添加待办
+- list_todos: 查看待办
+- complete_todo: 完成待办
+- add_note: 添加笔记
+- search_notes: 搜索笔记
+- get_time_info: 获取时间
+
+主动提醒：
+- 如果有即将到期的待办，主动提醒
+- 如果用户说&quot;谢谢&quot;，礼貌回应&quot;&quot;&quot;
+
+agent = create_agent(
+    model=&quot;claude-sonnet-4-6&quot;,
+    tools=[add_todo, list_todos, complete_todo, add_note, search_notes, get_time_info],
+    system_prompt=system_prompt,
+)
+
+# 运行示例
+def run_personal_assistant():
+    &quot;&quot;&quot;运行个人助理&quot;&quot;&quot;
+    print(&quot;🤖 个人助理已就绪（输入 'exit' 退出）\n&quot;)
+
+    messages = []
+
+    while True:
+        user_input = input(&quot;你：&quot;).strip()
+
+        if user_input.lower() in [&quot;exit&quot;, &quot;quit&quot;, &quot;退出&quot;]:
+            print(&quot;助理：祝您有愉快的一天！再见！&quot;)
+            break
+
+        messages.append({&quot;role&quot;: &quot;user&quot;, &quot;content&quot;: user_input})
+
+        result = agent.invoke({&quot;messages&quot;: messages})
+
+        assistant_message = result[&quot;messages&quot;][-1]
+        messages.append(assistant_message)
+
+        print(f&quot;\n助理：{assistant_message.content}\n&quot;)
+
+if __name__ == &quot;__main__&quot;:
+    run_personal_assistant()
+</code></pre>
+<h2 id="_9">部署建议</h2>
+<h3 id="_10">本地部署</h3>
+<pre><code class="language-python"># requirements.txt
+langchain&gt;=0.3.0
+langchain-anthropic&gt;=0.3.0
+pandas&gt;=2.0.0
+python-dotenv&gt;=1.0.0
+</code></pre>
+<pre><code class="language-bash"># 安装依赖
+pip install -r requirements.txt
+
+# 设置环境变量
+export ANTHROPIC_API_KEY=&quot;sk-ant-...&quot;
+
+# 运行
+python customer_service.py
+</code></pre>
+<h3 id="docker">Docker 部署</h3>
+<pre><code class="language-dockerfile">FROM python:3.11-slim
+
+WORKDIR /app
+
+COPY requirements.txt .
+RUN pip install -r requirements.txt
+
+COPY . .
+
+CMD [&quot;python&quot;, &quot;customer_service.py&quot;]
+</code></pre>
+<h3 id="_11">生产环境考虑</h3>
+<pre><code class="language-python"># 1. 使用环境变量
+import os
+API_KEY = os.getenv(&quot;ANTHROPIC_API_KEY&quot;)
+
+# 2. 添加错误处理
+try:
+    result = agent.invoke(...)
+except Exception as e:
+    logger.error(f&quot;Error: {e}&quot;)
+    return {&quot;error&quot;: &quot;服务暂时不可用&quot;}
+
+# 3. 限流保护
+from functools import wraps
+import time
+
+def rate_limit(max_calls, period):
+    def decorator(func):
+        calls = []
+        @wraps(func)
+        def wrapper(*args):
+            now = time.time()
+            calls[:] = [t for t in calls if now - t &lt; period]
+            if len(calls) &gt;= max_calls:
+                raise Exception(&quot;Rate limit exceeded&quot;)
+            calls.append(now)
+            return func(*args)
+        return wrapper
+    return decorator
+
+# 4. 日志记录
+import logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+</code></pre>
+<h2 id="_12">最佳实践总结</h2>
+<h3 id="_13">✅ 推荐</h3>
+<pre><code>1. 明确定义 Agent 职责
+2. 编写清晰的工具文档
+3. 添加适当的错误处理
+4. 使用环境变量管理密钥
+5. 启用 LangSmith 追踪
+6. 定期测试和评估
+7. 监控成本和性能
+</code></pre>
+<h3 id="_14">❌ 避免</h3>
+<pre><code>1. 硬编码敏感信息
+2. 忽略错误处理
+3. 不限制上下文长度
+4. 不监控使用情况
+5. 过度依赖单一工具
+6. 忽略用户隐私
+</code></pre>
+<h2 id="_15">下一步</h2>
+<p>继续学习和实践：
+- 尝试修改示例代码
+- 构建自己的 Agent
+- 分享和贡献社区</p>
+<h2 id="_16">参考资源</h2>
+<ul>
+<li><a href="https://github.com/langchain-ai/langchain/tree/master/libs/langchain/tests">LangChain 示例</a></li>
+<li><a href="https://discord.gg/langchain">LangChain 社区</a></li>
+<li><a href="https://blog.langchain.dev/">LangChain 博客</a></li>
+</ul>
+<hr />
+<p><em>动手实践，构建你的第一个生产级 Agent！🚀</em></p></div>
+            </div>
+        </div>
+
+        <footer class="col-md-12">
+            <hr>
+            <p>Documentation built with <a href="https://www.mkdocs.org/">MkDocs</a>.</p>
+        </footer>
+        <script src="../../../js/bootstrap.bundle.min.js"></script>
+        <script>
+            var base_url = "../../..",
+                shortcuts = {"help": 191, "next": 78, "previous": 80, "search": 83};
+        </script>
+        <script src="../../../js/base.js"></script>
+        <script src="../../../search/main.js"></script>
+
+        <div class="modal" id="mkdocs_search_modal" tabindex="-1" role="dialog" aria-labelledby="searchModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="searchModalLabel">Search</h4>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>From here you can search these documents. Enter your search terms below.</p>
+                <form>
+                    <div class="form-group">
+                        <input type="search" class="form-control" placeholder="Search..." id="mkdocs-search-query" title="Type search term here">
+                    </div>
+                </form>
+                <div id="mkdocs-search-results" data-no-results-text="No results found"></div>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div><div class="modal" id="mkdocs_keyboard_modal" tabindex="-1" role="dialog" aria-labelledby="keyboardModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="keyboardModalLabel">Keyboard Shortcuts</h4>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th style="width: 20%;">Keys</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td class="help shortcut"><kbd>?</kbd></td>
+                    <td>Open this help</td>
+                  </tr>
+                  <tr>
+                    <td class="next shortcut"><kbd>n</kbd></td>
+                    <td>Next page</td>
+                  </tr>
+                  <tr>
+                    <td class="prev shortcut"><kbd>p</kbd></td>
+                    <td>Previous page</td>
+                  </tr>
+                  <tr>
+                    <td class="search shortcut"><kbd>s</kbd></td>
+                    <td>Search</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div>
+
+    </body>
+</html>

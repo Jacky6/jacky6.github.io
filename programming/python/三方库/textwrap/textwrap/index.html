@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="light">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        
+        
+        
+        <link rel="shortcut icon" href="../../../../../img/favicon.ico">
+        <title>Textwrap - My Docs</title>
+        <link href="../../../../../css/bootstrap.min.css" rel="stylesheet">
+        <link href="../../../../../css/fontawesome.min.css" rel="stylesheet">
+        <link href="../../../../../css/brands.min.css" rel="stylesheet">
+        <link href="../../../../../css/solid.min.css" rel="stylesheet">
+        <link href="../../../../../css/v4-font-face.min.css" rel="stylesheet">
+        <link href="../../../../../css/base.css" rel="stylesheet">
+        <link id="hljs-light" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" >
+        <link id="hljs-dark" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github-dark.min.css" disabled>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+        <script>hljs.highlightAll();</script> 
+    </head>
+
+    <body>
+        <div class="navbar fixed-top navbar-expand-lg navbar-dark bg-primary">
+            <div class="container">
+                <a class="navbar-brand" href="../../../../..">My Docs</a>
+
+                <!-- Expanded navigation -->
+                <div id="navbar-collapse" class="navbar-collapse collapse">
+
+                    <ul class="nav navbar-nav ms-md-auto">
+                        <li class="nav-item">
+                            <a href="#" class="nav-link" data-bs-toggle="modal" data-bs-target="#mkdocs_search_modal">
+                                <i class="fa fa-search"></i> Search
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="container">
+            <div class="row">
+                    <div class="col-md-3"><div class="navbar-expand-md bs-sidebar hidden-print affix" role="complementary">
+    <div class="navbar-header">
+        <button type="button" class="navbar-toggler collapsed" data-bs-toggle="collapse" data-bs-target="#toc-collapse" title="Table of Contents">
+            <span class="fa fa-angle-down"></span>
+        </button>
+    </div>
+
+    
+    <div id="toc-collapse" class="navbar-collapse collapse card bg-body-tertiary">
+        <ul class="nav flex-column">
+            
+            <li class="nav-item" data-bs-level="2"><a href="#_1" class="nav-link">一、常用函数介绍</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            
+            <li class="nav-item" data-bs-level="2"><a href="#wrap-fill-shorten" class="nav-link">二、常用参数说明（适用于 wrap, fill, shorten）</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            
+            <li class="nav-item" data-bs-level="2"><a href="#_2" class="nav-link">三、实际应用示例</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            
+            <li class="nav-item" data-bs-level="2"><a href="#_3" class="nav-link">四、总结</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+        </ul>
+    </div>
+</div></div>
+                    <div class="col-md-9" role="main">
+
+<p><code>textwrap</code> 是 Python 标准库中的一个模块，用于对文本进行格式化处理，特别是<strong>自动换行（折行）</strong>、<strong>去除缩进</strong>、<strong>填充文本</strong>等操作。它非常适合处理多行字符串的排版问题，比如生成帮助信息、日志、文档等。</p>
+<hr />
+<h2 id="_1">一、常用函数介绍</h2>
+<h3 id="1-textwrapwraptext-width70-kwargs">1. <code>textwrap.wrap(text, width=70, **kwargs)</code></h3>
+<ul>
+<li><strong>功能</strong>：将长文本按指定宽度拆分成多行列表。</li>
+<li><strong>返回值</strong>：列表（每行是一个字符串）。</li>
+<li><strong>参数</strong>：</li>
+<li><code>width</code>：每行最大字符数（默认 70）。</li>
+<li>其他可选参数如 <code>break_long_words</code>, <code>break_on_hyphens</code> 等。</li>
+</ul>
+<pre><code class="language-python">import textwrap
+
+text = &quot;This is a very long sentence that needs to be wrapped into multiple lines.&quot;
+wrapped = textwrap.wrap(text, width=20)
+print(wrapped)
+# 输出：
+# ['This is a very long',
+#  'sentence that needs',
+#  'to be wrapped into',
+#  'multiple lines.']
+</code></pre>
+<hr />
+<h3 id="2-textwrapfilltext-width70-kwargs">2. <code>textwrap.fill(text, width=70, **kwargs)</code></h3>
+<ul>
+<li><strong>功能</strong>：与 <code>wrap()</code> 类似，但直接返回一个<strong>用换行符连接的字符串</strong>（更常用）。</li>
+<li><strong>等价于</strong>：<code>"\n".join(wrap(text, ...))</code></li>
+</ul>
+<pre><code class="language-python">filled = textwrap.fill(text, width=20)
+print(filled)
+# 输出：
+# This is a very long
+# sentence that needs
+# to be wrapped into
+# multiple lines.
+</code></pre>
+<hr />
+<h3 id="3-textwrapdedenttext">3. <code>textwrap.dedent(text)</code></h3>
+<ul>
+<li><strong>功能</strong>：<strong>去除多行字符串的公共前导空白（缩进）</strong>，常用于三引号字符串。</li>
+<li><strong>用途</strong>：让代码中的多行字符串保持美观缩进，但输出时不带多余空格。</li>
+</ul>
+<pre><code class="language-python">code = &quot;&quot;&quot;
+    def hello():
+        print(&quot;Hello, world!&quot;)
+&quot;&quot;&quot;
+print(repr(code))
+# '\n    def hello():\n        print(&quot;Hello, world!&quot;)\n'
+
+cleaned = textwrap.dedent(code)
+print(repr(cleaned))
+# '\ndef hello():\n    print(&quot;Hello, world!&quot;)\n'
+</code></pre>
+<blockquote>
+<p>✅ 非常适合写 docstring 或帮助文本！</p>
+</blockquote>
+<hr />
+<h3 id="4-textwrapindenttext-prefix-predicatenone">4. <code>textwrap.indent(text, prefix, predicate=None)</code></h3>
+<ul>
+<li><strong>功能</strong>：给文本的每一行添加前缀（如缩进）。</li>
+<li><code>prefix</code>：要添加的字符串（如 <code>"  "</code>）。</li>
+<li><code>predicate</code>：可选函数，决定哪些行需要加前缀（默认所有非空行）。</li>
+</ul>
+<pre><code class="language-python">text = &quot;Line 1\nLine 2\n\nLine 4&quot;
+indented = textwrap.indent(text, &quot;&gt;&gt;&gt; &quot;)
+print(indented)
+# 输出：
+# &gt;&gt;&gt; Line 1
+# &gt;&gt;&gt; Line 2
+# &gt;&gt;&gt;
+# &gt;&gt;&gt; Line 4
+</code></pre>
+<hr />
+<h3 id="5-textwrapshortentext-width-kwargs">5. <code>textwrap.shorten(text, width, **kwargs)</code></h3>
+<ul>
+<li><strong>功能</strong>：将文本缩短到指定宽度，并在末尾加省略号（<code>...</code>）。</li>
+<li>会先去除多余空白，再截断。</li>
+</ul>
+<pre><code class="language-python">long_text = &quot;This is a very long description that should be shortened.&quot;
+short = textwrap.shorten(long_text, width=30, placeholder=&quot;...&quot;)
+print(short)
+# 输出：This is a very long...
+</code></pre>
+<hr />
+<h2 id="wrap-fill-shorten">二、常用参数说明（适用于 <code>wrap</code>, <code>fill</code>, <code>shorten</code>）</h2>
+<table>
+<thead>
+<tr>
+<th>参数</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>width</code></td>
+<td>每行最大字符数（默认 70）</td>
+</tr>
+<tr>
+<td><code>expand_tabs</code></td>
+<td>是否将 tab 转为空格（默认 True）</td>
+</tr>
+<tr>
+<td><code>replace_whitespace</code></td>
+<td>是否将空白字符（如 <code>\t</code>, <code>\n</code>）替换为空格（默认 True）</td>
+</tr>
+<tr>
+<td><code>drop_whitespace</code></td>
+<td>是否丢弃行首尾的空白（默认 True）</td>
+</tr>
+<tr>
+<td><code>break_long_words</code></td>
+<td>是否允许在单词中间断开（默认 True）</td>
+</tr>
+<tr>
+<td><code>break_on_hyphens</code></td>
+<td>是否在连字符 <code>-</code> 处断行（默认 True）</td>
+</tr>
+<tr>
+<td><code>max_lines</code></td>
+<td>最大行数（<code>shorten</code> 和 <code>fill</code> 支持）</td>
+</tr>
+<tr>
+<td><code>placeholder</code></td>
+<td>截断时使用的占位符（默认 <code>'...'</code>）</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="_2">三、实际应用示例</h2>
+<h3 id="1">示例 1：生成帮助信息</h3>
+<pre><code class="language-python">help_text = &quot;&quot;&quot;
+    This tool does something useful.
+    It supports multiple options:
+      -v: verbose mode
+      -o: output file
+&quot;&quot;&quot;
+print(textwrap.dedent(help_text).strip())
+</code></pre>
+<h3 id="2">示例 2：格式化日志或消息</h3>
+<pre><code class="language-python">message = &quot;Error: The configuration file is missing or invalid. Please check the path and permissions.&quot;
+formatted = textwrap.fill(message, width=50, initial_indent=&quot;ERROR: &quot;, subsequent_indent=&quot;       &quot;)
+print(formatted)
+</code></pre>
+<p>输出：</p>
+<pre><code>ERROR: Error: The configuration file is
+       missing or invalid. Please check the
+       path and permissions.
+</code></pre>
+<blockquote>
+<p>💡 <code>initial_indent</code> 和 <code>subsequent_indent</code> 可用于首行和其他行不同缩进。</p>
+</blockquote>
+<hr />
+<h2 id="_3">四、总结</h2>
+<table>
+<thead>
+<tr>
+<th>函数</th>
+<th>用途</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>wrap()</code></td>
+<td>拆分为行列表</td>
+</tr>
+<tr>
+<td><code>fill()</code></td>
+<td>自动换行并返回字符串（最常用）</td>
+</tr>
+<tr>
+<td><code>dedent()</code></td>
+<td>去除公共缩进</td>
+</tr>
+<tr>
+<td><code>indent()</code></td>
+<td>添加统一前缀</td>
+</tr>
+<tr>
+<td><code>shorten()</code></td>
+<td>截断并加省略号</td>
+</tr>
+</tbody>
+</table>
+<p>✅ <strong>推荐组合使用</strong>：<code>dedent() + fill()</code> 是处理多行文本的黄金搭档！</p>
+<hr />
+<p>如有具体使用场景，欢迎继续提问！</p></div>
+            </div>
+        </div>
+
+        <footer class="col-md-12">
+            <hr>
+            <p>Documentation built with <a href="https://www.mkdocs.org/">MkDocs</a>.</p>
+        </footer>
+        <script src="../../../../../js/bootstrap.bundle.min.js"></script>
+        <script>
+            var base_url = "../../../../..",
+                shortcuts = {"help": 191, "next": 78, "previous": 80, "search": 83};
+        </script>
+        <script src="../../../../../js/base.js"></script>
+        <script src="../../../../../search/main.js"></script>
+
+        <div class="modal" id="mkdocs_search_modal" tabindex="-1" role="dialog" aria-labelledby="searchModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="searchModalLabel">Search</h4>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>From here you can search these documents. Enter your search terms below.</p>
+                <form>
+                    <div class="form-group">
+                        <input type="search" class="form-control" placeholder="Search..." id="mkdocs-search-query" title="Type search term here">
+                    </div>
+                </form>
+                <div id="mkdocs-search-results" data-no-results-text="No results found"></div>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div><div class="modal" id="mkdocs_keyboard_modal" tabindex="-1" role="dialog" aria-labelledby="keyboardModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="keyboardModalLabel">Keyboard Shortcuts</h4>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th style="width: 20%;">Keys</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td class="help shortcut"><kbd>?</kbd></td>
+                    <td>Open this help</td>
+                  </tr>
+                  <tr>
+                    <td class="next shortcut"><kbd>n</kbd></td>
+                    <td>Next page</td>
+                  </tr>
+                  <tr>
+                    <td class="prev shortcut"><kbd>p</kbd></td>
+                    <td>Previous page</td>
+                  </tr>
+                  <tr>
+                    <td class="search shortcut"><kbd>s</kbd></td>
+                    <td>Search</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div>
+
+    </body>
+</html>

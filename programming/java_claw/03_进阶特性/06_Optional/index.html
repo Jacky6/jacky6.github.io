@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="light">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        
+        
+        
+        <link rel="shortcut icon" href="../../../../img/favicon.ico">
+        <title>23_Optional - My Docs</title>
+        <link href="../../../../css/bootstrap.min.css" rel="stylesheet">
+        <link href="../../../../css/fontawesome.min.css" rel="stylesheet">
+        <link href="../../../../css/brands.min.css" rel="stylesheet">
+        <link href="../../../../css/solid.min.css" rel="stylesheet">
+        <link href="../../../../css/v4-font-face.min.css" rel="stylesheet">
+        <link href="../../../../css/base.css" rel="stylesheet">
+        <link id="hljs-light" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" >
+        <link id="hljs-dark" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github-dark.min.css" disabled>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+        <script>hljs.highlightAll();</script> 
+    </head>
+
+    <body>
+        <div class="navbar fixed-top navbar-expand-lg navbar-dark bg-primary">
+            <div class="container">
+                <a class="navbar-brand" href="../../../..">My Docs</a>
+
+                <!-- Expanded navigation -->
+                <div id="navbar-collapse" class="navbar-collapse collapse">
+
+                    <ul class="nav navbar-nav ms-md-auto">
+                        <li class="nav-item">
+                            <a href="#" class="nav-link" data-bs-toggle="modal" data-bs-target="#mkdocs_search_modal">
+                                <i class="fa fa-search"></i> Search
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="container">
+            <div class="row">
+                    <div class="col-md-3"><div class="navbar-expand-md bs-sidebar hidden-print affix" role="complementary">
+    <div class="navbar-header">
+        <button type="button" class="navbar-toggler collapsed" data-bs-toggle="collapse" data-bs-target="#toc-collapse" title="Table of Contents">
+            <span class="fa fa-angle-down"></span>
+        </button>
+    </div>
+
+    
+    <div id="toc-collapse" class="navbar-collapse collapse card bg-body-tertiary">
+        <ul class="nav flex-column">
+            
+            <li class="nav-item" data-bs-level="1"><a href="#23_optional" class="nav-link">23_Optional</a>
+              <ul class="nav flex-column">
+            <li class="nav-item" data-bs-level="2"><a href="#1-optional" class="nav-link">1. Optional 概述</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#2" class="nav-link">2. 常用方法</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#3" class="nav-link">3. 转换和过滤</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#4" class="nav-link">4. 实战示例</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#5" class="nav-link">5. 最佳实践</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#6" class="nav-link">6. 本章小结</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+              </ul>
+            </li>
+        </ul>
+    </div>
+</div></div>
+                    <div class="col-md-9" role="main">
+
+<h1 id="23_optional">23_Optional</h1>
+<hr />
+<h2 id="1-optional">1. Optional 概述</h2>
+<h3 id="11-optional">1.1 什么是 Optional</h3>
+<p><strong>Optional</strong> 是 Java 8 引入的容器类，用于包装可能为 null 的值，避免 NullPointerException。</p>
+<p><strong>优点</strong>：
+- ✅ 避免空指针异常
+- ✅ 代码更清晰
+- ✅ 函数式编程风格</p>
+<pre><code class="language-java">// 传统方式
+String name = user.getName();
+if (name != null) {
+    System.out.println(name.toUpperCase());
+}
+
+// Optional 方式
+Optional.ofNullable(user.getName())
+    .ifPresent(n -&gt; System.out.println(n.toUpperCase()));
+</code></pre>
+<h3 id="12-optional">1.2 创建 Optional</h3>
+<pre><code class="language-java">import java.util.Optional;
+
+// 包装非空值
+Optional&lt;String&gt; opt1 = Optional.of(&quot;Hello&quot;);
+
+// 包装可能为 null 的值
+Optional&lt;String&gt; opt2 = Optional.ofNullable(getName());
+
+// 空 Optional
+Optional&lt;String&gt; opt3 = Optional.empty();
+
+// ❌ 错误：不能包装 null
+Optional&lt;String&gt; opt4 = Optional.of(null);  // NullPointerException
+</code></pre>
+<hr />
+<h2 id="2">2. 常用方法</h2>
+<h3 id="21">2.1 获取值</h3>
+<pre><code class="language-java">Optional&lt;String&gt; opt = Optional.of(&quot;Hello&quot;);
+
+// get() - 获取值（可能抛异常）
+String value = opt.get();
+
+// orElse() - 为空时返回默认值
+String value1 = opt.orElse(&quot;Default&quot;);
+
+// orElseGet() - 为空时执行 Supplier
+String value2 = opt.orElseGet(() -&gt; &quot;Default&quot;);
+
+// orElseThrow() - 为空时抛异常
+String value3 = opt.orElseThrow(() -&gt; new RuntimeException(&quot;Value is null&quot;));
+</code></pre>
+<h3 id="22">2.2 判断</h3>
+<pre><code class="language-java">Optional&lt;String&gt; opt = Optional.ofNullable(getName());
+
+// isPresent() - 是否有值
+if (opt.isPresent()) {
+    System.out.println(opt.get());
+}
+
+// isEmpty() - 是否为空（Java 11+）
+if (opt.isEmpty()) {
+    System.out.println(&quot;Empty&quot;);
+}
+</code></pre>
+<h3 id="23">2.3 消费</h3>
+<pre><code class="language-java">Optional&lt;String&gt; opt = Optional.of(&quot;Hello&quot;);
+
+// ifPresent() - 有值时执行
+opt.ifPresent(value -&gt; System.out.println(value));
+
+// ifPresentOrElse() - Java 9+
+opt.ifPresentOrElse(
+    value -&gt; System.out.println(value),
+    () -&gt; System.out.println(&quot;Empty&quot;)
+);
+</code></pre>
+<hr />
+<h2 id="3">3. 转换和过滤</h2>
+<h3 id="31-map">3.1 map</h3>
+<pre><code class="language-java">Optional&lt;User&gt; userOpt = Optional.of(new User(&quot;张三&quot;, 25));
+
+// map - 转换
+Optional&lt;String&gt; nameOpt = userOpt.map(User::getName);
+
+// flatMap - 转换（返回 Optional）
+Optional&lt;String&gt; upperNameOpt = userOpt.flatMap(u -&gt; 
+    Optional.ofNullable(u.getName().toUpperCase())
+);
+</code></pre>
+<h3 id="32-filter">3.2 filter</h3>
+<pre><code class="language-java">Optional&lt;User&gt; userOpt = Optional.of(new User(&quot;张三&quot;, 25));
+
+// filter - 过滤
+Optional&lt;User&gt; adultOpt = userOpt.filter(u -&gt; u.getAge() &gt;= 18);
+
+// 链式调用
+String result = userOpt
+    .filter(u -&gt; u.getAge() &gt;= 18)
+    .map(User::getName)
+    .orElse(&quot;未成年&quot;);
+</code></pre>
+<hr />
+<h2 id="4">4. 实战示例</h2>
+<h3 id="41-optional">4.1 嵌套 Optional</h3>
+<pre><code class="language-java">// 传统方式
+if (user != null) {
+    Address address = user.getAddress();
+    if (address != null) {
+        String city = address.getCity();
+        if (city != null) {
+            System.out.println(city);
+        }
+    }
+}
+
+// Optional 方式
+Optional.ofNullable(user)
+    .map(User::getAddress)
+    .map(Address::getCity)
+    .ifPresent(System.out::println);
+</code></pre>
+<h3 id="42">4.2 数据库查询</h3>
+<pre><code class="language-java">// Repository 层
+public Optional&lt;User&gt; findById(Long id) {
+    User user = dao.findById(id);
+    return Optional.ofNullable(user);
+}
+
+// Service 层
+public String getUserName(Long id) {
+    return findById(id)
+        .map(User::getName)
+        .orElse(&quot;Unknown&quot;);
+}
+
+// 或使用 orElseThrow
+public User getUserOrThrow(Long id) {
+    return findById(id)
+        .orElseThrow(() -&gt; new UserNotFoundException(id));
+}
+</code></pre>
+<h3 id="43-optional">4.3 方法返回 Optional</h3>
+<pre><code class="language-java">// ✅ 推荐：返回 Optional
+public Optional&lt;User&gt; findUser(String email) {
+    return Optional.ofNullable(dao.findByEmail(email));
+}
+
+// ❌ 不推荐：返回 null
+public User findUser(String email) {
+    return dao.findByEmail(email);  // 可能返回 null
+}
+
+// 使用
+findUser(&quot;test@example.com&quot;)
+    .ifPresent(user -&gt; System.out.println(user.getName()));
+</code></pre>
+<hr />
+<h2 id="5">5. 最佳实践</h2>
+<h3 id="51">5.1 使用场景</h3>
+<pre><code class="language-java">// ✅ 推荐：作为方法返回值
+public Optional&lt;String&gt; getUserName() {
+    return Optional.ofNullable(name);
+}
+
+// ❌ 不推荐：作为字段
+public class User {
+    private Optional&lt;String&gt; name;  // 不好
+}
+
+// ❌ 不推荐：作为方法参数
+public void process(Optional&lt;String&gt; name) {  // 不好
+}
+</code></pre>
+<h3 id="52">5.2 避免的用法</h3>
+<pre><code class="language-java">Optional&lt;String&gt; opt = Optional.of(&quot;Hello&quot;);
+
+// ❌ 不要这样用
+if (opt.isPresent()) {
+    System.out.println(opt.get());
+}
+
+// ✅ 推荐
+opt.ifPresent(System.out::println);
+
+// ❌ 不要这样用
+String value = opt.orElse(getDefault());  // getDefault() 总会执行
+
+// ✅ 推荐
+String value = opt.orElseGet(() -&gt; getDefault());  // 延迟执行
+</code></pre>
+<h3 id="53">5.3 链式调用</h3>
+<pre><code class="language-java">String result = Optional.ofNullable(user)
+    .filter(u -&gt; u.getAge() &gt;= 18)
+    .map(User::getName)
+    .map(String::toUpperCase)
+    .orElse(&quot;UNKNOWN&quot;);
+</code></pre>
+<hr />
+<h2 id="6">6. 本章小结</h2>
+<h3 id="_1">核心知识点</h3>
+<p>✅ <strong>创建 Optional</strong>：of()、ofNullable()、empty()<br />
+✅ <strong>获取值</strong>：get()、orElse()、orElseGet()、orElseThrow()<br />
+✅ <strong>判断</strong>：isPresent()、isEmpty()<br />
+✅ <strong>消费</strong>：ifPresent()、ifPresentOrElse()<br />
+✅ <strong>转换</strong>：map()、flatMap()<br />
+✅ <strong>过滤</strong>：filter()  </p>
+<h3 id="_2">最佳实践</h3>
+<ol>
+<li><strong>作为返回值</strong>：不要返回 null，返回 Optional</li>
+<li><strong>不要作为字段</strong>：Optional 不是用来替代字段的</li>
+<li><strong>不要作为参数</strong>：增加调用复杂度</li>
+<li><strong>使用 orElseGet</strong>：延迟执行默认值</li>
+<li><strong>链式调用</strong>：代码更简洁</li>
+</ol>
+<hr />
+<p>🎉 <strong>恭喜完成 Optional 学习！继续学习 <a href="../../04_%E5%BC%80%E5%8F%91%E5%B7%A5%E5%85%B7/01_Maven/">Maven</a></strong></p></div>
+            </div>
+        </div>
+
+        <footer class="col-md-12">
+            <hr>
+            <p>Documentation built with <a href="https://www.mkdocs.org/">MkDocs</a>.</p>
+        </footer>
+        <script src="../../../../js/bootstrap.bundle.min.js"></script>
+        <script>
+            var base_url = "../../../..",
+                shortcuts = {"help": 191, "next": 78, "previous": 80, "search": 83};
+        </script>
+        <script src="../../../../js/base.js"></script>
+        <script src="../../../../search/main.js"></script>
+
+        <div class="modal" id="mkdocs_search_modal" tabindex="-1" role="dialog" aria-labelledby="searchModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="searchModalLabel">Search</h4>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>From here you can search these documents. Enter your search terms below.</p>
+                <form>
+                    <div class="form-group">
+                        <input type="search" class="form-control" placeholder="Search..." id="mkdocs-search-query" title="Type search term here">
+                    </div>
+                </form>
+                <div id="mkdocs-search-results" data-no-results-text="No results found"></div>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div><div class="modal" id="mkdocs_keyboard_modal" tabindex="-1" role="dialog" aria-labelledby="keyboardModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="keyboardModalLabel">Keyboard Shortcuts</h4>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th style="width: 20%;">Keys</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td class="help shortcut"><kbd>?</kbd></td>
+                    <td>Open this help</td>
+                  </tr>
+                  <tr>
+                    <td class="next shortcut"><kbd>n</kbd></td>
+                    <td>Next page</td>
+                  </tr>
+                  <tr>
+                    <td class="prev shortcut"><kbd>p</kbd></td>
+                    <td>Previous page</td>
+                  </tr>
+                  <tr>
+                    <td class="search shortcut"><kbd>s</kbd></td>
+                    <td>Search</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div>
+
+    </body>
+</html>

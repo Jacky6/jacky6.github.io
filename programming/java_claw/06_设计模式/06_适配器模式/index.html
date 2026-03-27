@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="light">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        
+        
+        
+        <link rel="shortcut icon" href="../../../../img/favicon.ico">
+        <title>06_适配器模式 - My Docs</title>
+        <link href="../../../../css/bootstrap.min.css" rel="stylesheet">
+        <link href="../../../../css/fontawesome.min.css" rel="stylesheet">
+        <link href="../../../../css/brands.min.css" rel="stylesheet">
+        <link href="../../../../css/solid.min.css" rel="stylesheet">
+        <link href="../../../../css/v4-font-face.min.css" rel="stylesheet">
+        <link href="../../../../css/base.css" rel="stylesheet">
+        <link id="hljs-light" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" >
+        <link id="hljs-dark" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github-dark.min.css" disabled>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+        <script>hljs.highlightAll();</script> 
+    </head>
+
+    <body>
+        <div class="navbar fixed-top navbar-expand-lg navbar-dark bg-primary">
+            <div class="container">
+                <a class="navbar-brand" href="../../../..">My Docs</a>
+
+                <!-- Expanded navigation -->
+                <div id="navbar-collapse" class="navbar-collapse collapse">
+
+                    <ul class="nav navbar-nav ms-md-auto">
+                        <li class="nav-item">
+                            <a href="#" class="nav-link" data-bs-toggle="modal" data-bs-target="#mkdocs_search_modal">
+                                <i class="fa fa-search"></i> Search
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="container">
+            <div class="row">
+                    <div class="col-md-3"><div class="navbar-expand-md bs-sidebar hidden-print affix" role="complementary">
+    <div class="navbar-header">
+        <button type="button" class="navbar-toggler collapsed" data-bs-toggle="collapse" data-bs-target="#toc-collapse" title="Table of Contents">
+            <span class="fa fa-angle-down"></span>
+        </button>
+    </div>
+
+    
+    <div id="toc-collapse" class="navbar-collapse collapse card bg-body-tertiary">
+        <ul class="nav flex-column">
+            
+            <li class="nav-item" data-bs-level="1"><a href="#06_" class="nav-link">06_适配器模式</a>
+              <ul class="nav flex-column">
+            <li class="nav-item" data-bs-level="2"><a href="#1" class="nav-link">1. 适配器模式概述</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#2" class="nav-link">2. 实现方式</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#3" class="nav-link">3. 实战示例</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#4-vs-vs" class="nav-link">4. 适配器 vs 代理 vs 装饰器</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#5" class="nav-link">5. 优缺点</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#6" class="nav-link">6. 本章小结</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+              </ul>
+            </li>
+        </ul>
+    </div>
+</div></div>
+                    <div class="col-md-9" role="main">
+
+<h1 id="06_">06_适配器模式</h1>
+<hr />
+<h2 id="1">1. 适配器模式概述</h2>
+<h3 id="11">1.1 什么是适配器模式</h3>
+<p><strong>适配器模式</strong>（Adapter Pattern）将一个类的接口转换成客户希望的另一个接口，使原本不兼容的类可以一起工作。</p>
+<p><strong>别名</strong>：包装器模式（Wrapper Pattern）</p>
+<p><strong>适用场景</strong>：
+- ✅ 使用现有类，但接口不符合需求
+- ✅ 需要复用现有类
+- ✅ 统一多个类的接口</p>
+<h3 id="12">1.2 生活中的例子</h3>
+<pre><code>电源适配器：
+- 220V 交流电 → 5V 直流电
+- 让手机可以使用墙上的电源
+
+USB 转接头：
+- USB-A → USB-C
+- 让旧设备可以使用新接口
+</code></pre>
+<hr />
+<h2 id="2">2. 实现方式</h2>
+<h3 id="21">2.1 类适配器（继承）</h3>
+<pre><code class="language-java">// 目标接口
+public interface Target {
+    void request();
+}
+
+// 需要适配的类
+public class Adaptee {
+    public void specificRequest() {
+        System.out.println(&quot;特殊请求&quot;);
+    }
+}
+
+// 适配器（继承）
+public class Adapter extends Adaptee implements Target {
+    @Override
+    public void request() {
+        // 调用 Adaptee 的方法
+        specificRequest();
+    }
+}
+
+// 使用
+public class Main {
+    public static void main(String[] args) {
+        Target target = new Adapter();
+        target.request();
+    }
+}
+</code></pre>
+<h3 id="22">2.2 对象适配器（组合，推荐）</h3>
+<pre><code class="language-java">// 目标接口
+public interface Target {
+    void request();
+}
+
+// 需要适配的类
+public class Adaptee {
+    public void specificRequest() {
+        System.out.println(&quot;特殊请求&quot;);
+    }
+}
+
+// 适配器（组合）
+public class Adapter implements Target {
+    private Adaptee adaptee;
+
+    public Adapter(Adaptee adaptee) {
+        this.adaptee = adaptee;
+    }
+
+    @Override
+    public void request() {
+        adaptee.specificRequest();
+    }
+}
+
+// 使用
+public class Main {
+    public static void main(String[] args) {
+        Adaptee adaptee = new Adaptee();
+        Target target = new Adapter(adaptee);
+        target.request();
+    }
+}
+</code></pre>
+<h3 id="23">2.3 接口适配器</h3>
+<pre><code class="language-java">// 接口有 4 个方法
+public interface Target {
+    void method1();
+    void method2();
+    void method3();
+    void method4();
+}
+
+// 抽象适配器（提供空实现）
+public abstract class AbstractAdapter implements Target {
+    public void method1() {}
+    public void method2() {}
+    public void method3() {}
+    public void method4() {}
+}
+
+// 具体适配器（只重写需要的方法）
+public class ConcreteAdapter extends AbstractAdapter {
+    @Override
+    public void method1() {
+        System.out.println(&quot;实现 method1&quot;);
+    }
+
+    @Override
+    public void method2() {
+        System.out.println(&quot;实现 method2&quot;);
+    }
+    // method3 和 method4 使用默认空实现
+}
+</code></pre>
+<hr />
+<h2 id="3">3. 实战示例</h2>
+<h3 id="31">3.1 支付接口适配</h3>
+<pre><code class="language-java">// 旧支付接口
+public interface OldPayment {
+    void payOld(double amount);
+}
+
+// 新支付接口
+public interface NewPayment {
+    void pay(BigDecimal amount, String currency);
+}
+
+// 旧的实现
+public class AlipayOld implements OldPayment {
+    @Override
+    public void payOld(double amount) {
+        System.out.println(&quot;支付宝支付：&quot; + amount);
+    }
+}
+
+// 适配器
+public class PaymentAdapter implements NewPayment {
+    private OldPayment oldPayment;
+
+    public PaymentAdapter(OldPayment oldPayment) {
+        this.oldPayment = oldPayment;
+    }
+
+    @Override
+    public void pay(BigDecimal amount, String currency) {
+        // 转换参数
+        double amountDouble = amount.doubleValue();
+
+        // 调用旧接口
+        oldPayment.payOld(amountDouble);
+    }
+}
+
+// 使用
+public class Main {
+    public static void main(String[] args) {
+        OldPayment old = new AlipayOld();
+        NewPayment adapter = new PaymentAdapter(old);
+
+        adapter.pay(new BigDecimal(&quot;100.00&quot;), &quot;CNY&quot;);
+    }
+}
+</code></pre>
+<h3 id="32">3.2 日志系统适配</h3>
+<pre><code class="language-java">// 第三方日志库
+public class ThirdPartyLogger {
+    public void info(String message) {
+        System.out.println(&quot;[INFO] &quot; + message);
+    }
+
+    public void error(String message) {
+        System.out.println(&quot;[ERROR] &quot; + message);
+    }
+
+    public void debug(String message) {
+        System.out.println(&quot;[DEBUG] &quot; + message);
+    }
+}
+
+// 我们的日志接口
+public interface Logger {
+    void info(String message);
+    void error(String message);
+    void debug(String message);
+    void warn(String message);
+}
+
+// 适配器
+public class LoggerAdapter implements Logger {
+    private ThirdPartyLogger thirdPartyLogger;
+
+    public LoggerAdapter(ThirdPartyLogger logger) {
+        this.thirdPartyLogger = logger;
+    }
+
+    @Override
+    public void info(String message) {
+        thirdPartyLogger.info(message);
+    }
+
+    @Override
+    public void error(String message) {
+        thirdPartyLogger.error(message);
+    }
+
+    @Override
+    public void debug(String message) {
+        thirdPartyLogger.debug(message);
+    }
+
+    @Override
+    public void warn(String message) {
+        // 第三方没有 warn，用 info 代替
+        thirdPartyLogger.info(&quot;[WARN] &quot; + message);
+    }
+}
+</code></pre>
+<h3 id="33">3.3 数据源适配</h3>
+<pre><code class="language-java">// 旧的数据源接口
+public interface OldDataSource {
+    String getString(String key);
+    int getInt(String key);
+}
+
+// 新的数据源接口
+public interface NewDataSource {
+    &lt;T&gt; T get(String key, Class&lt;T&gt; type);
+    void set(String key, Object value);
+}
+
+// 旧的实现
+public class PropertiesDataSource implements OldDataSource {
+    private Properties props = new Properties();
+
+    @Override
+    public String getString(String key) {
+        return props.getProperty(key);
+    }
+
+    @Override
+    public int getInt(String key) {
+        return Integer.parseInt(props.getProperty(key));
+    }
+}
+
+// 适配器
+public class DataSourceAdapter implements NewDataSource {
+    private OldDataSource oldDataSource;
+
+    public DataSourceAdapter(OldDataSource dataSource) {
+        this.oldDataSource = dataSource;
+    }
+
+    @Override
+    @SuppressWarnings(&quot;unchecked&quot;)
+    public &lt;T&gt; T get(String key, Class&lt;T&gt; type) {
+        if (type == String.class) {
+            return (T) oldDataSource.getString(key);
+        } else if (type == Integer.class) {
+            return (T) Integer.valueOf(oldDataSource.getInt(key));
+        }
+        throw new IllegalArgumentException(&quot;Unsupported type: &quot; + type);
+    }
+
+    @Override
+    public void set(String key, Object value) {
+        // 旧数据源不支持 set，抛出异常或忽略
+        throw new UnsupportedOperationException(&quot;Set not supported&quot;);
+    }
+}
+</code></pre>
+<h3 id="34-java">3.4 Java 中的适配器</h3>
+<pre><code class="language-java">// InputStreamReader - 字节流转字符流的适配器
+InputStream inputStream = System.in;
+Reader reader = new InputStreamReader(inputStream);  // 适配器
+
+// OutputStreamWriter
+Writer writer = new OutputStreamWriter(System.out);
+
+// Arrays.asList - 数组转 List 的适配器
+int[] arr = {1, 2, 3};
+List&lt;Integer&gt; list = Arrays.asList(arr);
+</code></pre>
+<hr />
+<h2 id="4-vs-vs">4. 适配器 vs 代理 vs 装饰器</h2>
+<table>
+<thead>
+<tr>
+<th>模式</th>
+<th>目的</th>
+<th>实现</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>适配器</td>
+<td>接口转换</td>
+<td>改变接口</td>
+</tr>
+<tr>
+<td>代理</td>
+<td>控制访问</td>
+<td>接口不变</td>
+</tr>
+<tr>
+<td>装饰器</td>
+<td>增强功能</td>
+<td>接口不变</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="5">5. 优缺点</h2>
+<h3 id="51">5.1 优点</h3>
+<ul>
+<li>✅ <strong>复用现有代码</strong>：无需修改原有类</li>
+<li>✅ <strong>解决接口不兼容</strong>：让不兼容的类一起工作</li>
+<li>✅ <strong>提高灵活性</strong>：可以随时替换适配器</li>
+<li>✅ <strong>符合开闭原则</strong>：新增适配器无需修改原有代码</li>
+</ul>
+<h3 id="52">5.2 缺点</h3>
+<ul>
+<li>❌ <strong>增加复杂度</strong>：引入额外的类</li>
+<li>❌ <strong>过度使用</strong>：系统设计混乱</li>
+</ul>
+<hr />
+<h2 id="6">6. 本章小结</h2>
+<h3 id="_1">核心知识点</h3>
+<p>✅ <strong>类适配器</strong>：继承实现<br />
+✅ <strong>对象适配器</strong>：组合实现（推荐）<br />
+✅ <strong>接口适配器</strong>：抽象类提供空实现<br />
+✅ <strong>实战应用</strong>：支付、日志、数据源  </p>
+<h3 id="_2">最佳实践</h3>
+<ol>
+<li><strong>优先使用对象适配器</strong>：更灵活</li>
+<li><strong>明确适配目的</strong>：接口转换</li>
+<li><strong>文档化适配器</strong>：说明适配原因</li>
+<li><strong>避免过度使用</strong>：不要为了模式而模式</li>
+</ol>
+<hr />
+<p>🎉 <strong>恭喜完成适配器模式学习！继续学习 <a href="../07_%E8%A3%85%E9%A5%B0%E5%99%A8%E6%A8%A1%E5%BC%8F/">装饰器模式</a></strong></p></div>
+            </div>
+        </div>
+
+        <footer class="col-md-12">
+            <hr>
+            <p>Documentation built with <a href="https://www.mkdocs.org/">MkDocs</a>.</p>
+        </footer>
+        <script src="../../../../js/bootstrap.bundle.min.js"></script>
+        <script>
+            var base_url = "../../../..",
+                shortcuts = {"help": 191, "next": 78, "previous": 80, "search": 83};
+        </script>
+        <script src="../../../../js/base.js"></script>
+        <script src="../../../../search/main.js"></script>
+
+        <div class="modal" id="mkdocs_search_modal" tabindex="-1" role="dialog" aria-labelledby="searchModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="searchModalLabel">Search</h4>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>From here you can search these documents. Enter your search terms below.</p>
+                <form>
+                    <div class="form-group">
+                        <input type="search" class="form-control" placeholder="Search..." id="mkdocs-search-query" title="Type search term here">
+                    </div>
+                </form>
+                <div id="mkdocs-search-results" data-no-results-text="No results found"></div>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div><div class="modal" id="mkdocs_keyboard_modal" tabindex="-1" role="dialog" aria-labelledby="keyboardModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="keyboardModalLabel">Keyboard Shortcuts</h4>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th style="width: 20%;">Keys</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td class="help shortcut"><kbd>?</kbd></td>
+                    <td>Open this help</td>
+                  </tr>
+                  <tr>
+                    <td class="next shortcut"><kbd>n</kbd></td>
+                    <td>Next page</td>
+                  </tr>
+                  <tr>
+                    <td class="prev shortcut"><kbd>p</kbd></td>
+                    <td>Previous page</td>
+                  </tr>
+                  <tr>
+                    <td class="search shortcut"><kbd>s</kbd></td>
+                    <td>Search</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div>
+
+    </body>
+</html>
