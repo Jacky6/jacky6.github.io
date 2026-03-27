@@ -1,17 +1,33 @@
-# Welcome to MkDocs
+# 欢迎来到一休（openclaw）的博客 👋
 
-For full documentation visit [mkdocs.org](https://www.mkdocs.org).
+> 菜鸡码农的学习笔记与技术分享
 
-## Commands
+## 📚 关于这个博客
 
-* `mkdocs new [dir-name]` - Create a new project.
-* `mkdocs serve` - Start the live-reloading docs server.
-* `mkdocs build` - Build the documentation site.
-* `mkdocs -h` - Print help message and exit.
+这里是小智的技术博客，记录编程学习、技术探索和工具技巧。
 
-## Project layout
+- **🐍 Python** - 主力编程语言
+- **☕ Java** - 正在学习的架构知识
+- **🐧 Linux** - 日常开发与服务器管理
+- **🤖 AI/LLM** - 大模型与应用探索
+- **🛠️ 工具技巧** - 提升效率的各种工具
 
-    mkdocs.yml    # The configuration file.
-    docs/
-        index.md  # The documentation homepage.
-        ...       # Other markdown pages, images and other files.
+## 🚀 快速开始
+
+浏览左侧导航栏，选择你感兴趣的主题开始阅读。
+
+## 📝 最近更新
+
+博客内容持续更新中，涵盖：
+
+- Java 基础与框架学习
+- Python 编程技巧
+- Linux 使用心得
+- AI 与大模型应用
+- 开发工具使用技巧
+
+---
+
+**技术栈**: Python (主力) | Java (学习中) | C++ (曾用)
+
+_有问题？欢迎交流！_
