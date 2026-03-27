@@ -1,0 +1,673 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="light">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        
+        
+        
+        <link rel="shortcut icon" href="../../../../img/favicon.ico">
+        <title>1 创建型设计模式 - My Docs</title>
+        <link href="../../../../css/bootstrap.min.css" rel="stylesheet">
+        <link href="../../../../css/fontawesome.min.css" rel="stylesheet">
+        <link href="../../../../css/brands.min.css" rel="stylesheet">
+        <link href="../../../../css/solid.min.css" rel="stylesheet">
+        <link href="../../../../css/v4-font-face.min.css" rel="stylesheet">
+        <link href="../../../../css/base.css" rel="stylesheet">
+        <link id="hljs-light" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" >
+        <link id="hljs-dark" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github-dark.min.css" disabled>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+        <script>hljs.highlightAll();</script> 
+    </head>
+
+    <body>
+        <div class="navbar fixed-top navbar-expand-lg navbar-dark bg-primary">
+            <div class="container">
+                <a class="navbar-brand" href="../../../..">My Docs</a>
+
+                <!-- Expanded navigation -->
+                <div id="navbar-collapse" class="navbar-collapse collapse">
+
+                    <ul class="nav navbar-nav ms-md-auto">
+                        <li class="nav-item">
+                            <a href="#" class="nav-link" data-bs-toggle="modal" data-bs-target="#mkdocs_search_modal">
+                                <i class="fa fa-search"></i> Search
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="container">
+            <div class="row">
+                    <div class="col-md-3"><div class="navbar-expand-md bs-sidebar hidden-print affix" role="complementary">
+    <div class="navbar-header">
+        <button type="button" class="navbar-toggler collapsed" data-bs-toggle="collapse" data-bs-target="#toc-collapse" title="Table of Contents">
+            <span class="fa fa-angle-down"></span>
+        </button>
+    </div>
+
+    
+    <div id="toc-collapse" class="navbar-collapse collapse card bg-body-tertiary">
+        <ul class="nav flex-column">
+            
+            <li class="nav-item" data-bs-level="1"><a href="#_1" class="nav-link">工厂方法</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            
+            <li class="nav-item" data-bs-level="1"><a href="#_3" class="nav-link">抽象工厂</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            
+            <li class="nav-item" data-bs-level="1"><a href="#_5" class="nav-link">生成器</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            
+            <li class="nav-item" data-bs-level="1"><a href="#_7" class="nav-link">原型</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            
+            <li class="nav-item" data-bs-level="1"><a href="#_9" class="nav-link">单例</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+        </ul>
+    </div>
+</div></div>
+                    <div class="col-md-9" role="main">
+
+<p>创建型模式关注点是如何创建对象，其核心思想是要把对象的创建和使用相分离，这样使得两者能相对独立地变换。</p>
+<p>创建型模式包括：</p>
+<ul>
+<li>工厂方法：Factory Method</li>
+<li>抽象工厂：Abstract Factory</li>
+<li>建造者：Builder</li>
+<li>原型：Prototype</li>
+<li>单例：Singleton</li>
+</ul>
+<h1 id="_1">工厂方法</h1>
+<blockquote>
+<p>定义一个用于创建对象的接口，让子类决定实例化哪一个类。Factory Method 使一个类的实例化延迟到其子类。</p>
+</blockquote>
+<p>工厂方法即Factory Method，是一种对象创建型模式。</p>
+<p>工厂方法的目的是使得创建对象和使用对象是分离的，并且客户端总是引用抽象工厂和抽象产品：</p>
+<pre><code class="language-shell">┌─────────────┐      ┌─────────────┐
+│   Product   │      │   Factory   │
+└─────────────┘      └─────────────┘
+       ▲                    ▲
+       │                    │
+┌─────────────┐      ┌─────────────┐
+│ ProductImpl │◀─ ─ ─│ FactoryImpl │
+└─────────────┘      └─────────────┘
+</code></pre>
+<p>我们以具体的例子来说：假设我们希望实现一个解析字符串到Number的Factory，可以定义如下：</p>
+<pre><code class="language-java">public interface NumberFactory {
+    Number parse(String s);
+}
+</code></pre>
+<p>有了工厂接口，再编写一个工厂的实现类：</p>
+<pre><code class="language-java">public class NumberFactoryImpl implements NumberFactory {
+    public Number parse(String s) {
+        return new BigDecimal(s);
+    }
+}
+</code></pre>
+<p>而产品接口是Number，NumberFactoryImpl返回的实际产品是BigDecimal。</p>
+<p>那么客户端如何创建NumberFactoryImpl呢？通常我们会在接口Factory中定义一个静态方法getFactory()来返回真正的子类：</p>
+<pre><code class="language-java">public interface NumberFactory {
+    // 创建方法:
+    Number parse(String s);
+
+    // 获取工厂实例:
+    static NumberFactory getFactory() {
+        return impl;
+    }
+
+    static NumberFactory impl = new NumberFactoryImpl();
+}
+</code></pre>
+<p>在客户端中，我们只需要和工厂接口NumberFactory以及抽象产品Number打交道：</p>
+<pre><code class="language-java">NumberFactory factory = NumberFactory.getFactory();
+Number result = factory.parse(&quot;123.456&quot;);
+</code></pre>
+<p>调用方可以完全忽略真正的工厂NumberFactoryImpl和实际的产品BigDecimal，这样做的好处是允许创建产品的代码独立地变换，而不会影响到调用方。</p>
+<p>有的童鞋会问：一个简单的parse()需要写这么复杂的工厂吗？实际上大多数情况下我们并不需要抽象工厂，而是通过静态方法直接返回产品，即：</p>
+<pre><code class="language-java">public class NumberFactory {
+    public static Number parse(String s) {
+        return new BigDecimal(s);
+    }
+}
+</code></pre>
+<p>这种简化的使用静态方法创建产品的方式称为静态工厂方法（Static Factory Method）。静态工厂方法广泛地应用在Java标准库中。例如：</p>
+<pre><code class="language-java">Integer n = Integer.valueOf(100);
+</code></pre>
+<p>Integer既是产品又是静态工厂。它提供了静态方法valueOf()来创建Integer。那么这种方式和直接写new Integer(100)有何区别呢？我们观察valueOf()方法：</p>
+<pre><code class="language-java">public final class Integer {
+    public static Integer valueOf(int i) {
+        if (i &gt;= IntegerCache.low &amp;&amp; i &lt;= IntegerCache.high)
+            return IntegerCache.cache[i + (-IntegerCache.low)];
+        return new Integer(i);
+    }
+    ...
+}
+</code></pre>
+<p>它的好处在于，valueOf()内部可能会使用new创建一个新的Integer实例，但也可能直接返回一个缓存的Integer实例。对于调用方来说，没必要知道Integer创建的细节。</p>
+<p>提示</p>
+<p>工厂方法可以隐藏创建产品的细节，且不一定每次都会真正创建产品，完全可以返回缓存的产品，从而提升速度并减少内存消耗。</p>
+<p>如果调用方直接使用Integer n = new Integer(100)，那么就失去了使用缓存优化的可能性。</p>
+<p>我们经常使用的另一个静态工厂方法是List.of()：</p>
+<pre><code class="language-java">List&lt;String&gt; list = List.of(&quot;A&quot;, &quot;B&quot;, &quot;C&quot;);
+</code></pre>
+<p>这个静态工厂方法接收可变参数，然后返回List接口。需要注意的是，调用方获取的产品总是List接口，而且并不关心它的实际类型。即使调用方知道List产品的实际类型是java.util.ImmutableCollections$ListN，也不要去强制转型为子类，因为静态工厂方法List.of()保证返回List，但也完全可以修改为返回java.util.ArrayList。这就是里氏替换原则：返回实现接口的任意子类都可以满足该方法的要求，且不影响调用方。</p>
+<p>提示</p>
+<p>总是引用接口而非实现类，能允许变换子类而不影响调用方，即尽可能面向抽象编程。</p>
+<p>和List.of()类似，我们使用MessageDigest时，为了创建某个摘要算法，总是使用静态工厂方法getInstance(String)：</p>
+<pre><code class="language-java">MessageDigest md5 = MessageDigest.getInstance(&quot;MD5&quot;);
+MessageDigest sha1 = MessageDigest.getInstance(&quot;SHA-1&quot;);
+</code></pre>
+<p>调用方通过产品名称获得产品实例，不但调用简单，而且获得的引用仍然是MessageDigest这个抽象类。</p>
+<p>练习
+使用静态工厂方法实现一个类似20200202的整数转换为LocalDate：</p>
+<p>public class LocalDateFactory {
+    public static LocalDate fromInt(int yyyyMMdd) {
+        ...
+    }
+}</p>
+<h3 id="_2">小结</h3>
+<p>工厂方法是指定义工厂接口和产品接口，但如何创建实际工厂和实际产品被推迟到子类实现，从而使调用方只和抽象工厂与抽象产品打交道。</p>
+<p>实际更常用的是更简单的静态工厂方法，它允许工厂内部对创建产品进行优化。</p>
+<p>调用方尽量持有接口或抽象类，避免持有具体类型的子类，以便工厂方法能随时切换不同的子类返回，却不影响调用方代码。</p>
+<h1 id="_3">抽象工厂</h1>
+<blockquote>
+<p>提供一个创建一系列相关或相互依赖对象的接口，而无需指定它们具体的类。</p>
+</blockquote>
+<p>抽象工厂模式（Abstract Factory）是一个比较复杂的创建型模式。</p>
+<p>抽象工厂模式和工厂方法不太一样，它要解决的问题比较复杂，不但工厂是抽象的，产品是抽象的，而且有多个产品需要创建，因此，这个抽象工厂会对应到多个实际工厂，每个实际工厂负责创建多个实际产品：</p>
+<pre><code>                                ┌────────┐
+                             ─ ▶│ProductA│
+┌────────┐    ┌─────────┐   │   └────────┘
+│ Client │─ ─▶│ Factory │─ ─
+└────────┘    └─────────┘   │   ┌────────┐
+                   ▲         ─ ▶│ProductB│
+           ┌───────┴───────┐    └────────┘
+           │               │
+      ┌─────────┐     ┌─────────┐
+      │Factory1 │     │Factory2 │
+      └─────────┘     └─────────┘
+           │   ┌─────────┐ │   ┌─────────┐
+            ─ ▶│ProductA1│  ─ ▶│ProductA2│
+           │   └─────────┘ │   └─────────┘
+               ┌─────────┐     ┌─────────┐
+           └ ─▶│ProductB1│ └ ─▶│ProductB2│
+               └─────────┘     └─────────┘
+</code></pre>
+<p>这种模式有点类似于多个供应商负责提供一系列类型的产品。我们举个例子：</p>
+<p>假设我们希望为用户提供一个Markdown文本转换为HTML和Word的服务，它的接口定义如下：</p>
+<pre><code class="language-java">public interface AbstractFactory {
+    // 创建Html文档:
+    HtmlDocument createHtml(String md);
+    // 创建Word文档:
+    WordDocument createWord(String md);
+}
+</code></pre>
+<p>注意到上面的抽象工厂仅仅是一个接口，没有任何代码。同样的，因为HtmlDocument和WordDocument都比较复杂，现在我们并不知道如何实现它们，所以只有接口：</p>
+<pre><code class="language-java">// Html文档接口:
+public interface HtmlDocument {
+    String toHtml();
+    void save(Path path) throws IOException;
+}
+
+// Word文档接口:
+public interface WordDocument {
+    void save(Path path) throws IOException;
+}
+</code></pre>
+<p>这样，我们就定义好了抽象工厂（AbstractFactory）以及两个抽象产品（HtmlDocument和WordDocument）。因为实现它们比较困难，我们决定让供应商来完成。</p>
+<p>现在市场上有两家供应商：FastDoc Soft的产品便宜，并且转换速度快，而GoodDoc Soft的产品贵，但转换效果好。我们决定同时使用这两家供应商的产品，以便给免费用户和付费用户提供不同的服务。</p>
+<p>我们先看看FastDoc Soft的产品是如何实现的。首先，FastDoc Soft必须要有实际的产品，即FastHtmlDocument和FastWordDocument：</p>
+<pre><code class="language-java">public class FastHtmlDocument implements HtmlDocument {
+    public String toHtml() {
+        ...
+    }
+    public void save(Path path) throws IOException {
+        ...
+    }
+}
+
+public class FastWordDocument implements WordDocument {
+    public void save(Path path) throws IOException {
+        ...
+    }
+}
+</code></pre>
+<p>然后，FastDoc Soft必须提供一个实际的工厂来生产这两种产品，即FastFactory：</p>
+<pre><code class="language-java">public class FastFactory implements AbstractFactory {
+    public HtmlDocument createHtml(String md) {
+        return new FastHtmlDocument(md);
+    }
+    public WordDocument createWord(String md) {
+        return new FastWordDocument(md);
+    }
+}
+</code></pre>
+<p>这样，我们就可以使用FastDoc Soft的服务了。客户端编写代码如下：</p>
+<pre><code class="language-java">// 创建AbstractFactory，实际类型是FastFactory:
+AbstractFactory factory = new FastFactory();
+// 生成Html文档:
+HtmlDocument html = factory.createHtml(&quot;#Hello\nHello, world!&quot;);
+html.save(Paths.get(&quot;.&quot;, &quot;fast.html&quot;));
+// 生成Word文档:
+WordDocument word = factory.createWord(&quot;#Hello\nHello, world!&quot;);
+word.save(Paths.get(&quot;.&quot;, &quot;fast.doc&quot;));
+</code></pre>
+<p>如果我们要同时使用GoodDoc Soft的服务怎么办？因为用了抽象工厂模式，GoodDoc Soft只需要根据我们定义的抽象工厂和抽象产品接口，实现自己的实际工厂和实际产品即可：</p>
+<pre><code class="language-java">// 实际工厂:
+public class GoodFactory implements AbstractFactory {
+    public HtmlDocument createHtml(String md) {
+        return new GoodHtmlDocument(md);
+    }
+    public WordDocument createWord(String md) {
+        return new GoodWordDocument(md);
+    }
+}
+
+// 实际产品:
+public class GoodHtmlDocument implements HtmlDocument {
+    ...
+}
+
+public class GoodWordDocument implements HtmlDocument {
+    ...
+}
+</code></pre>
+<p>客户端要使用GoodDoc Soft的服务，只需要把原来的new FastFactory()切换为new GoodFactory()即可。</p>
+<p>注意到客户端代码除了通过new创建了FastFactory或GoodFactory外，其余代码只引用了产品接口，并未引用任何实际产品（例如，FastHtmlDocument），如果把创建工厂的代码放到AbstractFactory中，就可以连实际工厂也屏蔽了：</p>
+<pre><code class="language-java">public interface AbstractFactory {
+    public static AbstractFactory createFactory(String name) {
+        if (name.equalsIgnoreCase(&quot;fast&quot;)) {
+            return new FastFactory();
+        } else if (name.equalsIgnoreCase(&quot;good&quot;)) {
+            return new GoodFactory();
+        } else {
+            throw new IllegalArgumentException(&quot;Invalid factory name&quot;);
+        }
+    }
+}
+</code></pre>
+<h3 id="_4">小结</h3>
+<p>抽象工厂模式是为了让创建工厂和一组产品与使用相分离，并可以随时切换到另一个工厂以及另一组产品；</p>
+<p>抽象工厂模式实现的关键点是定义工厂接口和产品接口，但如何实现工厂与产品本身需要留给具体的子类实现，客户端只和抽象工厂与抽象产品打交道。</p>
+<h1 id="_5">生成器</h1>
+<blockquote>
+<p>将一个复杂对象的构建与它的表示分离，使得同样的构建过程可以创建不同的表示。</p>
+</blockquote>
+<p>生成器模式（Builder）是使用多个“小型”工厂来最终创建出一个完整对象。</p>
+<p>当我们使用Builder的时候，一般来说，是因为创建这个对象的步骤比较多，每个步骤都需要一个零部件，最终组合成一个完整的对象。</p>
+<p>我们仍然以Markdown转HTML为例，因为直接编写一个完整的转换器比较困难，但如果针对类似下面的一行文本：</p>
+<pre><code># this is a heading
+</code></pre>
+<p>转换成HTML就很简单：</p>
+<pre><code>&lt;h1&gt;this is a heading&lt;/h1&gt;
+</code></pre>
+<p>因此，我们把Markdown转HTML看作一行一行的转换，每一行根据语法，使用不同的转换器：</p>
+<ul>
+<li>如果以#开头，使用HeadingBuilder转换；</li>
+<li>如果以&gt;开头，使用QuoteBuilder转换；</li>
+<li>如果以---开头，使用HrBuilder转换；</li>
+<li>其余使用ParagraphBuilder转换。</li>
+</ul>
+<p>这个HtmlBuilder写出来如下：</p>
+<pre><code class="language-java">public class HtmlBuilder {
+    private HeadingBuilder headingBuilder = new HeadingBuilder();
+    private HrBuilder hrBuilder = new HrBuilder();
+    private ParagraphBuilder paragraphBuilder = new ParagraphBuilder();
+    private QuoteBuilder quoteBuilder = new QuoteBuilder();
+
+    public String toHtml(String markdown) {
+        StringBuilder buffer = new StringBuilder();
+        markdown.lines().forEach(line -&gt; {
+            if (line.startsWith(&quot;#&quot;)) {
+                buffer.append(headingBuilder.buildHeading(line)).append('\n');
+            } else if (line.startsWith(&quot;&gt;&quot;)) {
+                buffer.append(quoteBuilder.buildQuote(line)).append('\n');
+            } else if (line.startsWith(&quot;---&quot;)) {
+                buffer.append(hrBuilder.buildHr(line)).append('\n');
+            } else {
+                buffer.append(paragraphBuilder.buildParagraph(line)).append('\n');
+            }
+        });
+        return buffer.toString();
+    }
+}
+</code></pre>
+<p>注意观察上述代码，HtmlBuilder并不是一次性把整个Markdown转换为HTML，而是一行一行转换，并且，它自己并不会将某一行转换为特定的HTML，而是根据特性把每一行都“委托”给一个XxxBuilder去转换，最后，把所有转换的结果组合起来，返回给客户端。</p>
+<p>这样一来，我们只需要针对每一种类型编写不同的Builder。例如，针对以#开头的行，需要HeadingBuilder：</p>
+<pre><code class="language-java">public class HeadingBuilder {
+    public String buildHeading(String line) {
+        int n = 0;
+        while (line.charAt(0) == '#') {
+            n++;
+            line = line.substring(1);
+        }
+        return String.format(&quot;&lt;h%d&gt;%s&lt;/h%d&gt;&quot;, n, line.strip(), n);
+    }
+}
+</code></pre>
+<blockquote>
+<p>注意:
+实际解析Markdown是带有状态的，即下一行的语义可能与上一行相关。这里我们简化了语法，把每一行视为可以独立转换。</p>
+</blockquote>
+<p>可见，使用Builder模式时，适用于创建的对象比较复杂，最好一步一步创建出“零件”，最后再装配起来。</p>
+<p>JavaMail的MimeMessage就可以看作是一个Builder模式，只不过Builder和最终产品合二为一，都是MimeMessage：</p>
+<pre><code class="language-java">Multipart multipart = new MimeMultipart();
+// 添加text:
+BodyPart textpart = new MimeBodyPart();
+textpart.setContent(body, &quot;text/html;charset=utf-8&quot;);
+multipart.addBodyPart(textpart);
+// 添加image:
+BodyPart imagepart = new MimeBodyPart();
+imagepart.setFileName(fileName);
+imagepart.setDataHandler(new DataHandler(new ByteArrayDataSource(input, &quot;application/octet-stream&quot;)));
+multipart.addBodyPart(imagepart);
+
+MimeMessage message = new MimeMessage(session);
+// 设置发送方地址:
+message.setFrom(new InternetAddress(&quot;me@example.com&quot;));
+// 设置接收方地址:
+message.setRecipient(Message.RecipientType.TO, new InternetAddress(&quot;xiaoming@somewhere.com&quot;));
+// 设置邮件主题:
+message.setSubject(&quot;Hello&quot;, &quot;UTF-8&quot;);
+// 设置邮件内容为multipart:
+message.setContent(multipart);
+</code></pre>
+<p>很多时候，我们可以简化Builder模式，以链式调用的方式来创建对象。例如，我们经常编写这样的代码：</p>
+<pre><code class="language-java">StringBuilder builder = new StringBuilder();
+builder.append(secure ? &quot;https://&quot; : &quot;http://&quot;)
+       .append(&quot;www.liaoxuefeng.com&quot;)
+       .append(&quot;/&quot;)
+       .append(&quot;?t=0&quot;);
+String url = builder.toString();
+</code></pre>
+<p>由于我们经常需要构造URL字符串，可以使用Builder模式编写一个URLBuilder，调用方式如下：</p>
+<pre><code class="language-java">String url = URLBuilder.builder() // 创建Builder
+        .setDomain(&quot;www.liaoxuefeng.com&quot;) // 设置domain
+        .setScheme(&quot;https&quot;) // 设置scheme
+        .setPath(&quot;/&quot;) // 设置路径
+        .setQuery(Map.of(&quot;a&quot;, &quot;123&quot;, &quot;q&quot;, &quot;K&amp;R&quot;)) // 设置query
+        .build(); // 完成build
+</code></pre>
+<h3 id="_6">小结</h3>
+<p>Builder模式是为了创建一个复杂的对象，需要多个步骤完成创建，或者需要多个零件组装的场景，且创建过程中可以灵活调用不同的步骤或组件。</p>
+<h1 id="_7">原型</h1>
+<blockquote>
+<p>用原型实例指定创建对象的种类，并且通过拷贝这些原型创建新的对象。</p>
+</blockquote>
+<p>原型模式，即 <code>Prototype</code>，是指创建新对象的时候，根据现有的一个原型来创建。</p>
+<p>我们举个例子：如果我们已经有了一个String[]数组，想再创建一个一模一样的String[]数组，怎么写？</p>
+<p>实际上创建过程很简单，就是把现有数组的元素复制到新数组。如果我们把这个创建过程封装一下，就成了原型模式。用代码实现如下：</p>
+<pre><code class="language-java">// 原型:
+String[] original = { &quot;Apple&quot;, &quot;Pear&quot;, &quot;Banana&quot; };
+// 新对象:
+String[] copy = Arrays.copyOf(original, original.length);
+</code></pre>
+<p>对于普通类，我们如何实现原型拷贝？Java的Object提供了一个clone()方法，它的意图就是复制一个新的对象出来，我们需要实现一个Cloneable接口来标识一个对象是“可复制”的：</p>
+<pre><code class="language-java">public class Student implements Cloneable {
+    private int id;
+    private String name;
+    private int score;
+
+    // 复制新对象并返回:
+    public Object clone() {
+        Student std = new Student();
+        std.id = this.id;
+        std.name = this.name;
+        std.score = this.score;
+        return std;
+    }
+}
+</code></pre>
+<p>使用的时候，因为clone()的方法签名是定义在Object中，返回类型也是Object，所以要强制转型，比较麻烦：</p>
+<pre><code class="language-java">Student std1 = new Student();
+std1.setId(123);
+std1.setName(&quot;Bob&quot;);
+std1.setScore(88);
+// 复制新对象:
+Student std2 = (Student) std1.clone();
+System.out.println(std1);
+System.out.println(std2);
+System.out.println(std1 == std2); // false
+</code></pre>
+<p>实际上，使用原型模式更好的方式是定义一个copy()方法，返回明确的类型：</p>
+<pre><code class="language-java">public class Student {
+    private int id;
+    private String name;
+    private int score;
+
+    public Student copy() {
+        Student std = new Student();
+        std.id = this.id;
+        std.name = this.name;
+        std.score = this.score;
+        return std;
+    }
+}
+</code></pre>
+<p>原型模式应用不是很广泛，因为很多实例会持有类似文件、Socket这样的资源，而这些资源是无法复制给另一个对象共享的，只有存储简单类型的“值”对象可以复制。</p>
+<h3 id="_8">小结</h3>
+<p>原型模式是根据一个现有对象实例复制出一个新的实例，复制出的类型和属性与原实例相同。</p>
+<h1 id="_9">单例</h1>
+<blockquote>
+<p>保证一个类仅有一个实例，并提供一个访问它的全局访问点。</p>
+</blockquote>
+<p>单例模式（Singleton）的目的是为了保证在一个进程中，某个类有且仅有一个实例。</p>
+<p>因为这个类只有一个实例，因此，自然不能让调用方使用new Xyz()来创建实例了。所以，<strong>单例的构造方法必须是 private</strong>，这样就防止了调用方自己创建实例，但是在类的内部，是可以用一个静态字段来引用唯一创建的实例的：</p>
+<pre><code class="language-java">public class Singleton {
+    // 静态字段引用唯一实例:
+    private static final Singleton INSTANCE = new Singleton();
+
+    // private构造方法保证外部无法实例化:
+    private Singleton() {
+    }
+}
+</code></pre>
+<p>那么问题来了，外部调用方如何获得这个唯一实例？</p>
+<p>答案是提供一个静态方法，直接返回实例：</p>
+<pre><code class="language-java">public class Singleton {
+    // 静态字段引用唯一实例:
+    private static final Singleton INSTANCE = new Singleton();
+
+    // 通过静态方法返回实例:
+    public static Singleton getInstance() {
+        return INSTANCE;
+    }
+
+    // private构造方法保证外部无法实例化:
+    private Singleton() {
+    }
+}
+</code></pre>
+<p>或者直接把static变量暴露给外部：</p>
+<pre><code class="language-java">public class Singleton {
+    // 静态字段引用唯一实例:
+    public static final Singleton INSTANCE = new Singleton();
+
+    // private构造方法保证外部无法实例化:
+    private Singleton() {
+    }
+}
+</code></pre>
+<p>所以，单例模式的实现方式很简单：</p>
+<ul>
+<li>只有private构造方法，确保外部无法实例化；</li>
+<li>通过private static变量持有唯一实例，保证全局唯一性；</li>
+<li>通过public static方法返回此唯一实例，使外部调用方能获取到实例。</li>
+</ul>
+<p>Java标准库有一些类就是单例，例如Runtime这个类：</p>
+<pre><code class="language-java">Runtime runtime = Runtime.getRuntime();
+</code></pre>
+<p>有些童鞋可能听说过延迟加载，即在调用方第一次调用getInstance()时才初始化全局唯一实例，类似这样：</p>
+<pre><code class="language-java">public class Singleton {
+    private static Singleton INSTANCE = null;
+
+    public static Singleton getInstance() {
+        if (INSTANCE == null) {
+            INSTANCE = new Singleton();
+        }
+        return INSTANCE;
+    }
+
+    private Singleton() {
+    }
+}
+</code></pre>
+<p>遗憾的是，<strong>这种写法在多线程中是错误的</strong>，在竞争条件下会创建出多个实例。必须对整个方法进行加锁：</p>
+<pre><code class="language-java">public synchronized static Singleton getInstance() {
+    if (INSTANCE == null) {
+        INSTANCE = new Singleton();
+    }
+    return INSTANCE;
+}
+</code></pre>
+<p>但加锁会严重影响并发性能。还有些童鞋听说过<strong>双重检查</strong>，类似这样：</p>
+<pre><code class="language-java">public static Singleton getInstance() {
+    if (INSTANCE == null) {
+        synchronized (Singleton.class) {
+            if (INSTANCE == null) {
+                INSTANCE = new Singleton();
+            }
+        }
+    }
+    return INSTANCE;
+}
+</code></pre>
+<p>然而，<strong>由于Java的内存模型，双重检查在这里不成立。要真正实现延迟加载，只能通过Java的ClassLoader机制完成。如果没有特殊的需求，使用Singleton模式的时候，最好不要延迟加载，这样会使代码更简单</strong>。</p>
+<p>另一种实现Singleton的方式是利用Java的enum，因为Java保证枚举类的每个枚举都是单例，所以我们只需要编写一个只有一个枚举的类即可：</p>
+<pre><code class="language-java">public enum World {
+    // 唯一枚举:
+    INSTANCE;
+
+    private String name = &quot;world&quot;;
+
+    public String getName() {
+        return this.name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+}
+</code></pre>
+<p>枚举类也完全可以像其他类那样定义自己的字段、方法，这样上面这个World类在调用方看来就可以这么用：</p>
+<pre><code class="language-java">String name = World.INSTANCE.getName();
+</code></pre>
+<p>使用枚举实现Singleton还避免了第一种方式实现Singleton的一个潜在问题：<strong>即序列化和反序列化会绕过普通类的private构造方法从而创建出多个实例，而枚举类就没有这个问题</strong>。</p>
+<p>那我们什么时候应该用Singleton呢？实际上，很多程序，尤其是Web程序，大部分服务类都应该被视作Singleton，如果全部按Singleton的写法写，会非常麻烦，所以，通常是通过约定让框架（例如Spring）来实例化这些类，保证只有一个实例，调用方自觉通过框架获取实例而不是new操作符：</p>
+<p>@Component // 表示一个单例组件
+public class MyService {
+    ...
+}
+因此，除非确有必要，否则Singleton模式一般以“约定”为主，不会刻意实现它。</p>
+<h3 id="_10">问题：序列化如何破坏单例？</h3>
+<p>假设你把一个 Singleton 对象序列化到文件，再读回来：</p>
+<pre><code class="language-java">// 序列化
+Singleton s1 = Singleton.getInstance();
+ObjectOutputStream out = new ObjectOutputStream(new FileOutputStream(&quot;file.ser&quot;));
+out.writeObject(s1);
+
+// 反序列化
+ObjectInputStream in = new ObjectInputStream(new FileInputStream(&quot;file.ser&quot;));
+Singleton s2 = (Singleton) in.readObject();
+
+System.out.println(s1 == s2); // 输出 false ❌
+</code></pre>
+<p>👉 虽然 s1 是通过 getInstance() 拿到的，<strong>但 s2 是通过反序列化“凭空”创建出来的 —— 绕过了私有构造函数</strong>！</p>
+<p>🔍 为什么能绕过 private 构造函数？
+因为 Java 的序列化机制（尤其是基于 ObjectInputStream.readObject()）在恢复对象时，并不真正调用构造函数，而是：</p>
+<p>直接分配内存
+将保存的字段值填充进去
+特殊地，对于已经存在的单例类，如果不做处理，就会生成新实例
+这就导致：即使构造函数是 private，也会出现多个实例！</p></div>
+            </div>
+        </div>
+
+        <footer class="col-md-12">
+            <hr>
+            <p>Documentation built with <a href="https://www.mkdocs.org/">MkDocs</a>.</p>
+        </footer>
+        <script src="../../../../js/bootstrap.bundle.min.js"></script>
+        <script>
+            var base_url = "../../../..",
+                shortcuts = {"help": 191, "next": 78, "previous": 80, "search": 83};
+        </script>
+        <script src="../../../../js/base.js"></script>
+        <script src="../../../../search/main.js"></script>
+
+        <div class="modal" id="mkdocs_search_modal" tabindex="-1" role="dialog" aria-labelledby="searchModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="searchModalLabel">Search</h4>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>From here you can search these documents. Enter your search terms below.</p>
+                <form>
+                    <div class="form-group">
+                        <input type="search" class="form-control" placeholder="Search..." id="mkdocs-search-query" title="Type search term here">
+                    </div>
+                </form>
+                <div id="mkdocs-search-results" data-no-results-text="No results found"></div>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div><div class="modal" id="mkdocs_keyboard_modal" tabindex="-1" role="dialog" aria-labelledby="keyboardModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="keyboardModalLabel">Keyboard Shortcuts</h4>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th style="width: 20%;">Keys</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td class="help shortcut"><kbd>?</kbd></td>
+                    <td>Open this help</td>
+                  </tr>
+                  <tr>
+                    <td class="next shortcut"><kbd>n</kbd></td>
+                    <td>Next page</td>
+                  </tr>
+                  <tr>
+                    <td class="prev shortcut"><kbd>p</kbd></td>
+                    <td>Previous page</td>
+                  </tr>
+                  <tr>
+                    <td class="search shortcut"><kbd>s</kbd></td>
+                    <td>Search</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div>
+
+    </body>
+</html>

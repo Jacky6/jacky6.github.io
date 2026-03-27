@@ -1,0 +1,477 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="light">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        
+        
+        
+        <link rel="shortcut icon" href="../../../img/favicon.ico">
+        <title>03. 状态管理 - My Docs</title>
+        <link href="../../../css/bootstrap.min.css" rel="stylesheet">
+        <link href="../../../css/fontawesome.min.css" rel="stylesheet">
+        <link href="../../../css/brands.min.css" rel="stylesheet">
+        <link href="../../../css/solid.min.css" rel="stylesheet">
+        <link href="../../../css/v4-font-face.min.css" rel="stylesheet">
+        <link href="../../../css/base.css" rel="stylesheet">
+        <link id="hljs-light" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" >
+        <link id="hljs-dark" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github-dark.min.css" disabled>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+        <script>hljs.highlightAll();</script> 
+    </head>
+
+    <body>
+        <div class="navbar fixed-top navbar-expand-lg navbar-dark bg-primary">
+            <div class="container">
+                <a class="navbar-brand" href="../../..">My Docs</a>
+
+                <!-- Expanded navigation -->
+                <div id="navbar-collapse" class="navbar-collapse collapse">
+
+                    <ul class="nav navbar-nav ms-md-auto">
+                        <li class="nav-item">
+                            <a href="#" class="nav-link" data-bs-toggle="modal" data-bs-target="#mkdocs_search_modal">
+                                <i class="fa fa-search"></i> Search
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="container">
+            <div class="row">
+                    <div class="col-md-3"><div class="navbar-expand-md bs-sidebar hidden-print affix" role="complementary">
+    <div class="navbar-header">
+        <button type="button" class="navbar-toggler collapsed" data-bs-toggle="collapse" data-bs-target="#toc-collapse" title="Table of Contents">
+            <span class="fa fa-angle-down"></span>
+        </button>
+    </div>
+
+    
+    <div id="toc-collapse" class="navbar-collapse collapse card bg-body-tertiary">
+        <ul class="nav flex-column">
+            
+            <li class="nav-item" data-bs-level="1"><a href="#03" class="nav-link">03. 状态管理</a>
+              <ul class="nav flex-column">
+            <li class="nav-item" data-bs-level="2"><a href="#channel-" class="nav-link">Channel - 通道</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#channel_2" class="nav-link">Channel 类型详解</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#reducer" class="nav-link">状态归约器（Reducer）</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#messagesstate-" class="nav-link">MessagesState - 预定义消息状态</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#_3" class="nav-link">状态快照与时间旅行</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#checkpointing" class="nav-link">检查点（Checkpointing）</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#_8" class="nav-link">状态模式实践</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#_9" class="nav-link">调试状态问题</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#_12" class="nav-link">最佳实践</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#_15" class="nav-link">下一步</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#_16" class="nav-link">参考</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+              </ul>
+            </li>
+        </ul>
+    </div>
+</div></div>
+                    <div class="col-md-9" role="main">
+
+<h1 id="03">03. 状态管理</h1>
+<h2 id="channel-">Channel - 通道</h2>
+<p>在 LangGraph 中，<strong>Channel</strong> 是状态的基本组成单元。每个状态键对应一个 Channel。</p>
+<h3 id="channel">默认 Channel 类型</h3>
+<p>当你使用 <code>TypedDict</code> 定义状态时，LangGraph 会自动为每个字段分配合适的 Channel：</p>
+<pre><code class="language-python">from typing import TypedDict, List
+
+class State(TypedDict):
+    value: int              # → LastValue[int]
+    messages: List[str]     # → LastValue[List[str]]
+</code></pre>
+<h3 id="channel_1">显式定义 Channel</h3>
+<pre><code class="language-python">from langgraph.graph import StateGraph
+from langgraph.channels import LastValue, EphemeralValue, Topic
+
+class State(TypedDict):
+    # 普通值：记住最后一次写入
+    value: int
+
+    # 临时值：只在当前 step 有效
+    temp: str
+
+# 显式指定 Channel 类型
+graph = StateGraph(State)
+graph.add_channel(&quot;value&quot;, LastValue(int))
+graph.add_channel(&quot;temp&quot;, EphemeralValue(str))
+</code></pre>
+<h2 id="channel_2">Channel 类型详解</h2>
+<h3 id="lastvalue-">LastValue - 最后值</h3>
+<p><strong>最常用的 Channel 类型</strong>。记住最后一次写入的值。</p>
+<pre><code class="language-python">from langgraph.channels import LastValue
+
+class State(TypedDict):
+    count: int  # 默认就是 LastValue
+
+# 行为：
+# 写入 1 → 读取 1
+# 写入 2 → 读取 2（覆盖了 1）
+</code></pre>
+<h3 id="ephemeralvalue-">EphemeralValue - 临时值</h3>
+<p>只在当前执行 step 有效，读取后自动清空。</p>
+<pre><code class="language-python">from langgraph.channels import EphemeralValue
+
+class State(TypedDict):
+    temp_result: str
+
+graph = StateGraph(State)
+graph.add_channel(&quot;temp_result&quot;, EphemeralValue(str))
+
+# 使用场景：中间计算结果，不需要持久化
+def compute(state: State) -&gt; dict:
+    return {&quot;temp_result&quot;: &quot;computed&quot;}
+
+def use(state: State) -&gt; dict:
+    print(state[&quot;temp_result&quot;])  # 可以读取
+    return {}
+</code></pre>
+<h3 id="topic-">Topic - 主题队列</h3>
+<p>类似消息队列，支持多个值的累积和消费。</p>
+<pre><code class="language-python">from langgraph.channels import Topic
+from typing import Annotated
+
+class State(TypedDict):
+    # Topic 会自动累积所有写入的值
+    events: Annotated[list, Topic(str)]
+
+# 节点 A 写入
+def producer(state: State) -&gt; dict:
+    return {&quot;events&quot;: [&quot;event1&quot;, &quot;event2&quot;]}
+
+# 节点 B 读取所有累积的事件
+def consumer(state: State) -&gt; dict:
+    print(state[&quot;events&quot;])  # [&quot;event1&quot;, &quot;event2&quot;]
+    return {}
+</code></pre>
+<h3 id="binaryoperatoraggregate-">BinaryOperatorAggregate - 聚合值</h3>
+<p>使用自定义函数聚合多个写入。</p>
+<pre><code class="language-python">from langgraph.channels import BinaryOperatorAggregate
+from typing import Annotated
+
+def sum_reducer(a: int, b: int) -&gt; int:
+    return a + b
+
+class State(TypedDict):
+    total: Annotated[int, BinaryOperatorAggregate(sum_reducer)]
+
+# 多次写入会累加
+def add_5(state) -&gt; dict:
+    return {&quot;total&quot;: 5}
+
+def add_10(state) -&gt; dict:
+    return {&quot;total&quot;: 10}
+
+# 执行后 total = 5 + 10 = 15
+</code></pre>
+<h2 id="reducer">状态归约器（Reducer）</h2>
+<p>归约器定义如何合并多个更新。</p>
+<h3 id="annotated">使用 Annotated 定义归约器</h3>
+<pre><code class="language-python">from typing import Annotated, List
+from langgraph.graph import add_messages
+
+class State(TypedDict):
+    # 默认：新值覆盖旧值
+    value: int
+
+    # 使用 add_messages 归约器：追加消息
+    messages: Annotated[List, add_messages]
+</code></pre>
+<h3 id="_1">自定义归约器</h3>
+<pre><code class="language-python">from typing import Annotated, List
+
+def append_reducer(existing: List, new: List) -&gt; List:
+    &quot;&quot;&quot;自定义列表追加归约器&quot;&quot;&quot;
+    return existing + new
+
+class State(TypedDict):
+    items: Annotated[List[str], append_reducer]
+
+# 使用
+def add_item(state: State) -&gt; dict:
+    return {&quot;items&quot;: [&quot;new_item&quot;]}
+
+# 多次调用会累积：[&quot;item1&quot;, &quot;item2&quot;, &quot;new_item&quot;]
+</code></pre>
+<h3 id="_2">内置归约器</h3>
+<pre><code class="language-python">from langgraph.graph import add_messages
+
+# add_messages：智能合并消息列表
+# - 根据消息 ID 去重
+# - 保持消息顺序
+# - 处理消息替换
+
+class State(TypedDict):
+    messages: Annotated[List, add_messages]
+</code></pre>
+<h2 id="messagesstate-">MessagesState - 预定义消息状态</h2>
+<p>LangGraph 提供了预定义的 <code>MessagesState</code>，专门用于对话场景。</p>
+<pre><code class="language-python">from langgraph.graph import MessagesState, MessageGraph
+
+# 方式 1：使用 MessagesState
+class State(MessagesState):
+    # 自动包含 messages 字段
+    extra_field: str
+
+# 方式 2：直接使用 MessageGraph
+graph = MessageGraph()
+graph.add_node(&quot;agent&quot;, agent_fn)
+# MessageGraph 自动处理消息状态
+</code></pre>
+<h2 id="_3">状态快照与时间旅行</h2>
+<h3 id="_4">获取状态快照</h3>
+<pre><code class="language-python"># 运行图并获取检查点
+config = {&quot;configurable&quot;: {&quot;thread_id&quot;: &quot;1&quot;}}
+result = app.invoke({&quot;value&quot;: 0}, config)
+
+# 获取当前状态快照
+snapshot = app.get_state(config)
+print(snapshot.values)  # 当前状态
+print(snapshot.next)    # 下一个要执行的节点
+</code></pre>
+<h3 id="_5">时间旅行（回到过去的状态）</h3>
+<pre><code class="language-python"># 获取历史
+history = list(app.get_state_history(config))
+
+# 回到之前的状态
+old_state = history[1]  # 倒数第二个状态
+app.update_state(config, old_state.values)
+
+# 从那个状态继续执行
+result = app.invoke(None, config)
+</code></pre>
+<h2 id="checkpointing">检查点（Checkpointing）</h2>
+<p>检查点用于持久化状态，支持断点续跑。</p>
+<h3 id="_6">使用内存检查点</h3>
+<pre><code class="language-python">from langgraph.checkpoint.memory import MemorySaver
+
+memory = MemorySaver()
+app = graph.compile(checkpointer=memory)
+
+# 使用 thread_id 区分不同会话
+config = {&quot;configurable&quot;: {&quot;thread_id&quot;: &quot;conversation-1&quot;}}
+result = app.invoke({&quot;messages&quot;: [...]}, config)
+</code></pre>
+<h3 id="sqlite">使用 SQLite 检查点</h3>
+<pre><code class="language-bash">pip install langgraph-checkpoint-sqlite
+</code></pre>
+<pre><code class="language-python">from langgraph.checkpoint.sqlite import SqliteSaver
+
+with SqliteSaver.from_conn_string(&quot;checkpoints.sqlite&quot;) as saver:
+    app = graph.compile(checkpointer=saver)
+
+    config = {&quot;configurable&quot;: {&quot;thread_id&quot;: &quot;1&quot;}}
+    result = app.invoke({&quot;value&quot;: 0}, config)
+</code></pre>
+<h3 id="_7">检查点配置</h3>
+<pre><code class="language-python">config = {
+    &quot;configurable&quot;: {
+        &quot;thread_id&quot;: &quot;user-123&quot;,      # 会话 ID
+        &quot;checkpoint_ns&quot;: &quot;main&quot;,      # 命名空间（用于子图）
+        &quot;checkpoint_id&quot;: &quot;abc123&quot;,    # 指定检查点 ID
+    }
+}
+</code></pre>
+<h2 id="_8">状态模式实践</h2>
+<h3 id="1">模式 1：简单状态</h3>
+<pre><code class="language-python">class State(TypedDict):
+    value: int
+    # 适合：简单计算、计数器
+</code></pre>
+<h3 id="2">模式 2：对话状态</h3>
+<pre><code class="language-python">from langchain_core.messages import BaseMessage
+from typing import Annotated, List
+from langgraph.graph import add_messages
+
+class State(TypedDict):
+    messages: Annotated[List[BaseMessage], add_messages]
+    # 适合：聊天机器人、多轮对话
+</code></pre>
+<h3 id="3">模式 3：工作流状态</h3>
+<pre><code class="language-python">class State(TypedDict):
+    input: str
+    steps: List[str]
+    current_step: int
+    result: dict
+    # 适合：多步骤处理流程
+</code></pre>
+<h3 id="4agent">模式 4：Agent 状态</h3>
+<pre><code class="language-python">class State(TypedDict):
+    messages: Annotated[List, add_messages]
+    tool_calls: List[dict]
+    tool_results: List[dict]
+    iteration: int
+    # 适合：Agent、工具调用
+</code></pre>
+<h2 id="_9">调试状态问题</h2>
+<h3 id="_10">打印状态变化</h3>
+<pre><code class="language-python">def debug_node(state: State, config: dict) -&gt; dict:
+    print(f&quot;📍 {config.get('configurable', {}).get('thread_id', 'unknown')}&quot;)
+    print(f&quot;   状态：{state}&quot;)
+    return {}
+</code></pre>
+<h3 id="stream">使用 stream 查看状态流</h3>
+<pre><code class="language-python"># 查看每一步的状态更新
+for node, values in app.stream({&quot;value&quot;: 0}):
+    print(f&quot;{node}: {values}&quot;)
+</code></pre>
+<h3 id="_11">检查状态历史</h3>
+<pre><code class="language-python"># 查看所有检查点
+for state in app.get_state_history(config):
+    print(f&quot;检查点 {state.config}: {state.values}&quot;)
+</code></pre>
+<h2 id="_12">最佳实践</h2>
+<h3 id="_13">✅ 推荐</h3>
+<pre><code class="language-python"># 1. 使用 TypedDict 定义清晰的状态结构
+class State(TypedDict):
+    messages: Annotated[List, add_messages]
+    iteration: int
+
+# 2. 只返回需要的更新
+def node(state: State) -&gt; dict:
+    return {&quot;iteration&quot;: state[&quot;iteration&quot;] + 1}
+
+# 3. 使用 checkpointer 持久化重要状态
+app = graph.compile(checkpointer=MemorySaver())
+</code></pre>
+<h3 id="_14">❌ 避免</h3>
+<pre><code class="language-python"># 1. 避免在状态中存储大对象
+class BadState(TypedDict):
+    huge_data: bytes  # ❌ 会占用大量内存
+
+# 2. 避免状态键过多
+class BloatedState(TypedDict):
+    field1: str
+    field2: str
+    # ... 50 个字段 ❌
+
+# 3. 避免忘记返回状态更新
+def bad_node(state: State) -&gt; None:
+    # ❌ 没有返回值
+    pass
+</code></pre>
+<h2 id="_15">下一步</h2>
+<ul>
+<li><a href="../04-building-graphs/">04-构建图</a>：学习构建复杂的图结构</li>
+<li><a href="../05-advanced-features/">05-高级特性</a>：探索子图、并行执行等高级功能</li>
+</ul>
+<h2 id="_16">参考</h2>
+<ul>
+<li><a href="https://reference.langchain.com/python/langgraph/channels/base/BaseChannel">Channel API</a></li>
+<li><a href="https://reference.langchain.com/python/langgraph/pregel/_checkpoint">Checkpoint API</a></li>
+</ul></div>
+            </div>
+        </div>
+
+        <footer class="col-md-12">
+            <hr>
+            <p>Documentation built with <a href="https://www.mkdocs.org/">MkDocs</a>.</p>
+        </footer>
+        <script src="../../../js/bootstrap.bundle.min.js"></script>
+        <script>
+            var base_url = "../../..",
+                shortcuts = {"help": 191, "next": 78, "previous": 80, "search": 83};
+        </script>
+        <script src="../../../js/base.js"></script>
+        <script src="../../../search/main.js"></script>
+
+        <div class="modal" id="mkdocs_search_modal" tabindex="-1" role="dialog" aria-labelledby="searchModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="searchModalLabel">Search</h4>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>From here you can search these documents. Enter your search terms below.</p>
+                <form>
+                    <div class="form-group">
+                        <input type="search" class="form-control" placeholder="Search..." id="mkdocs-search-query" title="Type search term here">
+                    </div>
+                </form>
+                <div id="mkdocs-search-results" data-no-results-text="No results found"></div>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div><div class="modal" id="mkdocs_keyboard_modal" tabindex="-1" role="dialog" aria-labelledby="keyboardModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="keyboardModalLabel">Keyboard Shortcuts</h4>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th style="width: 20%;">Keys</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td class="help shortcut"><kbd>?</kbd></td>
+                    <td>Open this help</td>
+                  </tr>
+                  <tr>
+                    <td class="next shortcut"><kbd>n</kbd></td>
+                    <td>Next page</td>
+                  </tr>
+                  <tr>
+                    <td class="prev shortcut"><kbd>p</kbd></td>
+                    <td>Previous page</td>
+                  </tr>
+                  <tr>
+                    <td class="search shortcut"><kbd>s</kbd></td>
+                    <td>Search</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div>
+
+    </body>
+</html>

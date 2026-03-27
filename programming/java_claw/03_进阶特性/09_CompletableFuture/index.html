@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="light">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        
+        
+        
+        <link rel="shortcut icon" href="../../../../img/favicon.ico">
+        <title>09_CompletableFuture - My Docs</title>
+        <link href="../../../../css/bootstrap.min.css" rel="stylesheet">
+        <link href="../../../../css/fontawesome.min.css" rel="stylesheet">
+        <link href="../../../../css/brands.min.css" rel="stylesheet">
+        <link href="../../../../css/solid.min.css" rel="stylesheet">
+        <link href="../../../../css/v4-font-face.min.css" rel="stylesheet">
+        <link href="../../../../css/base.css" rel="stylesheet">
+        <link id="hljs-light" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" >
+        <link id="hljs-dark" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github-dark.min.css" disabled>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+        <script>hljs.highlightAll();</script> 
+    </head>
+
+    <body>
+        <div class="navbar fixed-top navbar-expand-lg navbar-dark bg-primary">
+            <div class="container">
+                <a class="navbar-brand" href="../../../..">My Docs</a>
+
+                <!-- Expanded navigation -->
+                <div id="navbar-collapse" class="navbar-collapse collapse">
+
+                    <ul class="nav navbar-nav ms-md-auto">
+                        <li class="nav-item">
+                            <a href="#" class="nav-link" data-bs-toggle="modal" data-bs-target="#mkdocs_search_modal">
+                                <i class="fa fa-search"></i> Search
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="container">
+            <div class="row">
+                    <div class="col-md-3"><div class="navbar-expand-md bs-sidebar hidden-print affix" role="complementary">
+    <div class="navbar-header">
+        <button type="button" class="navbar-toggler collapsed" data-bs-toggle="collapse" data-bs-target="#toc-collapse" title="Table of Contents">
+            <span class="fa fa-angle-down"></span>
+        </button>
+    </div>
+
+    
+    <div id="toc-collapse" class="navbar-collapse collapse card bg-body-tertiary">
+        <ul class="nav flex-column">
+            
+            <li class="nav-item" data-bs-level="1"><a href="#09_completablefuture" class="nav-link">09_CompletableFuture</a>
+              <ul class="nav flex-column">
+            <li class="nav-item" data-bs-level="2"><a href="#1-completablefuture" class="nav-link">1. CompletableFuture 概述</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#2" class="nav-link">2. 创建异步任务</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#3" class="nav-link">3. 回调方法</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#4" class="nav-link">4. 异常处理</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#5" class="nav-link">5. 组合多个任务</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#6" class="nav-link">6. 实战示例</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#7" class="nav-link">7. 完整示例</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#8" class="nav-link">8. 本章小结</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+              </ul>
+            </li>
+        </ul>
+    </div>
+</div></div>
+                    <div class="col-md-9" role="main">
+
+<h1 id="09_completablefuture">09_CompletableFuture</h1>
+<hr />
+<h2 id="1-completablefuture">1. CompletableFuture 概述</h2>
+<h3 id="11-completablefuture">1.1 什么是 CompletableFuture</h3>
+<p><strong>CompletableFuture</strong> 是 Java 8 引入的异步编程工具，支持链式调用和组合。</p>
+<p><strong>优点</strong>：
+- ✅ 异步执行
+- ✅ 链式调用
+- ✅ 组合多个异步任务
+- ✅ 异常处理</p>
+<h3 id="12-future-vs-completablefuture">1.2 Future vs CompletableFuture</h3>
+<table>
+<thead>
+<tr>
+<th>特性</th>
+<th>Future</th>
+<th>CompletableFuture</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>异步执行</td>
+<td>❌</td>
+<td>✅</td>
+</tr>
+<tr>
+<td>链式调用</td>
+<td>❌</td>
+<td>✅</td>
+</tr>
+<tr>
+<td>组合任务</td>
+<td>❌</td>
+<td>✅</td>
+</tr>
+<tr>
+<td>异常处理</td>
+<td>❌</td>
+<td>✅</td>
+</tr>
+<tr>
+<td>回调</td>
+<td>❌</td>
+<td>✅</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="2">2. 创建异步任务</h2>
+<h3 id="21-supplyasync">2.1 使用 supplyAsync</h3>
+<pre><code class="language-java">import java.util.concurrent.CompletableFuture;
+
+// 有返回值
+CompletableFuture&lt;String&gt; future = CompletableFuture.supplyAsync(() -&gt; {
+    // 耗时操作
+    return &quot;Hello&quot;;
+});
+
+// 获取结果
+String result = future.get();  // 阻塞
+</code></pre>
+<h3 id="22-runasync">2.2 使用 runAsync</h3>
+<pre><code class="language-java">// 无返回值
+CompletableFuture&lt;Void&gt; future = CompletableFuture.runAsync(() -&gt; {
+    System.out.println(&quot;执行任务&quot;);
+});
+</code></pre>
+<h3 id="23">2.3 自定义线程池</h3>
+<pre><code class="language-java">Executor executor = Executors.newFixedThreadPool(10);
+
+CompletableFuture&lt;String&gt; future = CompletableFuture.supplyAsync(() -&gt; {
+    return &quot;Hello&quot;;
+}, executor);
+</code></pre>
+<hr />
+<h2 id="3">3. 回调方法</h2>
+<h3 id="31-thenapply">3.1 thenApply（转换）</h3>
+<pre><code class="language-java">CompletableFuture&lt;String&gt; future = CompletableFuture
+    .supplyAsync(() -&gt; &quot;Hello&quot;)
+    .thenApply(s -&gt; s + &quot; World&quot;);
+
+String result = future.get();  // &quot;Hello World&quot;
+</code></pre>
+<h3 id="32-thenaccept">3.2 thenAccept（消费）</h3>
+<pre><code class="language-java">CompletableFuture&lt;String&gt; future = CompletableFuture
+    .supplyAsync(() -&gt; &quot;Hello&quot;)
+    .thenAccept(s -&gt; System.out.println(s));  // 打印 Hello
+</code></pre>
+<h3 id="33-thenrun">3.3 thenRun（执行）</h3>
+<pre><code class="language-java">CompletableFuture&lt;String&gt; future = CompletableFuture
+    .supplyAsync(() -&gt; &quot;Hello&quot;)
+    .thenRun(() -&gt; System.out.println(&quot;任务完成&quot;));
+</code></pre>
+<h3 id="34-thencompose">3.4 thenCompose（链式）</h3>
+<pre><code class="language-java">// 依赖前一个任务的结果
+CompletableFuture&lt;String&gt; future = CompletableFuture
+    .supplyAsync(() -&gt; &quot;Hello&quot;)
+    .thenCompose(s -&gt; CompletableFuture.supplyAsync(() -&gt; s + &quot; World&quot;));
+
+String result = future.get();  // &quot;Hello World&quot;
+</code></pre>
+<h3 id="35-thencombine">3.5 thenCombine（合并）</h3>
+<pre><code class="language-java">CompletableFuture&lt;String&gt; future1 = CompletableFuture.supplyAsync(() -&gt; &quot;Hello&quot;);
+CompletableFuture&lt;String&gt; future2 = CompletableFuture.supplyAsync(() -&gt; &quot;World&quot;);
+
+CompletableFuture&lt;String&gt; combined = future1.thenCombine(future2, (s1, s2) -&gt; s1 + &quot; &quot; + s2);
+
+String result = combined.get();  // &quot;Hello World&quot;
+</code></pre>
+<hr />
+<h2 id="4">4. 异常处理</h2>
+<h3 id="41-exceptionally">4.1 exceptionally</h3>
+<pre><code class="language-java">CompletableFuture&lt;String&gt; future = CompletableFuture
+    .supplyAsync(() -&gt; {
+        throw new RuntimeException(&quot;错误&quot;);
+    })
+    .exceptionally(ex -&gt; &quot;默认值&quot;);
+
+String result = future.get();  // &quot;默认值&quot;
+</code></pre>
+<h3 id="42-handle">4.2 handle（无论成功失败）</h3>
+<pre><code class="language-java">CompletableFuture&lt;String&gt; future = CompletableFuture
+    .supplyAsync(() -&gt; {
+        throw new RuntimeException(&quot;错误&quot;);
+    })
+    .handle((result, ex) -&gt; {
+        if (ex != null) {
+            return &quot;处理异常：&quot; + ex.getMessage();
+        }
+        return result;
+    });
+</code></pre>
+<h3 id="43-whencomplete">4.3 whenComplete（完成回调）</h3>
+<pre><code class="language-java">CompletableFuture&lt;String&gt; future = CompletableFuture
+    .supplyAsync(() -&gt; &quot;Hello&quot;)
+    .whenComplete((result, ex) -&gt; {
+        if (ex == null) {
+            System.out.println(&quot;成功：&quot; + result);
+        } else {
+            System.out.println(&quot;失败：&quot; + ex.getMessage());
+        }
+    });
+</code></pre>
+<hr />
+<h2 id="5">5. 组合多个任务</h2>
+<h3 id="51-allof">5.1 allOf（全部完成）</h3>
+<pre><code class="language-java">CompletableFuture&lt;String&gt; f1 = CompletableFuture.supplyAsync(() -&gt; &quot;任务 1&quot;);
+CompletableFuture&lt;String&gt; f2 = CompletableFuture.supplyAsync(() -&gt; &quot;任务 2&quot;);
+CompletableFuture&lt;String&gt; f3 = CompletableFuture.supplyAsync(() -&gt; &quot;任务 3&quot;);
+
+// 等待所有完成
+CompletableFuture&lt;Void&gt; all = CompletableFuture.allOf(f1, f2, f3);
+
+all.thenRun(() -&gt; {
+    try {
+        String r1 = f1.get();
+        String r2 = f2.get();
+        String r3 = f3.get();
+        System.out.println(&quot;全部完成：&quot; + r1 + &quot;, &quot; + r2 + &quot;, &quot; + r3);
+    } catch (Exception e) {}
+});
+</code></pre>
+<h3 id="52-anyof">5.2 anyOf（任一完成）</h3>
+<pre><code class="language-java">CompletableFuture&lt;String&gt; f1 = CompletableFuture.supplyAsync(() -&gt; {
+    sleep(1000);
+    return &quot;任务 1&quot;;
+});
+
+CompletableFuture&lt;String&gt; f2 = CompletableFuture.supplyAsync(() -&gt; {
+    sleep(500);
+    return &quot;任务 2&quot;;
+});
+
+// 取最快完成的结果
+CompletableFuture&lt;Object&gt; any = CompletableFuture.anyOf(f1, f2);
+
+any.thenAccept(result -&gt; {
+    System.out.println(&quot;最快完成：&quot; + result);  // 任务 2
+});
+</code></pre>
+<hr />
+<h2 id="6">6. 实战示例</h2>
+<h3 id="61-api">6.1 并行调用多个 API</h3>
+<pre><code class="language-java">public class UserService {
+
+    public UserProfile getUserProfile(Long userId) {
+        // 并行获取用户信息、订单、积分
+        CompletableFuture&lt;UserInfo&gt; userInfoFuture = getUserInfoAsync(userId);
+        CompletableFuture&lt;List&lt;Order&gt;&gt; ordersFuture = getOrdersAsync(userId);
+        CompletableFuture&lt;Integer&gt; pointsFuture = getPointsAsync(userId);
+
+        // 等待所有完成并组合
+        return CompletableFuture.allOf(userInfoFuture, ordersFuture, pointsFuture)
+            .thenApply(v -&gt; {
+                UserInfo info = userInfoFuture.join();
+                List&lt;Order&gt; orders = ordersFuture.join();
+                Integer points = pointsFuture.join();
+
+                return new UserProfile(info, orders, points);
+            })
+            .join();
+    }
+
+    private CompletableFuture&lt;UserInfo&gt; getUserInfoAsync(Long userId) {
+        return CompletableFuture.supplyAsync(() -&gt; {
+            // 调用用户服务
+            return userInfoDao.findById(userId);
+        });
+    }
+}
+</code></pre>
+<h3 id="62">6.2 超时处理</h3>
+<pre><code class="language-java">CompletableFuture&lt;String&gt; future = CompletableFuture
+    .supplyAsync(() -&gt; {
+        // 耗时操作
+        return &quot;结果&quot;;
+    })
+    .orTimeout(5, TimeUnit.SECONDS);  // 5 秒超时
+
+try {
+    String result = future.get();
+} catch (TimeoutException e) {
+    System.out.println(&quot;超时&quot;);
+}
+</code></pre>
+<h3 id="63">6.3 重试机制</h3>
+<pre><code class="language-java">public static &lt;T&gt; CompletableFuture&lt;T&gt; retry(
+    Supplier&lt;CompletableFuture&lt;T&gt;&gt; task,
+    int maxRetries
+) {
+    return task.get()
+        .exceptionally(ex -&gt; {
+            if (maxRetries &gt; 0) {
+                return retry(task, maxRetries - 1).join();
+            }
+            throw new RuntimeException(ex);
+        });
+}
+
+// 使用
+CompletableFuture&lt;String&gt; result = retry(
+    () -&gt; CompletableFuture.supplyAsync(() -&gt; {
+        // 可能失败的操作
+        return &quot;结果&quot;;
+    }),
+    3
+);
+</code></pre>
+<h3 id="64">6.4 流水线处理</h3>
+<pre><code class="language-java">CompletableFuture&lt;String&gt; pipeline = CompletableFuture
+    .supplyAsync(() -&gt; fetchData())      // 获取数据
+    .thenApply(data -&gt; parseData(data))  // 解析
+    .thenApply(parsed -&gt; transform(parsed))  // 转换
+    .thenApply(transformed -&gt; save(transformed))  // 保存
+    .exceptionally(ex -&gt; {
+        log.error(&quot;处理失败&quot;, ex);
+        return &quot;失败&quot;;
+    });
+
+String result = pipeline.get();
+</code></pre>
+<hr />
+<h2 id="7">7. 完整示例</h2>
+<pre><code class="language-java">public class OrderService {
+
+    public CompletableFuture&lt;OrderResult&gt; processOrder(Order order) {
+        return CompletableFuture
+            // 1. 验证订单
+            .supplyAsync(() -&gt; validateOrder(order))
+
+            // 2. 扣减库存
+            .thenCompose(valid -&gt; decreaseStock(order))
+
+            // 3. 创建订单
+            .thenCompose(stock -&gt; createOrder(order))
+
+            // 4. 发送通知
+            .thenCompose(created -&gt; sendNotification(created))
+
+            // 5. 返回结果
+            .thenApply(notification -&gt; {
+                OrderResult result = new OrderResult();
+                result.setSuccess(true);
+                result.setMessage(&quot;订单处理成功&quot;);
+                return result;
+            })
+
+            // 异常处理
+            .exceptionally(ex -&gt; {
+                OrderResult result = new OrderResult();
+                result.setSuccess(false);
+                result.setMessage(&quot;订单处理失败：&quot; + ex.getMessage());
+                return result;
+            });
+    }
+
+    private boolean validateOrder(Order order) {
+        // 验证逻辑
+        return true;
+    }
+
+    private CompletableFuture&lt;Boolean&gt; decreaseStock(Order order) {
+        return CompletableFuture.supplyAsync(() -&gt; {
+            // 扣减库存
+            return true;
+        });
+    }
+
+    private CompletableFuture&lt;Order&gt; createOrder(Order order) {
+        return CompletableFuture.supplyAsync(() -&gt; {
+            // 创建订单
+            return order;
+        });
+    }
+
+    private CompletableFuture&lt;String&gt; sendNotification(Order order) {
+        return CompletableFuture.supplyAsync(() -&gt; {
+            // 发送通知
+            return &quot;通知已发送&quot;;
+        });
+    }
+}
+</code></pre>
+<hr />
+<h2 id="8">8. 本章小结</h2>
+<h3 id="_1">核心知识点</h3>
+<p>✅ <strong>创建任务</strong>：supplyAsync、runAsync<br />
+✅ <strong>回调方法</strong>：thenApply、thenAccept、thenCompose<br />
+✅ <strong>异常处理</strong>：exceptionally、handle、whenComplete<br />
+✅ <strong>组合任务</strong>：allOf、anyOf、thenCombine<br />
+✅ <strong>超时处理</strong>：orTimeout  </p>
+<h3 id="_2">最佳实践</h3>
+<ol>
+<li><strong>使用自定义线程池</strong>：避免使用默认 ForkJoinPool</li>
+<li><strong>链式调用</strong>：代码更清晰</li>
+<li><strong>异常处理</strong>：always handle exceptions</li>
+<li><strong>避免阻塞</strong>：使用 thenApply 代替 get()</li>
+<li><strong>超时设置</strong>：防止任务无限期等待</li>
+</ol>
+<hr />
+<p>🎉 <strong>恭喜完成 CompletableFuture 学习！继续学习 <a href="../../06_%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/05_%E5%BB%BA%E9%80%A0%E8%80%85%E6%A8%A1%E5%BC%8F/">建造者模式</a></strong></p></div>
+            </div>
+        </div>
+
+        <footer class="col-md-12">
+            <hr>
+            <p>Documentation built with <a href="https://www.mkdocs.org/">MkDocs</a>.</p>
+        </footer>
+        <script src="../../../../js/bootstrap.bundle.min.js"></script>
+        <script>
+            var base_url = "../../../..",
+                shortcuts = {"help": 191, "next": 78, "previous": 80, "search": 83};
+        </script>
+        <script src="../../../../js/base.js"></script>
+        <script src="../../../../search/main.js"></script>
+
+        <div class="modal" id="mkdocs_search_modal" tabindex="-1" role="dialog" aria-labelledby="searchModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="searchModalLabel">Search</h4>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>From here you can search these documents. Enter your search terms below.</p>
+                <form>
+                    <div class="form-group">
+                        <input type="search" class="form-control" placeholder="Search..." id="mkdocs-search-query" title="Type search term here">
+                    </div>
+                </form>
+                <div id="mkdocs-search-results" data-no-results-text="No results found"></div>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div><div class="modal" id="mkdocs_keyboard_modal" tabindex="-1" role="dialog" aria-labelledby="keyboardModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="keyboardModalLabel">Keyboard Shortcuts</h4>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th style="width: 20%;">Keys</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td class="help shortcut"><kbd>?</kbd></td>
+                    <td>Open this help</td>
+                  </tr>
+                  <tr>
+                    <td class="next shortcut"><kbd>n</kbd></td>
+                    <td>Next page</td>
+                  </tr>
+                  <tr>
+                    <td class="prev shortcut"><kbd>p</kbd></td>
+                    <td>Previous page</td>
+                  </tr>
+                  <tr>
+                    <td class="search shortcut"><kbd>s</kbd></td>
+                    <td>Search</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div>
+
+    </body>
+</html>

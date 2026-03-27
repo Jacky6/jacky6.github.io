@@ -1,0 +1,1047 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="light">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        
+        
+        
+        <link rel="shortcut icon" href="../../../img/favicon.ico">
+        <title>链表（Linked List）知识点 - My Docs</title>
+        <link href="../../../css/bootstrap.min.css" rel="stylesheet">
+        <link href="../../../css/fontawesome.min.css" rel="stylesheet">
+        <link href="../../../css/brands.min.css" rel="stylesheet">
+        <link href="../../../css/solid.min.css" rel="stylesheet">
+        <link href="../../../css/v4-font-face.min.css" rel="stylesheet">
+        <link href="../../../css/base.css" rel="stylesheet">
+        <link id="hljs-light" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" >
+        <link id="hljs-dark" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github-dark.min.css" disabled>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+        <script>hljs.highlightAll();</script> 
+    </head>
+
+    <body>
+        <div class="navbar fixed-top navbar-expand-lg navbar-dark bg-primary">
+            <div class="container">
+                <a class="navbar-brand" href="../../..">My Docs</a>
+
+                <!-- Expanded navigation -->
+                <div id="navbar-collapse" class="navbar-collapse collapse">
+
+                    <ul class="nav navbar-nav ms-md-auto">
+                        <li class="nav-item">
+                            <a href="#" class="nav-link" data-bs-toggle="modal" data-bs-target="#mkdocs_search_modal">
+                                <i class="fa fa-search"></i> Search
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="container">
+            <div class="row">
+                    <div class="col-md-3"><div class="navbar-expand-md bs-sidebar hidden-print affix" role="complementary">
+    <div class="navbar-header">
+        <button type="button" class="navbar-toggler collapsed" data-bs-toggle="collapse" data-bs-target="#toc-collapse" title="Table of Contents">
+            <span class="fa fa-angle-down"></span>
+        </button>
+    </div>
+
+    
+    <div id="toc-collapse" class="navbar-collapse collapse card bg-body-tertiary">
+        <ul class="nav flex-column">
+            
+            <li class="nav-item" data-bs-level="1"><a href="#linked-list" class="nav-link">链表（Linked List）知识点</a>
+              <ul class="nav flex-column">
+            <li class="nav-item" data-bs-level="2"><a href="#1" class="nav-link">1. 定义与基本概念</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#2" class="nav-link">2. 链表类型</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#3" class="nav-link">3. 时间复杂度对比</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#4" class="nav-link">4. 链表经典技巧</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#5" class="nav-link">5. 经典例题详解</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#6" class="nav-link">6. 链表题型分类总结</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#7" class="nav-link">7. 总结</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+              </ul>
+            </li>
+        </ul>
+    </div>
+</div></div>
+                    <div class="col-md-9" role="main">
+
+<h1 id="linked-list">链表（Linked List）知识点</h1>
+<hr />
+<h2 id="1">1. 定义与基本概念</h2>
+<p><strong>链表</strong>是一种<strong>物理存储单元上非连续、非顺序</strong>的线性数据结构。</p>
+<ul>
+<li>由一系列<strong>结点</strong>（Node）组成</li>
+<li>每个结点包含：<strong>数据域</strong> + <strong>指针域</strong></li>
+<li>结点之间通过指针链接</li>
+<li>第一个结点称为<strong>头结点</strong>（Head）</li>
+<li>最后一个结点的指针指向 <strong>NULL</strong>（或 None）</li>
+</ul>
+<pre><code>单链表结构：
+┌─────────┐     ┌─────────┐     ┌─────────┐     ┌─────────┐
+│ 1 │  ┼──┼──▶│ 2 │  ┼──┼──▶│ 3 │  ┼──┼──▶│ 4 │ ─ │
+└─────────┘     └─────────┘     └─────────┘     └─────────┘
+  ↑               ↑               ↑               ↑
+ head            node2           node3           tail (next=None)
+</code></pre>
+<h3 id="11">1.1 结点定义</h3>
+<pre><code class="language-python"># 单链表结点
+class ListNode:
+    def __init__(self, val=0, next=None):
+        self.val = val
+        self.next = next
+
+# 双链表结点
+class DoublyListNode:
+    def __init__(self, val=0, prev=None, next=None):
+        self.val = val
+        self.prev = prev
+        self.next = next
+</code></pre>
+<hr />
+<h2 id="2">2. 链表类型</h2>
+<h3 id="21-singly-linked-list">2.1 单链表（Singly Linked List）</h3>
+<p>每个结点只有一个 <code>next</code> 指针指向后继结点。</p>
+<pre><code class="language-python">class SinglyLinkedList:
+    def __init__(self):
+        self.head = None
+        self.size = 0
+
+    def get(self, index: int) -&gt; int:
+        &quot;&quot;&quot;获取第 index 个结点的值&quot;&quot;&quot;
+        if index &lt; 0 or index &gt;= self.size:
+            return -1
+        cur = self.head
+        for _ in range(index):
+            cur = cur.next
+        return cur.val
+
+    def addAtHead(self, val: int) -&gt; None:
+        &quot;&quot;&quot;头插法&quot;&quot;&quot;
+        new_node = ListNode(val, self.head)
+        self.head = new_node
+        self.size += 1
+
+    def addAtTail(self, val: int) -&gt; None:
+        &quot;&quot;&quot;尾插法&quot;&quot;&quot;
+        new_node = ListNode(val)
+        if not self.head:
+            self.head = new_node
+        else:
+            cur = self.head
+            while cur.next:
+                cur = cur.next
+            cur.next = new_node
+        self.size += 1
+
+    def addAtIndex(self, index: int, val: int) -&gt; None:
+        &quot;&quot;&quot;在指定位置插入&quot;&quot;&quot;
+        if index &gt; self.size:
+            return
+        if index &lt;= 0:
+            self.addAtHead(val)
+            return
+        if index == self.size:
+            self.addAtTail(val)
+            return
+
+        # 找到插入位置的前驱结点
+        cur = self.head
+        for _ in range(index - 1):
+            cur = cur.next
+
+        new_node = ListNode(val, cur.next)
+        cur.next = new_node
+        self.size += 1
+
+    def deleteAtIndex(self, index: int) -&gt; None:
+        &quot;&quot;&quot;删除指定位置的结点&quot;&quot;&quot;
+        if index &lt; 0 or index &gt;= self.size:
+            return
+
+        if index == 0:
+            self.head = self.head.next
+        else:
+            cur = self.head
+            for _ in range(index - 1):
+                cur = cur.next
+            cur.next = cur.next.next
+
+        self.size -= 1
+</code></pre>
+<h3 id="22-doubly-linked-list">2.2 双链表（Doubly Linked List）</h3>
+<p>每个结点有 <code>prev</code> 和 <code>next</code> 两个指针，可双向遍历。</p>
+<pre><code class="language-python">class DoublyLinkedList:
+    def __init__(self):
+        self.head = None
+        self.tail = None
+        self.size = 0
+
+    def addAtHead(self, val: int) -&gt; None:
+        new_node = DoublyListNode(val)
+        if not self.head:
+            self.head = self.tail = new_node
+        else:
+            new_node.next = self.head
+            self.head.prev = new_node
+            self.head = new_node
+        self.size += 1
+
+    def addAtTail(self, val: int) -&gt; None:
+        new_node = DoublyListNode(val)
+        if not self.tail:
+            self.head = self.tail = new_node
+        else:
+            new_node.prev = self.tail
+            self.tail.next = new_node
+            self.tail = new_node
+        self.size += 1
+
+    def deleteNode(self, node: DoublyListNode) -&gt; None:
+        &quot;&quot;&quot;删除指定结点&quot;&quot;&quot;
+        if node.prev:
+            node.prev.next = node.next
+        else:
+            self.head = node.next
+
+        if node.next:
+            node.next.prev = node.prev
+        else:
+            self.tail = node.prev
+
+        self.size -= 1
+</code></pre>
+<h3 id="23-circular-linked-list">2.3 循环链表（Circular Linked List）</h3>
+<p>最后一个结点的指针指向头结点，形成环。</p>
+<pre><code>循环单链表：
+┌─────────┐     ┌─────────┐     ┌─────────┐
+│ 1 │  ┼──┼──▶│ 2 │  ┼──┼──▶│ 3 │  ┼──┼──┐
+└─────────┘     └─────────┘     └─────────┘│
+  ▲                                       │
+  └───────────────────────────────────────┘
+</code></pre>
+<p><strong>特点</strong>：
+- 从任意结点出发可遍历整个链表
+- 判断结束条件：<code>cur.next != head</code>
+- 常用于约瑟夫环等问题</p>
+<hr />
+<h2 id="3">3. 时间复杂度对比</h2>
+<table>
+<thead>
+<tr>
+<th>操作</th>
+<th>数组</th>
+<th>链表</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>访问第 k 个元素</td>
+<td>O(1)</td>
+<td>O(k)</td>
+</tr>
+<tr>
+<td>头部插入/删除</td>
+<td>O(n)</td>
+<td>O(1)</td>
+</tr>
+<tr>
+<td>尾部插入/删除</td>
+<td>O(1)*</td>
+<td>O(n)</td>
+</tr>
+<tr>
+<td>中间插入/删除</td>
+<td>O(n)</td>
+<td>O(1)**</td>
+</tr>
+<tr>
+<td>空间</td>
+<td>O(n)</td>
+<td>O(n) + 指针开销</td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p><em>数组尾部插入摊还 O(1)（动态扩容时）<br />
+</em>*链表需要先找到位置 O(k)，插入/删除本身 O(1)</p>
+</blockquote>
+<hr />
+<h2 id="4">4. 链表经典技巧</h2>
+<h3 id="41-dummy-head">4.1 虚拟头结点（Dummy Head）</h3>
+<p><strong>作用</strong>：简化头结点的边界处理</p>
+<pre><code class="language-python">def removeElements(head: ListNode, val: int) -&gt; ListNode:
+    &quot;&quot;&quot;删除链表中所有值为 val 的结点&quot;&quot;&quot;
+    dummy = ListNode(0, head)  # 虚拟头结点
+    cur = dummy
+
+    while cur.next:
+        if cur.next.val == val:
+            cur.next = cur.next.next
+        else:
+            cur = cur.next
+
+    return dummy.next  # 返回真正的头结点
+</code></pre>
+<h3 id="42-floyd">4.2 快慢指针（Floyd 判圈算法）</h3>
+<p><strong>快指针</strong>每次走 2 步，<strong>慢指针</strong>每次走 1 步。</p>
+<h4 id="1_1">（1）找中点</h4>
+<pre><code class="language-python">def middleNode(head: ListNode) -&gt; ListNode:
+    &quot;&quot;&quot;返回链表的中间结点&quot;&quot;&quot;
+    slow = fast = head
+
+    while fast and fast.next:
+        slow = slow.next      # 走 1 步
+        fast = fast.next.next # 走 2 步
+
+    return slow  # 慢指针指向中点
+
+# 测试：1→2→3→4→5 → 返回 3
+#       1→2→3→4   → 返回 3（第二个中点）
+</code></pre>
+<h4 id="2_1">（2）判断是否有环</h4>
+<pre><code class="language-python">def hasCycle(head: ListNode) -&gt; bool:
+    &quot;&quot;&quot;判断链表是否有环&quot;&quot;&quot;
+    if not head or not head.next:
+        return False
+
+    slow = fast = head
+
+    while fast and fast.next:
+        slow = slow.next
+        fast = fast.next.next
+        if slow == fast:  # 快慢指针相遇 → 有环
+            return True
+
+    return False
+</code></pre>
+<h4 id="3_1">（3）找环的入口</h4>
+<pre><code class="language-python">def detectCycle(head: ListNode) -&gt; ListNode:
+    &quot;&quot;&quot;找到环的入口结点&quot;&quot;&quot;
+    slow = fast = head
+
+    # 第一步：判断是否有环
+    while fast and fast.next:
+        slow = slow.next
+        fast = fast.next.next
+        if slow == fast:
+            break
+    else:
+        return None  # 无环
+
+    # 第二步：找环入口
+    # 从头结点和相遇点同时出发，相遇点即为环入口
+    ptr1 = head
+    ptr2 = slow
+    while ptr1 != ptr2:
+        ptr1 = ptr1.next
+        ptr2 = ptr2.next
+
+    return ptr1
+</code></pre>
+<p><strong>原理证明</strong>：</p>
+<pre><code>设：头结点到环入口距离 = a
+    环入口到相遇点距离 = b
+    相遇点到环入口距离 = c
+
+快指针路程 = a + b + n(b+c) = 2(a+b)
+慢指针路程 = a + b
+
+推导：a = (n-1)(b+c) + c
+当 n=1 时：a = c
+
+结论：从头结点和相遇点同时走 a 步，会在环入口相遇
+</code></pre>
+<h3 id="43">4.3 反转链表</h3>
+<h4 id="1_2">（1）迭代法（三指针）</h4>
+<pre><code class="language-python">def reverseList(head: ListNode) -&gt; ListNode:
+    &quot;&quot;&quot;反转链表 - 迭代法&quot;&quot;&quot;
+    prev = None
+    cur = head
+
+    while cur:
+        next_temp = cur.next  # 保存后继
+        cur.next = prev       # 反转指针
+        prev = cur            # prev 前移
+        cur = next_temp       # cur 前移
+
+    return prev  # 新的头结点
+
+# 执行过程：
+# 初始：None ← 1 → 2 → 3 → 4 → 5
+#        prev cur
+# 第 1 步：1 ← 2 → 3 → 4 → 5
+#         prev cur
+# 第 2 步：1 ← 2 ← 3 → 4 → 5
+#              prev cur
+# ...
+# 最终：1 ← 2 ← 3 ← 4 ← 5
+#                   prev
+</code></pre>
+<h4 id="2_2">（2）递归法</h4>
+<pre><code class="language-python">def reverseListRecursive(head: ListNode) -&gt; ListNode:
+    &quot;&quot;&quot;反转链表 - 递归法&quot;&quot;&quot;
+    # 基础情况：空链表或单结点
+    if not head or not head.next:
+        return head
+
+    # 递归反转后续链表
+    new_head = reverseListRecursive(head.next)
+
+    # 反转当前结点
+    head.next.next = head
+    head.next = None
+
+    return new_head
+</code></pre>
+<h3 id="44">4.4 合并链表</h3>
+<pre><code class="language-python">def mergeTwoLists(l1: ListNode, l2: ListNode) -&gt; ListNode:
+    &quot;&quot;&quot;合并两个有序链表&quot;&quot;&quot;
+    dummy = ListNode(0)
+    cur = dummy
+
+    while l1 and l2:
+        if l1.val &lt;= l2.val:
+            cur.next = l1
+            l1 = l1.next
+        else:
+            cur.next = l2
+            l2 = l2.next
+        cur = cur.next
+
+    # 连接剩余部分
+    cur.next = l1 if l1 else l2
+
+    return dummy.next
+</code></pre>
+<h3 id="45">4.5 分割链表</h3>
+<pre><code class="language-python">def partition(head: ListNode, x: int) -&gt; ListNode:
+    &quot;&quot;&quot;分割链表：小于 x 的在前，大于等于 x 的在后&quot;&quot;&quot;
+    before_head = ListNode(0)
+    after_head = ListNode(0)
+    before = before_head
+    after = after_head
+
+    cur = head
+    while cur:
+        if cur.val &lt; x:
+            before.next = cur
+            before = before.next
+        else:
+            after.next = cur
+            after = after.next
+        cur = cur.next
+
+    after.next = None  # 防止成环
+    before.next = after_head.next
+
+    return before_head.next
+</code></pre>
+<hr />
+<h2 id="5">5. 经典例题详解</h2>
+<h3 id="51-iileetcode-92">5.1 反转链表 II（LeetCode 92）⭐⭐</h3>
+<p><strong>题目</strong>：反转从位置 left 到 right 的链表结点</p>
+<pre><code class="language-python">def reverseBetween(head: ListNode, left: int, right: int) -&gt; ListNode:
+    &quot;&quot;&quot;
+    思路：找到 left 前驱，对 left~right 区间头插法反转
+    &quot;&quot;&quot;
+    if not head or left == right:
+        return head
+
+    dummy = ListNode(0, head)
+    pre = dummy
+
+    # 找到 left 位置的前驱结点
+    for _ in range(left - 1):
+        pre = pre.next
+
+    # 头插法反转区间 [left, right]
+    cur = pre.next
+    for _ in range(right - left):
+        next_node = cur.next
+        cur.next = next_node.next
+        next_node.next = pre.next
+        pre.next = next_node
+
+    return dummy.next
+
+# 测试：1→2→3→4→5, left=2, right=4
+# 结果：1→4→3→2→5
+</code></pre>
+<p><strong>执行过程</strong>：</p>
+<pre><code>初始：dummy→1→2→3→4→5
+              pre cur
+
+第 1 次循环：
+  next_node = 3
+  cur.next = 4
+  next_node.next = 2
+  pre.next = 3
+  结果：dummy→1→3→2→4→5
+
+第 2 次循环：
+  next_node = 4
+  cur.next = 5
+  next_node.next = 3
+  pre.next = 4
+  结果：dummy→1→4→3→2→5
+</code></pre>
+<hr />
+<h3 id="52-leetcode-24">5.2 两两交换结点（LeetCode 24）⭐⭐</h3>
+<p><strong>题目</strong>：两两交换相邻结点</p>
+<pre><code class="language-python">def swapPairs(head: ListNode) -&gt; ListNode:
+    &quot;&quot;&quot;
+    思路：每次处理两个结点，交换它们的顺序
+    &quot;&quot;&quot;
+    dummy = ListNode(0, head)
+    cur = dummy
+
+    while cur.next and cur.next.next:
+        # 标记要交换的两个结点
+        node1 = cur.next
+        node2 = cur.next.next
+
+        # 交换
+        cur.next = node2
+        node1.next = node2.next
+        node2.next = node1
+
+        # 移动到下一组
+        cur = node1
+
+    return dummy.next
+
+# 测试：1→2→3→4→5
+# 结果：2→1→4→3→5
+</code></pre>
+<p><strong>图解</strong>：</p>
+<pre><code>初始：dummy→1→2→3→4→5
+             ↑  ↑
+           node1 node2
+
+交换后：dummy→2→1→3→4→5
+              ↑     ↑
+             cur   cur.next(下一轮)
+</code></pre>
+<hr />
+<h3 id="53-k-leetcode-25">5.3 K 个一组翻转链表（LeetCode 25）⭐⭐⭐</h3>
+<p><strong>题目</strong>：每 k 个结点一组翻转，不足 k 个保持不变</p>
+<pre><code class="language-python">def reverseKGroup(head: ListNode, k: int) -&gt; ListNode:
+    &quot;&quot;&quot;
+    思路：先判断是否有 k 个结点，有则翻转，无则保持
+    &quot;&quot;&quot;
+    dummy = ListNode(0, head)
+    pre = dummy
+
+    while True:
+        # 1. 检查剩余结点是否有 k 个
+        tail = pre
+        for _ in range(k):
+            if not tail.next:
+                return dummy.next
+            tail = tail.next
+
+        # 2. 记录下一组的起点
+        next_group = tail.next
+
+        # 3. 翻转当前组 [pre.next, tail]
+        cur = pre.next
+        for _ in range(k - 1):
+            next_node = cur.next
+            cur.next = next_node.next
+            next_node.next = pre.next
+            pre.next = next_node
+
+        # 4. 连接下一组
+        # 翻转后，原来的首结点变成尾结点
+        pre.next.next = next_group
+
+        # 5. 移动 pre 到下一组的前驱
+        pre = pre.next.next if next_group else None
+        if not pre:
+            break
+
+    return dummy.next
+
+# 测试：1→2→3→4→5, k=3
+# 结果：3→2→1→4→5
+</code></pre>
+<hr />
+<h3 id="54-leetcode-83">5.4 删除排序链表中的重复元素（LeetCode 83）⭐</h3>
+<p><strong>题目</strong>：删除重复元素，每个元素只保留一次</p>
+<pre><code class="language-python">def deleteDuplicates(head: ListNode) -&gt; ListNode:
+    &quot;&quot;&quot;
+    思路：有序链表，重复元素相邻，直接跳过
+    &quot;&quot;&quot;
+    if not head:
+        return head
+
+    cur = head
+    while cur.next:
+        if cur.val == cur.next.val:
+            cur.next = cur.next.next  # 跳过重复结点
+        else:
+            cur = cur.next
+
+    return head
+
+# 测试：1→1→2→3→3
+# 结果：1→2→3
+</code></pre>
+<hr />
+<h3 id="55-iileetcode-82">5.5 删除排序链表中的重复元素 II（LeetCode 82）⭐⭐</h3>
+<p><strong>题目</strong>：删除所有重复的元素，只保留不重复的</p>
+<pre><code class="language-python">def deleteDuplicatesII(head: ListNode) -&gt; ListNode:
+    &quot;&quot;&quot;
+    思路：使用虚拟头结点，遇到重复元素全部跳过
+    &quot;&quot;&quot;
+    if not head:
+        return head
+
+    dummy = ListNode(0, head)
+    cur = dummy
+
+    while cur.next and cur.next.next:
+        if cur.next.val == cur.next.next.val:
+            # 记录重复值
+            val = cur.next.val
+            # 跳过所有值为 val 的结点
+            while cur.next and cur.next.val == val:
+                cur.next = cur.next.next
+        else:
+            cur = cur.next
+
+    return dummy.next
+
+# 测试：1→2→3→3→4→4→5
+# 结果：1→2→5
+</code></pre>
+<hr />
+<h3 id="56-k-leetcode-23">5.6 合并 K 个有序链表（LeetCode 23）⭐⭐⭐</h3>
+<p><strong>题目</strong>：合并 k 个升序链表</p>
+<p><strong>解法一：分治法（推荐）</strong></p>
+<pre><code class="language-python">def mergeKLists(lists: List[ListNode]) -&gt; ListNode:
+    &quot;&quot;&quot;
+    分治法：两两合并，时间复杂度 O(N log k)
+    N 为所有结点总数，k 为链表数量
+    &quot;&quot;&quot;
+    if not lists:
+        return None
+
+    def merge(l1, l2):
+        &quot;&quot;&quot;合并两个有序链表&quot;&quot;&quot;
+        dummy = ListNode(0)
+        cur = dummy
+        while l1 and l2:
+            if l1.val &lt;= l2.val:
+                cur.next = l1
+                l1 = l1.next
+            else:
+                cur.next = l2
+                l2 = l2.next
+            cur = cur.next
+        cur.next = l1 if l1 else l2
+        return dummy.next
+
+    def divide(left, right):
+        &quot;&quot;&quot;分治&quot;&quot;&quot;
+        if left == right:
+            return lists[left]
+        if left &gt; right:
+            return None
+
+        mid = (left + right) // 2
+        return merge(divide(left, mid), divide(mid + 1, right))
+
+    return divide(0, len(lists) - 1)
+</code></pre>
+<p><strong>解法二：最小堆</strong></p>
+<pre><code class="language-python">import heapq
+
+def mergeKListsHeap(lists: List[ListNode]) -&gt; ListNode:
+    &quot;&quot;&quot;
+    最小堆：维护 k 个链表当前最小值，时间复杂度 O(N log k)
+    &quot;&quot;&quot;
+    if not lists:
+        return None
+
+    # 最小堆：(val, index, node)
+    heap = []
+    for i, node in enumerate(lists):
+        if node:
+            heapq.heappush(heap, (node.val, i, node))
+
+    dummy = ListNode(0)
+    cur = dummy
+
+    while heap:
+        val, idx, node = heapq.heappop(heap)
+        cur.next = node
+        cur = cur.next
+
+        if node.next:
+            heapq.heappush(heap, (node.next.val, idx, node.next))
+
+    return dummy.next
+</code></pre>
+<hr />
+<h3 id="57-iileetcode-142">5.7 环形链表 II（LeetCode 142）⭐⭐</h3>
+<p><strong>题目</strong>：找到环的入口结点</p>
+<pre><code class="language-python">def detectCycle(head: ListNode) -&gt; ListNode:
+    &quot;&quot;&quot;
+    快慢指针法，时间复杂度 O(n)，空间复杂度 O(1)
+    &quot;&quot;&quot;
+    if not head or not head.next:
+        return None
+
+    slow = fast = head
+
+    # 第一步：判断是否有环
+    while fast and fast.next:
+        slow = slow.next
+        fast = fast.next.next
+        if slow == fast:
+            break
+    else:
+        return None  # 无环
+
+    # 第二步：找环入口
+    ptr = head
+    while ptr != slow:
+        ptr = ptr.next
+        slow = slow.next
+
+    return ptr
+</code></pre>
+<hr />
+<h3 id="58-leetcode-160">5.8 相交链表（LeetCode 160）⭐⭐</h3>
+<p><strong>题目</strong>：找到两个单链表相交的起始结点</p>
+<pre><code class="language-python">def getIntersectionNode(headA: ListNode, headB: ListNode) -&gt; ListNode:
+    &quot;&quot;&quot;
+    双指针法：A 走完走 B，B 走完走 A，相遇点即为交点
+    时间复杂度 O(m+n)，空间复杂度 O(1)
+    &quot;&quot;&quot;
+    if not headA or not headB:
+        return None
+
+    pA, pB = headA, headB
+
+    while pA != pB:
+        pA = pA.next if pA else headB
+        pB = pB.next if pB else headA
+
+    return pA  # 相交则返回交点，不相交则返回 None
+</code></pre>
+<p><strong>原理</strong>：</p>
+<pre><code>设：A 链表长度 = a，B 链表长度 = b，公共部分长度 = c
+
+pA 路程：a + (b - c)
+pB 路程：b + (a - c)
+
+两者相等，会在交点相遇
+
+若不相交：pA 和 pB 同时走到 None，返回 None
+</code></pre>
+<hr />
+<h3 id="59-n-leetcode-19">5.9 删除链表的倒数第 N 个结点（LeetCode 19）⭐⭐</h3>
+<p><strong>题目</strong>：删除倒数第 n 个结点</p>
+<pre><code class="language-python">def removeNthFromEnd(head: ListNode, n: int) -&gt; ListNode:
+    &quot;&quot;&quot;
+    快慢指针：快指针先走 n 步，然后同时走
+    时间复杂度 O(n)，空间复杂度 O(1)
+    &quot;&quot;&quot;
+    dummy = ListNode(0, head)
+    fast = slow = dummy
+
+    # 快指针先走 n 步
+    for _ in range(n):
+        fast = fast.next
+
+    # 同时走，直到快指针到达末尾
+    while fast.next:
+        fast = fast.next
+        slow = slow.next
+
+    # slow 指向倒数第 n+1 个结点
+    slow.next = slow.next.next
+
+    return dummy.next
+
+# 测试：1→2→3→4→5, n=2
+# 结果：1→2→3→5
+</code></pre>
+<hr />
+<h3 id="510-leetcode-234">5.10 回文链表（LeetCode 234）⭐⭐</h3>
+<p><strong>题目</strong>：判断链表是否为回文结构</p>
+<pre><code class="language-python">def isPalindrome(head: ListNode) -&gt; bool:
+    &quot;&quot;&quot;
+    思路：找中点 → 反转后半部分 → 比较 → 恢复（可选）
+    时间复杂度 O(n)，空间复杂度 O(1)
+    &quot;&quot;&quot;
+    if not head or not head.next:
+        return True
+
+    # 1. 找中点
+    slow = fast = head
+    while fast.next and fast.next.next:
+        slow = slow.next
+        fast = fast.next.next
+
+    # 2. 反转后半部分
+    second_half = slow.next
+    slow.next = None  # 断开
+
+    prev = None
+    cur = second_half
+    while cur:
+        next_temp = cur.next
+        cur.next = prev
+        prev = cur
+        cur = next_temp
+
+    # 3. 比较两部分
+    p1, p2 = head, prev
+    result = True
+    while p2:
+        if p1.val != p2.val:
+            result = False
+            break
+        p1 = p1.next
+        p2 = p2.next
+
+    # 4. 恢复链表（可选）
+    # ...
+
+    return result
+
+# 测试：1→2→2→1 → True
+#       1→2→3     → False
+</code></pre>
+<hr />
+<h2 id="6">6. 链表题型分类总结</h2>
+<h3 id="61">6.1 按技巧分类</h3>
+<table>
+<thead>
+<tr>
+<th>技巧</th>
+<th>适用题型</th>
+<th>代表题目</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>虚拟头结点</td>
+<td>涉及头结点操作</td>
+<td>删除结点、合并链表</td>
+</tr>
+<tr>
+<td>快慢指针</td>
+<td>找中点、判环</td>
+<td>环形链表、回文链表</td>
+</tr>
+<tr>
+<td>双指针</td>
+<td>相交、删除倒数第 N</td>
+<td>相交链表</td>
+</tr>
+<tr>
+<td>反转链表</td>
+<td>区间反转、K 组反转</td>
+<td>反转链表 II</td>
+</tr>
+<tr>
+<td>归并思想</td>
+<td>合并有序链表</td>
+<td>合并 K 个有序链表</td>
+</tr>
+<tr>
+<td>头插法</td>
+<td>区间翻转</td>
+<td>反转链表 II</td>
+</tr>
+<tr>
+<td>尾插法</td>
+<td>保持顺序的构建</td>
+<td>分割链表</td>
+</tr>
+</tbody>
+</table>
+<h3 id="62">6.2 按难度分类</h3>
+<p><strong>⭐ 基础题</strong>：
+- 反转链表
+- 合并两个有序链表
+- 删除排序链表中的重复元素</p>
+<p><strong>⭐⭐ 进阶题</strong>：
+- 删除倒数第 N 个结点
+- 环形链表 II
+- 相交链表
+- 两两交换结点
+- 回文链表</p>
+<p><strong>⭐⭐⭐ 难题</strong>：
+- 合并 K 个有序链表
+- K 个一组翻转链表
+- LRU 缓存（链表 + 哈希表）</p>
+<hr />
+<h2 id="7">7. 总结</h2>
+<h3 id="71-vs">7.1 链表 vs 数组</h3>
+<table>
+<thead>
+<tr>
+<th>特性</th>
+<th>数组</th>
+<th>链表</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>存储方式</td>
+<td>连续内存</td>
+<td>非连续内存</td>
+</tr>
+<tr>
+<td>随机访问</td>
+<td>O(1)</td>
+<td>O(n)</td>
+</tr>
+<tr>
+<td>插入/删除</td>
+<td>O(n)</td>
+<td>O(1)*</td>
+</tr>
+<tr>
+<td>空间效率</td>
+<td>高</td>
+<td>低（指针开销）</td>
+</tr>
+<tr>
+<td>缓存友好</td>
+<td>是</td>
+<td>否</td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p>*需要先找到位置</p>
+</blockquote>
+<h3 id="72">7.2 核心思想</h3>
+<ol>
+<li><strong>指针操作</strong>是链表的核心</li>
+<li><strong>虚拟头结点</strong>简化边界处理</li>
+<li><strong>快慢指针</strong>解决中点、环问题</li>
+<li><strong>画图辅助</strong>理解指针变化</li>
+<li><strong>注意空指针</strong>和边界条件</li>
+</ol>
+<h3 id="73">7.3 易错点</h3>
+<ul>
+<li>忘记更新 <code>next</code> 指针导致断链</li>
+<li>忘记处理空链表</li>
+<li>反转后未连接后续链表</li>
+<li>成环问题（忘记将尾结点 next 置空）</li>
+<li>修改了原链表结构但未恢复</li>
+</ul>
+<hr />
+<p><strong>关键思想</strong>：链表题目的本质是<strong>指针操作</strong>，画图 + 虚拟头结点 + 快慢指针，掌握这三招，链表题目不再难！🔗</p>
+<hr />
+<p>🎉 <strong>恭喜完成栈学习！继续学习 <a href="../3_%E6%A0%88/">栈</a></strong></p></div>
+            </div>
+        </div>
+
+        <footer class="col-md-12">
+            <hr>
+            <p>Documentation built with <a href="https://www.mkdocs.org/">MkDocs</a>.</p>
+        </footer>
+        <script src="../../../js/bootstrap.bundle.min.js"></script>
+        <script>
+            var base_url = "../../..",
+                shortcuts = {"help": 191, "next": 78, "previous": 80, "search": 83};
+        </script>
+        <script src="../../../js/base.js"></script>
+        <script src="../../../search/main.js"></script>
+
+        <div class="modal" id="mkdocs_search_modal" tabindex="-1" role="dialog" aria-labelledby="searchModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="searchModalLabel">Search</h4>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>From here you can search these documents. Enter your search terms below.</p>
+                <form>
+                    <div class="form-group">
+                        <input type="search" class="form-control" placeholder="Search..." id="mkdocs-search-query" title="Type search term here">
+                    </div>
+                </form>
+                <div id="mkdocs-search-results" data-no-results-text="No results found"></div>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div><div class="modal" id="mkdocs_keyboard_modal" tabindex="-1" role="dialog" aria-labelledby="keyboardModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="keyboardModalLabel">Keyboard Shortcuts</h4>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th style="width: 20%;">Keys</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td class="help shortcut"><kbd>?</kbd></td>
+                    <td>Open this help</td>
+                  </tr>
+                  <tr>
+                    <td class="next shortcut"><kbd>n</kbd></td>
+                    <td>Next page</td>
+                  </tr>
+                  <tr>
+                    <td class="prev shortcut"><kbd>p</kbd></td>
+                    <td>Previous page</td>
+                  </tr>
+                  <tr>
+                    <td class="search shortcut"><kbd>s</kbd></td>
+                    <td>Search</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div>
+
+    </body>
+</html>

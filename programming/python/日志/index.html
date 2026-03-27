@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="light">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        
+        
+        
+        <link rel="shortcut icon" href="../../../img/favicon.ico">
+        <title>Index - My Docs</title>
+        <link href="../../../css/bootstrap.min.css" rel="stylesheet">
+        <link href="../../../css/fontawesome.min.css" rel="stylesheet">
+        <link href="../../../css/brands.min.css" rel="stylesheet">
+        <link href="../../../css/solid.min.css" rel="stylesheet">
+        <link href="../../../css/v4-font-face.min.css" rel="stylesheet">
+        <link href="../../../css/base.css" rel="stylesheet">
+        <link id="hljs-light" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" >
+        <link id="hljs-dark" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github-dark.min.css" disabled>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+        <script>hljs.highlightAll();</script> 
+    </head>
+
+    <body>
+        <div class="navbar fixed-top navbar-expand-lg navbar-dark bg-primary">
+            <div class="container">
+                <a class="navbar-brand" href="../../..">My Docs</a>
+
+                <!-- Expanded navigation -->
+                <div id="navbar-collapse" class="navbar-collapse collapse">
+
+                    <ul class="nav navbar-nav ms-md-auto">
+                        <li class="nav-item">
+                            <a href="#" class="nav-link" data-bs-toggle="modal" data-bs-target="#mkdocs_search_modal">
+                                <i class="fa fa-search"></i> Search
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="container">
+            <div class="row">
+                    <div class="col-md-3"><div class="navbar-expand-md bs-sidebar hidden-print affix" role="complementary">
+    <div class="navbar-header">
+        <button type="button" class="navbar-toggler collapsed" data-bs-toggle="collapse" data-bs-target="#toc-collapse" title="Table of Contents">
+            <span class="fa fa-angle-down"></span>
+        </button>
+    </div>
+
+    
+    <div id="toc-collapse" class="navbar-collapse collapse card bg-body-tertiary">
+        <ul class="nav flex-column">
+            
+            <li class="nav-item" data-bs-level="2"><a href="#python-logging" class="nav-link">📌 一、Python 内置 logging 模块</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            
+            <li class="nav-item" data-bs-level="2"><a href="#loguru" class="nav-link">📌 二、第三方库 loguru</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            
+            <li class="nav-item" data-bs-level="2"><a href="#_10" class="nav-link">🆚 三、对比总结表</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            
+            <li class="nav-item" data-bs-level="2"><a href="#_11" class="nav-link">🧪 四、代码对比示例</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            
+            <li class="nav-item" data-bs-level="2"><a href="#_12" class="nav-link">📈 五、选型建议</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            
+            <li class="nav-item" data-bs-level="2"><a href="#loguru_1" class="nav-link">💡 六、进阶技巧：Loguru 高级用法</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            
+            <li class="nav-item" data-bs-level="2"><a href="#_13" class="nav-link">🎯 总结</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+        </ul>
+    </div>
+</div></div>
+                    <div class="col-md-9" role="main">
+
+<p>在 Python 中，日志记录（logging）是非常重要的调试和监控工具。Python 标准库提供了 <code>logging</code> 模块，而第三方库 <code>loguru</code> 则是为简化日志使用体验而设计的现代替代方案。</p>
+<hr />
+<h2 id="python-logging">📌 一、Python 内置 <code>logging</code> 模块</h2>
+<h3 id="_1">✅ 简介：</h3>
+<p>Python 自带的标准模块，功能强大、灵活，支持多级日志、输出到文件/控制台、格式化、过滤器等。</p>
+<h3 id="_2">✅ 使用方式：</h3>
+<pre><code class="language-python">import logging
+
+# 基本配置
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    handlers=[
+        logging.FileHandler(&quot;app.log&quot;),
+        logging.StreamHandler()
+    ]
+)
+
+logger = logging.getLogger(__name__)
+
+logger.info(&quot;这是一个信息日志&quot;)
+logger.warning(&quot;这是一个警告日志&quot;)
+logger.error(&quot;这是一个错误日志&quot;)
+</code></pre>
+<h3 id="_3">✅ 优点：</h3>
+<ul>
+<li><strong>标准库</strong>：无需安装，跨平台兼容性好。</li>
+<li><strong>高度可定制</strong>：支持 Handler、Formatter、Filter、Logger 层级结构。</li>
+<li><strong>企业级应用常用</strong>：适合大型项目、框架集成（如 Django、Flask）。</li>
+</ul>
+<h3 id="_4">❌ 缺点：</h3>
+<ul>
+<li><strong>配置繁琐</strong>：新手容易被 <code>basicConfig()</code>、<code>getLogger()</code>、<code>addHandler()</code>、<code>setLevel()</code> 等搞晕。</li>
+<li><strong>默认不输出到控制台或文件</strong>：需要手动配置。</li>
+<li><strong>没有彩色输出、异步支持、自动轮转等现代特性</strong>。</li>
+<li><strong>格式化语法老旧</strong>（如 <code>%</code> 或 <code>.format()</code>，不如 f-string 直观）。</li>
+</ul>
+<hr />
+<h2 id="loguru">📌 二、第三方库 <code>loguru</code></h2>
+<h3 id="_5">✅ 简介：</h3>
+<p><a href="https://loguru.readthedocs.io/">Loguru</a> 是一个“开箱即用”的日志库，目标是让日志记录变得简单、直观、强大。它封装了 <code>logging</code> 的复杂性，同时增加了许多现代开发者喜欢的功能。</p>
+<h3 id="_6">✅ 安装：</h3>
+<pre><code class="language-bash">pip install loguru
+</code></pre>
+<h3 id="_7">✅ 使用方式：</h3>
+<pre><code class="language-python">from loguru import logger
+
+# 默认就输出到 stderr + 彩色 + 时间戳 + 级别 + 文件名行号
+logger.info(&quot;Hello, Loguru!&quot;)
+logger.warning(&quot;This is a warning.&quot;)
+logger.error(&quot;Something went wrong!&quot;)
+
+# 添加文件输出（自动轮转、压缩）
+logger.add(&quot;app.log&quot;, rotation=&quot;10 MB&quot;, retention=&quot;10 days&quot;, compression=&quot;zip&quot;)
+
+# 异常捕获（自动打印堆栈）
+try:
+    1 / 0
+except Exception:
+    logger.exception(&quot;An error occurred&quot;)
+</code></pre>
+<h3 id="_8">✅ 优点：</h3>
+<ul>
+<li><strong>零配置启动</strong>：导入即可用，无需 <code>basicConfig()</code>。</li>
+<li><strong>彩色终端输出</strong>（自动识别是否支持 ANSI）。</li>
+<li><strong>自动包含文件名、行号、函数名</strong>。</li>
+<li><strong>支持异步写入、线程安全、进程安全</strong>。</li>
+<li><strong>内置旋转、保留、压缩日志文件功能</strong>。</li>
+<li><strong>支持 <code>f-string</code> 和结构化日志（JSON）</strong>。</li>
+<li><strong>异常捕获更友好</strong>：<code>logger.exception()</code> 自动打印完整堆栈。</li>
+<li><strong>API 简洁优雅</strong>：比如 <code>logger.add(...)</code> 替代多个 handler 配置。</li>
+</ul>
+<h3 id="_9">❌ 缺点：</h3>
+<ul>
+<li><strong>非标准库</strong>：需要额外安装。</li>
+<li><strong>不适合与传统 logging 生态深度集成</strong>（如某些框架要求使用 <code>logging.getLogger()</code>）。</li>
+<li><strong>部分高级功能需手动配置</strong>（虽然比原生简单很多）。</li>
+<li><strong>社区规模小于标准库</strong>（但活跃度高，文档优秀）。</li>
+</ul>
+<hr />
+<h2 id="_10">🆚 三、对比总结表</h2>
+<table>
+<thead>
+<tr>
+<th>特性</th>
+<th><code>logging</code></th>
+<th><code>loguru</code></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>是否标准库</td>
+<td>✅ 是</td>
+<td>❌ 否</td>
+</tr>
+<tr>
+<td>安装需求</td>
+<td>无</td>
+<td><code>pip install loguru</code></td>
+</tr>
+<tr>
+<td>配置难度</td>
+<td>复杂</td>
+<td>极简</td>
+</tr>
+<tr>
+<td>默认输出</td>
+<td>无（需配置）</td>
+<td>控制台 + 彩色 + 时间+文件行号</td>
+</tr>
+<tr>
+<td>彩色输出</td>
+<td>❌ 不支持</td>
+<td>✅ 支持</td>
+</tr>
+<tr>
+<td>异常堆栈</td>
+<td>需手动 <code>exc_info=True</code></td>
+<td><code>logger.exception()</code> 自动处理</td>
+</tr>
+<tr>
+<td>日志轮转</td>
+<td>需配合 <code>RotatingFileHandler</code></td>
+<td>内置 <code>rotation</code>, <code>retention</code>, <code>compression</code></td>
+</tr>
+<tr>
+<td>异步支持</td>
+<td>❌ 无</td>
+<td>✅ 支持</td>
+</tr>
+<tr>
+<td>结构化日志</td>
+<td>可通过 Formatter 实现</td>
+<td>✅ 原生支持 JSON 输出</td>
+</tr>
+<tr>
+<td>学习曲线</td>
+<td>较陡峭</td>
+<td>平缓</td>
+</tr>
+<tr>
+<td>适用场景</td>
+<td>企业级项目、框架集成</td>
+<td>快速开发、脚本、个人项目、现代应用</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="_11">🧪 四、代码对比示例</h2>
+<h3 id="1">📄 1. 简单输出</h3>
+<pre><code class="language-python"># logging
+import logging
+logging.basicConfig(level=logging.INFO)
+logging.info(&quot;Hello logging&quot;)
+
+# loguru
+from loguru import logger
+logger.info(&quot;Hello loguru&quot;)
+</code></pre>
+<blockquote>
+<p>✅ Loguru 更简洁！</p>
+</blockquote>
+<hr />
+<h3 id="2">📄 2. 输出到文件 + 控制台 + 彩色 + 自动轮转</h3>
+<pre><code class="language-python"># logging（繁琐）
+import logging
+from logging.handlers import RotatingFileHandler
+
+logger = logging.getLogger()
+logger.setLevel(logging.INFO)
+
+handler1 = logging.StreamHandler()
+handler2 = RotatingFileHandler(&quot;app.log&quot;, maxBytes=10*1024*1024, backupCount=5)
+
+formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
+handler1.setFormatter(formatter)
+handler2.setFormatter(formatter)
+
+logger.addHandler(handler1)
+logger.addHandler(handler2)
+
+logger.info(&quot;Logging with rotating file&quot;)
+
+# loguru（一行搞定）
+from loguru import logger
+logger.add(&quot;app.log&quot;, rotation=&quot;10 MB&quot;, retention=&quot;10 days&quot;, compression=&quot;zip&quot;)
+logger.info(&quot;Loguru with auto rotate&quot;)
+</code></pre>
+<blockquote>
+<p>✅ Loguru 几乎是“一行解决”。</p>
+</blockquote>
+<hr />
+<h2 id="_12">📈 五、选型建议</h2>
+<table>
+<thead>
+<tr>
+<th>项目类型</th>
+<th>推荐日志库</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>小型脚本、工具、学习项目</td>
+<td>✅ Loguru（简单高效）</td>
+</tr>
+<tr>
+<td>Web 应用（Django/Flask）</td>
+<td>⚠️ 通常用 <code>logging</code>（兼容框架）</td>
+</tr>
+<tr>
+<td>大型系统、微服务、企业级</td>
+<td>✅ <code>logging</code>（可扩展性强）或混合使用</td>
+</tr>
+<tr>
+<td>需要彩色日志、结构化日志、快速开发</td>
+<td>✅ Loguru</td>
+</tr>
+<tr>
+<td>需要与现有 logging 生态（如 Sentry、ELK）集成</td>
+<td>✅ <code>logging</code>（有成熟适配器）</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="loguru_1">💡 六、进阶技巧：Loguru 高级用法</h2>
+<h3 id="1_1">1. 自定义格式：</h3>
+<pre><code class="language-python">logger.remove()  # 移除默认 handler
+logger.add(sys.stderr, format=&quot;&lt;green&gt;{time}&lt;/green&gt; &lt;level&gt;{message}&lt;/level&gt;&quot;)
+</code></pre>
+<h3 id="2-json">2. 输出为 JSON：</h3>
+<pre><code class="language-python">logger.add(&quot;app.json&quot;, serialize=True)  # 自动转成 JSON 行
+</code></pre>
+<h3 id="3">3. 捕获所有未处理异常：</h3>
+<pre><code class="language-python">import sys
+logger.add(sys.stderr, backtrace=True, diagnose=True)  # 显示变量值
+
+@logger.catch
+def risky_function():
+    return 1 / 0
+
+risky_function()  # 自动记录异常
+</code></pre>
+<h3 id="4">4. 异步写入：</h3>
+<pre><code class="language-python">logger.add(&quot;async.log&quot;, enqueue=True)  # 异步写入避免阻塞主线程
+</code></pre>
+<hr />
+<h2 id="_13">🎯 总结</h2>
+<ul>
+<li>如果你是初学者或想快速搭建日志系统 → <strong>选 <code>loguru</code></strong></li>
+<li>如果你在做企业级项目或需要与框架深度集成 → <strong>选 <code>logging</code></strong></li>
+<li>如果你两者都想兼顾 → 可以在项目中混用（例如用 <code>loguru</code> 主日志，<code>logging</code> 用于第三方库）</li>
+</ul>
+<hr />
+<p>✅ <strong>推荐语</strong>：</p>
+<blockquote>
+<p>“Loguru 让日志记录像写 print 一样简单，却拥有企业级能力。”</p>
+</blockquote>
+<hr />
+<p>📌 如需我提供完整项目中的日志配置模板（如 Flask + Loguru / logging），欢迎继续提问！</p></div>
+            </div>
+        </div>
+
+        <footer class="col-md-12">
+            <hr>
+            <p>Documentation built with <a href="https://www.mkdocs.org/">MkDocs</a>.</p>
+        </footer>
+        <script src="../../../js/bootstrap.bundle.min.js"></script>
+        <script>
+            var base_url = "../../..",
+                shortcuts = {"help": 191, "next": 78, "previous": 80, "search": 83};
+        </script>
+        <script src="../../../js/base.js"></script>
+        <script src="../../../search/main.js"></script>
+
+        <div class="modal" id="mkdocs_search_modal" tabindex="-1" role="dialog" aria-labelledby="searchModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="searchModalLabel">Search</h4>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>From here you can search these documents. Enter your search terms below.</p>
+                <form>
+                    <div class="form-group">
+                        <input type="search" class="form-control" placeholder="Search..." id="mkdocs-search-query" title="Type search term here">
+                    </div>
+                </form>
+                <div id="mkdocs-search-results" data-no-results-text="No results found"></div>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div><div class="modal" id="mkdocs_keyboard_modal" tabindex="-1" role="dialog" aria-labelledby="keyboardModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="keyboardModalLabel">Keyboard Shortcuts</h4>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th style="width: 20%;">Keys</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td class="help shortcut"><kbd>?</kbd></td>
+                    <td>Open this help</td>
+                  </tr>
+                  <tr>
+                    <td class="next shortcut"><kbd>n</kbd></td>
+                    <td>Next page</td>
+                  </tr>
+                  <tr>
+                    <td class="prev shortcut"><kbd>p</kbd></td>
+                    <td>Previous page</td>
+                  </tr>
+                  <tr>
+                    <td class="search shortcut"><kbd>s</kbd></td>
+                    <td>Search</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div>
+
+    </body>
+</html>

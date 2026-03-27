@@ -1,0 +1,654 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="light">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        
+        
+        
+        <link rel="shortcut icon" href="../../../../img/favicon.ico">
+        <title>08_主从复制 - My Docs</title>
+        <link href="../../../../css/bootstrap.min.css" rel="stylesheet">
+        <link href="../../../../css/fontawesome.min.css" rel="stylesheet">
+        <link href="../../../../css/brands.min.css" rel="stylesheet">
+        <link href="../../../../css/solid.min.css" rel="stylesheet">
+        <link href="../../../../css/v4-font-face.min.css" rel="stylesheet">
+        <link href="../../../../css/base.css" rel="stylesheet">
+        <link id="hljs-light" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" >
+        <link id="hljs-dark" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github-dark.min.css" disabled>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+        <script>hljs.highlightAll();</script> 
+    </head>
+
+    <body>
+        <div class="navbar fixed-top navbar-expand-lg navbar-dark bg-primary">
+            <div class="container">
+                <a class="navbar-brand" href="../../../..">My Docs</a>
+
+                <!-- Expanded navigation -->
+                <div id="navbar-collapse" class="navbar-collapse collapse">
+
+                    <ul class="nav navbar-nav ms-md-auto">
+                        <li class="nav-item">
+                            <a href="#" class="nav-link" data-bs-toggle="modal" data-bs-target="#mkdocs_search_modal">
+                                <i class="fa fa-search"></i> Search
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="container">
+            <div class="row">
+                    <div class="col-md-3"><div class="navbar-expand-md bs-sidebar hidden-print affix" role="complementary">
+    <div class="navbar-header">
+        <button type="button" class="navbar-toggler collapsed" data-bs-toggle="collapse" data-bs-target="#toc-collapse" title="Table of Contents">
+            <span class="fa fa-angle-down"></span>
+        </button>
+    </div>
+
+    
+    <div id="toc-collapse" class="navbar-collapse collapse card bg-body-tertiary">
+        <ul class="nav flex-column">
+            
+            <li class="nav-item" data-bs-level="1"><a href="#08_" class="nav-link">08_主从复制</a>
+              <ul class="nav flex-column">
+            <li class="nav-item" data-bs-level="2"><a href="#1" class="nav-link">1. 复制概述</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#2" class="nav-link">2. 配置主从复制</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#3" class="nav-link">3. 复制模式</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#4-gtid" class="nav-link">4. GTID 复制</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#5" class="nav-link">5. 读写分离</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#6" class="nav-link">6. 故障处理</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#7" class="nav-link">7. 监控与维护</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#8" class="nav-link">8. 本章小结</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+              </ul>
+            </li>
+        </ul>
+    </div>
+</div></div>
+                    <div class="col-md-9" role="main">
+
+<h1 id="08_">08_主从复制</h1>
+<blockquote>
+<p>复制原理、配置、读写分离、GTID、故障处理</p>
+</blockquote>
+<hr />
+<h2 id="1">1. 复制概述</h2>
+<h3 id="11">1.1 什么是主从复制？</h3>
+<p><strong>主从复制</strong>是 MySQL 将主库的数据变更同步到一个或多个从库的机制。</p>
+<pre><code>主从复制架构：
+┌─────────────┐
+│   Master    │  ← 处理写操作
+│ 192.168.1.10│
+│   :3306     │
+└──────┬──────┘
+       │ Binlog
+       │
+       ├──────────────┐
+       ▼              ▼
+┌─────────────┐ ┌─────────────┐
+│   Slave1    │ │   Slave2    │  ← 处理读操作
+│192.168.1.11 │ │192.168.1.12 │
+│   :3306     │ │   :3306     │
+└─────────────┘ └─────────────┘
+</code></pre>
+<h3 id="12">1.2 复制用途</h3>
+<table>
+<thead>
+<tr>
+<th>用途</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>读写分离</strong></td>
+<td>主库写，从库读，分散负载</td>
+</tr>
+<tr>
+<td><strong>数据备份</strong></td>
+<td>从库作为热备</td>
+</tr>
+<tr>
+<td><strong>数据分析</strong></td>
+<td>在从库上进行分析，不影响主库</td>
+</tr>
+<tr>
+<td><strong>故障恢复</strong></td>
+<td>主库故障时切换从库</td>
+</tr>
+<tr>
+<td><strong>地理分布</strong></td>
+<td>异地部署，就近访问</td>
+</tr>
+</tbody>
+</table>
+<h3 id="13">1.3 复制原理</h3>
+<pre><code>复制过程：
+1. Master 将数据变更写入 Binlog
+2. Slave 的 I/O 线程读取 Master 的 Binlog
+3. Slave 将 Binlog 写入 Relay Log
+4. Slave 的 SQL 线程读取 Relay Log
+5. SQL 线程重放 SQL，更新数据
+
+┌─────────────┐     Binlog     ┌─────────────┐
+│   Master    │ ─────────────▶ │  Slave I/O  │
+│             │                │   线程      │
+└─────────────┘                └──────┬──────┘
+                                      │
+                                      │ Relay Log
+                                      ▼
+                               ┌─────────────┐
+                               │  Slave SQL  │
+                               │   线程      │
+                               └──────┬──────┘
+                                      │
+                                      ▼
+                               ┌─────────────┐
+                               │ Slave Data  │
+                               └─────────────┘
+</code></pre>
+<hr />
+<h2 id="2">2. 配置主从复制</h2>
+<h3 id="21">2.1 主库配置</h3>
+<pre><code class="language-ini"># /etc/my.cnf - Master
+
+[mysqld]
+# 服务器 ID（必须唯一）
+server-id = 1
+
+# 开启 Binlog
+log_bin = mysql-bin
+
+# Binlog 格式（推荐 ROW）
+binlog_format = ROW
+
+# Binlog 过期时间
+expire_logs_days = 7
+
+# 最大 Binlog 大小
+max_binlog_size = 100M
+
+# 同步方式（1=最安全）
+sync_binlog = 1
+
+# 复制用户权限
+# 需要 REPLICATION SLAVE 权限
+</code></pre>
+<h3 id="22">2.2 创建复制用户</h3>
+<pre><code class="language-sql">-- 在主库创建复制用户
+CREATE USER 'repl'@'%' IDENTIFIED BY 'StrongPassword123!';
+GRANT REPLICATION SLAVE ON *.* TO 'repl'@'%';
+FLUSH PRIVILEGES;
+
+-- 查看主库状态
+SHOW MASTER STATUS;
+-- +------------------+----------+--------------+------------------+
+-- | File             | Position | Binlog_Do_DB | Binlog_Ignore_DB |
+-- +------------------+----------+--------------+------------------+
+-- | mysql-bin.000001 |      154 |              |                  |
+-- +------------------+----------+--------------+------------------+
+</code></pre>
+<h3 id="23">2.3 从库配置</h3>
+<pre><code class="language-ini"># /etc/my.cnf - Slave
+
+[mysqld]
+# 服务器 ID（必须唯一）
+server-id = 2
+
+# 开启 Relay Log
+relay_log = mysql-relay-bin
+
+# 只读（防止误写）
+read_only = 1
+
+# 超级用户也可写（用于特殊操作）
+super_read_only = 1
+
+# 跳过某些错误（谨慎使用）
+# slave_skip_errors = 1062
+</code></pre>
+<h3 id="24">2.4 配置复制</h3>
+<pre><code class="language-sql">-- 在从库执行
+CHANGE MASTER TO
+    MASTER_HOST='192.168.1.10',
+    MASTER_PORT=3306,
+    MASTER_USER='repl',
+    MASTER_PASSWORD='StrongPassword123!',
+    MASTER_LOG_FILE='mysql-bin.000001',
+    MASTER_LOG_POS=154;
+
+-- 启动复制
+START SLAVE;
+
+-- 查看复制状态
+SHOW SLAVE STATUS\G
+-- *************************** 1. row ***************************
+--              Slave_IO_State: Waiting for master to send event
+--                 Master_Host: 192.168.1.10
+--                 Master_User: repl
+--                   Slave_IO_Running: Yes
+--                  Slave_SQL_Running: Yes
+--              Seconds_Behind_Master: 0
+</code></pre>
+<h3 id="25">2.5 初始化从库数据</h3>
+<pre><code class="language-bash"># 方式 1：mysqldump
+# 主库备份
+mysqldump -u root -p --all-databases --master-data=2 &gt; backup.sql
+
+# 从库恢复
+mysql -u root -p &lt; backup.sql
+
+# 方式 2：物理备份（XtraBackup）
+# 主库备份
+xtrabackup --backup --target-dir=/backup/mysql
+
+# 从库恢复
+xtrabackup --copy-back --target-dir=/backup/mysql
+</code></pre>
+<hr />
+<h2 id="3">3. 复制模式</h2>
+<h3 id="31">3.1 异步复制（默认）</h3>
+<pre><code>Master          Slave
+  │               │
+  │─ 写事务 ─────▶│
+  │               │
+  │─ 提交 ───────▶│
+  │               │
+  │ ◀─ 确认 ──────│
+  │               │
+  │               │─ 异步读取 Binlog
+  │               │─ 异步应用
+</code></pre>
+<p><strong>特点</strong>：
+- 主库不等待从库确认
+- 性能最好
+- 可能丢失数据（主库故障时）</p>
+<h3 id="32">3.2 半同步复制</h3>
+<pre><code class="language-ini"># 主库配置
+[mysqld]
+plugin_load_add = 'semisync_master.so'
+rpl_semi_sync_master_enabled = 1
+rpl_semi_sync_master_timeout = 1000  # 1 秒超时
+</code></pre>
+<pre><code class="language-ini"># 从库配置
+[mysqld]
+plugin_load_add = 'semisync_slave.so'
+rpl_semi_sync_slave_enabled = 1
+</code></pre>
+<pre><code class="language-sql">-- 查看半同步状态
+SHOW STATUS LIKE 'Rpl_semi_sync%';
+</code></pre>
+<p><strong>特点</strong>：
+- 至少一个从库确认后才返回
+- 平衡性能和安全性
+- 超时后降级为异步</p>
+<h3 id="33-mgr">3.3 全同步复制（MGR）</h3>
+<pre><code>MySQL Group Replication (MGR)：
+- 多主模式
+- 自动故障转移
+- 数据强一致
+- 性能开销较大
+</code></pre>
+<hr />
+<h2 id="4-gtid">4. GTID 复制</h2>
+<h3 id="41-gtid">4.1 什么是 GTID？</h3>
+<p><strong>GTID</strong>（Global Transaction Identifier）是全局事务标识符。</p>
+<pre><code>GTID 格式：
+source_id:transaction_id
+例如：abc12345-1234-1234-1234-123456789012:1-5
+
+source_id: 服务器 UUID
+transaction_id: 事务序号
+</code></pre>
+<h3 id="42-gtid">4.2 GTID 优势</h3>
+<table>
+<thead>
+<tr>
+<th>传统复制</th>
+<th>GTID 复制</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>需要指定 binlog 文件+位置</td>
+<td>只需指定 GTID</td>
+</tr>
+<tr>
+<td>主从切换复杂</td>
+<td>主从切换简单</td>
+</tr>
+<tr>
+<td>容易出错</td>
+<td>自动定位位置</td>
+</tr>
+</tbody>
+</table>
+<h3 id="43-gtid">4.3 配置 GTID</h3>
+<pre><code class="language-ini"># 主库和从库都需要配置
+[mysqld]
+gtid_mode = ON
+enforce_gtid_consistency = ON
+log_slave_updates = ON
+</code></pre>
+<pre><code class="language-sql">-- 配置 GTID 复制
+CHANGE MASTER TO
+    MASTER_HOST='192.168.1.10',
+    MASTER_USER='repl',
+    MASTER_PASSWORD='password',
+    MASTER_AUTO_POSITION = 1;  -- 自动定位 GTID
+
+START SLAVE;
+</code></pre>
+<hr />
+<h2 id="5">5. 读写分离</h2>
+<h3 id="51">5.1 应用层实现</h3>
+<pre><code class="language-python"># Python 示例
+import mysql.connector
+from mysql.connector import pooling
+
+# 主库连接池（写）
+master_pool = pooling.MySQLConnectionPool(
+    pool_name=&quot;master&quot;,
+    pool_size=5,
+    host=&quot;192.168.1.10&quot;,
+    user=&quot;app&quot;,
+    password=&quot;password&quot;,
+    database=&quot;shop&quot;
+)
+
+# 从库连接池（读）
+slave_pool = pooling.MySQLConnectionPool(
+    pool_name=&quot;slave&quot;,
+    pool_size=10,
+    host=&quot;192.168.1.11&quot;,
+    user=&quot;app&quot;,
+    password=&quot;password&quot;,
+    database=&quot;shop&quot;
+)
+
+def get_master_conn():
+    return master_pool.get_connection()
+
+def get_slave_conn():
+    return slave_pool.get_connection()
+
+# 写操作使用主库
+def create_user(username, email):
+    conn = get_master_conn()
+    cursor = conn.cursor()
+    cursor.execute(
+        &quot;INSERT INTO users (username, email) VALUES (%s, %s)&quot;,
+        (username, email)
+    )
+    conn.commit()
+    cursor.close()
+    conn.close()
+
+# 读操作使用从库
+def get_user(user_id):
+    conn = get_slave_conn()
+    cursor = conn.cursor()
+    cursor.execute(&quot;SELECT * FROM users WHERE id = %s&quot;, (user_id,))
+    result = cursor.fetchone()
+    cursor.close()
+    conn.close()
+    return result
+</code></pre>
+<h3 id="52">5.2 中间件实现</h3>
+<table>
+<thead>
+<tr>
+<th>中间件</th>
+<th>特点</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>MySQL Router</strong></td>
+<td>Oracle 官方，轻量级</td>
+</tr>
+<tr>
+<td><strong>ProxySQL</strong></td>
+<td>功能强大，支持路由、缓存</td>
+</tr>
+<tr>
+<td><strong>MaxScale</strong></td>
+<td>MariaDB 出品，功能丰富</td>
+</tr>
+<tr>
+<td><strong>Atlas</strong></td>
+<td>360 开源，已停止维护</td>
+</tr>
+</tbody>
+</table>
+<h3 id="53">5.3 复制延迟问题</h3>
+<pre><code>问题：主库写入后，从库未及时同步
+
+解决方案：
+1. 关键业务读主库
+2. 等待从库同步（sleep）
+3. 使用 GTID 等待
+4. 使用半同步复制
+</code></pre>
+<pre><code class="language-python"># 等待从库同步
+def wait_for_slave_gtid(gtid):
+    conn = get_slave_conn()
+    cursor = conn.cursor()
+    cursor.execute(
+        &quot;SELECT WAIT_UNTIL_SQL_THREAD_AFTER_GTIDS(%s, 10)&quot;,
+        (gtid,)
+    )
+    cursor.close()
+    conn.close()
+</code></pre>
+<hr />
+<h2 id="6">6. 故障处理</h2>
+<h3 id="61">6.1 复制错误</h3>
+<pre><code class="language-sql">-- 查看错误
+SHOW SLAVE STATUS\G
+-- Last_Error: Duplicate entry '1' for key 'PRIMARY'
+
+-- 跳过错误（谨慎使用）
+STOP SLAVE;
+SET GLOBAL sql_slave_skip_counter = 1;
+START SLAVE;
+
+-- 或指定 GTID 跳过
+STOP SLAVE;
+SET GLOBAL gtid_next = 'xxx:123';
+BEGIN; COMMIT;
+SET GLOBAL gtid_next = 'AUTOMATIC';
+START SLAVE;
+</code></pre>
+<h3 id="62">6.2 主从同步中断</h3>
+<pre><code class="language-sql">-- 检查网络
+PING master_host
+
+-- 检查复制用户权限
+SHOW GRANTS FOR 'repl'@'%';
+
+-- 检查 binlog 是否存在
+SHOW BINARY LOGS;
+
+-- 重新配置复制
+STOP SLAVE;
+RESET SLAVE;
+CHANGE MASTER TO ...;
+START SLAVE;
+</code></pre>
+<h3 id="63">6.3 主从数据不一致</h3>
+<pre><code class="language-bash"># 使用 pt-table-checksum 检查
+pt-table-checksum --host=master --user=check
+
+# 使用 pt-table-sync 修复
+pt-table-sync --sync-to-master --host=slave --user=sync
+</code></pre>
+<h3 id="64">6.4 主库故障切换</h3>
+<pre><code class="language-sql">-- 1. 选择新的主库（延迟最小的从库）
+SHOW SLAVE STATUS\G
+
+-- 2. 停止复制
+STOP SLAVE;
+RESET SLAVE ALL;
+
+-- 3. 提升为主库
+RESET MASTER;
+
+-- 4. 修改其他从库配置
+CHANGE MASTER TO MASTER_HOST='new_master' ...;
+START SLAVE;
+</code></pre>
+<hr />
+<h2 id="7">7. 监控与维护</h2>
+<h3 id="71">7.1 监控指标</h3>
+<pre><code class="language-sql">-- 复制延迟
+SHOW SLAVE STATUS\G
+-- Seconds_Behind_Master
+
+-- 复制线程状态
+-- Slave_IO_Running: Yes/No
+-- Slave_SQL_Running: Yes/No
+
+-- GTID 执行位置
+SELECT @@gtid_executed;
+</code></pre>
+<h3 id="72">7.2 维护命令</h3>
+<pre><code class="language-sql">-- 停止复制
+STOP SLAVE;
+
+-- 启动复制
+START SLAVE;
+
+-- 重置复制
+RESET SLAVE ALL;
+
+-- 刷新中继日志
+FLUSH RELAY LOGS;
+
+-- 查看中继日志
+SHOW RELAYLOG EVENTS;
+</code></pre>
+<hr />
+<h2 id="8">8. 本章小结</h2>
+<h3 id="_1">核心知识点</h3>
+<p>✅ 主从复制原理<br />
+✅ 配置主从复制<br />
+✅ 异步/半同步/全同步复制<br />
+✅ GTID 复制<br />
+✅ 读写分离实现<br />
+✅ 故障处理  </p>
+<h3 id="_2">最佳实践</h3>
+<ol>
+<li><strong>使用 GTID 复制</strong>：简化运维</li>
+<li><strong>开启半同步</strong>：平衡性能和安全</li>
+<li><strong>监控复制延迟</strong>：Seconds_Behind_Master</li>
+<li><strong>定期演练切换</strong>：确保故障时能快速切换</li>
+<li><strong>从库只读</strong>：防止误写</li>
+</ol>
+<hr />
+<p>🎉 <strong>恭喜完成第八章！继续学习 <a href="../09_%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96/">09_性能优化.md</a></strong></p></div>
+            </div>
+        </div>
+
+        <footer class="col-md-12">
+            <hr>
+            <p>Documentation built with <a href="https://www.mkdocs.org/">MkDocs</a>.</p>
+        </footer>
+        <script src="../../../../js/bootstrap.bundle.min.js"></script>
+        <script>
+            var base_url = "../../../..",
+                shortcuts = {"help": 191, "next": 78, "previous": 80, "search": 83};
+        </script>
+        <script src="../../../../js/base.js"></script>
+        <script src="../../../../search/main.js"></script>
+
+        <div class="modal" id="mkdocs_search_modal" tabindex="-1" role="dialog" aria-labelledby="searchModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="searchModalLabel">Search</h4>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>From here you can search these documents. Enter your search terms below.</p>
+                <form>
+                    <div class="form-group">
+                        <input type="search" class="form-control" placeholder="Search..." id="mkdocs-search-query" title="Type search term here">
+                    </div>
+                </form>
+                <div id="mkdocs-search-results" data-no-results-text="No results found"></div>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div><div class="modal" id="mkdocs_keyboard_modal" tabindex="-1" role="dialog" aria-labelledby="keyboardModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="keyboardModalLabel">Keyboard Shortcuts</h4>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th style="width: 20%;">Keys</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td class="help shortcut"><kbd>?</kbd></td>
+                    <td>Open this help</td>
+                  </tr>
+                  <tr>
+                    <td class="next shortcut"><kbd>n</kbd></td>
+                    <td>Next page</td>
+                  </tr>
+                  <tr>
+                    <td class="prev shortcut"><kbd>p</kbd></td>
+                    <td>Previous page</td>
+                  </tr>
+                  <tr>
+                    <td class="search shortcut"><kbd>s</kbd></td>
+                    <td>Search</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div>
+
+    </body>
+</html>

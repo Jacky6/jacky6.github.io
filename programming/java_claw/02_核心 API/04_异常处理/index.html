@@ -1,0 +1,553 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="light">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        
+        
+        
+        <link rel="shortcut icon" href="../../../../img/favicon.ico">
+        <title>15_异常处理 - My Docs</title>
+        <link href="../../../../css/bootstrap.min.css" rel="stylesheet">
+        <link href="../../../../css/fontawesome.min.css" rel="stylesheet">
+        <link href="../../../../css/brands.min.css" rel="stylesheet">
+        <link href="../../../../css/solid.min.css" rel="stylesheet">
+        <link href="../../../../css/v4-font-face.min.css" rel="stylesheet">
+        <link href="../../../../css/base.css" rel="stylesheet">
+        <link id="hljs-light" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" >
+        <link id="hljs-dark" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github-dark.min.css" disabled>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+        <script>hljs.highlightAll();</script> 
+    </head>
+
+    <body>
+        <div class="navbar fixed-top navbar-expand-lg navbar-dark bg-primary">
+            <div class="container">
+                <a class="navbar-brand" href="../../../..">My Docs</a>
+
+                <!-- Expanded navigation -->
+                <div id="navbar-collapse" class="navbar-collapse collapse">
+
+                    <ul class="nav navbar-nav ms-md-auto">
+                        <li class="nav-item">
+                            <a href="#" class="nav-link" data-bs-toggle="modal" data-bs-target="#mkdocs_search_modal">
+                                <i class="fa fa-search"></i> Search
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="container">
+            <div class="row">
+                    <div class="col-md-3"><div class="navbar-expand-md bs-sidebar hidden-print affix" role="complementary">
+    <div class="navbar-header">
+        <button type="button" class="navbar-toggler collapsed" data-bs-toggle="collapse" data-bs-target="#toc-collapse" title="Table of Contents">
+            <span class="fa fa-angle-down"></span>
+        </button>
+    </div>
+
+    
+    <div id="toc-collapse" class="navbar-collapse collapse card bg-body-tertiary">
+        <ul class="nav flex-column">
+            
+            <li class="nav-item" data-bs-level="1"><a href="#15_" class="nav-link">15_异常处理</a>
+              <ul class="nav flex-column">
+            <li class="nav-item" data-bs-level="2"><a href="#1" class="nav-link">1. 异常概述</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#2" class="nav-link">2. 常见异常</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#3" class="nav-link">3. 异常处理机制 ⭐⭐⭐</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#4" class="nav-link">4. 抛出异常</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#5" class="nav-link">5. 自定义异常 ⭐</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#6" class="nav-link">6. 异常最佳实践 ⭐⭐⭐</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#7" class="nav-link">7. 经典场景</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#8" class="nav-link">8. 本章小结</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+              </ul>
+            </li>
+        </ul>
+    </div>
+</div></div>
+                    <div class="col-md-9" role="main">
+
+<h1 id="15_">15_异常处理</h1>
+<hr />
+<h2 id="1">1. 异常概述</h2>
+<h3 id="11">1.1 什么是异常</h3>
+<p><strong>异常</strong>（Exception）是程序运行过程中发生的<strong>错误事件</strong>，会中断正常的程序流程。</p>
+<p><strong>错误 vs 异常</strong>：</p>
+<pre><code>Throwable（所有错误和异常的父类）
+├── Error（错误）- 严重问题，程序无法处理
+│   ├── OutOfMemoryError（内存溢出）
+│   └── StackOverflowError（栈溢出）
+└── Exception（异常）- 可以处理
+    ├── RuntimeException（运行时异常）
+    └── 其他 Exception（编译时异常）
+</code></pre>
+<table>
+<thead>
+<tr>
+<th>类型</th>
+<th>说明</th>
+<th>处理</th>
+<th>示例</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Error</strong></td>
+<td>系统级错误</td>
+<td>无法处理</td>
+<td>内存溢出</td>
+</tr>
+<tr>
+<td><strong>RuntimeException</strong></td>
+<td>运行时异常</td>
+<td>可选处理</td>
+<td>空指针、数组越界</td>
+</tr>
+<tr>
+<td><strong>Checked Exception</strong></td>
+<td>编译时异常</td>
+<td>必须处理</td>
+<td>IO 异常、SQL 异常</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="2">2. 常见异常</h2>
+<h3 id="21">2.1 运行时异常</h3>
+<pre><code class="language-java">// NullPointerException - 空指针
+String str = null;
+int len = str.length();  // ❌ NullPointerException
+
+// ArrayIndexOutOfBoundsException - 数组越界
+int[] arr = new int[5];
+int val = arr[10];  // ❌ ArrayIndexOutOfBoundsException
+
+// ClassCastException - 类型转换异常
+Object obj = &quot;Hello&quot;;
+Integer num = (Integer) obj;  // ❌ ClassCastException
+
+// IllegalArgumentException - 非法参数
+public void setAge(int age) {
+    if (age &lt; 0) {
+        throw new IllegalArgumentException(&quot;年龄不能为负&quot;);
+    }
+}
+
+// NumberFormatException - 数字格式异常
+int num = Integer.parseInt(&quot;abc&quot;);  // ❌ NumberFormatException
+
+// ArithmeticException - 算术异常
+int result = 10 / 0;  // ❌ ArithmeticException
+</code></pre>
+<h3 id="22">2.2 编译时异常</h3>
+<pre><code class="language-java">// IOException - IO 异常
+FileInputStream fis = new FileInputStream(&quot;file.txt&quot;);  // ❌ 必须处理
+
+// SQLException - 数据库异常
+Connection conn = DriverManager.getConnection(url);  // ❌ 必须处理
+
+// ClassNotFoundException - 类未找到
+Class.forName(&quot;com.mysql.Driver&quot;);  // ❌ 必须处理
+
+// InterruptedException - 中断异常
+Thread.sleep(1000);  // ❌ 必须处理
+</code></pre>
+<hr />
+<h2 id="3">3. 异常处理机制 ⭐⭐⭐</h2>
+<h3 id="31-try-catch-finally">3.1 try-catch-finally</h3>
+<pre><code class="language-java">try {
+    // 可能抛出异常的代码
+    int result = 10 / 0;
+} catch (ArithmeticException e) {
+    // 捕获并处理异常
+    System.out.println(&quot;除数不能为零&quot;);
+    e.printStackTrace();
+} finally {
+    // 总会执行（通常用于资源清理）
+    System.out.println(&quot;清理资源&quot;);
+}
+</code></pre>
+<h3 id="32-catch">3.2 多个 catch 块</h3>
+<pre><code class="language-java">try {
+    int[] arr = new int[10];
+    arr[10] = 10 / 0;
+} catch (ArithmeticException e) {
+    System.out.println(&quot;算术异常：&quot; + e.getMessage());
+} catch (ArrayIndexOutOfBoundsException e) {
+    System.out.println(&quot;数组越界：&quot; + e.getMessage());
+} catch (Exception e) {
+    // 捕获所有其他异常（必须放在最后）
+    System.out.println(&quot;其他异常：&quot; + e.getMessage());
+}
+</code></pre>
+<p><strong>注意</strong>：catch 块顺序是从具体到一般</p>
+<h3 id="33-finally">3.3 finally 块</h3>
+<pre><code class="language-java">// finally 总会执行
+try {
+    System.out.println(&quot;try 块&quot;);
+    return;
+} catch (Exception e) {
+    System.out.println(&quot;catch 块&quot;);
+} finally {
+    System.out.println(&quot;finally 块&quot;);  // 总会输出
+}
+
+// 例外情况：System.exit()
+try {
+    System.exit(0);  // finally 不会执行
+} finally {
+    System.out.println(&quot;不会输出&quot;);
+}
+</code></pre>
+<h3 id="34-try-with-resourcesjava-7">3.4 try-with-resources（Java 7+）⭐</h3>
+<p>自动关闭实现了 <code>AutoCloseable</code> 接口的资源。</p>
+<pre><code class="language-java">// 传统方式
+FileInputStream fis = null;
+try {
+    fis = new FileInputStream(&quot;file.txt&quot;);
+    // 读取文件
+} catch (IOException e) {
+    e.printStackTrace();
+} finally {
+    if (fis != null) {
+        try {
+            fis.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+}
+
+// try-with-resources（推荐）
+try (FileInputStream fis = new FileInputStream(&quot;file.txt&quot;);
+     BufferedInputStream bis = new BufferedInputStream(fis)) {
+    // 读取文件
+    // 自动关闭，不需要 finally
+} catch (IOException e) {
+    e.printStackTrace();
+}
+</code></pre>
+<hr />
+<h2 id="4">4. 抛出异常</h2>
+<h3 id="41-throw">4.1 throw（抛出单个异常）</h3>
+<pre><code class="language-java">// 方法内部抛出异常
+public void setAge(int age) {
+    if (age &lt; 0 || age &gt; 150) {
+        throw new IllegalArgumentException(&quot;年龄不合法：&quot; + age);
+    }
+    this.age = age;
+}
+</code></pre>
+<h3 id="42-throws">4.2 throws（声明异常）</h3>
+<pre><code class="language-java">// 声明方法可能抛出的异常
+public void readFile(String path) throws IOException {
+    FileInputStream fis = new FileInputStream(path);
+    // ...
+}
+
+// 调用者必须处理
+try {
+    readFile(&quot;test.txt&quot;);
+} catch (IOException e) {
+    e.printStackTrace();
+}
+
+// 或者继续抛出
+public void processFile(String path) throws IOException {
+    readFile(path);  // 不处理，继续向上抛
+}
+</code></pre>
+<h3 id="43-throw-vs-throws">4.3 throw vs throws</h3>
+<table>
+<thead>
+<tr>
+<th>特性</th>
+<th>throw</th>
+<th>throws</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>位置</td>
+<td>方法内部</td>
+<td>方法签名</td>
+</tr>
+<tr>
+<td>作用</td>
+<td>抛出异常对象</td>
+<td>声明可能抛出的异常</td>
+</tr>
+<tr>
+<td>数量</td>
+<td>单个</td>
+<td>多个（逗号分隔）</td>
+</tr>
+</tbody>
+</table>
+<pre><code class="language-java">public void method() throws IOException, SQLException {
+    throw new IOException(&quot;IO 错误&quot;);
+}
+</code></pre>
+<hr />
+<h2 id="5">5. 自定义异常 ⭐</h2>
+<h3 id="51">5.1 创建自定义异常</h3>
+<pre><code class="language-java">// 运行时异常（继承 RuntimeException）
+public class BusinessException extends RuntimeException {
+    public BusinessException(String message) {
+        super(message);
+    }
+
+    public BusinessException(String message, Throwable cause) {
+        super(message, cause);
+    }
+}
+
+// 编译时异常（继承 Exception）
+public class InsufficientFundsException extends Exception {
+    public InsufficientFundsException(String message) {
+        super(message);
+    }
+}
+</code></pre>
+<h3 id="52">5.2 使用自定义异常</h3>
+<pre><code class="language-java">public class BankAccount {
+    private double balance;
+
+    public void withdraw(double amount) throws InsufficientFundsException {
+        if (amount &gt; balance) {
+            throw new InsufficientFundsException(&quot;余额不足&quot;);
+        }
+        balance -= amount;
+    }
+}
+
+// 调用
+try {
+    account.withdraw(1000);
+} catch (InsufficientFundsException e) {
+    System.out.println(&quot;错误：&quot; + e.getMessage());
+}
+</code></pre>
+<hr />
+<h2 id="6">6. 异常最佳实践 ⭐⭐⭐</h2>
+<h3 id="61">6.1 捕获异常的原则</h3>
+<pre><code class="language-java">// ✅ 正确：捕获具体异常
+try {
+    readFile();
+} catch (FileNotFoundException e) {
+    System.out.println(&quot;文件未找到&quot;);
+} catch (IOException e) {
+    System.out.println(&quot;IO 错误&quot;);
+}
+
+// ❌ 错误：捕获过于宽泛
+try {
+    readFile();
+} catch (Exception e) {
+    // 可能隐藏其他问题
+}
+
+// ❌ 错误：空 catch 块
+try {
+    riskyOperation();
+} catch (Exception e) {
+    // 什么都不做 - 非常危险！
+}
+</code></pre>
+<h3 id="62">6.2 不要吞掉异常</h3>
+<pre><code class="language-java">// ❌ 错误：吞掉异常
+try {
+    doSomething();
+} catch (Exception e) {
+    // 什么都不做
+}
+
+// ✅ 正确：记录日志或处理
+try {
+    doSomething();
+} catch (Exception e) {
+    logger.error(&quot;操作失败&quot;, e);
+    throw new BusinessException(&quot;操作失败&quot;, e);
+}
+</code></pre>
+<h3 id="63">6.3 使用异常链</h3>
+<pre><code class="language-java">// 保留原始异常信息
+try {
+    readFile();
+} catch (IOException e) {
+    throw new BusinessException(&quot;读取文件失败&quot;, e);  // ✅ 保留原因
+}
+
+// ❌ 错误：丢失原始异常
+try {
+    readFile();
+} catch (IOException e) {
+    throw new BusinessException(&quot;读取文件失败&quot;);  // 丢失 e
+}
+</code></pre>
+<h3 id="64">6.4 资源清理</h3>
+<pre><code class="language-java">// ✅ 推荐：try-with-resources
+try (FileInputStream fis = new FileInputStream(&quot;file.txt&quot;)) {
+    // 使用资源
+} catch (IOException e) {
+    e.printStackTrace();
+}
+</code></pre>
+<hr />
+<h2 id="7">7. 经典场景</h2>
+<h3 id="71">7.1 文件读写</h3>
+<pre><code class="language-java">public String readFile(String path) {
+    try (BufferedReader reader = new BufferedReader(
+            new FileReader(path))) {
+        StringBuilder content = new StringBuilder();
+        String line;
+        while ((line = reader.readLine()) != null) {
+            content.append(line).append(&quot;\n&quot;);
+        }
+        return content.toString();
+    } catch (IOException e) {
+        throw new BusinessException(&quot;读取文件失败&quot;, e);
+    }
+}
+</code></pre>
+<h3 id="72">7.2 数据库操作</h3>
+<pre><code class="language-java">public User getUserById(int id) throws SQLException {
+    String sql = &quot;SELECT * FROM users WHERE id = ?&quot;;
+
+    try (Connection conn = dataSource.getConnection();
+         PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+        stmt.setInt(1, id);
+
+        try (ResultSet rs = stmt.executeQuery()) {
+            if (rs.next()) {
+                return mapResultSetToUser(rs);
+            }
+            return null;
+        }
+    }
+}
+</code></pre>
+<hr />
+<h2 id="8">8. 本章小结</h2>
+<h3 id="_1">核心知识点</h3>
+<p>✅ <strong>异常体系</strong>：Error、Exception、RuntimeException<br />
+✅ <strong>处理机制</strong>：try-catch-finally、try-with-resources<br />
+✅ <strong>抛出异常</strong>：throw、throws<br />
+✅ <strong>自定义异常</strong>：继承 Exception 或 RuntimeException<br />
+✅ <strong>最佳实践</strong>：异常链、资源清理、日志记录  </p>
+<h3 id="_2">最佳实践</h3>
+<ol>
+<li><strong>优先使用 try-with-resources</strong>：自动关闭资源</li>
+<li><strong>捕获具体异常</strong>：不要捕获 Exception</li>
+<li><strong>不要吞掉异常</strong>：记录日志或重新抛出</li>
+<li><strong>使用异常链</strong>：保留原始异常信息</li>
+<li><strong>自定义异常</strong>：业务场景使用有意义的异常</li>
+</ol>
+<hr />
+<p>🎉 <strong>恭喜完成异常处理学习！继续学习 <a href="../05_IO%20%E6%B5%81/">IO 流</a></strong></p></div>
+            </div>
+        </div>
+
+        <footer class="col-md-12">
+            <hr>
+            <p>Documentation built with <a href="https://www.mkdocs.org/">MkDocs</a>.</p>
+        </footer>
+        <script src="../../../../js/bootstrap.bundle.min.js"></script>
+        <script>
+            var base_url = "../../../..",
+                shortcuts = {"help": 191, "next": 78, "previous": 80, "search": 83};
+        </script>
+        <script src="../../../../js/base.js"></script>
+        <script src="../../../../search/main.js"></script>
+
+        <div class="modal" id="mkdocs_search_modal" tabindex="-1" role="dialog" aria-labelledby="searchModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="searchModalLabel">Search</h4>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>From here you can search these documents. Enter your search terms below.</p>
+                <form>
+                    <div class="form-group">
+                        <input type="search" class="form-control" placeholder="Search..." id="mkdocs-search-query" title="Type search term here">
+                    </div>
+                </form>
+                <div id="mkdocs-search-results" data-no-results-text="No results found"></div>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div><div class="modal" id="mkdocs_keyboard_modal" tabindex="-1" role="dialog" aria-labelledby="keyboardModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="keyboardModalLabel">Keyboard Shortcuts</h4>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th style="width: 20%;">Keys</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td class="help shortcut"><kbd>?</kbd></td>
+                    <td>Open this help</td>
+                  </tr>
+                  <tr>
+                    <td class="next shortcut"><kbd>n</kbd></td>
+                    <td>Next page</td>
+                  </tr>
+                  <tr>
+                    <td class="prev shortcut"><kbd>p</kbd></td>
+                    <td>Previous page</td>
+                  </tr>
+                  <tr>
+                    <td class="search shortcut"><kbd>s</kbd></td>
+                    <td>Search</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div>
+
+    </body>
+</html>

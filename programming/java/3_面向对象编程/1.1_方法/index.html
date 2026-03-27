@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="light">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        
+        
+        
+        <link rel="shortcut icon" href="../../../../img/favicon.ico">
+        <title>方法 - My Docs</title>
+        <link href="../../../../css/bootstrap.min.css" rel="stylesheet">
+        <link href="../../../../css/fontawesome.min.css" rel="stylesheet">
+        <link href="../../../../css/brands.min.css" rel="stylesheet">
+        <link href="../../../../css/solid.min.css" rel="stylesheet">
+        <link href="../../../../css/v4-font-face.min.css" rel="stylesheet">
+        <link href="../../../../css/base.css" rel="stylesheet">
+        <link id="hljs-light" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" >
+        <link id="hljs-dark" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github-dark.min.css" disabled>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+        <script>hljs.highlightAll();</script> 
+    </head>
+
+    <body>
+        <div class="navbar fixed-top navbar-expand-lg navbar-dark bg-primary">
+            <div class="container">
+                <a class="navbar-brand" href="../../../..">My Docs</a>
+
+                <!-- Expanded navigation -->
+                <div id="navbar-collapse" class="navbar-collapse collapse">
+
+                    <ul class="nav navbar-nav ms-md-auto">
+                        <li class="nav-item">
+                            <a href="#" class="nav-link" data-bs-toggle="modal" data-bs-target="#mkdocs_search_modal">
+                                <i class="fa fa-search"></i> Search
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="container">
+            <div class="row">
+                    <div class="col-md-3"><div class="navbar-expand-md bs-sidebar hidden-print affix" role="complementary">
+    <div class="navbar-header">
+        <button type="button" class="navbar-toggler collapsed" data-bs-toggle="collapse" data-bs-target="#toc-collapse" title="Table of Contents">
+            <span class="fa fa-angle-down"></span>
+        </button>
+    </div>
+
+    
+    <div id="toc-collapse" class="navbar-collapse collapse card bg-body-tertiary">
+        <ul class="nav flex-column">
+            
+            <li class="nav-item" data-bs-level="1"><a href="#_1" class="nav-link">方法</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+        </ul>
+    </div>
+</div></div>
+                    <div class="col-md-9" role="main">
+
+<h1 id="_1">方法</h1>
+<p>一个<code>class</code>可以包含多个<code>field</code>，例如，我们给<code>Person</code>类就定义了两个<code>field</code>：</p>
+<pre><code class="language-java">class Person {
+    public String name;
+    public int age;
+}
+</code></pre>
+<p>但是，直接把<code>field</code>用<code>public</code>暴露给外部可能会破坏封装性。比如，代码可以这样写：</p>
+<pre><code class="language-java">Person ming = new Person();
+ming.name = &quot;Xiao Ming&quot;;
+ming.age = -99; // age设置为负数 
+</code></pre>
+<p>显然，直接操作<code>field</code>，容易造成逻辑混乱。为了避免外部代码直接去访问<code>field</code>，我们可以用<code>private</code>修饰<code>field</code>，拒绝外部访问：</p>
+<pre><code class="language-java">class Person {
+    private String name;
+    private int age;
+}
+</code></pre>
+<p>试试<code>private</code>修饰的<code>field</code>有什么效果：</p>
+<pre><code class="language-java">// private field
+public class Main {
+    public static void main(String[] args) {
+        Person ming = new Person();
+        ming.name = &quot;Xiao Ming&quot;; // 对字段name赋值
+        ming.age = 12; // 对字段age赋值
+    }
+}
+
+class Person {
+    private String name;
+    private int age;
+}
+</code></pre>
+<p>是不是编译报错？把访问<code>field</code>的赋值语句去了就可以正常编译了。</p>
+<p><img alt="compile-error" src="../1.1_%E6%96%B9%E6%B3%95.assets/compile-error.png" /></p>
+<p>把<code>field</code>从<code>public</code>改成<code>private</code>，外部代码不能访问这些<code>field</code>，那我们定义这些<code>field</code>有什么用？怎么才能给它赋值？怎么才能读取它的值？</p>
+<p>所以我们需要使用方法（<code>method</code>）来让外部代码可以间接修改<code>field</code>：</p>
+<pre><code class="language-java">// private field
+public class Main {
+    public static void main(String[] args) {
+        Person ming = new Person();
+        ming.setName(&quot;Xiao Ming&quot;); // 设置name
+        ming.setAge(12); // 设置age
+        System.out.println(ming.getName() + &quot;, &quot; + ming.getAge());
+    }
+}
+
+class Person {
+    private String name;
+    private int age;
+
+    public String getName() {
+        return this.name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public int getAge() {
+        return this.age;
+    }
+
+    public void setAge(int age) {
+        if (age &lt; 0 || age &gt; 100) {
+            throw new IllegalArgumentException(&quot;invalid age value&quot;);
+        }
+        this.age = age;
+    }
+}
+</code></pre>
+<p>虽然外部代码不能直接修改<code>private</code>字段，但是，外部代码可以调用方法<code>setName()</code>和<code>setAge()</code>来间接修改<code>private</code>字段。在方法内部，我们就有机会检查参数对不对。比如，<code>setAge()</code>就会检查传入的参数，参数超出了范围，直接报错。这样，外部代码就没有任何机会把<code>age</code>设置成不合理的值。</p>
+<p>对<code>setName()</code>方法同样可以做检查，例如，不允许传入<code>null</code>和空字符串：</p>
+<pre><code class="language-java">public void setName(String name) {
+    if (name == null || name.isBlank()) {
+        throw new IllegalArgumentException(&quot;invalid name&quot;);
+    }
+    this.name = name.strip(); // 去掉首尾空格
+}
+</code></pre>
+<p>同样，外部代码不能直接读取<code>private</code>字段，但可以通过<code>getName()</code>和<code>getAge()</code>间接获取<code>private</code>字段的值。</p>
+<p>所以，一个类通过定义方法，就可以给外部代码暴露一些操作的接口，同时，内部自己保证逻辑一致性。</p>
+<p>调用方法的语法是<code>实例变量.方法名(参数);</code>。一个方法调用就是一个语句，所以不要忘了在末尾加<code>;</code>。例如：<code>ming.setName("Xiao Ming");</code>。</p>
+<h3 id="1">1. 定义方法</h3>
+<p>从上面的代码可以看出，定义方法的语法是：</p>
+<pre><code class="language-java">修饰符 方法返回类型 方法名(方法参数列表) {
+    若干方法语句;
+    return 方法返回值;
+}
+</code></pre>
+<p>方法返回值通过<code>return</code>语句实现，如果没有返回值，返回类型设置为<code>void</code>，可以省略<code>return</code>。</p>
+<h3 id="2-private">2. private方法</h3>
+<p>有<code>public</code>方法，自然就有<code>private</code>方法。和<code>private</code>字段一样，<code>private</code>方法不允许外部调用，那我们定义<code>private</code>方法有什么用？</p>
+<p>定义<code>private</code>方法的理由是内部方法是可以调用<code>private</code>方法的。例如：</p>
+<pre><code class="language-java">// private method
+public class Main {
+    public static void main(String[] args) {
+        Person ming = new Person();
+        ming.setBirth(2008);
+        System.out.println(ming.getAge());
+    }
+}
+
+class Person {
+    private String name;
+    private int birth;
+
+    public void setBirth(int birth) {
+        this.birth = birth;
+    }
+
+    public int getAge() {
+        return calcAge(2019); // 调用private方法
+    }
+
+    // private方法:
+    private int calcAge(int currentYear) {
+        return currentYear - this.birth;
+    }
+}
+</code></pre>
+<p>观察上述代码，<strong><code>calcAge()</code>是一个<code>private</code>方法，外部代码无法调用，但是，内部方法<code>getAge()</code>可以调用它</strong>。</p>
+<p>此外，我们还注意到，这个<code>Person</code>类只定义了<code>birth</code>字段，没有定义<code>age</code>字段，获取<code>age</code>时，通过方法<code>getAge()</code>返回的是一个实时计算的值，并非存储在某个字段的值。这说明方法可以封装一个类的对外接口，调用方不需要知道也不关心<code>Person</code>实例在内部到底有没有<code>age</code>字段。</p>
+<h3 id="3-this">3. this变量</h3>
+<p>在方法内部，可以使用一个隐含的变量<code>this</code>，它始终指向当前实例。因此，通过<code>this.field</code>就可以访问当前实例的字段。</p>
+<p>如果没有命名冲突，可以省略<code>this</code>。例如：</p>
+<pre><code class="language-java">class Person {
+    private String name;
+
+    public String getName() {
+        return name; // 相当于this.name
+    }
+}
+</code></pre>
+<p>但是，如果有局部变量和字段重名，那么局部变量优先级更高，就必须加上<code>this</code>：</p>
+<pre><code class="language-java">class Person {
+    private String name;
+
+    public void setName(String name) {
+        this.name = name; // 前面的this不可少，少了就变成局部变量name了
+    }
+}
+</code></pre>
+<h3 id="4">4. 方法参数</h3>
+<p>方法可以包含0个或任意个参数。方法参数用于接收传递给方法的变量值。调用方法时，必须严格按照参数的定义一一传递。例如：</p>
+<pre><code class="language-java">class Person {
+    ...
+    public void setNameAndAge(String name, int age) {
+        ...
+    }
+}
+</code></pre>
+<p>调用这个<code>setNameAndAge()</code>方法时，必须有两个参数，且第一个参数必须为<code>String</code>，第二个参数必须为<code>int</code>：</p>
+<pre><code class="language-java">Person ming = new Person();
+ming.setNameAndAge(&quot;Xiao Ming&quot;); // 编译错误：参数个数不对
+ming.setNameAndAge(12, &quot;Xiao Ming&quot;); // 编译错误：参数类型不对
+</code></pre>
+<h3 id="5">5. 可变参数</h3>
+<p>可变参数用<code>类型...</code>定义，可变参数相当于数组类型：</p>
+<pre><code class="language-java">class Group {
+    private String[] names;
+
+    public void setNames(String... names) {
+        this.names = names;
+    }
+}
+</code></pre>
+<p>上面的<code>setNames()</code>就定义了一个可变参数。调用时，可以这么写：</p>
+<pre><code class="language-java">Group g = new Group();
+g.setNames(&quot;Xiao Ming&quot;, &quot;Xiao Hong&quot;, &quot;Xiao Jun&quot;); // 传入3个String
+g.setNames(&quot;Xiao Ming&quot;, &quot;Xiao Hong&quot;); // 传入2个String
+g.setNames(&quot;Xiao Ming&quot;); // 传入1个String
+g.setNames(); // 传入0个String
+</code></pre>
+<p>完全可以把可变参数改写为<code>String[]</code>类型：</p>
+<pre><code class="language-java">class Group {
+    private String[] names;
+
+    public void setNames(String[] names) {
+        this.names = names;
+    }
+}
+</code></pre>
+<p>但是，调用方需要自己先构造<code>String[]</code>，比较麻烦。例如：</p>
+<pre><code class="language-java">Group g = new Group();
+g.setNames(new String[] {&quot;Xiao Ming&quot;, &quot;Xiao Hong&quot;, &quot;Xiao Jun&quot;}); // 传入1个String[]
+</code></pre>
+<p>另一个问题是，调用方可以传入<code>null</code>：</p>
+<pre><code class="language-java">Group g = new Group();
+g.setNames(null);
+</code></pre>
+<p>而可变参数可以保证无法传入<code>null</code>，因为传入0个参数时，接收到的实际值是一个空数组而不是<code>null</code>。</p>
+<h3 id="6">6. 参数绑定</h3>
+<p>调用方把参数传递给实例方法时，调用时传递的值会按参数位置一一绑定。</p>
+<p>那什么是参数绑定？</p>
+<p>我们先观察一个基本类型参数的传递：</p>
+<pre><code class="language-java">// 基本类型参数绑定
+public class Main {
+    public static void main(String[] args) {
+        Person p = new Person();
+        int n = 15; // n的值为15
+        p.setAge(n); // 传入n的值
+        System.out.println(p.getAge()); // 15
+        n = 20; // n的值改为20
+        System.out.println(p.getAge()); // 15还是20?
+    }
+}
+
+class Person {
+    private int age;
+
+    public int getAge() {
+        return this.age;
+    }
+
+    public void setAge(int age) {
+        this.age = age;
+    }
+}
+</code></pre>
+<p>运行代码，从结果可知，修改外部的局部变量<code>n</code>，不影响实例<code>p</code>的<code>age</code>字段，原因是<code>setAge()</code>方法获得的参数，复制了<code>n</code>的值，因此，<code>p.age</code>和局部变量<code>n</code>互不影响。</p>
+<p>结论：基本类型参数的传递，是调用方值的复制。双方各自的后续修改，互不影响。</p>
+<p>我们再看一个传递引用参数的例子：</p>
+<pre><code class="language-java">// 引用类型参数绑定
+public class Main {
+    public static void main(String[] args) {
+        Person p = new Person();
+        String[] fullname = new String[] { &quot;Homer&quot;, &quot;Simpson&quot; };
+        p.setName(fullname); // 传入fullname数组
+        System.out.println(p.getName()); // &quot;Homer Simpson&quot;
+        fullname[0] = &quot;Bart&quot;; // fullname数组的第一个元素修改为&quot;Bart&quot;
+        System.out.println(p.getName()); // &quot;Homer Simpson&quot;还是&quot;Bart Simpson&quot;?
+    }
+}
+
+class Person {
+    private String[] name;
+
+    public String getName() {
+        return this.name[0] + &quot; &quot; + this.name[1];
+    }
+
+    public void setName(String[] name) {
+        this.name = name;
+    }
+}
+</code></pre>
+<p>注意到<code>setName()</code>的参数现在是一个数组。一开始，把<code>fullname</code>数组传进去，然后，修改<code>fullname</code>数组的内容，结果发现，实例<code>p</code>的字段<code>p.name</code>也被修改了！</p>
+<blockquote>
+<p>[!IMPORTANT]</p>
+<p>引用类型参数的传递，调用方的变量，和接收方的参数变量，指向的是同一个对象。双方任意一方对这个对象的修改，都会影响对方（因为指向同一个对象嘛）。</p>
+</blockquote>
+<p>有了上面的结论，我们再看一个例子：</p>
+<pre><code class="language-java">// 引用类型参数绑定
+public class Main {
+    public static void main(String[] args) {
+        Person p = new Person();
+        String bob = &quot;Bob&quot;;
+        p.setName(bob); // 传入bob变量
+        System.out.println(p.getName()); // &quot;Bob&quot;
+        bob = &quot;Alice&quot;; // bob改名为Alice
+        System.out.println(p.getName()); // &quot;Bob&quot;还是&quot;Alice&quot;?
+    }
+}
+
+class Person {
+    private String name;
+
+    public String getName() {
+        return this.name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+}
+</code></pre>
+<p>不要怀疑引用参数绑定的机制，试解释为什么上面的代码两次输出都是<code>"Bob"</code>。</p></div>
+            </div>
+        </div>
+
+        <footer class="col-md-12">
+            <hr>
+            <p>Documentation built with <a href="https://www.mkdocs.org/">MkDocs</a>.</p>
+        </footer>
+        <script src="../../../../js/bootstrap.bundle.min.js"></script>
+        <script>
+            var base_url = "../../../..",
+                shortcuts = {"help": 191, "next": 78, "previous": 80, "search": 83};
+        </script>
+        <script src="../../../../js/base.js"></script>
+        <script src="../../../../search/main.js"></script>
+
+        <div class="modal" id="mkdocs_search_modal" tabindex="-1" role="dialog" aria-labelledby="searchModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="searchModalLabel">Search</h4>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>From here you can search these documents. Enter your search terms below.</p>
+                <form>
+                    <div class="form-group">
+                        <input type="search" class="form-control" placeholder="Search..." id="mkdocs-search-query" title="Type search term here">
+                    </div>
+                </form>
+                <div id="mkdocs-search-results" data-no-results-text="No results found"></div>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div><div class="modal" id="mkdocs_keyboard_modal" tabindex="-1" role="dialog" aria-labelledby="keyboardModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="keyboardModalLabel">Keyboard Shortcuts</h4>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th style="width: 20%;">Keys</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td class="help shortcut"><kbd>?</kbd></td>
+                    <td>Open this help</td>
+                  </tr>
+                  <tr>
+                    <td class="next shortcut"><kbd>n</kbd></td>
+                    <td>Next page</td>
+                  </tr>
+                  <tr>
+                    <td class="prev shortcut"><kbd>p</kbd></td>
+                    <td>Previous page</td>
+                  </tr>
+                  <tr>
+                    <td class="search shortcut"><kbd>s</kbd></td>
+                    <td>Search</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div>
+
+    </body>
+</html>

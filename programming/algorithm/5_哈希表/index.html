@@ -1,0 +1,827 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="light">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        
+        
+        
+        <link rel="shortcut icon" href="../../../img/favicon.ico">
+        <title>哈希表（Hash Table）知识点 - My Docs</title>
+        <link href="../../../css/bootstrap.min.css" rel="stylesheet">
+        <link href="../../../css/fontawesome.min.css" rel="stylesheet">
+        <link href="../../../css/brands.min.css" rel="stylesheet">
+        <link href="../../../css/solid.min.css" rel="stylesheet">
+        <link href="../../../css/v4-font-face.min.css" rel="stylesheet">
+        <link href="../../../css/base.css" rel="stylesheet">
+        <link id="hljs-light" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" >
+        <link id="hljs-dark" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github-dark.min.css" disabled>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+        <script>hljs.highlightAll();</script> 
+    </head>
+
+    <body>
+        <div class="navbar fixed-top navbar-expand-lg navbar-dark bg-primary">
+            <div class="container">
+                <a class="navbar-brand" href="../../..">My Docs</a>
+
+                <!-- Expanded navigation -->
+                <div id="navbar-collapse" class="navbar-collapse collapse">
+
+                    <ul class="nav navbar-nav ms-md-auto">
+                        <li class="nav-item">
+                            <a href="#" class="nav-link" data-bs-toggle="modal" data-bs-target="#mkdocs_search_modal">
+                                <i class="fa fa-search"></i> Search
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="container">
+            <div class="row">
+                    <div class="col-md-3"><div class="navbar-expand-md bs-sidebar hidden-print affix" role="complementary">
+    <div class="navbar-header">
+        <button type="button" class="navbar-toggler collapsed" data-bs-toggle="collapse" data-bs-target="#toc-collapse" title="Table of Contents">
+            <span class="fa fa-angle-down"></span>
+        </button>
+    </div>
+
+    
+    <div id="toc-collapse" class="navbar-collapse collapse card bg-body-tertiary">
+        <ul class="nav flex-column">
+            
+            <li class="nav-item" data-bs-level="1"><a href="#hash-table" class="nav-link">哈希表（Hash Table）知识点</a>
+              <ul class="nav flex-column">
+            <li class="nav-item" data-bs-level="2"><a href="#1" class="nav-link">1. 定义</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#2" class="nav-link">2. 核心概念</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#3-python" class="nav-link">3. Python 中的哈希表</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#4" class="nav-link">4. 手写哈希表</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#5" class="nav-link">5. 时间复杂度分析</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#6" class="nav-link">6. 应用场景（详解）</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#7" class="nav-link">7. 经典算法题</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#8" class="nav-link">8. 本章小结</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+              </ul>
+            </li>
+        </ul>
+    </div>
+</div></div>
+                    <div class="col-md-9" role="main">
+
+<h1 id="hash-table">哈希表（Hash Table）知识点</h1>
+<hr />
+<h2 id="1">1. 定义</h2>
+<p><strong>哈希表</strong>是一种通过<strong>哈希函数</strong>将键（key）映射到值（value）的数据结构，支持快速查找、插入和删除。</p>
+<ul>
+<li>也叫<strong>散列表</strong>、<strong>字典</strong>、<strong>映射</strong></li>
+<li>核心思想：<strong>空间换时间</strong></li>
+<li>平均时间复杂度：<strong>O(1)</strong></li>
+</ul>
+<pre><code>哈希表原理：
+
+key → [哈希函数] → index → 数组位置 → value
+
+例如：
+&quot;apple&quot; → hash(&quot;apple&quot;) → 3 → array[3] → 5
+&quot;banana&quot; → hash(&quot;banana&quot;) → 7 → array[7] → 3
+</code></pre>
+<hr />
+<h2 id="2">2. 核心概念</h2>
+<h3 id="21">2.1 哈希函数</h3>
+<p>将任意长度的输入映射为固定长度的输出（索引）。</p>
+<pre><code class="language-python"># 简单的哈希函数示例
+def simple_hash(key, capacity):
+    return sum(ord(c) for c in key) % capacity
+
+print(simple_hash(&quot;apple&quot;, 10))   # 输出 0-9 之间的索引
+print(simple_hash(&quot;banana&quot;, 10))  # 输出 0-9 之间的索引
+</code></pre>
+<p><strong>好的哈希函数特点</strong>：
+- ✅ 确定性：相同输入 → 相同输出
+- ✅ 均匀分布：减少冲突
+- ✅ 高效计算：O(1) 时间</p>
+<h3 id="22">2.2 哈希冲突</h3>
+<p>不同 key 映射到同一个 index。</p>
+<pre><code>冲突示例：
+
+hash(&quot;cat&quot;) = 5
+hash(&quot;dog&quot;) = 5  ← 冲突！
+
+数组：
+索引：0  1  2  3  4  5        6  7  8  9
+      ─────────────────────────────────
+值：                      [cat, dog]
+</code></pre>
+<p><strong>解决冲突的方法</strong>：</p>
+<table>
+<thead>
+<tr>
+<th>方法</th>
+<th>说明</th>
+<th>优缺点</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>拉链法</strong></td>
+<td>每个位置存链表/数组</td>
+<td>简单，常用</td>
+</tr>
+<tr>
+<td><strong>开放寻址</strong></td>
+<td>冲突后找下一个空位</td>
+<td>节省空间，但复杂</td>
+</tr>
+<tr>
+<td><strong>再哈希</strong></td>
+<td>用第二个哈希函数</td>
+<td>减少聚集</td>
+</tr>
+</tbody>
+</table>
+<h3 id="23-load-factor">2.3 负载因子（Load Factor）</h3>
+<pre><code>负载因子 = 元素个数 / 数组容量
+</code></pre>
+<ul>
+<li>负载因子过高 → 冲突增多 → 性能下降</li>
+<li>负载因子过低 → 空间浪费</li>
+<li><strong>扩容阈值</strong>：通常为 0.75（Java HashMap）</li>
+</ul>
+<hr />
+<h2 id="3-python">3. Python 中的哈希表</h2>
+<h3 id="31-dict">3.1 dict（字典）⭐</h3>
+<pre><code class="language-python"># 创建字典
+person = {
+    &quot;name&quot;: &quot;Alice&quot;,
+    &quot;age&quot;: 25,
+    &quot;city&quot;: &quot;Beijing&quot;
+}
+
+# 访问
+print(person[&quot;name&quot;])  # Alice
+
+# 修改
+person[&quot;age&quot;] = 26
+
+# 添加
+person[&quot;email&quot;] = &quot;alice@example.com&quot;
+
+# 删除
+del person[&quot;city&quot;]
+
+# 检查 key 是否存在
+if &quot;name&quot; in person:
+    print(&quot;name exists&quot;)
+
+# 遍历
+for key, value in person.items():
+    print(f&quot;{key}: {value}&quot;)
+
+# 安全访问（避免 KeyError）
+print(person.get(&quot;phone&quot;, &quot;N/A&quot;))  # N/A
+</code></pre>
+<h3 id="32-set">3.2 set（集合）</h3>
+<pre><code class="language-python"># 创建集合
+fruits = {&quot;apple&quot;, &quot;banana&quot;, &quot;orange&quot;}
+
+# 添加
+fruits.add(&quot;grape&quot;)
+
+# 删除
+fruits.remove(&quot;apple&quot;)  # 不存在会报错
+fruits.discard(&quot;apple&quot;)  # 不存在也不会报错
+
+# 检查
+if &quot;banana&quot; in fruits:
+    print(&quot;banana exists&quot;)
+
+# 集合运算
+a = {1, 2, 3, 4}
+b = {3, 4, 5, 6}
+
+print(a &amp; b)  # 交集：{3, 4}
+print(a | b)  # 并集：{1, 2, 3, 4, 5, 6}
+print(a - b)  # 差集：{1, 2}
+print(a ^ b)  # 对称差集：{1, 2, 5, 6}
+</code></pre>
+<h3 id="33-collections">3.3 collections 模块</h3>
+<pre><code class="language-python">from collections import defaultdict, Counter, OrderedDict
+
+# defaultdict：自动初始化默认值
+d = defaultdict(int)
+d[&quot;a&quot;] += 1  # 自动初始化为 0
+d[&quot;b&quot;] += 2
+print(d)  # defaultdict(&lt;class 'int'&gt;, {'a': 1, 'b': 2})
+
+# Counter：计数器
+c = Counter(&quot;abracadabra&quot;)
+print(c)  # Counter({'a': 5, 'b': 2, 'r': 2, 'c': 1, 'd': 1})
+print(c.most_common(2))  # [('a', 5), ('b', 2)]
+
+# OrderedDict：保持插入顺序（Python 3.7+ dict 已默认有序）
+od = OrderedDict()
+od[&quot;first&quot;] = 1
+od[&quot;second&quot;] = 2
+od[&quot;third&quot;] = 3
+</code></pre>
+<hr />
+<h2 id="4">4. 手写哈希表</h2>
+<h3 id="41">4.1 拉链法实现</h3>
+<pre><code class="language-python">class HashNode:
+    &quot;&quot;&quot;链表节点&quot;&quot;&quot;
+    def __init__(self, key, value):
+        self.key = key
+        self.value = value
+        self.next = None
+
+class HashTable:
+    &quot;&quot;&quot;
+    手写哈希表（拉链法）
+
+    支持操作：
+    - put(key, value)
+    - get(key)
+    - remove(key)
+    &quot;&quot;&quot;
+
+    def __init__(self, capacity=16):
+        self.capacity = capacity
+        self.size = 0
+        self.buckets = [None] * capacity
+        self.load_factor_threshold = 0.75
+
+    def _hash(self, key):
+        &quot;&quot;&quot;哈希函数&quot;&quot;&quot;
+        return hash(key) % self.capacity
+
+    def _resize(self):
+        &quot;&quot;&quot;扩容&quot;&quot;&quot;
+        old_buckets = self.buckets
+        self.capacity *= 2
+        self.buckets = [None] * self.capacity
+        self.size = 0
+
+        for bucket in old_buckets:
+            node = bucket
+            while node:
+                self.put(node.key, node.value)
+                node = node.next
+
+    def put(self, key, value):
+        &quot;&quot;&quot;插入或更新&quot;&quot;&quot;
+        if self.size / self.capacity &gt; self.load_factor_threshold:
+            self._resize()
+
+        index = self._hash(key)
+        bucket = self.buckets[index]
+
+        # 查找是否已存在
+        node = bucket
+        while node:
+            if node.key == key:
+                node.value = value
+                return
+            node = node.next
+
+        # 不存在，插入到链表头部
+        new_node = HashNode(key, value)
+        new_node.next = bucket
+        self.buckets[index] = new_node
+        self.size += 1
+
+    def get(self, key):
+        &quot;&quot;&quot;获取值&quot;&quot;&quot;
+        index = self._hash(key)
+        node = self.buckets[index]
+
+        while node:
+            if node.key == key:
+                return node.value
+            node = node.next
+
+        raise KeyError(key)
+
+    def remove(self, key):
+        &quot;&quot;&quot;删除&quot;&quot;&quot;
+        index = self._hash(key)
+        bucket = self.buckets[index]
+        prev = None
+        node = bucket
+
+        while node:
+            if node.key == key:
+                if prev:
+                    prev.next = node.next
+                else:
+                    self.buckets[index] = node.next
+                self.size -= 1
+                return node.value
+            prev = node
+            node = node.next
+
+        raise KeyError(key)
+
+    def __contains__(self, key):
+        try:
+            self.get(key)
+            return True
+        except KeyError:
+            return False
+
+    def __len__(self):
+        return self.size
+
+    def __repr__(self):
+        items = []
+        for i, bucket in enumerate(self.buckets):
+            node = bucket
+            while node:
+                items.append(f&quot;{node.key}: {node.value}&quot;)
+                node = node.next
+        return &quot;{&quot; + &quot;, &quot;.join(items) + &quot;}&quot;
+
+
+# 使用示例
+ht = HashTable()
+ht.put(&quot;name&quot;, &quot;Alice&quot;)
+ht.put(&quot;age&quot;, 25)
+ht.put(&quot;city&quot;, &quot;Beijing&quot;)
+
+print(ht.get(&quot;name&quot;))  # Alice
+print(&quot;age&quot; in ht)     # True
+ht.remove(&quot;city&quot;)
+print(len(ht))         # 2
+</code></pre>
+<hr />
+<h2 id="5">5. 时间复杂度分析</h2>
+<table>
+<thead>
+<tr>
+<th>操作</th>
+<th>平均情况</th>
+<th>最坏情况</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>查找</td>
+<td>O(1)</td>
+<td>O(n)</td>
+</tr>
+<tr>
+<td>插入</td>
+<td>O(1)</td>
+<td>O(n)</td>
+</tr>
+<tr>
+<td>删除</td>
+<td>O(1)</td>
+<td>O(n)</td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p><strong>最坏情况</strong>：所有 key 都哈希到同一个位置，退化为链表</p>
+</blockquote>
+<hr />
+<h2 id="6">6. 应用场景（详解）</h2>
+<h3 id="61">6.1 两数之和 ✅⭐</h3>
+<pre><code class="language-python">from typing import List
+
+def twoSum(nums: List[int], target: int) -&gt; List[int]:
+    &quot;&quot;&quot;
+    LeetCode 1：两数之和
+
+    思路：用哈希表存储已遍历的数字及其索引
+    时间复杂度：O(n)
+    空间复杂度：O(n)
+    &quot;&quot;&quot;
+    num_to_index = {}
+
+    for i, num in enumerate(nums):
+        complement = target - num
+        if complement in num_to_index:
+            return [num_to_index[complement], i]
+        num_to_index[num] = i
+
+    return []  # 题目保证有解
+
+
+# 示例
+nums = [2, 7, 11, 15]
+target = 9
+print(twoSum(nums, target))  # [0, 1]
+</code></pre>
+<h3 id="62">6.2 字母异位词分组 ✅</h3>
+<pre><code class="language-python">from typing import List
+from collections import defaultdict
+
+def groupAnagrams(strs: List[str]) -&gt; List[List[str]]:
+    &quot;&quot;&quot;
+    LeetCode 49：字母异位词分组
+
+    思路：排序后的字符串作为 key
+    时间复杂度：O(n * k log k)，k 为字符串平均长度
+    &quot;&quot;&quot;
+    groups = defaultdict(list)
+
+    for s in strs:
+        # 排序后作为 key
+        key = &quot;&quot;.join(sorted(s))
+        groups[key].append(s)
+
+    return list(groups.values())
+
+
+# 示例
+strs = [&quot;eat&quot;, &quot;tea&quot;, &quot;tan&quot;, &quot;ate&quot;, &quot;nat&quot;, &quot;bat&quot;]
+print(groupAnagrams(strs))
+# [['eat', 'tea', 'ate'], ['tan', 'nat'], ['bat']]
+</code></pre>
+<h3 id="63">6.3 最长不含重复字符的子串 ✅⭐</h3>
+<pre><code class="language-python">def lengthOfLongestSubstring(s: str) -&gt; int:
+    &quot;&quot;&quot;
+    LeetCode 3：最长不含重复字符的子串
+
+    思路：滑动窗口 + 哈希表
+    时间复杂度：O(n)
+    &quot;&quot;&quot;
+    char_index = {}
+    left = 0
+    max_length = 0
+
+    for right, char in enumerate(s):
+        # 如果字符已存在，移动左指针
+        if char in char_index and char_index[char] &gt;= left:
+            left = char_index[char] + 1
+
+        # 更新字符位置
+        char_index[char] = right
+
+        # 更新最大长度
+        max_length = max(max_length, right - left + 1)
+
+    return max_length
+
+
+# 示例
+print(lengthOfLongestSubstring(&quot;abcabcbb&quot;))  # 3 (&quot;abc&quot;)
+print(lengthOfLongestSubstring(&quot;bbbbb&quot;))     # 1 (&quot;b&quot;)
+print(lengthOfLongestSubstring(&quot;pwwkew&quot;))    # 3 (&quot;wke&quot;)
+</code></pre>
+<h3 id="64-k">6.4 前 K 个高频元素 ✅</h3>
+<pre><code class="language-python">from typing import List
+from collections import Counter
+import heapq
+
+def topKFrequent(nums: List[int], k: int) -&gt; List[int]:
+    &quot;&quot;&quot;
+    LeetCode 347：前 K 个高频元素
+
+    思路：
+    1. 用 Counter 统计频率
+    2. 用堆或排序取前 K 个
+
+    时间复杂度：O(n log k)
+    &quot;&quot;&quot;
+    # 方法 1：Counter + most_common
+    counter = Counter(nums)
+    return [num for num, _ in counter.most_common(k)]
+
+    # 方法 2：最小堆
+    # counter = Counter(nums)
+    # return heapq.nlargest(k, counter.keys(), key=counter.get)
+
+
+# 示例
+nums = [1, 1, 1, 2, 2, 3]
+k = 2
+print(topKFrequent(nums, k))  # [1, 2]
+</code></pre>
+<h3 id="65">6.5 有效的数独 ✅</h3>
+<pre><code class="language-python">from typing import List
+
+def isValidSudoku(board: List[List[str]]) -&gt; bool:
+    &quot;&quot;&quot;
+    LeetCode 36：有效的数独
+
+    思路：用哈希表记录每行、每列、每个 3x3 宫的数字
+    &quot;&quot;&quot;
+    rows = [set() for _ in range(9)]
+    cols = [set() for _ in range(9)]
+    boxes = [set() for _ in range(9)]
+
+    for i in range(9):
+        for j in range(9):
+            num = board[i][j]
+            if num == &quot;.&quot;:
+                continue
+
+            # 计算 3x3 宫的索引
+            box_index = (i // 3) * 3 + (j // 3)
+
+            # 检查是否重复
+            if num in rows[i] or num in cols[j] or num in boxes[box_index]:
+                return False
+
+            rows[i].add(num)
+            cols[j].add(num)
+            boxes[box_index].add(num)
+
+    return True
+
+
+# 示例
+board = [
+    [&quot;5&quot;,&quot;3&quot;,&quot;.&quot;,&quot;.&quot;,&quot;7&quot;,&quot;.&quot;,&quot;.&quot;,&quot;.&quot;,&quot;.&quot;],
+    [&quot;6&quot;,&quot;.&quot;,&quot;.&quot;,&quot;1&quot;,&quot;9&quot;,&quot;5&quot;,&quot;.&quot;,&quot;.&quot;,&quot;.&quot;],
+    [&quot;.&quot;,&quot;9&quot;,&quot;8&quot;,&quot;.&quot;,&quot;.&quot;,&quot;.&quot;,&quot;.&quot;,&quot;6&quot;,&quot;.&quot;],
+    [&quot;8&quot;,&quot;.&quot;,&quot;.&quot;,&quot;.&quot;,&quot;6&quot;,&quot;.&quot;,&quot;.&quot;,&quot;.&quot;,&quot;3&quot;],
+    [&quot;4&quot;,&quot;.&quot;,&quot;.&quot;,&quot;8&quot;,&quot;.&quot;,&quot;3&quot;,&quot;.&quot;,&quot;.&quot;,&quot;1&quot;],
+    [&quot;7&quot;,&quot;.&quot;,&quot;.&quot;,&quot;.&quot;,&quot;2&quot;,&quot;.&quot;,&quot;.&quot;,&quot;.&quot;,&quot;6&quot;],
+    [&quot;.&quot;,&quot;6&quot;,&quot;.&quot;,&quot;.&quot;,&quot;.&quot;,&quot;.&quot;,&quot;2&quot;,&quot;8&quot;,&quot;.&quot;],
+    [&quot;.&quot;,&quot;.&quot;,&quot;.&quot;,&quot;4&quot;,&quot;1&quot;,&quot;9&quot;,&quot;.&quot;,&quot;.&quot;,&quot;5&quot;],
+    [&quot;.&quot;,&quot;.&quot;,&quot;.&quot;,&quot;.&quot;,&quot;8&quot;,&quot;.&quot;,&quot;.&quot;,&quot;7&quot;,&quot;9&quot;]
+]
+print(isValidSudoku(board))  # True
+</code></pre>
+<h3 id="66">6.6 设计哈希映射 ✅</h3>
+<pre><code class="language-python">class MyHashMap:
+    &quot;&quot;&quot;
+    LeetCode 706：设计哈希映射
+    &quot;&quot;&quot;
+
+    def __init__(self):
+        self.size = 1000
+        self.buckets = [None] * self.size
+
+    def _hash(self, key: int) -&gt; int:
+        return key % self.size
+
+    def put(self, key: int, value: int):
+        &quot;&quot;&quot;插入或更新&quot;&quot;&quot;
+        index = self._hash(key)
+        bucket = self.buckets[index]
+
+        if not bucket:
+            self.buckets[index] = [(key, value)]
+        else:
+            for i, (k, v) in enumerate(bucket):
+                if k == key:
+                    bucket[i] = (key, value)
+                    return
+            bucket.append((key, value))
+
+    def get(self, key: int) -&gt; int:
+        &quot;&quot;&quot;获取值&quot;&quot;&quot;
+        index = self._hash(key)
+        bucket = self.buckets[index]
+
+        if bucket:
+            for k, v in bucket:
+                if k == key:
+                    return v
+
+        return -1
+
+    def remove(self, key: int):
+        &quot;&quot;&quot;删除&quot;&quot;&quot;
+        index = self._hash(key)
+        bucket = self.buckets[index]
+
+        if bucket:
+            for i, (k, v) in enumerate(bucket):
+                if k == key:
+                    bucket.pop(i)
+                    return
+
+
+# 使用示例
+hm = MyHashMap()
+hm.put(1, 1)
+hm.put(2, 2)
+print(hm.get(1))    # 1
+print(hm.get(3))    # -1
+hm.put(2, 100)
+print(hm.get(2))    # 100
+hm.remove(2)
+print(hm.get(2))    # -1
+</code></pre>
+<hr />
+<h2 id="7">7. 经典算法题</h2>
+<h3 id="71">7.1 哈希表技巧总结</h3>
+<table>
+<thead>
+<tr>
+<th>技巧</th>
+<th>适用场景</th>
+<th>示例</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>计数</strong></td>
+<td>统计频率</td>
+<td>Counter, defaultdict(int)</td>
+</tr>
+<tr>
+<td><strong>映射</strong></td>
+<td>key-value 关联</td>
+<td>dict</td>
+</tr>
+<tr>
+<td><strong>去重</strong></td>
+<td>判断存在性</td>
+<td>set</td>
+</tr>
+<tr>
+<td><strong>滑动窗口</strong></td>
+<td>子串/子数组</td>
+<td>dict + 双指针</td>
+</tr>
+</tbody>
+</table>
+<h3 id="72">7.2 刷题推荐</h3>
+<table>
+<thead>
+<tr>
+<th>题目</th>
+<th>难度</th>
+<th>考点</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>LeetCode 1</td>
+<td>简单</td>
+<td>两数之和</td>
+</tr>
+<tr>
+<td>LeetCode 49</td>
+<td>中等</td>
+<td>字母异位词</td>
+</tr>
+<tr>
+<td>LeetCode 3</td>
+<td>中等</td>
+<td>滑动窗口 + 哈希</td>
+</tr>
+<tr>
+<td>LeetCode 347</td>
+<td>中等</td>
+<td>频率统计</td>
+</tr>
+<tr>
+<td>LeetCode 36</td>
+<td>中等</td>
+<td>数独验证</td>
+</tr>
+<tr>
+<td>LeetCode 706</td>
+<td>简单</td>
+<td>设计哈希映射</td>
+</tr>
+<tr>
+<td>LeetCode 128</td>
+<td>困难</td>
+<td>最长连续序列</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="8">8. 本章小结</h2>
+<h3 id="_1">核心知识点</h3>
+<p>✅ 哈希表原理：key → hash → index → value<br />
+✅ 哈希冲突：拉链法、开放寻址<br />
+✅ 负载因子：扩容阈值 0.75<br />
+✅ Python 实现：dict, set, Counter, defaultdict  </p>
+<h3 id="_2">重点掌握</h3>
+<ol>
+<li><strong>dict 的熟练使用</strong>：增删改查、遍历</li>
+<li><strong>Counter 计数器</strong>：频率统计</li>
+<li><strong>滑动窗口 + 哈希</strong>：子串问题</li>
+<li><strong>空间换时间</strong>：O(n) 空间换 O(1) 查找</li>
+</ol>
+<h3 id="_3">时间复杂度</h3>
+<table>
+<thead>
+<tr>
+<th>操作</th>
+<th>平均</th>
+<th>最坏</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>查找/插入/删除</td>
+<td>O(1)</td>
+<td>O(n)</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<p>🎉 <strong>恭喜完成哈希表学习！继续学习 <a href="../6_%E6%A0%91/">6_树.md</a></strong></p></div>
+            </div>
+        </div>
+
+        <footer class="col-md-12">
+            <hr>
+            <p>Documentation built with <a href="https://www.mkdocs.org/">MkDocs</a>.</p>
+        </footer>
+        <script src="../../../js/bootstrap.bundle.min.js"></script>
+        <script>
+            var base_url = "../../..",
+                shortcuts = {"help": 191, "next": 78, "previous": 80, "search": 83};
+        </script>
+        <script src="../../../js/base.js"></script>
+        <script src="../../../search/main.js"></script>
+
+        <div class="modal" id="mkdocs_search_modal" tabindex="-1" role="dialog" aria-labelledby="searchModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="searchModalLabel">Search</h4>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>From here you can search these documents. Enter your search terms below.</p>
+                <form>
+                    <div class="form-group">
+                        <input type="search" class="form-control" placeholder="Search..." id="mkdocs-search-query" title="Type search term here">
+                    </div>
+                </form>
+                <div id="mkdocs-search-results" data-no-results-text="No results found"></div>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div><div class="modal" id="mkdocs_keyboard_modal" tabindex="-1" role="dialog" aria-labelledby="keyboardModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="keyboardModalLabel">Keyboard Shortcuts</h4>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th style="width: 20%;">Keys</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td class="help shortcut"><kbd>?</kbd></td>
+                    <td>Open this help</td>
+                  </tr>
+                  <tr>
+                    <td class="next shortcut"><kbd>n</kbd></td>
+                    <td>Next page</td>
+                  </tr>
+                  <tr>
+                    <td class="prev shortcut"><kbd>p</kbd></td>
+                    <td>Previous page</td>
+                  </tr>
+                  <tr>
+                    <td class="search shortcut"><kbd>s</kbd></td>
+                    <td>Search</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div>
+
+    </body>
+</html>

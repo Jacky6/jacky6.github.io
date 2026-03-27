@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="light">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        
+        
+        
+        <link rel="shortcut icon" href="../../../../img/favicon.ico">
+        <title>2 servlet入门 - My Docs</title>
+        <link href="../../../../css/bootstrap.min.css" rel="stylesheet">
+        <link href="../../../../css/fontawesome.min.css" rel="stylesheet">
+        <link href="../../../../css/brands.min.css" rel="stylesheet">
+        <link href="../../../../css/solid.min.css" rel="stylesheet">
+        <link href="../../../../css/v4-font-face.min.css" rel="stylesheet">
+        <link href="../../../../css/base.css" rel="stylesheet">
+        <link id="hljs-light" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" >
+        <link id="hljs-dark" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github-dark.min.css" disabled>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+        <script>hljs.highlightAll();</script> 
+    </head>
+
+    <body>
+        <div class="navbar fixed-top navbar-expand-lg navbar-dark bg-primary">
+            <div class="container">
+                <a class="navbar-brand" href="../../../..">My Docs</a>
+
+                <!-- Expanded navigation -->
+                <div id="navbar-collapse" class="navbar-collapse collapse">
+
+                    <ul class="nav navbar-nav ms-md-auto">
+                        <li class="nav-item">
+                            <a href="#" class="nav-link" data-bs-toggle="modal" data-bs-target="#mkdocs_search_modal">
+                                <i class="fa fa-search"></i> Search
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="container">
+            <div class="row">
+                    <div class="col-md-3"><div class="navbar-expand-md bs-sidebar hidden-print affix" role="complementary">
+    <div class="navbar-header">
+        <button type="button" class="navbar-toggler collapsed" data-bs-toggle="collapse" data-bs-target="#toc-collapse" title="Table of Contents">
+            <span class="fa fa-angle-down"></span>
+        </button>
+    </div>
+
+    
+    <div id="toc-collapse" class="navbar-collapse collapse card bg-body-tertiary">
+        <ul class="nav flex-column">
+            
+            <li class="nav-item" data-bs-level="2"><a href="#servert" class="nav-link">Servert 版本</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+        </ul>
+    </div>
+</div></div>
+                    <div class="col-md-9" role="main">
+
+<p>在上一节中，我们看到，编写HTTP服务器其实是非常简单的，只需要先编写基于多线程的TCP服务，然后在一个TCP连接中读取HTTP请求，发送HTTP响应即可。</p>
+<p>但是，要编写一个完善的HTTP服务器，以HTTP/1.1为例，需要考虑的包括：</p>
+<p>识别正确和错误的HTTP请求；
+识别正确和错误的HTTP头；
+复用TCP连接；
+复用线程；
+IO异常处理；
+...
+这些基础工作需要耗费大量的时间，并且经过长期测试才能稳定运行。如果我们只需要输出一个简单的HTML页面，就不得不编写上千行底层代码，那就根本无法做到高效而可靠地开发。</p>
+<p>因此，<strong>在JavaEE平台上，处理TCP连接，解析HTTP协议这些底层工作统统扔给现成的Web服务器去做，我们只需要把自己的应用程序跑在Web服务器上</strong>。为了实现这一目的，JavaEE提供了Servlet API，我们使用Servlet API编写自己的Servlet来处理HTTP请求，Web服务器实现Servlet API接口，实现底层功能：</p>
+<pre><code>                 ┌───────────┐
+                 │My Servlet │
+                 ├───────────┤
+                 │Servlet API│
+┌───────┐  HTTP  ├───────────┤
+│Browser│◀──────▶│Web Server │
+└───────┘        └───────────┘
+</code></pre>
+<p>实现一个最简单的Servlet：</p>
+<pre><code class="language-java">// WebServlet注解表示这是一个Servlet，并映射到地址/:
+@WebServlet(urlPatterns = &quot;/&quot;)
+public class HelloServlet extends HttpServlet {
+    protected void doGet(HttpServletRequest req, HttpServletResponse resp)
+            throws ServletException, IOException {
+        // 设置响应类型:
+        resp.setContentType(&quot;text/html&quot;);
+        // 获取输出流:
+        PrintWriter pw = resp.getWriter();
+        // 写入响应:
+        pw.write(&quot;&lt;h1&gt;Hello, world!&lt;/h1&gt;&quot;);
+        // 最后不要忘记flush强制输出:
+        pw.flush();
+    }
+}
+</code></pre>
+<p>一个 <code>Servlet</code> 总是继承自 <code>HttpServlet</code> ，然后覆写 <code>doGet()</code> 或 <code>doPost()</code> 方法。注意到 <code>doGet()</code> 方法传入了<code>HttpServletRequest</code>和<code>HttpServletResponse</code>两个对象，分别代表HTTP请求和响应。
+我们使用Servlet API时，并不直接与底层TCP交互，也不需要解析HTTP协议，因为<code>HttpServletRequest</code>和<code>HttpServletResponse</code>就已经封装好了请求和响应。以发送响应为例，我们只需要设置正确的响应类型，然后获取<code>PrintWriter</code>，写入响应即可。</p>
+<p>现在问题来了：Servlet API是谁提供？
+Servlet API是一个jar包，我们需要通过Maven来引入它，才能正常编译。编写pom.xml文件如下：</p>
+<pre><code class="language-xml">&lt;project xmlns=&quot;http://maven.apache.org/POM/4.0.0&quot;
+    xmlns:xsi=&quot;http://www.w3.org/2001/XMLSchema-instance&quot;
+    xsi:schemaLocation=&quot;http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd&quot;&gt;
+    &lt;modelVersion&gt;4.0.0&lt;/modelVersion&gt;
+    &lt;groupId&gt;com.itranswarp.learnjava&lt;/groupId&gt;
+    &lt;artifactId&gt;web-servlet-hello&lt;/artifactId&gt;
+    &lt;packaging&gt;war&lt;/packaging&gt;
+    &lt;version&gt;1.0-SNAPSHOT&lt;/version&gt;
+
+    &lt;properties&gt;
+        &lt;project.build.sourceEncoding&gt;UTF-8&lt;/project.build.sourceEncoding&gt;
+        &lt;project.reporting.outputEncoding&gt;UTF-8&lt;/project.reporting.outputEncoding&gt;
+        &lt;maven.compiler.source&gt;17&lt;/maven.compiler.source&gt;
+        &lt;maven.compiler.target&gt;17&lt;/maven.compiler.target&gt;
+        &lt;java.version&gt;17&lt;/java.version&gt;
+    &lt;/properties&gt;
+
+    &lt;dependencies&gt;
+        &lt;dependency&gt;
+            &lt;groupId&gt;jakarta.servlet&lt;/groupId&gt;
+            &lt;artifactId&gt;jakarta.servlet-api&lt;/artifactId&gt;
+            &lt;version&gt;5.0.0&lt;/version&gt;
+            &lt;scope&gt;provided&lt;/scope&gt;
+        &lt;/dependency&gt;
+    &lt;/dependencies&gt;
+
+    &lt;build&gt;
+        &lt;finalName&gt;hello&lt;/finalName&gt;
+    &lt;/build&gt;
+&lt;/project&gt;
+</code></pre>
+<p>注意到这个 <code>pom.xml</code> 与前面我们讲到的普通 Java 程序有个区别，打包类型不是<code>jar</code>，而是<code>war</code>，表示<code>Java Web Application Archive</code>：</p>
+<pre><code class="language-xml">&lt;packaging&gt;war&lt;/packaging&gt;
+</code></pre>
+<p>引入的Servlet API如下：</p>
+<pre><code class="language-xml">&lt;dependency&gt;
+    &lt;groupId&gt;jakarta.servlet&lt;/groupId&gt;
+    &lt;artifactId&gt;jakarta.servlet-api&lt;/artifactId&gt;
+    &lt;version&gt;5.0.0&lt;/version&gt;
+    &lt;scope&gt;provided&lt;/scope&gt;
+&lt;/dependency&gt;
+</code></pre>
+<h2 id="servert">Servert 版本</h2>
+<p>要务必注意servlet-api的版本。**4.0 及之前的 servlet-api 由 Oracle 官方维护，引入的依赖项是 <code>javax.servlet:javax.servlet-api</code>，编写代码时引入的包名为：</p>
+<pre><code class="language-java">import javax.servlet.*;
+</code></pre>
+<p>而5.0及以后的servlet-api由Eclipse开源社区维护，引入的依赖项是 <code>jakarta.servlet:jakarta.servlet-api</code>，编写代码时引入的包名为：</p>
+<pre><code class="language-java">import jakarta.servlet.*;
+</code></pre>
+<p>教程采用最新的jakarta.servlet:5.0.0版本，但对于很多仅支持Servlet 4.0版本的框架来说，例如Spring 5，我们就只能使用javax.servlet:4.0.0版本，这一点针对不同项目要特别注意。</p>
+<blockquote>
+<p>注意
+    引入不同的 Servlet API版本，编写代码时导入的相关API的包名是不同的。</p>
+</blockquote>
+<p>整个工程结构如下：</p>
+<pre><code>web-servlet-hello/
+├── pom.xml
+└── src/
+    └── main/
+        ├── java/
+        │   └── com/
+        │       └── itranswarp/
+        │           └── learnjava/
+        │               └── servlet/
+        │                   └── HelloServlet.java
+        ├── resources/
+        └── webapp/
+</code></pre>
+<p>目录 <code>webapp</code> 目前为空，如果我们需要存放一些资源文件，则需要放入该目录。有的同学可能会问，webapp目录下是否需要一个
+<code>/WEB-INF/web.xml</code>配置文件？这个配置文件是低版本Servlet必须的，但是高版本Servlet已不再需要，所以无需该配置文件。</p>
+<p>运行 Maven 命令 <code>mvn clean package</code>，在target目录下得到一个 <code>hello.war</code> 文件，这个文件就是我们编译打包后的 <code>Web</code> 应用程序。</p>
+<h3 id="war">运行 war 包</h3>
+<p>现在问题又来了：我们应该如何运行这个war文件？</p>
+<p>普通的Java程序是通过启动JVM，然后执行 <code>main()</code> 方法开始运行。但是Web应用程序有所不同，我们无法直接运行 war 文件，必须先启动 Web 服务器，再由 Web 服务器加载我们编写的 <code>HelloServlet</code>，这样就可以让 <code>HelloServlet</code> 处理浏览器发送的请求。</p>
+<p>因此，我们首先要找一个支持Servlet API的Web服务器。常用的服务器有：</p>
+<ul>
+<li>Tomcat：由Apache开发的开源免费服务器；</li>
+<li>Jetty：由Eclipse开发的开源免费服务器；</li>
+<li>GlassFish：一个开源的全功能JavaEE服务器。</li>
+<li>还有一些收费的商用服务器，如Oracle的WebLogic，IBM的WebSphere。</li>
+</ul>
+<p>无论使用哪个服务器，只要它支持Servlet API 5.0（因为我们引入的Servlet版本是5.0），我们的war包都可以在上面运行。这里我们选择使用最广泛的开源免费的Tomcat服务器。</p>
+<p>要运行我们的 <code>hello.war</code>，首先要下载 Tomcat 服务器，解压后，把 <code>hello.war</code> 复制到 Tomcat 的 <code>webapps</code> 目录下，然后切换到 bin 目录，执行 <code>startup.sh</code> 或 <code>startup.bat</code> 启动 Tomcat 服务器：</p>
+<pre><code class="language-shell">$ ./startup.sh 
+Using CATALINA_BASE:   .../apache-tomcat-10.1.x
+Using CATALINA_HOME:   .../apache-tomcat-10.1.x
+Using CATALINA_TMPDIR: .../apache-tomcat-10.1.x/temp
+Using JRE_HOME:        .../jdk-17.jdk/Contents/Home
+Using CLASSPATH:       .../apache-tomcat-10.1.x/bin/bootstrap.jar:...
+Tomcat started.
+</code></pre>
+<p>细心的童鞋可能会问，为啥路径是/hello/而不是/？因为一个Web服务器允许同时运行多个Web App，而我们的Web App叫hello，因此，第一级目录/hello表示Web App的名字，后面的/才是我们在HelloServlet中映射的路径。</p>
+<p>那能不能直接使用/而不是/hello/？毕竟/比较简洁。</p>
+<p>答案是肯定的。先关闭Tomcat（执行shutdown.sh或shutdown.bat），然后删除Tomcat的webapps目录下的所有文件夹和文件，最后把我们的hello.war复制过来，改名为ROOT.war，文件名为ROOT的应用程序将作为默认应用，启动后直接访问http://localhost:8080/即可。</p>
+<p>实际上，<strong>类似Tomcat这样的服务器也是Java编写的，启动Tomcat服务器实际上是启动Java虚拟机，执行Tomcat的main()方法，然后由Tomcat负责加载我们的.war文件，并创建一个HelloServlet实例，最后以多线程的模式来处理HTTP请求。如果Tomcat服务器收到的请求路径是/（假定部署文件为ROOT.war），就转发到HelloServlet并传入HttpServletRequest和HttpServletResponse两个对象。</strong></p>
+<p>因为我们编写的Servlet并不是直接运行，而是由Web服务器加载后创建实例运行，所以，<strong>类似Tomcat这样的Web服务器也称为Servlet容器</strong>。</p>
+<h4 id="tomcat">Tomcat版本</h4>
+<p>由于Servlet版本分为&lt;=4.0和&gt;=5.0两种，所以，要根据使用的Servlet版本选择正确的Tomcat版本。从Tomcat版本页可知：</p>
+<p>使用Servlet&lt;=4.0时，选择Tomcat 9.x或更低版本；
+使用Servlet&gt;=5.0时，选择Tomcat 10.x或更高版本。
+运行本节代码需要使用Tomcat&gt;=10.x版本。</p>
+<p>在Servlet容器中运行的Servlet具有如下特点：</p>
+<p>无法在代码中直接通过new创建Servlet实例，必须由Servlet容器自动创建Servlet实例；
+Servlet容器只会给每个Servlet类创建唯一实例；
+Servlet容器会使用多线程执行doGet()或doPost()方法。
+复习一下Java多线程的内容，我们可以得出结论：</p>
+<p>在Servlet中定义的实例变量会被多个线程同时访问，要注意线程安全；
+HttpServletRequest和HttpServletResponse实例是由Servlet容器传入的局部变量，它们只能被当前线程访问，不存在多个线程访问的问题；
+在doGet()或doPost()方法中，如果使用了ThreadLocal，但没有清理，那么它的状态很可能会影响到下次的某个请求，因为Servlet容器很可能用线程池实现线程复用。
+因此，正确编写Servlet，要清晰理解Java的多线程模型，需要同步访问的必须同步。</p></div>
+            </div>
+        </div>
+
+        <footer class="col-md-12">
+            <hr>
+            <p>Documentation built with <a href="https://www.mkdocs.org/">MkDocs</a>.</p>
+        </footer>
+        <script src="../../../../js/bootstrap.bundle.min.js"></script>
+        <script>
+            var base_url = "../../../..",
+                shortcuts = {"help": 191, "next": 78, "previous": 80, "search": 83};
+        </script>
+        <script src="../../../../js/base.js"></script>
+        <script src="../../../../search/main.js"></script>
+
+        <div class="modal" id="mkdocs_search_modal" tabindex="-1" role="dialog" aria-labelledby="searchModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="searchModalLabel">Search</h4>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>From here you can search these documents. Enter your search terms below.</p>
+                <form>
+                    <div class="form-group">
+                        <input type="search" class="form-control" placeholder="Search..." id="mkdocs-search-query" title="Type search term here">
+                    </div>
+                </form>
+                <div id="mkdocs-search-results" data-no-results-text="No results found"></div>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div><div class="modal" id="mkdocs_keyboard_modal" tabindex="-1" role="dialog" aria-labelledby="keyboardModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="keyboardModalLabel">Keyboard Shortcuts</h4>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th style="width: 20%;">Keys</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td class="help shortcut"><kbd>?</kbd></td>
+                    <td>Open this help</td>
+                  </tr>
+                  <tr>
+                    <td class="next shortcut"><kbd>n</kbd></td>
+                    <td>Next page</td>
+                  </tr>
+                  <tr>
+                    <td class="prev shortcut"><kbd>p</kbd></td>
+                    <td>Previous page</td>
+                  </tr>
+                  <tr>
+                    <td class="search shortcut"><kbd>s</kbd></td>
+                    <td>Search</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div>
+
+    </body>
+</html>

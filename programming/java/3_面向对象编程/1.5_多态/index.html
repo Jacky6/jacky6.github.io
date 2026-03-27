@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="light">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        
+        
+        
+        <link rel="shortcut icon" href="../../../../img/favicon.ico">
+        <title>1.5 多态 - My Docs</title>
+        <link href="../../../../css/bootstrap.min.css" rel="stylesheet">
+        <link href="../../../../css/fontawesome.min.css" rel="stylesheet">
+        <link href="../../../../css/brands.min.css" rel="stylesheet">
+        <link href="../../../../css/solid.min.css" rel="stylesheet">
+        <link href="../../../../css/v4-font-face.min.css" rel="stylesheet">
+        <link href="../../../../css/base.css" rel="stylesheet">
+        <link id="hljs-light" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" >
+        <link id="hljs-dark" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github-dark.min.css" disabled>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+        <script>hljs.highlightAll();</script> 
+    </head>
+
+    <body>
+        <div class="navbar fixed-top navbar-expand-lg navbar-dark bg-primary">
+            <div class="container">
+                <a class="navbar-brand" href="../../../..">My Docs</a>
+
+                <!-- Expanded navigation -->
+                <div id="navbar-collapse" class="navbar-collapse collapse">
+
+                    <ul class="nav navbar-nav ms-md-auto">
+                        <li class="nav-item">
+                            <a href="#" class="nav-link" data-bs-toggle="modal" data-bs-target="#mkdocs_search_modal">
+                                <i class="fa fa-search"></i> Search
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="container">
+            <div class="row">
+                    <div class="col-md-3"><div class="navbar-expand-md bs-sidebar hidden-print affix" role="complementary">
+    <div class="navbar-header">
+        <button type="button" class="navbar-toggler collapsed" data-bs-toggle="collapse" data-bs-target="#toc-collapse" title="Table of Contents">
+            <span class="fa fa-angle-down"></span>
+        </button>
+    </div>
+
+    
+    <div id="toc-collapse" class="navbar-collapse collapse card bg-body-tertiary">
+        <ul class="nav flex-column">
+            
+            <li class="nav-item" data-bs-level="1"><a href="#_1" class="nav-link">多态</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+        </ul>
+    </div>
+</div></div>
+                    <div class="col-md-9" role="main">
+
+<ul>
+<li>在继承关系中，子类如果定义了一个与父类方法签名完全相同的方法，被称为覆写（Override）。</li>
+</ul>
+<p>例如，在 <code>Person</code> 类中，我们定义了 <code>run()</code> 方法：</p>
+<pre><code class="language-java">class Person {
+    public void run() {
+        System.out.println(&quot;Person.run&quot;);
+    }
+}
+</code></pre>
+<p>在子类 <code>Student</code> 中，覆写这个 <code>run()</code> 方法：</p>
+<pre><code class="language-java">class Student extends Person {
+    @Override
+    public void run() {
+        System.out.println(&quot;Student.run&quot;);
+    }
+}
+</code></pre>
+<ul>
+<li><code>Override</code> 和 <code>Overload</code> 不同的是，如果方法签名不同，就是 <code>Overload</code>，<code>Overload</code> 方法是一个新方法；<strong>如果方法签名相同，并且返回值也相同，就是 <code>Override</code></strong>。</li>
+</ul>
+<blockquote>
+<p>方法名相同，方法参数相同，但方法返回值不同，也是不同的方法。在Java程序中，出现这种情况，编译器会报错。</p>
+</blockquote>
+<pre><code class="language-java">class Person {
+    public void run() { … }
+}
+
+class Student extends Person {
+    // 不是Override，因为参数不同:
+    public void run(String s) { … }
+    // 不是Override，因为返回值不同:
+    public int run() { … }
+}
+</code></pre>
+<ul>
+<li>加上 <code>@Override</code> 可以让编译器帮助检查是否进行了正确的覆写。希望进行覆写，但是不小心写错了方法签名，编译器会报错。</li>
+</ul>
+<pre><code class="language-java">// override
+public class Main {
+    public static void main(String[] args) {
+    }
+}
+
+class Person {
+    public void run() {}
+}
+
+public class Student extends Person {
+    @Override // Compile error!
+    public void run(String s) {}
+}
+</code></pre>
+<ul>
+<li>但是 <code>@Override</code> 不是必需的。</li>
+</ul>
+<p>在上一节中，我们已经知道，引用变量的声明类型可能与其实际类型不符，例如：</p>
+<pre><code class="language-java">Person p = new Student();
+</code></pre>
+<p>现在，我们考虑一种情况，如果子类覆写了父类的方法：</p>
+<pre><code class="language-java">// override
+public class Main {
+    public static void main(String[] args) {
+        Person p = new Student();
+        p.run(); // 应该打印Person.run还是Student.run?
+    }
+}
+
+class Person {
+    public void run() {
+        System.out.println(&quot;Person.run&quot;);
+    }
+}
+
+class Student extends Person {
+    @Override
+    public void run() {
+        System.out.println(&quot;Student.run&quot;);
+    }
+}
+</code></pre>
+<ul>
+<li>那么，一个实际类型为Student，引用类型为Person的变量，调用其run()方法，调用的是Person还是Student的run()方法？运行一下上面的代码就可以知道，实际上调用的方法是Student的run()方法。因此可得出结论：</li>
+<li>Java的实例方法调用是基于运行时的实际类型的动态调用，而非变量的声明类型。
++这个非常重要的特性在面向对象编程中称之为多态。它的英文拼写非常复杂： Polymorphic。</li>
+</ul>
+<h1 id="_1">多态</h1>
+<ul>
+<li><strong>多态是指，针对某个类型的方法调用，其真正执行的方法取决于运行时期实际类型的方法</strong>。例如：</li>
+</ul>
+<pre><code class="language-java">Person p = new Student();
+p.run(); // 无法确定运行时究竟调用哪个run()方法
+</code></pre>
+<p>有同学会说，从上面的代码一看就明白，肯定调用的是Student的run()方法啊。</p>
+<p>但是，假设我们编写这样一个方法：</p>
+<pre><code class="language-java">public void runTwice(Person p) {
+    p.run();
+    p.run();
+}
+</code></pre>
+<ul>
+<li>它传入的参数类型是Person，我们是无法知道传入的参数实际类型究竟是Person，还是Student，还是Person的其他子类例如Teacher，因此，也无法确定调用的是不是Person类定义的run()方法。</li>
+<li>所以，多态的特性就是，运行期才能动态决定调用的子类方法。对某个类型调用某个方法，执行的实际方法可能是某个子类的覆写方法。这种不确定性的方法调用，究竟有什么作用？</li>
+</ul>
+<p>我们还是来举例子。
+假设我们定义一种收入，需要给它报税，那么先定义一个Income类：</p>
+<pre><code class="language-java">class Income {
+    protected double income;
+    public double getTax() {
+        return income * 0.1; // 税率10%
+    }
+}
+</code></pre>
+<p>对于工资收入，可以减去一个基数，那么我们可以从Income派生出SalaryIncome，并覆写getTax()：</p>
+<pre><code class="language-java">class Salary extends Income {
+    @Override
+    public double getTax() {
+        if (income &lt;= 5000) {
+            return 0;
+        }
+        return (income - 5000) * 0.2;
+    }
+}
+</code></pre>
+<p>如果你享受国务院特殊津贴，那么按照规定，可以全部免税：</p>
+<pre><code class="language-java">class StateCouncilSpecialAllowance extends Income {
+    @Override
+    public double getTax() {
+        return 0;
+    }
+}
+</code></pre>
+<p>现在，我们要编写一个报税的财务软件，对于一个人的所有收入进行报税，可以这么写：</p>
+<pre><code class="language-java">public double totalTax(Income... incomes) {
+    double total = 0;
+    for (Income income: incomes) {
+        total = total + income.getTax();
+    }
+    return total;
+}
+</code></pre>
+<p>来试一下：</p>
+<pre><code class="language-java">// Polymorphic
+public class Main {
+    public static void main(String[] args) {
+        // 给一个有普通收入、工资收入和享受国务院特殊津贴的小伙伴算税:
+        Income[] incomes = new Income[] {
+            new Income(3000),
+            new Salary(7500),
+            new StateCouncilSpecialAllowance(15000)
+        };
+        System.out.println(totalTax(incomes));
+    }
+
+    public static double totalTax(Income... incomes) {
+        double total = 0;
+        for (Income income: incomes) {
+            total = total + income.getTax();
+        }
+        return total;
+    }
+}
+
+class Income {
+    protected double income;
+
+    public Income(double income) {
+        this.income = income;
+    }
+
+    public double getTax() {
+        return income * 0.1; // 税率10%
+    }
+}
+
+class Salary extends Income {
+    public Salary(double income) {
+        super(income);
+    }
+
+    @Override
+    public double getTax() {
+        if (income &lt;= 5000) {
+            return 0;
+        }
+        return (income - 5000) * 0.2;
+    }
+}
+
+class StateCouncilSpecialAllowance extends Income {
+    public StateCouncilSpecialAllowance(double income) {
+        super(income);
+    }
+
+    @Override
+    public double getTax() {
+        return 0;
+    }
+}
+</code></pre>
+<ul>
+<li>
+<p>观察totalTax()方法：利用多态，totalTax()方法只需要和Income打交道，它完全不需要知道Salary和StateCouncilSpecialAllowance的存在，就可以正确计算出总的税。如果我们要新增一种稿费收入，只需要从Income派生，然后正确覆写getTax()方法就可以。把新的类型传入totalTax()，不需要修改任何代码。</p>
+</li>
+<li>
+<p>可见，多态具有一个非常强大的功能，就是允许添加更多类型的子类实现功能扩展，却不需要修改基于父类的代码。</p>
+</li>
+</ul>
+<h3 id="object">覆写Object方法</h3>
+<p>因为所有的class最终都继承自Object，而Object定义了几个重要的方法：
++ toString()：把instance输出为String；
++ equals()：判断两个instance是否逻辑相等；
++ hashCode()：计算一个instance的哈希值。</p>
+<p>在必要的情况下，我们可以覆写Object的这几个方法。例如：</p>
+<pre><code class="language-java">class Person {
+    ...
+    // 显示更有意义的字符串:
+    @Override
+    public String toString() {
+        return &quot;Person:name=&quot; + name;
+    }
+
+    // 比较是否相等:
+    @Override
+    public boolean equals(Object o) {
+        // 当且仅当o为Person类型:
+        if (o instanceof Person) {
+            Person p = (Person) o;
+            // 并且name字段相同时，返回true:
+            return this.name.equals(p.name);
+        }
+        return false;
+    }
+
+    // 计算hash:
+    @Override
+    public int hashCode() {
+        return this.name.hashCode();
+    }
+}
+</code></pre>
+<h3 id="super">调用super</h3>
+<ul>
+<li>在子类的覆写方法中，如果要调用父类的被覆写的方法，可以通过super来调用。例如：</li>
+</ul>
+<pre><code class="language-java">class Person {
+    protected String name;
+    public String hello() {
+        return &quot;Hello, &quot; + name;
+    }
+}
+
+class Student extends Person {
+    @Override
+    public String hello() {
+        // 调用父类的hello()方法:
+        return super.hello() + &quot;!&quot;;
+    }
+}
+</code></pre>
+<h3 id="final">final</h3>
+<ul>
+<li>继承可以允许子类覆写父类的方法。如果一个父类不允许子类对它的某个方法进行覆写，可以把该方法标记为final。用final修饰的方法不能被Override：</li>
+</ul>
+<pre><code class="language-java">class Person {
+    protected String name;
+    public final String hello() {
+        return &quot;Hello, &quot; + name;
+    }
+}
+
+class Student extends Person {
+    // compile error: 不允许覆写
+    @Override
+    public String hello() {
+    }
+}
+</code></pre>
+<ul>
+<li>如果一个类不希望任何其他类继承自它，那么可以把这个类本身标记为final。用final修饰的类不能被继承：</li>
+</ul>
+<pre><code class="language-java">final class Person {
+    protected String name;
+}
+
+// compile error: 不允许继承自Person
+class Student extends Person {
+}
+</code></pre>
+<ul>
+<li>对于一个类的实例字段，同样可以用final修饰。用final修饰的字段在初始化后不能被修改。例如：</li>
+</ul>
+<pre><code class="language-java">class Person {
+    public final String name = &quot;Unamed&quot;;
+}
+</code></pre>
+<ul>
+<li>对final字段重新赋值会报错：</li>
+</ul>
+<pre><code class="language-java">Person p = new Person();
+p.name = &quot;New Name&quot;; // compile error!
+</code></pre>
+<ul>
+<li>可以在构造方法中初始化final字段：</li>
+</ul>
+<pre><code class="language-java">class Person {
+    public final String name;
+    public Person(String name) {
+        this.name = name;
+    }
+}
+</code></pre>
+<ul>
+<li>这种方法更为常用，因为可以保证实例一旦创建，其final字段就不可修改。</li>
+</ul></div>
+            </div>
+        </div>
+
+        <footer class="col-md-12">
+            <hr>
+            <p>Documentation built with <a href="https://www.mkdocs.org/">MkDocs</a>.</p>
+        </footer>
+        <script src="../../../../js/bootstrap.bundle.min.js"></script>
+        <script>
+            var base_url = "../../../..",
+                shortcuts = {"help": 191, "next": 78, "previous": 80, "search": 83};
+        </script>
+        <script src="../../../../js/base.js"></script>
+        <script src="../../../../search/main.js"></script>
+
+        <div class="modal" id="mkdocs_search_modal" tabindex="-1" role="dialog" aria-labelledby="searchModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="searchModalLabel">Search</h4>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>From here you can search these documents. Enter your search terms below.</p>
+                <form>
+                    <div class="form-group">
+                        <input type="search" class="form-control" placeholder="Search..." id="mkdocs-search-query" title="Type search term here">
+                    </div>
+                </form>
+                <div id="mkdocs-search-results" data-no-results-text="No results found"></div>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div><div class="modal" id="mkdocs_keyboard_modal" tabindex="-1" role="dialog" aria-labelledby="keyboardModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="keyboardModalLabel">Keyboard Shortcuts</h4>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th style="width: 20%;">Keys</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td class="help shortcut"><kbd>?</kbd></td>
+                    <td>Open this help</td>
+                  </tr>
+                  <tr>
+                    <td class="next shortcut"><kbd>n</kbd></td>
+                    <td>Next page</td>
+                  </tr>
+                  <tr>
+                    <td class="prev shortcut"><kbd>p</kbd></td>
+                    <td>Previous page</td>
+                  </tr>
+                  <tr>
+                    <td class="search shortcut"><kbd>s</kbd></td>
+                    <td>Search</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div>
+
+    </body>
+</html>

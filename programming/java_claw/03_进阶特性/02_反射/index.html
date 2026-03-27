@@ -1,0 +1,514 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="light">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        
+        
+        
+        <link rel="shortcut icon" href="../../../../img/favicon.ico">
+        <title>19_反射 - My Docs</title>
+        <link href="../../../../css/bootstrap.min.css" rel="stylesheet">
+        <link href="../../../../css/fontawesome.min.css" rel="stylesheet">
+        <link href="../../../../css/brands.min.css" rel="stylesheet">
+        <link href="../../../../css/solid.min.css" rel="stylesheet">
+        <link href="../../../../css/v4-font-face.min.css" rel="stylesheet">
+        <link href="../../../../css/base.css" rel="stylesheet">
+        <link id="hljs-light" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" >
+        <link id="hljs-dark" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github-dark.min.css" disabled>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+        <script>hljs.highlightAll();</script> 
+    </head>
+
+    <body>
+        <div class="navbar fixed-top navbar-expand-lg navbar-dark bg-primary">
+            <div class="container">
+                <a class="navbar-brand" href="../../../..">My Docs</a>
+
+                <!-- Expanded navigation -->
+                <div id="navbar-collapse" class="navbar-collapse collapse">
+
+                    <ul class="nav navbar-nav ms-md-auto">
+                        <li class="nav-item">
+                            <a href="#" class="nav-link" data-bs-toggle="modal" data-bs-target="#mkdocs_search_modal">
+                                <i class="fa fa-search"></i> Search
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="container">
+            <div class="row">
+                    <div class="col-md-3"><div class="navbar-expand-md bs-sidebar hidden-print affix" role="complementary">
+    <div class="navbar-header">
+        <button type="button" class="navbar-toggler collapsed" data-bs-toggle="collapse" data-bs-target="#toc-collapse" title="Table of Contents">
+            <span class="fa fa-angle-down"></span>
+        </button>
+    </div>
+
+    
+    <div id="toc-collapse" class="navbar-collapse collapse card bg-body-tertiary">
+        <ul class="nav flex-column">
+            
+            <li class="nav-item" data-bs-level="1"><a href="#19_" class="nav-link">19_反射</a>
+              <ul class="nav flex-column">
+            <li class="nav-item" data-bs-level="2"><a href="#1" class="nav-link">1. 反射概述</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#2-class" class="nav-link">2. 获取 Class 对象</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#3" class="nav-link">3. 创建对象</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#4" class="nav-link">4. 访问字段</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#5" class="nav-link">5. 访问方法</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#6" class="nav-link">6. 反射实战</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#7" class="nav-link">7. 泛型与反射</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#8" class="nav-link">8. 性能优化</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#9" class="nav-link">9. 本章小结</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+              </ul>
+            </li>
+        </ul>
+    </div>
+</div></div>
+                    <div class="col-md-9" role="main">
+
+<h1 id="19_">19_反射</h1>
+<hr />
+<h2 id="1">1. 反射概述</h2>
+<h3 id="11">1.1 什么是反射</h3>
+<p><strong>反射</strong>（Reflection）是 Java 在运行时获取类信息并操作类成员的能力。</p>
+<p><strong>作用</strong>：
+- ✅ 运行时获取类的信息（属性、方法、构造器）
+- ✅ 运行时创建对象
+- ✅ 运行时调用方法
+- ✅ 运行时访问和修改字段
+- ✅ 框架的基础（Spring、MyBatis 等）</p>
+<pre><code>编译时：已知类名 → 直接使用
+运行时：类名是字符串 → 通过反射获取
+</code></pre>
+<h3 id="12">1.2 反射的优缺点</h3>
+<p><strong>优点</strong>：
+- ✅ 灵活：运行时动态操作
+- ✅ 通用：框架开发的基础
+- ✅ 解耦：降低代码耦合度</p>
+<p><strong>缺点</strong>：
+- ❌ 性能开销：比直接调用慢
+- ❌ 安全问题：可以访问私有成员
+- ❌ 代码复杂：可读性差</p>
+<hr />
+<h2 id="2-class">2. 获取 Class 对象</h2>
+<h3 id="21">2.1 三种方式</h3>
+<pre><code class="language-java">// 方式 1：Class.forName()（推荐）
+Class&lt;?&gt; clazz1 = Class.forName(&quot;com.example.Person&quot;);
+
+// 方式 2：类名.class
+Class&lt;?&gt; clazz2 = Person.class;
+
+// 方式 3：对象.getClass()
+Person p = new Person();
+Class&lt;?&gt; clazz3 = p.getClass();
+
+// 三种方式获取的是同一个 Class 对象
+System.out.println(clazz1 == clazz2);  // true
+System.out.println(clazz2 == clazz3);  // true
+</code></pre>
+<h3 id="22-class">2.2 基本类型的 Class</h3>
+<pre><code class="language-java">Class&lt;Integer&gt; intClass = int.class;
+Class&lt;Boolean&gt; booleanClass = boolean.class;
+Class&lt;Void&gt; voidClass = void.class;
+
+// 包装类的 TYPE 字段
+Class&lt;Integer&gt; intClass2 = Integer.TYPE;
+</code></pre>
+<h3 id="23-class">2.3 数组的 Class</h3>
+<pre><code class="language-java">int[] arr = new int[10];
+Class&lt;?&gt; clazz = arr.getClass();
+
+// 二维数组
+Class&lt;?&gt; clazz2 = int[][].class;
+</code></pre>
+<hr />
+<h2 id="3">3. 创建对象</h2>
+<h3 id="31-classnewinstance">3.1 使用 Class.newInstance()（已过时）</h3>
+<pre><code class="language-java">Class&lt;?&gt; clazz = Class.forName(&quot;com.example.Person&quot;);
+Object obj = clazz.newInstance();  // 调用无参构造
+</code></pre>
+<h3 id="32-constructor">3.2 使用 Constructor</h3>
+<pre><code class="language-java">// 无参构造
+Class&lt;?&gt; clazz = Class.forName(&quot;com.example.Person&quot;);
+Constructor&lt;?&gt; constructor = clazz.getDeclaredConstructor();
+Object obj = constructor.newInstance();
+
+// 有参构造
+Constructor&lt;?&gt; constructor2 = clazz.getDeclaredConstructor(
+    String.class, int.class);
+Object obj2 = constructor2.newInstance(&quot;张三&quot;, 25);
+</code></pre>
+<h3 id="33">3.3 访问私有构造</h3>
+<pre><code class="language-java">Constructor&lt;?&gt; constructor = clazz.getDeclaredConstructor();
+constructor.setAccessible(true);  // 绕过访问检查
+Object obj = constructor.newInstance();
+</code></pre>
+<hr />
+<h2 id="4">4. 访问字段</h2>
+<h3 id="41">4.1 获取字段</h3>
+<pre><code class="language-java">Class&lt;?&gt; clazz = Class.forName(&quot;com.example.Person&quot;);
+
+// 获取公共字段
+Field field1 = clazz.getField(&quot;name&quot;);
+
+// 获取所有公共字段
+Field[] fields = clazz.getFields();
+
+// 获取所有字段（包括私有）
+Field field2 = clazz.getDeclaredField(&quot;name&quot;);
+Field[] allFields = clazz.getDeclaredFields();
+</code></pre>
+<h3 id="42">4.2 读取和修改字段</h3>
+<pre><code class="language-java">Person p = new Person(&quot;张三&quot;, 25);
+Class&lt;?&gt; clazz = p.getClass();
+
+// 获取公共字段
+Field nameField = clazz.getField(&quot;name&quot;);
+String name = (String) nameField.get(p);  // 读取
+nameField.set(p, &quot;李四&quot;);  // 修改
+
+// 获取私有字段
+Field ageField = clazz.getDeclaredField(&quot;age&quot;);
+ageField.setAccessible(true);  // 绕过访问检查
+int age = (int) ageField.get(p);  // 读取
+ageField.set(p, 30);  // 修改
+
+// 修改静态字段
+Field staticField = clazz.getDeclaredField(&quot;COUNT&quot;);
+staticField.setAccessible(true);
+staticField.set(null, 100);  // 静态字段传入 null
+</code></pre>
+<hr />
+<h2 id="5">5. 访问方法</h2>
+<h3 id="51">5.1 获取方法</h3>
+<pre><code class="language-java">Class&lt;?&gt; clazz = Class.forName(&quot;com.example.Person&quot;);
+
+// 获取公共方法
+Method method1 = clazz.getMethod(&quot;sayHello&quot;);
+
+// 获取带参数的方法
+Method method2 = clazz.getMethod(&quot;setName&quot;, String.class);
+
+// 获取所有公共方法
+Method[] methods = clazz.getMethods();
+
+// 获取所有方法（包括私有）
+Method method3 = clazz.getDeclaredMethod(&quot;privateMethod&quot;);
+Method[] allMethods = clazz.getDeclaredMethods();
+</code></pre>
+<h3 id="52">5.2 调用方法</h3>
+<pre><code class="language-java">Person p = new Person(&quot;张三&quot;, 25);
+Class&lt;?&gt; clazz = p.getClass();
+
+// 调用无参方法
+Method sayHello = clazz.getMethod(&quot;sayHello&quot;);
+sayHello.invoke(p);  // 输出：Hello
+
+// 调用带参方法
+Method setName = clazz.getMethod(&quot;setName&quot;, String.class);
+setName.invoke(p, &quot;李四&quot;);  // 设置名字为李四
+
+// 调用带返回值的方法
+Method getName = clazz.getMethod(&quot;getName&quot;);
+String name = (String) getName.invoke(p);  // &quot;李四&quot;
+
+// 调用静态方法
+Method staticMethod = clazz.getMethod(&quot;staticMethod&quot;);
+staticMethod.invoke(null);  // 静态方法传入 null
+
+// 调用私有方法
+Method privateMethod = clazz.getDeclaredMethod(&quot;privateMethod&quot;);
+privateMethod.setAccessible(true);
+privateMethod.invoke(p);
+</code></pre>
+<hr />
+<h2 id="6">6. 反射实战</h2>
+<h3 id="61">6.1 通用对象创建工厂</h3>
+<pre><code class="language-java">public class ObjectFactory {
+    public static &lt;T&gt; T createObject(Class&lt;T&gt; clazz) {
+        try {
+            Constructor&lt;T&gt; constructor = clazz.getDeclaredConstructor();
+            constructor.setAccessible(true);
+            return constructor.newInstance();
+        } catch (Exception e) {
+            throw new RuntimeException(&quot;创建对象失败&quot;, e);
+        }
+    }
+}
+
+// 使用
+Person p = ObjectFactory.createObject(Person.class);
+</code></pre>
+<h3 id="62">6.2 通用属性复制</h3>
+<pre><code class="language-java">public class BeanUtils {
+    public static void copyProperties(Object src, Object dest) {
+        Class&lt;?&gt; srcClass = src.getClass();
+        Class&lt;?&gt; destClass = dest.getClass();
+
+        for (Field srcField : srcClass.getDeclaredFields()) {
+            try {
+                String name = srcField.getName();
+                Field destField = destClass.getDeclaredField(name);
+
+                srcField.setAccessible(true);
+                destField.setAccessible(true);
+
+                Object value = srcField.get(src);
+                destField.set(dest, value);
+            } catch (Exception e) {
+                // 忽略不匹配的属性
+            }
+        }
+    }
+}
+
+// 使用
+Person p1 = new Person(&quot;张三&quot;, 25);
+Person p2 = new Person();
+BeanUtils.copyProperties(p1, p2);
+</code></pre>
+<h3 id="63">6.3 注解处理器</h3>
+<pre><code class="language-java">@Retention(RetentionPolicy.RUNTIME)
+@Target(ElementType.FIELD)
+@interface MyAnnotation {
+    String value();
+}
+
+public class AnnotationProcessor {
+    public static void processAnnotation(Object obj) {
+        Class&lt;?&gt; clazz = obj.getClass();
+
+        for (Field field : clazz.getDeclaredFields()) {
+            if (field.isAnnotationPresent(MyAnnotation.class)) {
+                MyAnnotation anno = field.getAnnotation(MyAnnotation.class);
+                System.out.println(&quot;字段：&quot; + field.getName());
+                System.out.println(&quot;注解值：&quot; + anno.value());
+            }
+        }
+    }
+}
+</code></pre>
+<h3 id="64-jdbc">6.4 JDBC 驱动加载</h3>
+<pre><code class="language-java">// 传统方式（使用反射）
+Class.forName(&quot;com.mysql.jdbc.Driver&quot;);
+
+// 现代方式（SPI 自动加载）
+// 不需要显式加载
+</code></pre>
+<hr />
+<h2 id="7">7. 泛型与反射</h2>
+<h3 id="71">7.1 获取泛型信息</h3>
+<pre><code class="language-java">public class GenericTest {
+    private List&lt;String&gt; list;
+
+    public void test() throws Exception {
+        Field field = this.getClass().getDeclaredField(&quot;list&quot;);
+        Type type = field.getGenericType();
+
+        if (type instanceof ParameterizedType) {
+            ParameterizedType pt = (ParameterizedType) type;
+            Type[] actualTypes = pt.getActualTypeArguments();
+
+            for (Type t : actualTypes) {
+                System.out.println(t.getTypeName());  // java.lang.String
+            }
+        }
+    }
+}
+</code></pre>
+<hr />
+<h2 id="8">8. 性能优化</h2>
+<h3 id="81-class">8.1 缓存 Class 对象</h3>
+<pre><code class="language-java">public class ClassCache {
+    private static final Map&lt;String, Class&lt;?&gt;&gt; cache = new ConcurrentHashMap&lt;&gt;();
+
+    public static Class&lt;?&gt; getClass(String className) {
+        return cache.computeIfAbsent(className, name -&gt; {
+            try {
+                return Class.forName(name);
+            } catch (ClassNotFoundException e) {
+                throw new RuntimeException(e);
+            }
+        });
+    }
+}
+</code></pre>
+<h3 id="82-method-constructor">8.2 缓存 Method 和 Constructor</h3>
+<pre><code class="language-java">public class MethodCache {
+    private static final Map&lt;String, Method&gt; cache = new ConcurrentHashMap&lt;&gt;();
+
+    public static Method getMethod(Class&lt;?&gt; clazz, String name, Class&lt;?&gt;... params) {
+        String key = clazz.getName() + &quot;#&quot; + name;
+        return cache.computeIfAbsent(key, k -&gt; {
+            try {
+                return clazz.getMethod(name, params);
+            } catch (NoSuchMethodException e) {
+                throw new RuntimeException(e);
+            }
+        });
+    }
+}
+</code></pre>
+<h3 id="83">8.3 关闭访问检查</h3>
+<pre><code class="language-java">// 性能对比
+// 正常访问：100ms
+// setAccessible(true)：50ms（提升约 50%）
+
+method.setAccessible(true);  // 关闭访问检查
+method.invoke(obj, args);
+</code></pre>
+<hr />
+<h2 id="9">9. 本章小结</h2>
+<h3 id="_1">核心知识点</h3>
+<p>✅ <strong>获取 Class</strong>：forName()、.class、getClass()<br />
+✅ <strong>创建对象</strong>：Constructor.newInstance()<br />
+✅ <strong>访问字段</strong>：Field.get()、Field.set()<br />
+✅ <strong>访问方法</strong>：Method.invoke()<br />
+✅ <strong>实战应用</strong>：工厂模式、属性复制、注解处理  </p>
+<h3 id="_2">最佳实践</h3>
+<ol>
+<li><strong>缓存 Class 对象</strong>：避免重复加载</li>
+<li><strong>关闭访问检查</strong>：提高性能</li>
+<li><strong>使用泛型</strong>：避免强制类型转换</li>
+<li><strong>异常处理</strong>：反射容易抛出异常</li>
+<li><strong>谨慎使用</strong>：性能敏感场景避免反射</li>
+</ol>
+<h3 id="_3">性能对比</h3>
+<table>
+<thead>
+<tr>
+<th>操作</th>
+<th>直接调用</th>
+<th>反射调用</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>创建对象</td>
+<td>1x</td>
+<td>10-100x</td>
+</tr>
+<tr>
+<td>调用方法</td>
+<td>1x</td>
+<td>10-50x</td>
+</tr>
+<tr>
+<td>访问字段</td>
+<td>1x</td>
+<td>10-50x</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<p>🎉 <strong>恭喜完成反射学习！继续学习 <a href="../03_%E6%B3%A8%E8%A7%A3/">注解</a></strong></p></div>
+            </div>
+        </div>
+
+        <footer class="col-md-12">
+            <hr>
+            <p>Documentation built with <a href="https://www.mkdocs.org/">MkDocs</a>.</p>
+        </footer>
+        <script src="../../../../js/bootstrap.bundle.min.js"></script>
+        <script>
+            var base_url = "../../../..",
+                shortcuts = {"help": 191, "next": 78, "previous": 80, "search": 83};
+        </script>
+        <script src="../../../../js/base.js"></script>
+        <script src="../../../../search/main.js"></script>
+
+        <div class="modal" id="mkdocs_search_modal" tabindex="-1" role="dialog" aria-labelledby="searchModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="searchModalLabel">Search</h4>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>From here you can search these documents. Enter your search terms below.</p>
+                <form>
+                    <div class="form-group">
+                        <input type="search" class="form-control" placeholder="Search..." id="mkdocs-search-query" title="Type search term here">
+                    </div>
+                </form>
+                <div id="mkdocs-search-results" data-no-results-text="No results found"></div>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div><div class="modal" id="mkdocs_keyboard_modal" tabindex="-1" role="dialog" aria-labelledby="keyboardModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="keyboardModalLabel">Keyboard Shortcuts</h4>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th style="width: 20%;">Keys</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td class="help shortcut"><kbd>?</kbd></td>
+                    <td>Open this help</td>
+                  </tr>
+                  <tr>
+                    <td class="next shortcut"><kbd>n</kbd></td>
+                    <td>Next page</td>
+                  </tr>
+                  <tr>
+                    <td class="prev shortcut"><kbd>p</kbd></td>
+                    <td>Previous page</td>
+                  </tr>
+                  <tr>
+                    <td class="search shortcut"><kbd>s</kbd></td>
+                    <td>Search</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div>
+
+    </body>
+</html>

@@ -1,0 +1,946 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="light">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        
+        
+        
+        <link rel="shortcut icon" href="../../../../img/favicon.ico">
+        <title>Java 构建工具最佳实践 - My Docs</title>
+        <link href="../../../../css/bootstrap.min.css" rel="stylesheet">
+        <link href="../../../../css/fontawesome.min.css" rel="stylesheet">
+        <link href="../../../../css/brands.min.css" rel="stylesheet">
+        <link href="../../../../css/solid.min.css" rel="stylesheet">
+        <link href="../../../../css/v4-font-face.min.css" rel="stylesheet">
+        <link href="../../../../css/base.css" rel="stylesheet">
+        <link id="hljs-light" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" >
+        <link id="hljs-dark" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github-dark.min.css" disabled>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+        <script>hljs.highlightAll();</script> 
+    </head>
+
+    <body>
+        <div class="navbar fixed-top navbar-expand-lg navbar-dark bg-primary">
+            <div class="container">
+                <a class="navbar-brand" href="../../../..">My Docs</a>
+
+                <!-- Expanded navigation -->
+                <div id="navbar-collapse" class="navbar-collapse collapse">
+
+                    <ul class="nav navbar-nav ms-md-auto">
+                        <li class="nav-item">
+                            <a href="#" class="nav-link" data-bs-toggle="modal" data-bs-target="#mkdocs_search_modal">
+                                <i class="fa fa-search"></i> Search
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="container">
+            <div class="row">
+                    <div class="col-md-3"><div class="navbar-expand-md bs-sidebar hidden-print affix" role="complementary">
+    <div class="navbar-header">
+        <button type="button" class="navbar-toggler collapsed" data-bs-toggle="collapse" data-bs-target="#toc-collapse" title="Table of Contents">
+            <span class="fa fa-angle-down"></span>
+        </button>
+    </div>
+
+    
+    <div id="toc-collapse" class="navbar-collapse collapse card bg-body-tertiary">
+        <ul class="nav flex-column">
+            
+            <li class="nav-item" data-bs-level="1"><a href="#java" class="nav-link">Java 构建工具最佳实践</a>
+              <ul class="nav flex-column">
+            <li class="nav-item" data-bs-level="2"><a href="#_1" class="nav-link">📁 项目结构规范</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#_3" class="nav-link">🔧 依赖管理最佳实践</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#_4" class="nav-link">🏗️ 多模块项目管理</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#_6" class="nav-link">⚡ 构建性能优化</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#_7" class="nav-link">🔒 安全最佳实践</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#_8" class="nav-link">📦 发布最佳实践</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#_9" class="nav-link">🧪 测试最佳实践</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#_10" class="nav-link">📝 代码质量</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#cicd" class="nav-link">🔄 CI/CD 集成</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#_11" class="nav-link">✅ 检查清单</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+              </ul>
+            </li>
+        </ul>
+    </div>
+</div></div>
+                    <div class="col-md-9" role="main">
+
+<h1 id="java">Java 构建工具最佳实践</h1>
+<blockquote>
+<p>Maven &amp; Gradle 实战经验总结</p>
+</blockquote>
+<h2 id="_1">📁 项目结构规范</h2>
+<h3 id="_2">标准目录结构</h3>
+<pre><code>my-project/
+├── .mvn/                    # Maven Wrapper (Maven)
+├── .gradle/                 # Gradle 缓存 (不提交到 Git)
+├── gradle/                  # Gradle Wrapper (Gradle)
+├── src/
+│   ├── main/
+│   │   ├── java/           # Java 源码
+│   │   ├── resources/      # 资源文件
+│   │   │   ├── application.yml
+│   │   │   └── db/
+│   │   │       └── migration/
+│   │   └── webapp/         # Web 资源 (WAR 项目)
+│   ├── test/
+│   │   ├── java/           # 测试源码
+│   │   └── resources/      # 测试资源
+│   └── integration-test/   # 集成测试 (可选)
+├── target/                  # Maven 输出 (不提交)
+├── build/                   # Gradle 输出 (不提交)
+├── docs/                    # 文档
+├── scripts/                 # 构建脚本
+├── .gitignore
+├── README.md
+├── pom.xml                  # Maven 配置
+├── build.gradle             # Gradle 配置
+├── settings.gradle          # Gradle 设置
+└── gradle.properties        # Gradle 属性
+</code></pre>
+<h3 id="gitignore">.gitignore 模板</h3>
+<pre><code class="language-gitignore"># 编译输出
+target/
+build/
+*.class
+*.jar
+*.war
+*.ear
+
+# IDE
+.idea/
+*.iml
+.vscode/
+.settings/
+.project
+.classpath
+
+# Gradle
+.gradle/
+gradle-app.setting
+
+# Maven
+.mvn/timing.properties
+
+# 日志
+*.log
+logs/
+
+# 系统文件
+.DS_Store
+Thumbs.db
+
+# 临时文件
+tmp/
+temp/
+*.tmp
+
+# 敏感信息
+*.key
+*.pem
+secrets/
+</code></pre>
+<h2 id="_3">🔧 依赖管理最佳实践</h2>
+<h3 id="1">1. 使用版本管理</h3>
+<p><strong>❌ 避免硬编码版本</strong>：</p>
+<pre><code class="language-xml">&lt;!-- Maven - 不推荐 --&gt;
+&lt;dependency&gt;
+    &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
+    &lt;artifactId&gt;spring-boot-starter-web&lt;/artifactId&gt;
+    &lt;version&gt;3.2.0&lt;/version&gt;
+&lt;/dependency&gt;
+</code></pre>
+<p><strong>✅ 使用 BOM/版本目录</strong>：</p>
+<pre><code class="language-xml">&lt;!-- Maven - 推荐 --&gt;
+&lt;dependencyManagement&gt;
+    &lt;dependencies&gt;
+        &lt;dependency&gt;
+            &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
+            &lt;artifactId&gt;spring-boot-dependencies&lt;/artifactId&gt;
+            &lt;version&gt;3.2.0&lt;/version&gt;
+            &lt;type&gt;pom&lt;/type&gt;
+            &lt;scope&gt;import&lt;/scope&gt;
+        &lt;/dependency&gt;
+    &lt;/dependencies&gt;
+&lt;/dependencyManagement&gt;
+
+&lt;dependencies&gt;
+    &lt;dependency&gt;
+        &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
+        &lt;artifactId&gt;spring-boot-starter-web&lt;/artifactId&gt;
+    &lt;/dependency&gt;
+&lt;/dependencies&gt;
+</code></pre>
+<pre><code class="language-toml"># Gradle - 版本目录 (推荐)
+# gradle/libs.versions.toml
+[versions]
+spring-boot = &quot;3.2.0&quot;
+junit = &quot;5.10.1&quot;
+
+[libraries]
+spring-boot-starter-web = { module = &quot;org.springframework.boot:spring-boot-starter-web&quot;, version.ref = &quot;spring-boot&quot; }
+</code></pre>
+<pre><code class="language-groovy">// Gradle - 使用版本目录
+dependencies {
+    implementation libs.spring.boot.starter.web
+    testImplementation libs.junit
+}
+</code></pre>
+<h3 id="2">2. 选择合适的依赖作用域</h3>
+<p><strong>Maven</strong>：</p>
+<pre><code class="language-xml">&lt;dependencies&gt;
+    &lt;!-- 编译和运行都需要 --&gt;
+    &lt;dependency&gt;
+        &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
+        &lt;artifactId&gt;spring-boot-starter-web&lt;/artifactId&gt;
+        &lt;scope&gt;compile&lt;/scope&gt;
+    &lt;/dependency&gt;
+
+    &lt;!-- 仅测试需要 --&gt;
+    &lt;dependency&gt;
+        &lt;groupId&gt;org.junit.jupiter&lt;/groupId&gt;
+        &lt;artifactId&gt;junit-jupiter&lt;/artifactId&gt;
+        &lt;scope&gt;test&lt;/scope&gt;
+    &lt;/dependency&gt;
+
+    &lt;!-- 运行时需要，编译不需要 --&gt;
+    &lt;dependency&gt;
+        &lt;groupId&gt;mysql&lt;/groupId&gt;
+        &lt;artifactId&gt;mysql-connector-j&lt;/artifactId&gt;
+        &lt;scope&gt;runtime&lt;/scope&gt;
+    &lt;/dependency&gt;
+
+    &lt;!-- 编译需要，运行时由容器提供 --&gt;
+    &lt;dependency&gt;
+        &lt;groupId&gt;jakarta.servlet&lt;/groupId&gt;
+        &lt;artifactId&gt;jakarta.servlet-api&lt;/artifactId&gt;
+        &lt;scope&gt;provided&lt;/scope&gt;
+    &lt;/dependency&gt;
+&lt;/dependencies&gt;
+</code></pre>
+<p><strong>Gradle</strong>：</p>
+<pre><code class="language-groovy">dependencies {
+    // 编译和运行需要（不暴露给依赖此项目的模块）
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+
+    // 仅测试需要
+    testImplementation 'org.junit.jupiter:junit-jupiter'
+
+    // 运行时需要，编译不需要
+    runtimeOnly 'mysql:mysql-connector-java'
+
+    // 编译需要，运行时由容器提供
+    compileOnly 'jakarta.servlet:jakarta.servlet-api'
+
+    // 编译和运行需要（暴露给依赖此项目的模块）
+    api 'com.google.guava:guava'
+}
+</code></pre>
+<h3 id="3">3. 处理依赖冲突</h3>
+<p><strong>检测冲突</strong>：</p>
+<pre><code class="language-bash"># Maven
+mvn dependency:tree
+mvn dependency:analyze
+
+# Gradle
+./gradlew dependencies
+./gradlew dependencies --configuration runtimeClasspath
+</code></pre>
+<p><strong>解决冲突</strong>：</p>
+<pre><code class="language-xml">&lt;!-- Maven - 排除传递依赖 --&gt;
+&lt;dependency&gt;
+    &lt;groupId&gt;com.example&lt;/groupId&gt;
+    &lt;artifactId&gt;lib-a&lt;/artifactId&gt;
+    &lt;version&gt;1.0&lt;/version&gt;
+    &lt;exclusions&gt;
+        &lt;exclusion&gt;
+            &lt;groupId&gt;com.example&lt;/groupId&gt;
+            &lt;artifactId&gt;guava&lt;/artifactId&gt;
+        &lt;/exclusion&gt;
+    &lt;/exclusions&gt;
+&lt;/dependency&gt;
+
+&lt;!-- 强制使用特定版本 --&gt;
+&lt;dependency&gt;
+    &lt;groupId&gt;com.google.guava&lt;/groupId&gt;
+    &lt;artifactId&gt;guava&lt;/artifactId&gt;
+    &lt;version&gt;32.1.3-jre&lt;/version&gt;
+&lt;/dependency&gt;
+</code></pre>
+<pre><code class="language-groovy">// Gradle - 排除传递依赖
+dependencies {
+    implementation('com.example:lib-a:1.0') {
+        exclude group: 'com.google.guava', module: 'guava'
+    }
+
+    // 强制使用特定版本
+    implementation 'com.google.guava:guava:32.1.3-jre'
+}
+</code></pre>
+<h3 id="4">4. 避免动态版本</h3>
+<p><strong>❌ 不推荐</strong>：</p>
+<pre><code class="language-xml">&lt;dependency&gt;
+    &lt;groupId&gt;com.example&lt;/groupId&gt;
+    &lt;artifactId&gt;lib&lt;/artifactId&gt;
+    &lt;version&gt;LATEST&lt;/version&gt;
+&lt;/dependency&gt;
+
+&lt;dependency&gt;
+    &lt;groupId&gt;com.example&lt;/groupId&gt;
+    &lt;artifactId&gt;lib&lt;/artifactId&gt;
+    &lt;version&gt;[1.0,)&lt;/version&gt;
+&lt;/dependency&gt;
+</code></pre>
+<p><strong>✅ 推荐</strong>：</p>
+<pre><code class="language-xml">&lt;dependency&gt;
+    &lt;groupId&gt;com.example&lt;/groupId&gt;
+    &lt;artifactId&gt;lib&lt;/artifactId&gt;
+    &lt;version&gt;1.2.3&lt;/version&gt;
+&lt;/dependency&gt;
+</code></pre>
+<h2 id="_4">🏗️ 多模块项目管理</h2>
+<h3 id="_5">模块划分原则</h3>
+<pre><code>✅ 好的模块划分：
+├── common/           # 公共工具类、常量
+├── domain/           # 领域模型
+├── repository/       # 数据访问层
+├── service/          # 业务逻辑层
+└── web/              # Web 层（Controller）
+
+❌ 不好的模块划分：
+├── module1/
+├── module2/
+├── module3/
+└── utils/            # 所有工具类都放这里
+</code></pre>
+<h3 id="maven">Maven 多模块配置</h3>
+<pre><code class="language-xml">&lt;!-- 根 POM --&gt;
+&lt;project&gt;
+    &lt;groupId&gt;com.example&lt;/groupId&gt;
+    &lt;artifactId&gt;parent&lt;/artifactId&gt;
+    &lt;version&gt;1.0.0&lt;/version&gt;
+    &lt;packaging&gt;pom&lt;/packaging&gt;
+
+    &lt;modules&gt;
+        &lt;module&gt;common&lt;/module&gt;
+        &lt;module&gt;domain&lt;/module&gt;
+        &lt;module&gt;repository&lt;/module&gt;
+        &lt;module&gt;service&lt;/module&gt;
+        &lt;module&gt;web&lt;/module&gt;
+    &lt;/modules&gt;
+
+    &lt;dependencyManagement&gt;
+        &lt;dependencies&gt;
+            &lt;!-- 统一管理版本 --&gt;
+        &lt;/dependencies&gt;
+    &lt;/dependencyManagement&gt;
+&lt;/project&gt;
+</code></pre>
+<h3 id="gradle">Gradle 多模块配置</h3>
+<pre><code class="language-groovy">// settings.gradle
+rootProject.name = 'my-project'
+include 'common', 'domain', 'repository', 'service', 'web'
+
+// build.gradle (root)
+subprojects {
+    apply plugin: 'java'
+
+    group = 'com.example'
+    version = '1.0.0'
+
+    java {
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
+    }
+
+    repositories {
+        mavenCentral()
+    }
+
+    dependencies {
+        testImplementation 'org.junit.jupiter:junit-jupiter:5.10.1'
+    }
+}
+
+// web/build.gradle
+dependencies {
+    implementation project(':service')
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+}
+</code></pre>
+<h2 id="_6">⚡ 构建性能优化</h2>
+<h3 id="maven_1">Maven 优化</h3>
+<p><strong>1. 并行构建</strong>：</p>
+<pre><code class="language-bash"># 使用 4 个线程
+mvn -T 4 clean install
+
+# 每个 CPU 核心 1 个线程
+mvn -T 1C clean install
+</code></pre>
+<p><strong>2. 配置镜像仓库</strong>：</p>
+<pre><code class="language-xml">&lt;!-- ~/.m2/settings.xml --&gt;
+&lt;mirrors&gt;
+    &lt;mirror&gt;
+        &lt;id&gt;aliyun&lt;/id&gt;
+        &lt;mirrorOf&gt;central&lt;/mirrorOf&gt;
+        &lt;url&gt;https://maven.aliyun.com/repository/central&lt;/url&gt;
+    &lt;/mirror&gt;
+&lt;/mirrors&gt;
+</code></pre>
+<p><strong>3. 增加 JVM 内存</strong>：</p>
+<pre><code class="language-bash">export MAVEN_OPTS=&quot;-Xmx2g -XX:MaxMetaspaceSize=512m&quot;
+</code></pre>
+<p><strong>4. 跳过不必要的步骤</strong>：</p>
+<pre><code class="language-bash"># 跳过测试
+mvn -DskipTests clean install
+
+# 跳过 Javadoc
+mvn -Dmaven.javadoc.skip=true clean install
+
+# 离线模式
+mvn -o clean install
+</code></pre>
+<h3 id="gradle_1">Gradle 优化</h3>
+<p><strong>1. 启用构建缓存</strong>：</p>
+<pre><code class="language-properties"># gradle.properties
+org.gradle.caching=true
+org.gradle.parallel=true
+org.gradle.daemon=true
+org.gradle.configureondemand=true
+</code></pre>
+<p><strong>2. 配置 JVM</strong>：</p>
+<pre><code class="language-properties"># gradle.properties
+org.gradle.jvmargs=-Xmx2g -XX:MaxMetaspaceSize=512m -XX:+HeapDumpOnOutOfMemoryError
+</code></pre>
+<p><strong>3. 使用构建扫描</strong>：</p>
+<pre><code class="language-bash"># 分析构建性能
+./gradlew build --scan
+
+# 查看构建时间
+./gradlew build --profile
+</code></pre>
+<p><strong>4. 配置缓存</strong>：</p>
+<pre><code class="language-bash"># 启用配置缓存
+./gradlew build --configuration-cache
+
+# 启用构建缓存
+./gradlew build --build-cache
+</code></pre>
+<h2 id="_7">🔒 安全最佳实践</h2>
+<h3 id="1_1">1. 管理敏感信息</h3>
+<p><strong>❌ 避免硬编码</strong>：</p>
+<pre><code class="language-groovy">// build.gradle - 不推荐
+ext {
+    nexusUsername = 'admin'
+    nexusPassword = 'password123'
+}
+</code></pre>
+<p><strong>✅ 使用环境变量或属性文件</strong>：</p>
+<pre><code class="language-groovy">// build.gradle - 推荐
+ext {
+    nexusUsername = findProperty('nexusUsername') ?: System.getenv('NEXUS_USERNAME')
+    nexusPassword = findProperty('nexusPassword') ?: System.getenv('NEXUS_PASSWORD')
+}
+</code></pre>
+<pre><code class="language-properties"># ~/.gradle/gradle.properties
+nexusUsername=admin
+nexusPassword=password123
+</code></pre>
+<h3 id="2-gpg-maven-central">2. GPG 签名（发布到 Maven Central）</h3>
+<pre><code class="language-xml">&lt;!-- Maven --&gt;
+&lt;plugin&gt;
+    &lt;groupId&gt;org.apache.maven.plugins&lt;/groupId&gt;
+    &lt;artifactId&gt;maven-gpg-plugin&lt;/artifactId&gt;
+    &lt;version&gt;3.1.0&lt;/version&gt;
+    &lt;executions&gt;
+        &lt;execution&gt;
+            &lt;id&gt;sign-artifacts&lt;/id&gt;
+            &lt;phase&gt;verify&lt;/phase&gt;
+            &lt;goals&gt;
+                &lt;goal&gt;sign&lt;/goal&gt;
+            &lt;/goals&gt;
+        &lt;/execution&gt;
+    &lt;/executions&gt;
+&lt;/plugin&gt;
+</code></pre>
+<pre><code class="language-groovy">// Gradle
+plugins {
+    id 'signing'
+}
+
+signing {
+    sign publishing.publications.mavenJava
+}
+</code></pre>
+<h3 id="3_1">3. 依赖漏洞扫描</h3>
+<p><strong>Maven (OWASP Dependency-Check)</strong>：</p>
+<pre><code class="language-xml">&lt;plugin&gt;
+    &lt;groupId&gt;org.owasp&lt;/groupId&gt;
+    &lt;artifactId&gt;dependency-check-maven&lt;/artifactId&gt;
+    &lt;version&gt;9.0.0&lt;/version&gt;
+    &lt;executions&gt;
+        &lt;execution&gt;
+            &lt;goals&gt;
+                &lt;goal&gt;check&lt;/goal&gt;
+            &lt;/goals&gt;
+        &lt;/execution&gt;
+    &lt;/executions&gt;
+&lt;/plugin&gt;
+</code></pre>
+<p><strong>Gradle</strong>：</p>
+<pre><code class="language-groovy">plugins {
+    id 'org.owasp.dependencycheck' version '9.0.0'
+}
+
+dependencyCheck {
+    failBuildOnCVSS = 7
+}
+</code></pre>
+<pre><code class="language-bash"># 运行检查
+mvn dependency-check:check
+./gradlew dependencyCheckAnalyze
+</code></pre>
+<h2 id="_8">📦 发布最佳实践</h2>
+<h3 id="1_2">1. 版本号规范</h3>
+<pre><code>主版本。次版本。增量版本 [-里程碑版本] [-SNAPSHOT]
+
+示例：
+1.0.0          - 正式版
+1.0.0-SNAPSHOT - 开发快照版
+1.0.0-RC1      - 发布候选版 1
+1.0.0-beta     - 测试版
+1.0.0-alpha    - 内部测试版
+</code></pre>
+<h3 id="2-maven-central">2. 发布到 Maven Central</h3>
+<p><strong>前提条件</strong>：
+- Sonatype OSSRH 账号
+- GPG 密钥
+- 项目信息（URL、License、开发者信息）</p>
+<p><strong>Maven 配置</strong>：</p>
+<pre><code class="language-xml">&lt;project&gt;
+    ...
+    &lt;distributionManagement&gt;
+        &lt;snapshotRepository&gt;
+            &lt;id&gt;ossrh&lt;/id&gt;
+            &lt;url&gt;https://s01.oss.sonatype.org/content/repositories/snapshots&lt;/url&gt;
+        &lt;/snapshotRepository&gt;
+        &lt;repository&gt;
+            &lt;id&gt;ossrh&lt;/id&gt;
+            &lt;url&gt;https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/&lt;/url&gt;
+        &lt;/repository&gt;
+    &lt;/distributionManagement&gt;
+
+    &lt;build&gt;
+        &lt;plugins&gt;
+            &lt;!-- 源码和 Javadoc --&gt;
+            &lt;plugin&gt;
+                &lt;groupId&gt;org.apache.maven.plugins&lt;/groupId&gt;
+                &lt;artifactId&gt;maven-source-plugin&lt;/artifactId&gt;
+                &lt;executions&gt;
+                    &lt;execution&gt;
+                        &lt;id&gt;attach-sources&lt;/id&gt;
+                        &lt;goals&gt;
+                            &lt;goal&gt;jar-no-fork&lt;/goal&gt;
+                        &lt;/goals&gt;
+                    &lt;/execution&gt;
+                &lt;/executions&gt;
+            &lt;/plugin&gt;
+
+            &lt;plugin&gt;
+                &lt;groupId&gt;org.apache.maven.plugins&lt;/groupId&gt;
+                &lt;artifactId&gt;maven-javadoc-plugin&lt;/artifactId&gt;
+                &lt;executions&gt;
+                    &lt;execution&gt;
+                        &lt;id&gt;attach-javadocs&lt;/id&gt;
+                        &lt;goals&gt;
+                            &lt;goal&gt;jar&lt;/goal&gt;
+                        &lt;/goals&gt;
+                    &lt;/execution&gt;
+                &lt;/executions&gt;
+            &lt;/plugin&gt;
+
+            &lt;!-- GPG 签名 --&gt;
+            &lt;plugin&gt;
+                &lt;groupId&gt;org.apache.maven.plugins&lt;/groupId&gt;
+                &lt;artifactId&gt;maven-gpg-plugin&lt;/artifactId&gt;
+                &lt;executions&gt;
+                    &lt;execution&gt;
+                        &lt;id&gt;sign-artifacts&lt;/id&gt;
+                        &lt;phase&gt;verify&lt;/phase&gt;
+                        &lt;goals&gt;
+                            &lt;goal&gt;sign&lt;/goal&gt;
+                        &lt;/goals&gt;
+                    &lt;/execution&gt;
+                &lt;/executions&gt;
+            &lt;/plugin&gt;
+
+            &lt;!-- Nexus Staging --&gt;
+            &lt;plugin&gt;
+                &lt;groupId&gt;org.sonatype.plugins&lt;/groupId&gt;
+                &lt;artifactId&gt;nexus-staging-maven-plugin&lt;/artifactId&gt;
+                &lt;extensions&gt;true&lt;/extensions&gt;
+                &lt;configuration&gt;
+                    &lt;serverId&gt;ossrh&lt;/serverId&gt;
+                    &lt;nexusUrl&gt;https://s01.oss.sonatype.org/&lt;/nexusUrl&gt;
+                    &lt;autoReleaseAfterClose&gt;true&lt;/autoReleaseAfterClose&gt;
+                &lt;/configuration&gt;
+            &lt;/plugin&gt;
+        &lt;/plugins&gt;
+    &lt;/build&gt;
+&lt;/project&gt;
+</code></pre>
+<p><strong>发布命令</strong>：</p>
+<pre><code class="language-bash"># Maven
+mvn clean deploy
+
+# Gradle
+./gradlew clean publish
+</code></pre>
+<h3 id="3_2">3. 发布到私有仓库</h3>
+<p><strong>Nexus 配置</strong>：</p>
+<pre><code class="language-xml">&lt;!-- settings.xml --&gt;
+&lt;servers&gt;
+    &lt;server&gt;
+        &lt;id&gt;nexus-releases&lt;/id&gt;
+        &lt;username&gt;admin&lt;/username&gt;
+        &lt;password&gt;password&lt;/password&gt;
+    &lt;/server&gt;
+    &lt;server&gt;
+        &lt;id&gt;nexus-snapshots&lt;/id&gt;
+        &lt;username&gt;admin&lt;/username&gt;
+        &lt;password&gt;password&lt;/password&gt;
+    &lt;/server&gt;
+&lt;/servers&gt;
+</code></pre>
+<h2 id="_9">🧪 测试最佳实践</h2>
+<h3 id="1_3">1. 测试目录结构</h3>
+<pre><code>src/
+├── test/
+│   ├── java/
+│   │   └── com/
+│   │       └── example/
+│   │           ├── unit/          # 单元测试
+│   │           ├── integration/   # 集成测试
+│   │           └── e2e/           # 端到端测试
+│   └── resources/
+│       └── test-data/
+</code></pre>
+<h3 id="2_1">2. 配置测试插件</h3>
+<p><strong>Maven</strong>：</p>
+<pre><code class="language-xml">&lt;plugin&gt;
+    &lt;groupId&gt;org.apache.maven.plugins&lt;/groupId&gt;
+    &lt;artifactId&gt;maven-surefire-plugin&lt;/artifactId&gt;
+    &lt;version&gt;3.1.2&lt;/version&gt;
+    &lt;configuration&gt;
+        &lt;includes&gt;
+            &lt;include&gt;**/*Test.java&lt;/include&gt;
+        &lt;/includes&gt;
+        &lt;excludes&gt;
+            &lt;exclude&gt;**/*IntegrationTest.java&lt;/exclude&gt;
+        &lt;/excludes&gt;
+    &lt;/configuration&gt;
+&lt;/plugin&gt;
+
+&lt;!-- 集成测试 --&gt;
+&lt;plugin&gt;
+    &lt;groupId&gt;org.apache.maven.plugins&lt;/groupId&gt;
+    &lt;artifactId&gt;maven-failsafe-plugin&lt;/artifactId&gt;
+    &lt;version&gt;3.1.2&lt;/version&gt;
+    &lt;executions&gt;
+        &lt;execution&gt;
+            &lt;goals&gt;
+                &lt;goal&gt;integration-test&lt;/goal&gt;
+                &lt;goal&gt;verify&lt;/goal&gt;
+            &lt;/goals&gt;
+        &lt;/execution&gt;
+    &lt;/executions&gt;
+&lt;/plugin&gt;
+</code></pre>
+<p><strong>Gradle</strong>：</p>
+<pre><code class="language-groovy">tasks.test {
+    useJUnitPlatform()
+    include '**/*Test.class'
+    exclude '**/*IntegrationTest.class'
+}
+
+tasks.register('integrationTest', Test) {
+    useJUnitPlatform()
+    include '**/*IntegrationTest.class'
+}
+</code></pre>
+<h3 id="3_3">3. 测试覆盖率</h3>
+<p><strong>Maven (JaCoCo)</strong>：</p>
+<pre><code class="language-xml">&lt;plugin&gt;
+    &lt;groupId&gt;org.jacoco&lt;/groupId&gt;
+    &lt;artifactId&gt;jacoco-maven-plugin&lt;/artifactId&gt;
+    &lt;version&gt;0.8.11&lt;/version&gt;
+    &lt;executions&gt;
+        &lt;execution&gt;
+            &lt;goals&gt;
+                &lt;goal&gt;prepare-agent&lt;/goal&gt;
+            &lt;/goals&gt;
+        &lt;/execution&gt;
+        &lt;execution&gt;
+            &lt;id&gt;report&lt;/id&gt;
+            &lt;phase&gt;test&lt;/phase&gt;
+            &lt;goals&gt;
+                &lt;goal&gt;report&lt;/goal&gt;
+            &lt;/goals&gt;
+        &lt;/execution&gt;
+    &lt;/executions&gt;
+&lt;/plugin&gt;
+</code></pre>
+<p><strong>Gradle</strong>：</p>
+<pre><code class="language-groovy">plugins {
+    id 'jacoco'
+}
+
+jacocoTestReport {
+    reports {
+        xml.required = true
+        html.required = true
+    }
+}
+</code></pre>
+<h2 id="_10">📝 代码质量</h2>
+<h3 id="1-checkstyle">1. Checkstyle 代码风格</h3>
+<p><strong>Maven</strong>：</p>
+<pre><code class="language-xml">&lt;plugin&gt;
+    &lt;groupId&gt;org.apache.maven.plugins&lt;/groupId&gt;
+    &lt;artifactId&gt;maven-checkstyle-plugin&lt;/artifactId&gt;
+    &lt;version&gt;3.3.0&lt;/version&gt;
+    &lt;configuration&gt;
+        &lt;configLocation&gt;checkstyle.xml&lt;/configLocation&gt;
+        &lt;failsOnError&gt;true&lt;/failsOnError&gt;
+    &lt;/configuration&gt;
+    &lt;executions&gt;
+        &lt;execution&gt;
+            &lt;phase&gt;validate&lt;/phase&gt;
+            &lt;goals&gt;
+                &lt;goal&gt;check&lt;/goal&gt;
+            &lt;/goals&gt;
+        &lt;/execution&gt;
+    &lt;/executions&gt;
+&lt;/plugin&gt;
+</code></pre>
+<p><strong>Gradle</strong>：</p>
+<pre><code class="language-groovy">plugins {
+    id 'checkstyle'
+}
+
+checkstyle {
+    toolVersion = '10.12.5'
+    configFile = file('config/checkstyle/checkstyle.xml')
+}
+</code></pre>
+<h3 id="2-spotbugs">2. SpotBugs 静态分析</h3>
+<p><strong>Maven</strong>：</p>
+<pre><code class="language-xml">&lt;plugin&gt;
+    &lt;groupId&gt;com.github.spotbugs&lt;/groupId&gt;
+    &lt;artifactId&gt;spotbugs-maven-plugin&lt;/artifactId&gt;
+    &lt;version&gt;4.7.3.6&lt;/version&gt;
+&lt;/plugin&gt;
+</code></pre>
+<p><strong>Gradle</strong>：</p>
+<pre><code class="language-groovy">plugins {
+    id 'com.github.spotbugs' version '6.0.0'
+}
+
+spotbugs {
+    effort = 'max'
+    reportLevel = 'high'
+}
+</code></pre>
+<h2 id="cicd">🔄 CI/CD 集成</h2>
+<h3 id="github-actions">GitHub Actions 示例</h3>
+<pre><code class="language-yaml">name: Build and Test
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        java: [ '17', '21' ]
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Set up JDK ${{ matrix.java }}
+      uses: actions/setup-java@v3
+      with:
+        java-version: ${{ matrix.java }}
+        distribution: 'temurin'
+        cache: 'maven'  # 或 'gradle'
+
+    # Maven
+    - name: Build with Maven
+      run: mvn -B package --file pom.xml
+
+    # Gradle
+    - name: Build with Gradle
+      run: ./gradlew build
+
+    - name: Upload artifacts
+      uses: actions/upload-artifact@v3
+      with:
+        name: package-${{ matrix.java }}
+        path: target/*.jar  # 或 build/libs/*.jar
+</code></pre>
+<h2 id="_11">✅ 检查清单</h2>
+<h3 id="_12">项目初始化</h3>
+<ul>
+<li>[ ] 使用构建工具 Wrapper</li>
+<li>[ ] 配置 .gitignore</li>
+<li>[ ] 设置 Java 版本</li>
+<li>[ ] 配置镜像仓库</li>
+<li>[ ] 统一编码格式（UTF-8）</li>
+</ul>
+<h3 id="_13">依赖管理</h3>
+<ul>
+<li>[ ] 使用 BOM/版本目录</li>
+<li>[ ] 避免动态版本</li>
+<li>[ ] 处理依赖冲突</li>
+<li>[ ] 定期更新依赖</li>
+<li>[ ] 扫描安全漏洞</li>
+</ul>
+<h3 id="_14">构建配置</h3>
+<ul>
+<li>[ ] 启用并行构建</li>
+<li>[ ] 配置构建缓存</li>
+<li>[ ] 优化 JVM 参数</li>
+<li>[ ] 配置代码质量插件</li>
+<li>[ ] 设置测试覆盖率</li>
+</ul>
+<h3 id="_15">发布流程</h3>
+<ul>
+<li>[ ] 配置版本号</li>
+<li>[ ] 打包源码和 Javadoc</li>
+<li>[ ] GPG 签名（如需要）</li>
+<li>[ ] 配置发布仓库</li>
+<li>[ ] 自动化发布流程</li>
+</ul>
+<hr />
+<p><em>遵循最佳实践，让构建更可靠！🚀</em></p>
+<p><em>最后更新：2026-03-24</em></p></div>
+            </div>
+        </div>
+
+        <footer class="col-md-12">
+            <hr>
+            <p>Documentation built with <a href="https://www.mkdocs.org/">MkDocs</a>.</p>
+        </footer>
+        <script src="../../../../js/bootstrap.bundle.min.js"></script>
+        <script>
+            var base_url = "../../../..",
+                shortcuts = {"help": 191, "next": 78, "previous": 80, "search": 83};
+        </script>
+        <script src="../../../../js/base.js"></script>
+        <script src="../../../../search/main.js"></script>
+
+        <div class="modal" id="mkdocs_search_modal" tabindex="-1" role="dialog" aria-labelledby="searchModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="searchModalLabel">Search</h4>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>From here you can search these documents. Enter your search terms below.</p>
+                <form>
+                    <div class="form-group">
+                        <input type="search" class="form-control" placeholder="Search..." id="mkdocs-search-query" title="Type search term here">
+                    </div>
+                </form>
+                <div id="mkdocs-search-results" data-no-results-text="No results found"></div>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div><div class="modal" id="mkdocs_keyboard_modal" tabindex="-1" role="dialog" aria-labelledby="keyboardModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="keyboardModalLabel">Keyboard Shortcuts</h4>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th style="width: 20%;">Keys</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td class="help shortcut"><kbd>?</kbd></td>
+                    <td>Open this help</td>
+                  </tr>
+                  <tr>
+                    <td class="next shortcut"><kbd>n</kbd></td>
+                    <td>Next page</td>
+                  </tr>
+                  <tr>
+                    <td class="prev shortcut"><kbd>p</kbd></td>
+                    <td>Previous page</td>
+                  </tr>
+                  <tr>
+                    <td class="search shortcut"><kbd>s</kbd></td>
+                    <td>Search</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div>
+
+    </body>
+</html>

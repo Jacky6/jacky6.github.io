@@ -1,0 +1,605 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="light">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        
+        
+        
+        <link rel="shortcut icon" href="../../../img/favicon.ico">
+        <title>Redis 数据库 - My Docs</title>
+        <link href="../../../css/bootstrap.min.css" rel="stylesheet">
+        <link href="../../../css/fontawesome.min.css" rel="stylesheet">
+        <link href="../../../css/brands.min.css" rel="stylesheet">
+        <link href="../../../css/solid.min.css" rel="stylesheet">
+        <link href="../../../css/v4-font-face.min.css" rel="stylesheet">
+        <link href="../../../css/base.css" rel="stylesheet">
+        <link id="hljs-light" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" >
+        <link id="hljs-dark" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github-dark.min.css" disabled>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+        <script>hljs.highlightAll();</script> 
+    </head>
+
+    <body>
+        <div class="navbar fixed-top navbar-expand-lg navbar-dark bg-primary">
+            <div class="container">
+                <a class="navbar-brand" href="../../..">My Docs</a>
+
+                <!-- Expanded navigation -->
+                <div id="navbar-collapse" class="navbar-collapse collapse">
+
+                    <ul class="nav navbar-nav ms-md-auto">
+                        <li class="nav-item">
+                            <a href="#" class="nav-link" data-bs-toggle="modal" data-bs-target="#mkdocs_search_modal">
+                                <i class="fa fa-search"></i> Search
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="container">
+            <div class="row">
+                    <div class="col-md-3"><div class="navbar-expand-md bs-sidebar hidden-print affix" role="complementary">
+    <div class="navbar-header">
+        <button type="button" class="navbar-toggler collapsed" data-bs-toggle="collapse" data-bs-target="#toc-collapse" title="Table of Contents">
+            <span class="fa fa-angle-down"></span>
+        </button>
+    </div>
+
+    
+    <div id="toc-collapse" class="navbar-collapse collapse card bg-body-tertiary">
+        <ul class="nav flex-column">
+            
+            <li class="nav-item" data-bs-level="1"><a href="#redis" class="nav-link">Redis 数据库</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            
+            <li class="nav-item" data-bs-level="1"><a href="#_1" class="nav-link">一、数据结构</a>
+              <ul class="nav flex-column">
+            <li class="nav-item" data-bs-level="2"><a href="#redis_1" class="nav-link">Redis 采用单线程架构</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#1" class="nav-link">1. 字符串</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#2" class="nav-link">2. 哈希</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#3" class="nav-link">3. 列表</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#4" class="nav-link">4. 集合</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+              </ul>
+            </li>
+            
+            <li class="nav-item" data-bs-level="1"><a href="#_2" class="nav-link">快速使用</a>
+              <ul class="nav flex-column">
+            <li class="nav-item" data-bs-level="2"><a href="#_3" class="nav-link">一、配置&amp;启动&amp;操作&amp;关闭</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#_4" class="nav-link">二、常用命令</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+              </ul>
+            </li>
+        </ul>
+    </div>
+</div></div>
+                    <div class="col-md-9" role="main">
+
+<h1 id="redis">Redis 数据库</h1>
+<aside>
+💡
+
+Redis（Remote Dictionary Server）是一个开源的、高性能的内存数据库，常被用作缓存、消息队列和实时分析等场景。以下是Redis的一些关键特点和功能：
+
+1. **内存存储**：Redis主要将数据存储在内存中，这使得其读写速度非常快，适合需要高性能的数据访问场景。
+2. **丰富的数据结构**：Redis支持多种数据类型，包括字符串（Strings）、列表（Lists）、集合（Sets）、有序集合（Sorted Sets）、哈希（Hashes）等，这使得它在处理复杂数据结构时非常灵活。
+3. **持久化机制**：虽然Redis是内存数据库，但它提供多种持久化方式，如快照（RDB）和AOF（Append-Only File），以确保数据的持久性和安全性。
+4. **高可用性和分布式支持**：Redis支持主从复制（Master-Slave Replication）、哨兵（Sentinel）和Redis集群（Redis Cluster），帮助实现高可用性和横向扩展。
+5. **丰富的功能**：
+    - **缓存**：常用于缓存频繁访问的数据，减轻数据库负载，提高系统响应速度。
+    - **消息队列**：通过发布/订阅（Pub/Sub）机制，可以用作消息队列，实现异步通信。
+    - **实时分析**：适用于实时计数、排行榜等需要快速数据处理的应用场景。
+6. **简单易用**：Redis提供了丰富的客户端库，支持多种编程语言，易于集成到各种应用中。
+
+由于其高性能和灵活性，Redis广泛应用于Web应用、游戏、物联网等多个领域，成为现代应用架构中不可或缺的组件之一。
+
+</aside>
+
+<h1 id="_1">一、数据结构</h1>
+<aside>
+💡
+
+type 命令实际返回的就是当前键的数据结构类型，她们分别是：string（字符串）、hash（哈希）、list（列表）、set（集合）、zset（有序集合）。
+
+这些是 Redis 对外的数据结构，实际上每个数据结构都有自己底层的内部编码实现，而且是多种实现，这样可以在合适的场景选择合适的内部编码实现。
+
+</aside>
+
+<p><img alt="Redis数据结构和内部编码格式" src="image.png" /></p>
+<p>Redis数据结构和内部编码格式</p>
+<h2 id="redis_1">Redis 采用单线程架构</h2>
+<p>Redis 使用了<strong>单线程架构和 I/O 多路复用模型</strong>来实现高性能的 内存数据库服务</p>
+<h2 id="1">1. 字符串</h2>
+<p>字符串类型是 Redis 最基础的数据结构。首先键都是字符串类型，而且其他几种数据结构都是在字符串的基础上构建的。</p>
+<h3 id="11">1.1 命令</h3>
+<ol>
+<li>设置字符串 键-值：<code>set key value EX seconds PX milliseconds NX XX</code>  <ol>
+<li><code>EX secondes</code>:optional, 将为键设置失效时间，单位为秒。</li>
+<li><code>PX milliseconds</code> :optional, 将为键设置失效时间，单位为毫秒。  </li>
+<li><code>NX</code> :optional, 仅在键不存在时设置值，如果 <code>key</code> 已经存在，则设置 <code>value</code> 无效。</li>
+<li><code>XX</code> :optional, 仅在键存在时更新值，如果 <code>key</code> 不存在，则设置无效，如果 <code>key</code> 存在，则更新值为 <code>value</code></li>
+</ol>
+</li>
+<li>除了set选项，Redis还提供了<code>setex</code>和<code>setnx</code>两个命令
+它们的作用和<code>ex</code>和<code>nx</code>选项是一样的</li>
+<li>获取字符串 键-值：<code>get key</code> </li>
+</ol>
+<h3 id="12">1.2 内部编码格式</h3>
+<h3 id="13">1.3 使用场景</h3>
+<h2 id="2">2. 哈希</h2>
+<p>在Redis中，哈希类型是指键值本身又是一个键值对结构，形如value={{field1，value1}，...{fieldN，valueN}}，Redis键值对和哈希类型二者的关系可以用下图表示：</p>
+<p><img alt="image.png" src="image%201.png" /></p>
+<p>哈希类型中的映射关系叫作field-value，注意这里的value是指field对应的值，不是键对应的值，请注意value在不同上下文的作用</p>
+<h3 id="21">2.1 命令</h3>
+<ol>
+<li>
+<p>设置值：<code>hset key field value</code> </p>
+<p>如果设置成功会返回1，反之会返回0。此外Redis提供了hsetnx命令，它们的关系就像set和setnx命令一样，<strong>只不过作用域由键变为field</strong></p>
+</li>
+<li>
+<p>获取值：<code>hget key field</code> 
+如果 field 不存在，则返回 nil</p>
+</li>
+<li>删除 field：<code>hdel key field [field2 …]</code></li>
+<li>计算 field 的个数：<code>hlen key</code></li>
+<li>批量设置或获取 field-value<ol>
+<li>设置：<code>hmset key field value [field value ...]</code> </li>
+<li>获取<code>hmget key field1 [field2 …]</code></li>
+</ol>
+</li>
+<li>判断 field 是否存在：<code>hexists key field</code> 存在返回1，否则返回0</li>
+<li>获取所有的 field ：<code>hkeys key</code></li>
+<li>获取所有的 value：<code>hvals key</code></li>
+<li>获取所有的 field-value：<code>hgetall key</code></li>
+</ol>
+<pre><code class="language-bash">127.0.0.1:6379&gt; hset exa_hash filed1 value1
+(integer) 1
+127.0.0.1:6379&gt; keys *
+1) &quot;ocr-gateway-vpc.redis.rds.aliyuncs.com&quot;
+2) &quot;hello&quot;
+3) &quot;exa_hash&quot;
+127.0.0.1:6379&gt; get exa_hash
+(error) WRONGTYPE Operation against a key holding the wrong kind of value
+127.0.0.1:6379&gt; hget exa_hash
+(error) ERR wrong number of arguments for 'hget' command
+127.0.0.1:6379&gt; hget exa_hash filed2
+(nil)
+127.0.0.1:6379&gt; keys exa_hash
+1) &quot;exa_hash&quot;
+127.0.0.1:6379&gt; hget exa_hash filed1
+&quot;value1&quot;
+127.0.0.1:6379&gt; hkeys exa_hash
+1) &quot;filed1&quot;
+127.0.0.1:6379&gt; hgetall exa_hash
+1) &quot;filed1&quot;
+2) &quot;value1&quot;
+127.0.0.1:6379&gt; 
+</code></pre>
+<h3 id="22">2.2 内部编码</h3>
+<p>哈希类型的内部编码有两种：</p>
+<ul>
+<li>ziplist（压缩列表）：当哈希类型元素个数小于hash-max-ziplist-entries配置（默认512个）、同时所有值都小于hash-max-ziplist-value配置（默认64字节）时，Redis会使用ziplist作为哈希的内部实现，ziplist使用更加紧凑的结构实现多个元素的连续存储，所以在节省内存方面比hashtable更加优秀。</li>
+<li>
+<p>hashtable（哈希表）：当哈希类型无法满足ziplist的条件时，Redis会使用hashtable作为哈希的内部实现，因为此时ziplist的读写效率会下降，而hashtable的读写时间复杂度为O（1）。</p>
+</li>
+<li>
+<p>当field个数比较少且没有大的value时，内部编码为ziplist：</p>
+</li>
+<li>当有value大于64字节，内部编码会由ziplist变为hashtable</li>
+<li>当field个数超过512，内部编码也会由ziplist变为hashtable：</li>
+</ul>
+<h3 id="23">2.3 使用场景</h3>
+<p>存储用户信息，表类型的机构等。</p>
+<h2 id="3">3. 列表</h2>
+<p>列表（list）类型是用来存储多个有序的字符串，如下图所示，a、b、c、d、e五个元素从左到右组成了一个有序的列表，列表中的每个字符串称为元素（element），一个列表最多可以存储 <code>2^32-1</code> 个元素。在Redis中，可以对列表两端插入（push）和弹出（pop），还可以获取指定范围的元素列表、获取指定索引下标的元素等。列表是一种比较灵活的数据结构，它可以充当栈和队列的角色，在实际开发上有很多应用场景</p>
+<p><img alt="列表" src="image%202.png" /></p>
+<p>列表</p>
+<p>列表类型有两个特点：</p>
+<p>第一、列表中的元素是有序的，这就意味着可以通过索引下标获取某个元素或者某个范围内的元素列表，例如要获取上图中的第5个元素，可以执行 <code>lindex user：1：message4</code>（索引从0算起）就可以得到元素 e。</p>
+<p>第二、列表中的元素可以是重复的</p>
+<h3 id="31">3.1 命令</h3>
+<p><img alt="image.png" src="image%203.png" /></p>
+<p><img alt="列表命令时间复杂度" src="image%204.png" /></p>
+<p>列表命令时间复杂度</p>
+<ol>
+<li>添加操作<ol>
+<li>从右边添加数据：<code>rpush key value [value …]</code></li>
+<li>从左边添加数据：<code>lpush key value [value …]</code> </li>
+<li>向某个元素前或后添加元素：<code>linsert key before|after pivot value</code> <ol>
+<li>linsert命令会从列表中找到等于pivot的元素，在其前（before）或者后（after）插入一个新的元素value</li>
+</ol>
+</li>
+</ol>
+</li>
+<li>查找<ol>
+<li>获取指定范围内的元素列表：<code>lrange key start end</code><ol>
+<li>start是开始下标，（下标范围 <code>0～n-1</code>）</li>
+</ol>
+</li>
+<li>获取指定下标的元素：<code>lindex key index</code></li>
+<li>获取列表长度：<code>llen key</code></li>
+</ol>
+</li>
+<li>删除<ol>
+<li>从列表左侧弹出元素：<code>lpop key</code></li>
+<li>从列表右侧弹出元素：<code>rpop key</code> </li>
+<li>删除指定value元素：<code>lrem key count value</code> 
+<code>lrem</code>命令会从列表中找到等于<code>value</code>的元素进行删除，根据count的不同分为三种情况：<ol>
+<li>count&gt;0，从左到右，删除最多count个元素。</li>
+<li>count&lt;0，从右到左，删除最多count绝对值个元素。</li>
+<li>count=0，删除所有。</li>
+</ol>
+</li>
+<li>按照索引范围内修剪列表：<code>ltrim key start end</code> 保留 [start, end] 内的元素</li>
+</ol>
+</li>
+<li>修改制定索引下标的元素：<code>lset key index newValue</code></li>
+<li>
+<p>阻塞操作</p>
+<p>阻塞式弹出如下</p>
+<p><code>blpop key [key ...] timeout</code>
+<code>brpop key [key ...] timeout</code></p>
+<p>blpop和brpop是lpop和rpop的阻塞版本，它们除了弹出方向不同，使用方法基本相同，所以下面以brpop命令进行说明，brpop命令包含两个参数：</p>
+<ul>
+<li><code>key[key...]</code>：多个列表的键。</li>
+<li><code>timeout</code>：阻塞时间（单位：秒）。<ul>
+<li>当列表为空：如果timeout=3，那么客户端要等到3秒后返回，如果timeout=0，那么客户端一直阻塞等下去，直到列表添加了元素，客户端会理解返回元素。</li>
+<li>当列表不为空：客户端会立即返回。</li>
+</ul>
+</li>
+</ul>
+</li>
+</ol>
+<p>在使用brpop时，有两点需要注意。
+<strong>第一点，</strong>如果是多个键，那么brpop会从左至右遍历键，一旦有一个键能弹出元素，客户端立即返回</p>
+<p><strong>第二点，</strong>如果多个客户端对同一个键执行brpop，那么最先执行brpop命令的客户端可以获取到弹出的值。</p>
+<pre><code class="language-bash">127.0.0.1:6379&gt; rpush l1 1 2 3
+(integer) 3
+127.0.0.1:6379&gt; lpush l1 4 5 6
+(integer) 6
+127.0.0.1:6379&gt; lrange l1 0 5
+1) &quot;6&quot;
+2) &quot;5&quot;
+3) &quot;4&quot;
+4) &quot;1&quot;
+5) &quot;2&quot;
+6) &quot;3&quot;
+127.0.0.1:6379&gt; lindex l1 0
+&quot;6&quot;
+127.0.0.1:6379&gt; llen l1
+(integer) 6
+127.0.0.1:6379&gt; lpop l1
+&quot;6&quot;
+127.0.0.1:6379&gt; rpop l1
+&quot;3&quot;
+127.0.0.1:6379&gt; lrem l1 0 1
+(integer) 1
+127.0.0.1:6379&gt; llen l1
+(integer) 3
+127.0.0.1:6379&gt; ltrim key 1 2
+OK
+127.0.0.1:6379&gt; ltrim l1 1 2
+OK
+127.0.0.1:6379&gt; lrange l1 0 2
+1) &quot;4&quot;
+2) &quot;2&quot;
+127.0.0.1:6379&gt; lset l1 0 3
+OK
+127.0.0.1:6379&gt; lrange l1 0 -1
+1) &quot;3&quot;
+2) &quot;2&quot;
+127.0.0.1:6379&gt; blpop l1 3
+1) &quot;l1&quot;
+2) &quot;3&quot;
+127.0.0.1:6379&gt; blpop l1 3
+1) &quot;l1&quot;
+2) &quot;2&quot;
+127.0.0.1:6379&gt; blpop l1 3
+(nil)
+(3.08s)
+</code></pre>
+<h3 id="32">3.2 内部编码</h3>
+<h3 id="33">3.3 使用场景</h3>
+<ol>
+<li>消息队列</li>
+<li>文章列表</li>
+</ol>
+<h2 id="4">4. 集合</h2>
+<p>集合（set）类型也是用来保存多个的字符串元素，但和列表类型不一样的是，集合中不允许有重复元素，并且集合中的元素是无序的，不能通过索引下标获取元素。如下图所示，集合user：1：follow包含着"it"、"music"、"his"、"sports"四个元素，一个集合最多可以存储 $2^{32}-1$ 个元素。Redis除了支持集合内的增删改查，同时还支持多个集合取交集、并集、差集，合理地使用好集合类型，能在实际开发中解决很多实际问题。</p>
+<p><img alt="image.png" src="image%205.png" /></p>
+<h3 id="41">4.1 命令</h3>
+<p>单个集合内操作：</p>
+<ol>
+<li>添加集合元素：<code>sadd key element [element …]</code><ol>
+<li>返回结果为添加成功的元素个数。</li>
+</ol>
+</li>
+<li>删除元素：<code>srem key element [element …]</code><ol>
+<li>返回结果为删除成功的元素个数。</li>
+</ol>
+</li>
+<li>计算元素个数：<code>scard key</code> <ol>
+<li><code>scard</code> 时间复杂度 <code>O(1)</code> ，它不会遍历集合，而是直接使用 Redis 内部的变量。</li>
+</ol>
+</li>
+<li>判断元素是否在集合中：<code>sismember key element</code><ol>
+<li>如果给定 <code>element</code> 在集合<code>key</code>中返回 1，否则返回0.</li>
+</ol>
+</li>
+<li>随机从集合返回指定个数的元素：<code>srandmember key [count]</code> <ol>
+<li>count 是可选参数，如果不写默认为 1.</li>
+</ol>
+</li>
+<li>从集合随机弹出元素：<code>spop key</code> </li>
+<li>获取所有元素：<code>smembers key</code> <ol>
+<li>返回结果是无序的。</li>
+</ol>
+</li>
+</ol>
+<p>集合间操作:</p>
+<p><img alt="image.png" src="image%206.png" /></p>
+<ol>
+<li>求多个集合的交集：<code>sinter key1 [key2 …]</code></li>
+<li>求多个集合的并集：<code>suinon key1 [key2 …]</code></li>
+<li>求多个集合的差集：<code>sdiff key1 [key2 …]</code></li>
+<li>将交集、并集、差集的结果保存<ol>
+<li><code>sinterstore destination key [key ...]
+suionstore  destination key [key ...]
+sdiffstore  destination key [key ...]</code></li>
+<li>保存到 <code>destination key</code> 中</li>
+</ol>
+</li>
+</ol>
+<h1 id="_2">快速使用</h1>
+<h2 id="_3">一、配置&amp;启动&amp;操作&amp;关闭</h2>
+<p>Redis 安装之后，<code>src</code> 和 <code>/usr/local/bin</code> 目录会有多几个 redis 开头的可执行文件，一般称之为 Redis Shell。</p>
+<table>
+<thead>
+<tr>
+<th>可执行文件</th>
+<th>作用</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>redis-server</td>
+<td>启动 redis 服务</td>
+</tr>
+<tr>
+<td>redis-cli</td>
+<td>Redis 命令行客户端</td>
+</tr>
+<tr>
+<td>redis-benchmark</td>
+<td>Redis 基准测试工具</td>
+</tr>
+<tr>
+<td>redis-check-aof</td>
+<td>Redis AOF 持久化文件检测和修复工具</td>
+</tr>
+<tr>
+<td>redis-check-dump</td>
+<td>Redis RDB 持久化文件检测和修复工具</td>
+</tr>
+<tr>
+<td>redis-sentinel</td>
+<td>启动 Redis Sentinel</td>
+</tr>
+</tbody>
+</table>
+<h3 id="1-redis-redis-server">1. 启动 Redis 服务（redis-server）</h3>
+<p>有三种方式启动 Redis：默认配置、运行配置、配置文件启动。</p>
+<p>（1）默认配置</p>
+<p>直接运行 <code>redis-server</code> 命令，会使用默认配置启动 Redis 服务。</p>
+<p>（2）运行启动（不推荐使用）</p>
+<p><code>redis-server</code> 加上要修改的配置名和值（可以是多对），没有设置的配置将使用默认配置：</p>
+<pre><code class="language-bash">redis-server --configKey1 configValue1 --configKey2 configValue2
+
+#例如，设置 port 为6380
+redis-server --port 6380
+</code></pre>
+<p>（3）配置文件启动（推荐）</p>
+<p>将配置写入到指定文件里，例如将配置写入到文件 <code>/opt/redis/redis.conf</code> 中，那么启动时只需要执行如下命令：</p>
+<pre><code class="language-bash">redis-server /opt/redis/redis.conf
+</code></pre>
+<p>redis-server 有 60 多个配置，这里列出一些常用配置：</p>
+<table>
+<thead>
+<tr>
+<th>配置名</th>
+<th>配置说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>port</td>
+<td>端口号</td>
+</tr>
+<tr>
+<td>logfile</td>
+<td>日志文件</td>
+</tr>
+<tr>
+<td>dir</td>
+<td>Redis 工作目录（存放持久化文件和日志文件）</td>
+</tr>
+<tr>
+<td>daemonize</td>
+<td>是否以守护进程的方式启动 Redis</td>
+</tr>
+</tbody>
+</table>
+<h3 id="2-redis">2. Redis 命令行客户端</h3>
+<p>上面我们已经启动了 Redis 服务，现在介绍如何使用 redis-cli 连接、操作 Redis 服务。redis-cli 可以使用以下两种方式连接到 Redis 服务器。</p>
+<p>（1）交互式方式连接 Redis 服务器。（<strong>推荐使用</strong>）</p>
+<ul>
+<li><code>redis-cli</code> 默认连接 <code>127.0.0.1:6379</code>，所以可以直接使用 <code>redis-cli</code> 命令连接这个默认配置服务。</li>
+</ul>
+<pre><code class="language-bash">redis-cli -h host -p port -a password  # -a 加密码 
+例如：
+redis-cli -h 127.0.0.1 -p 6379
+</code></pre>
+<p>（2）命令方式:</p>
+<pre><code class="language-bash">redis-cli -h host -p port command
+#例如
+redis-cli -h 127.0.0.1 -p 6379 get hello
+--&gt; &quot;world&quot;
+</code></pre>
+<h3 id="3-redis">3. 停止 Redis 服务</h3>
+<p>Redis 提供了 shutdown 命令来停止 Redis 服务，例如要停掉 127.0.0.1:6379 的Redis 服务，直接运行命令 <code>redis-cli shutdown</code> 即可。</p>
+<pre><code class="language-bash">redis-cli shutdown nosave|save
+# 使用 save 可以在关闭时生成持久化文件，避免数据丢失
+</code></pre>
+<aside>
+💡
+
+mac上可以通过使用 brew 管理 Redis 服务
+
+启动：brew services start redis
+
+停止：brew services stop redis
+
+</aside>
+
+<h3 id="4-systemd-redis">4. 使用 systemd 管理 Redis 服务</h3>
+<p>可以使用 systemd 服务来管理 Redis，这更加可靠和标准化。在 <code>/etc/systemd/system/</code> 目录中创建一个名为 <code>redis.service</code> 的文件，并写入以下内容：</p>
+<pre><code class="language-bash">[Unit]
+Description=Redis In-Memory Data Store
+After=network.target
+
+[Service]
+ExecStart=/usr/local/bin/redis-server /etc/redis/redis.conf
+ExecStop=/usr/local/bin/redis-cli shutdown save
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
+</code></pre>
+<p>确保路径和配置文件的位置与您的环境相匹配。接下来，重新加载 systemd 配置并启动 Redis：</p>
+<pre><code class="language-bash">sudo systemctl daemon-reload
+sudo systemctl start redis
+sudo systemctl enable redis  # 设置为开机启动
+</code></pre>
+<h2 id="_4">二、常用命令</h2>
+<ol>
+<li>查看所有键： <code>keys *</code> </li>
+<li>查看键的总数： <code>dbsize</code></li>
+<li>检查键是否存在：<code>exists key</code></li>
+<li>删除键：<code>del key1 key2</code></li>
+<li>设置键过期时间：<code>expire key seconds</code></li>
+<li>
+<p>查看键是否过期：<code>ttl key</code> </p>
+<p><code>ttl</code> 命令会返回键的剩余过期时间，它有3种返回值：</p>
+<ul>
+<li>大于等于0的整数：键剩余的过期时间。</li>
+<li><code>-1</code> ：键没有设置过期时间。</li>
+<li><code>-2</code> ：键不存在。</li>
+<li>查看键的数据结构类型：<code>type key</code></li>
+<li>查看键的数据结构的 内部编码格式：<code>object encoding key</code></li>
+<li>切换数据库：<code>select db_index</code></li>
+</ul>
+</li>
+</ol></div>
+            </div>
+        </div>
+
+        <footer class="col-md-12">
+            <hr>
+            <p>Documentation built with <a href="https://www.mkdocs.org/">MkDocs</a>.</p>
+        </footer>
+        <script src="../../../js/bootstrap.bundle.min.js"></script>
+        <script>
+            var base_url = "../../..",
+                shortcuts = {"help": 191, "next": 78, "previous": 80, "search": 83};
+        </script>
+        <script src="../../../js/base.js"></script>
+        <script src="../../../search/main.js"></script>
+
+        <div class="modal" id="mkdocs_search_modal" tabindex="-1" role="dialog" aria-labelledby="searchModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="searchModalLabel">Search</h4>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>From here you can search these documents. Enter your search terms below.</p>
+                <form>
+                    <div class="form-group">
+                        <input type="search" class="form-control" placeholder="Search..." id="mkdocs-search-query" title="Type search term here">
+                    </div>
+                </form>
+                <div id="mkdocs-search-results" data-no-results-text="No results found"></div>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div><div class="modal" id="mkdocs_keyboard_modal" tabindex="-1" role="dialog" aria-labelledby="keyboardModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="keyboardModalLabel">Keyboard Shortcuts</h4>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th style="width: 20%;">Keys</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td class="help shortcut"><kbd>?</kbd></td>
+                    <td>Open this help</td>
+                  </tr>
+                  <tr>
+                    <td class="next shortcut"><kbd>n</kbd></td>
+                    <td>Next page</td>
+                  </tr>
+                  <tr>
+                    <td class="prev shortcut"><kbd>p</kbd></td>
+                    <td>Previous page</td>
+                  </tr>
+                  <tr>
+                    <td class="search shortcut"><kbd>s</kbd></td>
+                    <td>Search</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div>
+
+    </body>
+</html>

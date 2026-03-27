@@ -1,0 +1,835 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="light">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        
+        
+        
+        <link rel="shortcut icon" href="../../../img/favicon.ico">
+        <title>回溯算法（Backtracking）知识点 - My Docs</title>
+        <link href="../../../css/bootstrap.min.css" rel="stylesheet">
+        <link href="../../../css/fontawesome.min.css" rel="stylesheet">
+        <link href="../../../css/brands.min.css" rel="stylesheet">
+        <link href="../../../css/solid.min.css" rel="stylesheet">
+        <link href="../../../css/v4-font-face.min.css" rel="stylesheet">
+        <link href="../../../css/base.css" rel="stylesheet">
+        <link id="hljs-light" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" >
+        <link id="hljs-dark" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github-dark.min.css" disabled>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+        <script>hljs.highlightAll();</script> 
+    </head>
+
+    <body>
+        <div class="navbar fixed-top navbar-expand-lg navbar-dark bg-primary">
+            <div class="container">
+                <a class="navbar-brand" href="../../..">My Docs</a>
+
+                <!-- Expanded navigation -->
+                <div id="navbar-collapse" class="navbar-collapse collapse">
+
+                    <ul class="nav navbar-nav ms-md-auto">
+                        <li class="nav-item">
+                            <a href="#" class="nav-link" data-bs-toggle="modal" data-bs-target="#mkdocs_search_modal">
+                                <i class="fa fa-search"></i> Search
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="container">
+            <div class="row">
+                    <div class="col-md-3"><div class="navbar-expand-md bs-sidebar hidden-print affix" role="complementary">
+    <div class="navbar-header">
+        <button type="button" class="navbar-toggler collapsed" data-bs-toggle="collapse" data-bs-target="#toc-collapse" title="Table of Contents">
+            <span class="fa fa-angle-down"></span>
+        </button>
+    </div>
+
+    
+    <div id="toc-collapse" class="navbar-collapse collapse card bg-body-tertiary">
+        <ul class="nav flex-column">
+            
+            <li class="nav-item" data-bs-level="1"><a href="#backtracking" class="nav-link">回溯算法（Backtracking）知识点</a>
+              <ul class="nav flex-column">
+            <li class="nav-item" data-bs-level="2"><a href="#1" class="nav-link">1. 概述</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#2" class="nav-link">2. 回溯模板 ⭐⭐⭐</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#3" class="nav-link">3. 组合进阶 ⭐⭐</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#4" class="nav-link">4. 分割问题 ⭐</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#5" class="nav-link">5. 棋盘问题 ⭐⭐⭐</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#6" class="nav-link">6. 经典算法题</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#7" class="nav-link">7. 回溯优化技巧</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#8" class="nav-link">8. 本章小结</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+              </ul>
+            </li>
+        </ul>
+    </div>
+</div></div>
+                    <div class="col-md-9" role="main">
+
+<h1 id="backtracking">回溯算法（Backtracking）知识点</h1>
+<hr />
+<h2 id="1">1. 概述</h2>
+<p><strong>回溯算法</strong>是一种通过探索所有可能候选解来找出所有解的算法。</p>
+<h3 id="_1">核心思想</h3>
+<ul>
+<li><strong>试错思想</strong>：大胆尝试，不行就回退</li>
+<li><strong>深度优先搜索</strong>：一条路走到黑，走不通就 backtrack</li>
+<li><strong>剪枝优化</strong>：提前判断，避免无效搜索</li>
+</ul>
+<pre><code>回溯算法框架：
+
+result = []
+def backtrack(路径，选择列表):
+    if 满足结束条件:
+        result.add(路径)
+        return
+
+    for 选择 in 选择列表:
+        做选择
+        backtrack(路径，选择列表)
+        撤销选择
+</code></pre>
+<h3 id="_2">适用场景</h3>
+<p>✅ <strong>组合问题</strong>：N 个数里选 k 个<br />
+✅ <strong>排列问题</strong>：N 个数全排列<br />
+✅ <strong>切割问题</strong>：字符串分割<br />
+✅ <strong>子集问题</strong>：所有子集<br />
+✅ <strong>棋盘问题</strong>：N 皇后、数独  </p>
+<hr />
+<h2 id="2">2. 回溯模板 ⭐⭐⭐</h2>
+<h3 id="21">2.1 基础模板</h3>
+<pre><code class="language-python">def backtrack_template():
+    result = []
+
+    def backtrack(path, choices):
+        # 结束条件
+        if is_done(path):
+            result.append(path[:])  # 复制路径
+            return
+
+        # 遍历选择
+        for choice in choices:
+            # 剪枝：判断选择是否合法
+            if not is_valid(choice):
+                continue
+
+            # 做选择
+            path.append(choice)
+
+            # 递归
+            backtrack(path, new_choices)
+
+            # 撤销选择（回溯）
+            path.pop()
+
+    backtrack([], initial_choices)
+    return result
+</code></pre>
+<h3 id="22">2.2 组合问题</h3>
+<pre><code class="language-python">def combine(n: int, k: int) -&gt; List[List[int]]:
+    &quot;&quot;&quot;
+    LeetCode 77：组合
+
+    从 1..n 中选 k 个数的所有组合
+
+    组合：不考虑顺序 [1,2] = [2,1]
+    &quot;&quot;&quot;
+    result = []
+
+    def backtrack(start, path):
+        # 结束条件
+        if len(path) == k:
+            result.append(path[:])
+            return
+
+        # 遍历选择（剪枝：剩余元素不够时停止）
+        for i in range(start, n + 1 - (k - len(path)) + 1):
+            path.append(i)
+            backtrack(i + 1, path)
+            path.pop()
+
+    backtrack(1, [])
+    return result
+
+
+# 示例
+print(combine(4, 2))
+# [[1,2], [1,3], [1,4], [2,3], [2,4], [3,4]]
+</code></pre>
+<pre><code>回溯树（n=4, k=2）：
+
+              []
+            /  |  \
+          [1] [2] [3]
+         / | \  |  \
+      [1,2][1,3][1,4][2,3][2,4][3,4]  ← 收集结果
+</code></pre>
+<h3 id="23">2.3 排列问题</h3>
+<pre><code class="language-python">def permute(nums: List[int]) -&gt; List[List[int]]:
+    &quot;&quot;&quot;
+    LeetCode 46：全排列
+
+    返回所有可能的排列
+
+    排列：考虑顺序 [1,2] ≠ [2,1]
+    &quot;&quot;&quot;
+    result = []
+
+    def backtrack(path, used):
+        # 结束条件
+        if len(path) == len(nums):
+            result.append(path[:])
+            return
+
+        # 遍历选择
+        for i in range(len(nums)):
+            # 剪枝：已使用的不能用
+            if used[i]:
+                continue
+
+            # 做选择
+            path.append(nums[i])
+            used[i] = True
+
+            backtrack(path, used)
+
+            # 撤销选择
+            path.pop()
+            used[i] = False
+
+    backtrack([], [False] * len(nums))
+    return result
+
+
+# 示例
+print(permute([1, 2, 3]))
+# [[1,2,3], [1,3,2], [2,1,3], [2,3,1], [3,1,2], [3,2,1]]
+</code></pre>
+<pre><code>回溯树（[1,2,3]）：
+
+                []
+              /  |  \
+            [1] [2] [3]
+           / \  / \  / \
+       [1,2][1,3]...    ← 继续直到长度为 3
+</code></pre>
+<h3 id="24">2.4 子集问题</h3>
+<pre><code class="language-python">def subsets(nums: List[int]) -&gt; List[List[int]]:
+    &quot;&quot;&quot;
+    LeetCode 78：子集
+
+    返回所有可能的子集（幂集）
+    &quot;&quot;&quot;
+    result = []
+
+    def backtrack(start, path):
+        # 每个节点都是结果（包括空集）
+        result.append(path[:])
+
+        # 遍历选择
+        for i in range(start, len(nums)):
+            path.append(nums[i])
+            backtrack(i + 1, path)
+            path.pop()
+
+    backtrack(0, [])
+    return result
+
+
+# 示例
+print(subsets([1, 2, 3]))
+# [[], [1], [1,2], [1,2,3], [1,3], [2], [2,3], [3]]
+</code></pre>
+<hr />
+<h2 id="3">3. 组合进阶 ⭐⭐</h2>
+<h3 id="31">3.1 组合总和</h3>
+<pre><code class="language-python">def combinationSum(candidates: List[int], target: int) -&gt; List[List[int]]:
+    &quot;&quot;&quot;
+    LeetCode 39：组合总和
+
+    数字可以重复使用
+    &quot;&quot;&quot;
+    result = []
+
+    def backtrack(start, path, total):
+        # 结束条件
+        if total == target:
+            result.append(path[:])
+            return
+
+        # 剪枝：超过目标值
+        if total &gt; target:
+            return
+
+        # 遍历选择
+        for i in range(start, len(candidates)):
+            path.append(candidates[i])
+            # i 不变（可以重复使用）
+            backtrack(i, path, total + candidates[i])
+            path.pop()
+
+    backtrack(0, [], 0)
+    return result
+
+
+# 示例
+candidates = [2, 3, 6, 7]
+target = 7
+print(combinationSum(candidates, target))
+# [[2,2,3], [7]]
+</code></pre>
+<h3 id="32-ii">3.2 组合总和 II</h3>
+<pre><code class="language-python">def combinationSum2(candidates: List[int], target: int) -&gt; List[List[int]]:
+    &quot;&quot;&quot;
+    LeetCode 40：组合总和 II
+
+    每个数字只能用一次，结果不能重复
+
+    关键：排序 + 去重
+    &quot;&quot;&quot;
+    result = []
+    candidates.sort()
+
+    def backtrack(start, path, total):
+        if total == target:
+            result.append(path[:])
+            return
+
+        if total &gt; target:
+            return
+
+        for i in range(start, len(candidates)):
+            # 去重：同一层不能重复
+            if i &gt; start and candidates[i] == candidates[i - 1]:
+                continue
+
+            path.append(candidates[i])
+            backtrack(i + 1, path, total + candidates[i])
+            path.pop()
+
+    backtrack(0, [], 0)
+    return result
+
+
+# 示例
+candidates = [10, 1, 2, 7, 6, 1, 5]
+target = 8
+print(combinationSum2(candidates, target))
+# [[1,1,6], [1,2,5], [1,7], [2,6]]
+</code></pre>
+<hr />
+<h2 id="4">4. 分割问题 ⭐</h2>
+<h3 id="41">4.1 回文分割</h3>
+<pre><code class="language-python">def partition(s: str) -&gt; List[List[str]]:
+    &quot;&quot;&quot;
+    LeetCode 131：分割回文串
+
+    将字符串分割成所有可能的回文子串
+    &quot;&quot;&quot;
+    result = []
+
+    def backtrack(start, path):
+        # 结束条件
+        if start == len(s):
+            result.append(path[:])
+            return
+
+        # 遍历选择
+        for i in range(start, len(s)):
+            substring = s[start:i + 1]
+
+            # 剪枝：不是回文跳过
+            if not is_palindrome(substring):
+                continue
+
+            path.append(substring)
+            backtrack(i + 1, path)
+            path.pop()
+
+    def is_palindrome(sub):
+        return sub == sub[::-1]
+
+    backtrack(0, [])
+    return result
+
+
+# 示例
+s = &quot;aab&quot;
+print(partition(s))
+# [[&quot;a&quot;,&quot;a&quot;,&quot;b&quot;], [&quot;aa&quot;,&quot;b&quot;]]
+</code></pre>
+<h3 id="42-ip">4.2 复原 IP 地址</h3>
+<pre><code class="language-python">def restoreIpAddresses(s: str) -&gt; List[str]:
+    &quot;&quot;&quot;
+    LeetCode 93：复原 IP 地址
+
+    将字符串恢复成所有可能的 IP 地址
+    &quot;&quot;&quot;
+    result = []
+
+    def backtrack(start, path):
+        # 结束条件
+        if len(path) == 4:
+            if start == len(s):
+                result.append('.'.join(path))
+            return
+
+        # 遍历选择（最多 3 位）
+        for i in range(start, min(start + 3, len(s))):
+            segment = s[start:i + 1]
+
+            # 剪枝
+            if not is_valid(segment):
+                continue
+
+            path.append(segment)
+            backtrack(i + 1, path)
+            path.pop()
+
+    def is_valid(seg):
+        # 不能有前导 0（除非是单个 0）
+        if len(seg) &gt; 1 and seg[0] == '0':
+            return False
+        # 不能超过 255
+        return int(seg) &lt;= 255
+
+    backtrack(0, [])
+    return result
+
+
+# 示例
+s = &quot;25525511135&quot;
+print(restoreIpAddresses(s))
+# [&quot;255.255.11.135&quot;, &quot;255.255.111.35&quot;]
+</code></pre>
+<hr />
+<h2 id="5">5. 棋盘问题 ⭐⭐⭐</h2>
+<h3 id="51-n">5.1 N 皇后</h3>
+<pre><code class="language-python">def solveNQueens(n: int) -&gt; List[List[str]]:
+    &quot;&quot;&quot;
+    LeetCode 51：N 皇后
+
+    在 n×n 棋盘上放置 n 个皇后，使它们互不攻击
+
+    皇后可以攻击：同行、同列、同对角线
+    &quot;&quot;&quot;
+    result = []
+    board = [['.'] * n for _ in range(n)]
+    cols = set()
+    diag1 = set()  # 主对角线 (row - col)
+    diag2 = set()  # 副对角线 (row + col)
+
+    def backtrack(row):
+        # 结束条件
+        if row == n:
+            result.append([''.join(r) for r in board])
+            return
+
+        for col in range(n):
+            # 剪枝：检查是否被攻击
+            if col in cols or (row - col) in diag1 or (row + col) in diag2:
+                continue
+
+            # 做选择
+            board[row][col] = 'Q'
+            cols.add(col)
+            diag1.add(row - col)
+            diag2.add(row + col)
+
+            backtrack(row + 1)
+
+            # 撤销选择
+            board[row][col] = '.'
+            cols.remove(col)
+            diag1.remove(row - col)
+            diag2.remove(row + col)
+
+    backtrack(0)
+    return result
+
+
+# 示例
+print(solveNQueens(4))
+# [
+#   [&quot;.Q..&quot;, &quot;...Q&quot;, &quot;Q...&quot;, &quot;..Q.&quot;],
+#   [&quot;..Q.&quot;, &quot;Q...&quot;, &quot;...Q&quot;, &quot;.Q..&quot;]
+# ]
+</code></pre>
+<pre><code>N 皇后回溯树（n=4）：
+
+第 0 行：Q . . .   尝试每列
+第 1 行：. . Q .   检查是否被攻击
+第 2 行：. . . .   不行就回溯
+第 3 行：. . . .
+</code></pre>
+<h3 id="52">5.2 解数独</h3>
+<pre><code class="language-python">def solveSudoku(board: List[List[str]]) -&gt; None:
+    &quot;&quot;&quot;
+    LeetCode 37：解数独
+
+    回溯 + 剪枝
+    &quot;&quot;&quot;
+    def is_valid(row, col, num):
+        for i in range(9):
+            # 检查行、列、3x3 宫
+            if (board[row][i] == num or
+                board[i][col] == num or
+                board[3 * (row // 3) + i // 3][3 * (col // 3) + i % 3] == num):
+                return False
+        return True
+
+    def backtrack():
+        for row in range(9):
+            for col in range(9):
+                # 找空位
+                if board[row][col] == '.':
+                    # 尝试 1-9
+                    for num in '123456789':
+                        if is_valid(row, col, num):
+                            board[row][col] = num
+
+                            if backtrack():
+                                return True
+
+                            board[row][col] = '.'
+
+                    return False  # 无解
+
+        return True  # 所有位置都填好了
+
+    backtrack()
+</code></pre>
+<hr />
+<h2 id="6">6. 经典算法题</h2>
+<h3 id="61-ii">6.1 全排列 II（含重复元素）</h3>
+<pre><code class="language-python">def permuteUnique(nums: List[int]) -&gt; List[List[int]]:
+    &quot;&quot;&quot;
+    LeetCode 47：全排列 II
+
+    数字可能重复，求不重复的全排列
+    &quot;&quot;&quot;
+    result = []
+    nums.sort()
+    used = [False] * len(nums)
+
+    def backtrack(path):
+        if len(path) == len(nums):
+            result.append(path[:])
+            return
+
+        for i in range(len(nums)):
+            # 剪枝：同一层不能重复
+            if used[i]:
+                continue
+            if i &gt; 0 and nums[i] == nums[i - 1] and not used[i - 1]:
+                continue
+
+            used[i] = True
+            path.append(nums[i])
+            backtrack(path)
+            path.pop()
+            used[i] = False
+
+    backtrack([])
+    return result
+
+
+# 示例
+nums = [1, 1, 2]
+print(permuteUnique(nums))
+# [[1,1,2], [1,2,1], [2,1,1]]
+</code></pre>
+<h3 id="63">6.3 单词搜索</h3>
+<pre><code class="language-python">def exist(board: List[List[str]], word: str) -&gt; bool:
+    &quot;&quot;&quot;
+    LeetCode 79：单词搜索
+
+    在二维网格中查找单词
+    &quot;&quot;&quot;
+    m, n = len(board), len(board[0])
+
+    def backtrack(row, col, index):
+        # 结束条件
+        if index == len(word):
+            return True
+
+        # 边界检查和字符匹配
+        if (row &lt; 0 or row &gt;= m or col &lt; 0 or col &gt;= n or
+            board[row][col] != word[index]):
+            return False
+
+        # 标记已访问
+        temp = board[row][col]
+        board[row][col] = '#'
+
+        # 四个方向
+        found = (backtrack(row + 1, col, index + 1) or
+                 backtrack(row - 1, col, index + 1) or
+                 backtrack(row, col + 1, index + 1) or
+                 backtrack(row, col - 1, index + 1))
+
+        # 恢复
+        board[row][col] = temp
+
+        return found
+
+    for i in range(m):
+        for j in range(n):
+            if backtrack(i, j, 0):
+                return True
+
+    return False
+</code></pre>
+<h3 id="64">6.4 刷题推荐</h3>
+<table>
+<thead>
+<tr>
+<th>题目</th>
+<th>难度</th>
+<th>类型</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>LeetCode 77</td>
+<td>中等</td>
+<td>组合</td>
+</tr>
+<tr>
+<td>LeetCode 46</td>
+<td>中等</td>
+<td>全排列</td>
+</tr>
+<tr>
+<td>LeetCode 78</td>
+<td>中等</td>
+<td>子集</td>
+</tr>
+<tr>
+<td>LeetCode 39</td>
+<td>中等</td>
+<td>组合总和</td>
+</tr>
+<tr>
+<td>LeetCode 40</td>
+<td>中等</td>
+<td>组合总和 II</td>
+</tr>
+<tr>
+<td>LeetCode 131</td>
+<td>中等</td>
+<td>回文分割</td>
+</tr>
+<tr>
+<td>LeetCode 51</td>
+<td>困难</td>
+<td>N 皇后</td>
+</tr>
+<tr>
+<td>LeetCode 37</td>
+<td>困难</td>
+<td>解数独</td>
+</tr>
+<tr>
+<td>LeetCode 79</td>
+<td>中等</td>
+<td>单词搜索</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="7">7. 回溯优化技巧</h2>
+<h3 id="71">7.1 剪枝</h3>
+<pre><code class="language-python"># 1. 可行性剪枝：提前判断是否可行
+if current_sum &gt; target:
+    return
+
+# 2. 最优性剪枝：当前解已不如已知最优解
+if current_cost &gt;= best_cost:
+    return
+
+# 3. 去重剪枝：避免重复解
+if i &gt; start and candidates[i] == candidates[i - 1]:
+    continue
+</code></pre>
+<h3 id="72">7.2 排序优化</h3>
+<pre><code class="language-python"># 排序后可以更早触发剪枝
+candidates.sort()
+
+# 从大到小排序，更快接近目标
+candidates.sort(reverse=True)
+</code></pre>
+<h3 id="73">7.3 状态压缩</h3>
+<pre><code class="language-python"># 用位运算代替集合
+used = 0  # 位掩码
+
+# 检查第 i 位是否使用
+if used &amp; (1 &lt;&lt; i):
+    continue
+
+# 标记第 i 位为已使用
+used |= (1 &lt;&lt; i)
+
+# 撤销
+used &amp;= ~(1 &lt;&lt; i)
+</code></pre>
+<hr />
+<h2 id="8">8. 本章小结</h2>
+<h3 id="_3">核心知识点</h3>
+<p>✅ 回溯模板：路径、选择列表、结束条件<br />
+✅ 组合问题：不考虑顺序<br />
+✅ 排列问题：考虑顺序<br />
+✅ 子集问题：所有子集<br />
+✅ 棋盘问题：N 皇后、数独  </p>
+<h3 id="_4">重点掌握</h3>
+<ol>
+<li><strong>回溯框架</strong>：做选择 → 递归 → 撤销选择</li>
+<li><strong>剪枝优化</strong>：提前判断，减少搜索空间</li>
+<li><strong>去重技巧</strong>：排序 + 判断</li>
+<li><strong>状态管理</strong>：used 数组、集合、位掩码</li>
+</ol>
+<h3 id="_5">问题类型</h3>
+<table>
+<thead>
+<tr>
+<th>类型</th>
+<th>特点</th>
+<th>代表题</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>组合</td>
+<td>不考虑顺序</td>
+<td>LeetCode 77</td>
+</tr>
+<tr>
+<td>排列</td>
+<td>考虑顺序</td>
+<td>LeetCode 46</td>
+</tr>
+<tr>
+<td>子集</td>
+<td>所有子集</td>
+<td>LeetCode 78</td>
+</tr>
+<tr>
+<td>分割</td>
+<td>切割字符串</td>
+<td>LeetCode 131</td>
+</tr>
+<tr>
+<td>棋盘</td>
+<td>二维约束</td>
+<td>LeetCode 51</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<p>🎉 <strong>恭喜完成回溯算法学习！继续学习 <a href="../13_%E6%BB%91%E5%8A%A8%E7%AA%97%E5%8F%A3/">13_滑动窗口.md</a></strong></p></div>
+            </div>
+        </div>
+
+        <footer class="col-md-12">
+            <hr>
+            <p>Documentation built with <a href="https://www.mkdocs.org/">MkDocs</a>.</p>
+        </footer>
+        <script src="../../../js/bootstrap.bundle.min.js"></script>
+        <script>
+            var base_url = "../../..",
+                shortcuts = {"help": 191, "next": 78, "previous": 80, "search": 83};
+        </script>
+        <script src="../../../js/base.js"></script>
+        <script src="../../../search/main.js"></script>
+
+        <div class="modal" id="mkdocs_search_modal" tabindex="-1" role="dialog" aria-labelledby="searchModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="searchModalLabel">Search</h4>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>From here you can search these documents. Enter your search terms below.</p>
+                <form>
+                    <div class="form-group">
+                        <input type="search" class="form-control" placeholder="Search..." id="mkdocs-search-query" title="Type search term here">
+                    </div>
+                </form>
+                <div id="mkdocs-search-results" data-no-results-text="No results found"></div>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div><div class="modal" id="mkdocs_keyboard_modal" tabindex="-1" role="dialog" aria-labelledby="keyboardModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="keyboardModalLabel">Keyboard Shortcuts</h4>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th style="width: 20%;">Keys</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td class="help shortcut"><kbd>?</kbd></td>
+                    <td>Open this help</td>
+                  </tr>
+                  <tr>
+                    <td class="next shortcut"><kbd>n</kbd></td>
+                    <td>Next page</td>
+                  </tr>
+                  <tr>
+                    <td class="prev shortcut"><kbd>p</kbd></td>
+                    <td>Previous page</td>
+                  </tr>
+                  <tr>
+                    <td class="search shortcut"><kbd>s</kbd></td>
+                    <td>Search</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div>
+
+    </body>
+</html>

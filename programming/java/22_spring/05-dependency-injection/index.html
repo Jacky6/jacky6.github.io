@@ -1,0 +1,877 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="light">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        
+        
+        
+        <link rel="shortcut icon" href="../../../../img/favicon.ico">
+        <title>05. 依赖注入 - My Docs</title>
+        <link href="../../../../css/bootstrap.min.css" rel="stylesheet">
+        <link href="../../../../css/fontawesome.min.css" rel="stylesheet">
+        <link href="../../../../css/brands.min.css" rel="stylesheet">
+        <link href="../../../../css/solid.min.css" rel="stylesheet">
+        <link href="../../../../css/v4-font-face.min.css" rel="stylesheet">
+        <link href="../../../../css/base.css" rel="stylesheet">
+        <link id="hljs-light" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" >
+        <link id="hljs-dark" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github-dark.min.css" disabled>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+        <script>hljs.highlightAll();</script> 
+    </head>
+
+    <body>
+        <div class="navbar fixed-top navbar-expand-lg navbar-dark bg-primary">
+            <div class="container">
+                <a class="navbar-brand" href="../../../..">My Docs</a>
+
+                <!-- Expanded navigation -->
+                <div id="navbar-collapse" class="navbar-collapse collapse">
+
+                    <ul class="nav navbar-nav ms-md-auto">
+                        <li class="nav-item">
+                            <a href="#" class="nav-link" data-bs-toggle="modal" data-bs-target="#mkdocs_search_modal">
+                                <i class="fa fa-search"></i> Search
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="container">
+            <div class="row">
+                    <div class="col-md-3"><div class="navbar-expand-md bs-sidebar hidden-print affix" role="complementary">
+    <div class="navbar-header">
+        <button type="button" class="navbar-toggler collapsed" data-bs-toggle="collapse" data-bs-target="#toc-collapse" title="Table of Contents">
+            <span class="fa fa-angle-down"></span>
+        </button>
+    </div>
+
+    
+    <div id="toc-collapse" class="navbar-collapse collapse card bg-body-tertiary">
+        <ul class="nav flex-column">
+            
+            <li class="nav-item" data-bs-level="1"><a href="#05" class="nav-link">05. 依赖注入</a>
+              <ul class="nav flex-column">
+            <li class="nav-item" data-bs-level="2"><a href="#_1" class="nav-link">什么是依赖注入？</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#spring-ioc" class="nav-link">Spring IoC 容器</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#bean" class="nav-link">Bean 的作用域</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#bean_1" class="nav-link">定义 Bean 的方式</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#_4" class="nav-link">依赖注入的方式</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#autowired" class="nav-link">@Autowired 详解</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#_7" class="nav-link">配置类</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#bean_3" class="nav-link">条件化 Bean</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#_9" class="nav-link">属性注入</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#bean_4" class="nav-link">Bean 的初始化和销毁</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#_13" class="nav-link">循环依赖</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#_16" class="nav-link">最佳实践</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#_19" class="nav-link">下一步</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#_20" class="nav-link">参考资源</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+              </ul>
+            </li>
+        </ul>
+    </div>
+</div></div>
+                    <div class="col-md-9" role="main">
+
+<h1 id="05">05. 依赖注入</h1>
+<h2 id="_1">什么是依赖注入？</h2>
+<p><strong>依赖注入（Dependency Injection, DI）</strong> 是一种设计模式，用于实现<strong>控制反转（Inversion of Control, IoC）</strong>。</p>
+<h3 id="vs">传统方式 vs 依赖注入</h3>
+<pre><code class="language-java">// ❌ 传统方式：对象自己创建依赖
+public class UserService {
+    private UserRepository repository = new UserRepository();
+    private EmailService email = new EmailService();
+
+    // 问题：
+    // 1. 紧耦合，难以替换实现
+    // 2. 难以单元测试
+    // 3. 职责不清晰
+}
+
+// ✅ 依赖注入：由容器注入依赖
+public class UserService {
+    private final UserRepository repository;
+    private final EmailService email;
+
+    // 通过构造函数注入
+    public UserService(UserRepository repository, EmailService email) {
+        this.repository = repository;
+        this.email = email;
+    }
+
+    // 优点：
+    // 1. 松耦合，容易替换实现
+    // 2. 易于测试（可以注入 Mock）
+    // 3. 职责清晰
+}
+</code></pre>
+<h2 id="spring-ioc">Spring IoC 容器</h2>
+<h3 id="_2">容器概述</h3>
+<pre><code>┌─────────────────────────────────────────────────┐
+│          Spring IoC 容器                         │
+├─────────────────────────────────────────────────┤
+│                                                 │
+│  ┌─────────────┐    ┌─────────────────────┐    │
+│  │ BeanFactory │ ←─ │ ApplicationContext  │    │
+│  │ (基础容器)   │    │ (高级容器)          │    │
+│  └─────────────┘    └─────────────────────┘    │
+│                            ↓                    │
+│         ┌──────────────────┼──────────────┐    │
+│         ↓                  ↓              ↓    │
+│   ┌──────────┐    ┌──────────────┐ ┌────────┐ │
+│   │ Bean 管理 │    │ 依赖注入     │ │ AOP    │ │
+│   └──────────┘    └──────────────┘ └────────┘ │
+│                                                 │
+└─────────────────────────────────────────────────┘
+</code></pre>
+<h3 id="beanfactory-vs-applicationcontext">BeanFactory vs ApplicationContext</h3>
+<table>
+<thead>
+<tr>
+<th>特性</th>
+<th>BeanFactory</th>
+<th>ApplicationContext</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>定位</strong></td>
+<td>基础容器</td>
+<td>高级容器（推荐）</td>
+</tr>
+<tr>
+<td><strong>Bean 初始化</strong></td>
+<td>懒加载</td>
+<td>预加载单例 Bean</td>
+</tr>
+<tr>
+<td><strong>功能</strong></td>
+<td>基础 DI</td>
+<td>DI + AOP + 事件 + 国际化</td>
+</tr>
+<tr>
+<td><strong>使用场景</strong></td>
+<td>资源受限环境</td>
+<td>企业应用（默认）</td>
+</tr>
+</tbody>
+</table>
+<h2 id="bean">Bean 的作用域</h2>
+<h3 id="_3">六种作用域</h3>
+<pre><code class="language-java">// 1. singleton - 单例（默认）
+// 整个应用中只有一个实例
+@Scope(&quot;singleton&quot;)
+@Component
+public class UserService { ... }
+
+// 2. prototype - 原型
+// 每次请求都创建新实例
+@Scope(&quot;prototype&quot;)
+@Component
+public class StatefulBean { ... }
+
+// 3. request - 请求作用域（Web）
+// 每个 HTTP 请求一个实例
+@Scope(value = WebApplicationContext.SCOPE_REQUEST)
+@Component
+public class RequestBean { ... }
+
+// 4. session - 会话作用域（Web）
+// 每个 HTTP Session 一个实例
+@Scope(value = WebApplicationContext.SCOPE_SESSION)
+@Component
+public class SessionBean { ... }
+
+// 5. application - 应用作用域（Web）
+// 每个 ServletContext 一个实例
+@Scope(value = WebApplicationContext.SCOPE_APPLICATION)
+@Component
+public class ApplicationBean { ... }
+
+// 6. websocket - WebSocket 作用域
+@Scope(value = WebApplicationContext.SCOPE_WEBSOCKET)
+@Component
+public class WebSocketBean { ... }
+</code></pre>
+<h2 id="bean_1">定义 Bean 的方式</h2>
+<h3 id="1">方式 1：组件扫描（推荐）</h3>
+<pre><code class="language-java">// 自动扫描并注册为 Bean
+@Component  // 通用组件
+public class MyComponent { ... }
+
+@Service    // 服务层
+public class UserService { ... }
+
+@Repository // 数据访问层
+public class UserRepository { ... }
+
+@Controller // MVC 控制器
+public class HomeController { ... }
+
+@RestController // REST 控制器
+public class UserController { ... }
+</code></pre>
+<p><strong>配置扫描包</strong>：</p>
+<pre><code class="language-java">@SpringBootApplication(scanBasePackages = {&quot;com.example.demo&quot;, &quot;com.example.lib&quot;})
+public class DemoApplication { ... }
+</code></pre>
+<h3 id="2bean">方式 2：@Bean 方法</h3>
+<pre><code class="language-java">@Configuration
+public class AppConfig {
+
+    @Bean  // 方法返回值注册为 Bean
+    public DataSource dataSource() {
+        HikariDataSource ds = new HikariDataSource();
+        ds.setJdbcUrl(&quot;jdbc:mysql://localhost:3306/mydb&quot;);
+        ds.setUsername(&quot;root&quot;);
+        ds.setPassword(&quot;password&quot;);
+        return ds;
+    }
+
+    @Bean
+    public RestTemplate restTemplate() {
+        return new RestTemplate();
+    }
+
+    // Bean 之间可以互相调用
+    @Bean
+    public ServiceA serviceA() {
+        return new ServiceA(repository());
+    }
+
+    @Bean
+    public Repository repository() {
+        return new Repository();
+    }
+}
+</code></pre>
+<h3 id="3import">方式 3：@Import 导入配置</h3>
+<pre><code class="language-java">@Configuration
+@Import({DataSourceConfig.class, SecurityConfig.class})
+public class AppConfig {
+    // 导入其他配置类
+}
+</code></pre>
+<h2 id="_4">依赖注入的方式</h2>
+<h3 id="1_1">1. 构造函数注入（推荐）</h3>
+<pre><code class="language-java">@Service
+public class UserService {
+    private final UserRepository repository;
+    private final EmailService email;
+
+    // 构造函数注入
+    public UserService(UserRepository repository, EmailService email) {
+        this.repository = repository;
+        this.email = email;
+    }
+}
+</code></pre>
+<p><strong>优点</strong>：
+- ✅ 依赖不可变（可以使用 final）
+- ✅ 保证依赖不为 null
+- ✅ 易于测试
+- ✅ 清晰展示所有依赖</p>
+<h3 id="2-setter">2. Setter 注入</h3>
+<pre><code class="language-java">@Service
+public class UserService {
+    private UserRepository repository;
+
+    // Setter 注入
+    @Autowired
+    public void setRepository(UserRepository repository) {
+        this.repository = repository;
+    }
+}
+</code></pre>
+<p><strong>适用场景</strong>：
+- 可选依赖
+- 循环依赖</p>
+<h3 id="3">3. 字段注入（不推荐）</h3>
+<pre><code class="language-java">@Service
+public class UserService {
+    // 字段注入
+    @Autowired
+    private UserRepository repository;
+}
+</code></pre>
+<p><strong>缺点</strong>：
+- ❌ 依赖可变
+- ❌ 难以测试
+- ❌ 隐藏了依赖关系
+- ❌ 不符合单一职责原则</p>
+<h2 id="autowired">@Autowired 详解</h2>
+<h3 id="_5">自动装配</h3>
+<pre><code class="language-java">@Service
+public class UserService {
+
+    // 按类型自动注入
+    @Autowired
+    private UserRepository repository;
+
+    // 构造函数注入（Spring 4.3+ 可省略 @Autowired）
+    public UserService(UserRepository repository) {
+        this.repository = repository;
+    }
+
+    // Setter 注入
+    @Autowired
+    public void setRepository(UserRepository repository) {
+        this.repository = repository;
+    }
+}
+</code></pre>
+<h3 id="qualifier">按名称注入（@Qualifier）</h3>
+<pre><code class="language-java">// 定义多个实现
+public interface PaymentService {
+    void pay();
+}
+
+@Service
+@Qualifier(&quot;alipay&quot;)
+public class AlipayService implements PaymentService {
+    public void pay() { System.out.println(&quot;Alipay&quot;); }
+}
+
+@Service
+@Qualifier(&quot;wechat&quot;)
+public class WechatService implements PaymentService {
+    public void pay() { System.out.println(&quot;Wechat&quot;); }
+}
+
+// 使用时指定名称
+@Service
+public class OrderService {
+    private final PaymentService paymentService;
+
+    public OrderService(@Qualifier(&quot;alipay&quot;) PaymentService paymentService) {
+        this.paymentService = paymentService;
+    }
+}
+</code></pre>
+<h3 id="primary-bean">@Primary 首选 Bean</h3>
+<pre><code class="language-java">@Service
+@Primary  // 默认使用这个实现
+public class AlipayService implements PaymentService { ... }
+
+@Service
+public class WechatService implements PaymentService { ... }
+
+// 注入时不指定 @Qualifier 会使用 @Primary 标注的 Bean
+@Service
+public class OrderService {
+    private final PaymentService paymentService;
+
+    // 自动注入 AlipayService
+    public OrderService(PaymentService paymentService) {
+        this.paymentService = paymentService;
+    }
+}
+</code></pre>
+<h3 id="_6">可选依赖</h3>
+<pre><code class="language-java">@Service
+public class UserService {
+
+    // 使用 Optional
+    private final Optional&lt;EmailService&gt; emailService;
+
+    public UserService(Optional&lt;EmailService&gt; emailService) {
+        this.emailService = emailService;
+    }
+
+    public void sendEmail() {
+        emailService.ifPresent(service -&gt; service.send());
+    }
+
+    // 使用 @Autowired(required = false)
+    @Autowired(required = false)
+    private NotificationService notificationService;
+
+    // 使用 @Nullable
+    @Nullable
+    private NotificationService notificationService;
+}
+</code></pre>
+<h2 id="_7">配置类</h2>
+<h3 id="configuration">@Configuration</h3>
+<pre><code class="language-java">@Configuration
+public class AppConfig {
+
+    @Bean
+    public DataSource dataSource() {
+        HikariDataSource ds = new HikariDataSource();
+        ds.setJdbcUrl(&quot;jdbc:mysql://localhost:3306/mydb&quot;);
+        return ds;
+    }
+
+    @Bean
+    public JdbcTemplate jdbcTemplate(DataSource dataSource) {
+        return new JdbcTemplate(dataSource);
+    }
+}
+</code></pre>
+<h3 id="bean_2">@Bean 配置</h3>
+<pre><code class="language-java">@Bean
+@Scope(&quot;prototype&quot;)  // 作用域
+@Lazy  // 懒加载
+public MyBean myBean() {
+    return new MyBean();
+}
+
+@Bean(initMethod = &quot;init&quot;, destroyMethod = &quot;cleanup&quot;)
+public MyBean myBean() {
+    return new MyBean();
+}
+</code></pre>
+<h3 id="_8">生命周期回调</h3>
+<pre><code class="language-java">@Component
+public class MyBean {
+
+    @PostConstruct  // 初始化后
+    public void init() {
+        System.out.println(&quot;Bean initialized&quot;);
+    }
+
+    @PreDestroy  // 销毁前
+    public void cleanup() {
+        System.out.println(&quot;Bean destroyed&quot;);
+    }
+}
+
+// 或使用接口
+public class MyBean implements InitializingBean, DisposableBean {
+    public void afterPropertiesSet() { ... }  // 初始化
+    public void destroy() { ... }              // 销毁
+}
+</code></pre>
+<h2 id="bean_3">条件化 Bean</h2>
+<h3 id="conditional">@Conditional</h3>
+<pre><code class="language-java">@Configuration
+public class AppConfig {
+
+    // 当 classpath 中存在指定类时创建 Bean
+    @Bean
+    @ConditionalOnClass(name = &quot;com.example.MyService&quot;)
+    public MyService myService() {
+        return new MyService();
+    }
+
+    // 当配置文件中存在指定属性时创建 Bean
+    @Bean
+    @ConditionalOnProperty(name = &quot;my.feature.enabled&quot;, havingValue = &quot;true&quot;)
+    public FeatureService featureService() {
+        return new FeatureService();
+    }
+
+    // 当环境中存在指定 Bean 时创建
+    @Bean
+    @ConditionalOnBean(DataSource.class)
+    public JdbcTemplate jdbcTemplate(DataSource ds) {
+        return new JdbcTemplate(ds);
+    }
+
+    // 当环境中不存在指定 Bean 时创建
+    @Bean
+    @ConditionalOnMissingBean
+    public MyService myService() {
+        return new MyService();
+    }
+}
+</code></pre>
+<h3 id="spring-boot">Spring Boot 自动配置条件</h3>
+<pre><code class="language-java">@Configuration
+@AutoConfigureAfter(DataSourceAutoConfiguration.class)
+@ConditionalOnClass(DataSource.class)
+@ConditionalOnMissingBean(MyService.class)
+@ConditionalOnProperty(prefix = &quot;my&quot;, name = &quot;enabled&quot;, havingValue = &quot;true&quot;)
+public class MyAutoConfiguration {
+    // 自动配置类
+}
+</code></pre>
+<h2 id="_9">属性注入</h2>
+<h3 id="value">@Value</h3>
+<pre><code class="language-java">@Component
+public class MyComponent {
+
+    // 注入简单属性
+    @Value(&quot;${app.name}&quot;)
+    private String appName;
+
+    // 注入带默认值
+    @Value(&quot;${app.port:8080}&quot;)
+    private int port;
+
+    // 注入列表
+    @Value(&quot;${app.servers:server1,server2}&quot;)
+    private List&lt;String&gt; servers;
+
+    // 注入数组
+    @Value(&quot;#{'${app.ids}'.split(',')}&quot;)
+    private String[] ids;
+
+    // SpEL 表达式
+    @Value(&quot;#{systemProperties['user.name']}&quot;)
+    private String userName;
+
+    @Value(&quot;#{T(java.lang.Math).random() * 100}&quot;)
+    private double random;
+}
+</code></pre>
+<h3 id="configurationproperties">@ConfigurationProperties（推荐）</h3>
+<pre><code class="language-java">// 1. 定义配置类
+@Component
+@ConfigurationProperties(prefix = &quot;app&quot;)
+public class AppProperties {
+    private String name;
+    private int port;
+    private List&lt;String&gt; servers;
+    private Database database;
+
+    // Getter 和 Setter
+    public String getName() { return name; }
+    public void setName(String name) { this.name = name; }
+    // ...
+
+    // 嵌套配置
+    public static class Database {
+        private String url;
+        private String username;
+        private String password;
+        // Getter 和 Setter
+    }
+}
+
+// 2. application.yml
+app:
+  name: MyApp
+  port: 8080
+  servers:
+    - server1
+    - server2
+  database:
+    url: jdbc:mysql://localhost:3306/mydb
+    username: root
+    password: secret
+
+// 3. 使用
+@Service
+public class MyService {
+    private final AppProperties properties;
+
+    public MyService(AppProperties properties) {
+        this.properties = properties;
+    }
+
+    public void doSomething() {
+        System.out.println(properties.getName());
+    }
+}
+</code></pre>
+<h3 id="_10">启用配置属性绑定</h3>
+<pre><code class="language-java">@SpringBootApplication
+@EnableConfigurationProperties(AppProperties.class)
+public class DemoApplication { ... }
+</code></pre>
+<h2 id="bean_4">Bean 的初始化和销毁</h2>
+<h3 id="_11">生命周期</h3>
+<pre><code>实例化 → 属性注入 → 初始化 → 使用 → 销毁
+           ↓           ↓              ↓
+      @Autowired  @PostConstruct  @PreDestroy
+</code></pre>
+<h3 id="_12">完整示例</h3>
+<pre><code class="language-java">@Component
+@Scope(&quot;singleton&quot;)
+public class MyBean implements InitializingBean, DisposableBean {
+
+    private final String name;
+
+    // 构造器
+    public MyBean() {
+        this.name = &quot;MyBean&quot;;
+        System.out.println(&quot;1. 构造函数&quot;);
+    }
+
+    // 属性注入
+    @Autowired
+    public void setDependency(Dependency dep) {
+        System.out.println(&quot;2. Setter 注入&quot;);
+    }
+
+    // InitializingBean
+    @Override
+    public void afterPropertiesSet() {
+        System.out.println(&quot;3. afterPropertiesSet&quot;);
+    }
+
+    // @PostConstruct
+    @PostConstruct
+    public void postConstruct() {
+        System.out.println(&quot;4. @PostConstruct&quot;);
+    }
+
+    // 业务方法
+    public void doWork() {
+        System.out.println(&quot;5. 执行业务&quot;);
+    }
+
+    // DisposableBean
+    @Override
+    public void destroy() {
+        System.out.println(&quot;6. destroy&quot;);
+    }
+
+    // @PreDestroy
+    @PreDestroy
+    public void preDestroy() {
+        System.out.println(&quot;7. @PreDestroy&quot;);
+    }
+}
+</code></pre>
+<h2 id="_13">循环依赖</h2>
+<h3 id="_14">问题示例</h3>
+<pre><code class="language-java">@Service
+public class ServiceA {
+    private final ServiceB serviceB;
+
+    public ServiceA(ServiceB serviceB) {
+        this.serviceB = serviceB;
+    }
+}
+
+@Service
+public class ServiceB {
+    private final ServiceA serviceA;  // 循环依赖！
+
+    public ServiceB(ServiceA serviceA) {
+        this.serviceA = serviceA;
+    }
+}
+</code></pre>
+<h3 id="_15">解决方案</h3>
+<p><strong>方案 1：使用 Setter 注入</strong></p>
+<pre><code class="language-java">@Service
+public class ServiceB {
+    private ServiceA serviceA;
+
+    @Autowired  // Setter 注入可以解决循环依赖
+    public void setServiceA(ServiceA serviceA) {
+        this.serviceA = serviceA;
+    }
+}
+</code></pre>
+<p><strong>方案 2：使用 @Lazy</strong></p>
+<pre><code class="language-java">@Service
+public class ServiceA {
+    private final ServiceB serviceB;
+
+    public ServiceA(@Lazy ServiceB serviceB) {  // 懒加载
+        this.serviceB = serviceB;
+    }
+}
+</code></pre>
+<p><strong>方案 3：重构代码（推荐）</strong></p>
+<pre><code class="language-java">// 提取公共逻辑到第三个服务
+@Service
+public class CommonService {
+    // 公共逻辑
+}
+
+@Service
+public class ServiceA {
+    private final CommonService common;
+    public ServiceA(CommonService common) {
+        this.common = common;
+    }
+}
+
+@Service
+public class ServiceB {
+    private final CommonService common;
+    public ServiceB(CommonService common) {
+        this.common = common;
+    }
+}
+</code></pre>
+<h2 id="_16">最佳实践</h2>
+<h3 id="_17">✅ 推荐</h3>
+<pre><code class="language-java">// 1. 优先使用构造函数注入
+@Service
+public class UserService {
+    private final UserRepository repository;
+
+    public UserService(UserRepository repository) {
+        this.repository = repository;
+    }
+}
+
+// 2. 使用 final 保证不可变
+private final UserRepository repository;
+
+// 3. 使用 @ConfigurationProperties 管理配置
+@ConfigurationProperties(prefix = &quot;app&quot;)
+public class AppProperties { ... }
+
+// 4. 使用 @Primary 标注默认实现
+@Primary
+@Service
+public class DefaultService implements MyService { ... }
+
+// 5. 保持 Bean 职责单一
+@Service
+public class UserService { ... }  // 只负责用户相关
+
+@Service
+public class EmailService { ... }  // 只负责邮件相关
+</code></pre>
+<h3 id="_18">❌ 避免</h3>
+<pre><code class="language-java">// 1. 避免字段注入
+@Autowired  // ❌
+private UserRepository repository;
+
+// 2. 避免循环依赖
+// 重构代码而不是使用 @Lazy  workaround
+
+// 3. 避免在 Bean 中保存可变状态
+@Scope(&quot;singleton&quot;)
+public class MyBean {
+    private int count;  // ❌ 单例中保存可变状态
+}
+
+// 4. 避免过度使用 @ComponentScan
+@ComponentScan(basePackages = &quot;com&quot;)  // ❌ 范围太大
+@ComponentScan(basePackages = &quot;com.example.demo&quot;)  // ✅
+</code></pre>
+<h2 id="_19">下一步</h2>
+<ul>
+<li><a href="../06-security/">06-安全认证</a>：学习 Spring Security</li>
+<li><a href="../07-testing/">07-测试</a>：学习单元测试和集成测试</li>
+</ul>
+<h2 id="_20">参考资源</h2>
+<ul>
+<li><a href="https://docs.spring.io/spring-framework/docs/current/reference/html/core.html#beans">Spring Framework 参考 - IoC</a></li>
+<li><a href="https://docs.spring.io/spring-boot/docs/current/reference/html/features.html#features.developing-auto-configuration">Spring Boot 自动配置</a></li>
+</ul>
+<hr />
+<p><em>掌握依赖注入，写出松耦合的代码！🚀</em></p></div>
+            </div>
+        </div>
+
+        <footer class="col-md-12">
+            <hr>
+            <p>Documentation built with <a href="https://www.mkdocs.org/">MkDocs</a>.</p>
+        </footer>
+        <script src="../../../../js/bootstrap.bundle.min.js"></script>
+        <script>
+            var base_url = "../../../..",
+                shortcuts = {"help": 191, "next": 78, "previous": 80, "search": 83};
+        </script>
+        <script src="../../../../js/base.js"></script>
+        <script src="../../../../search/main.js"></script>
+
+        <div class="modal" id="mkdocs_search_modal" tabindex="-1" role="dialog" aria-labelledby="searchModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="searchModalLabel">Search</h4>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>From here you can search these documents. Enter your search terms below.</p>
+                <form>
+                    <div class="form-group">
+                        <input type="search" class="form-control" placeholder="Search..." id="mkdocs-search-query" title="Type search term here">
+                    </div>
+                </form>
+                <div id="mkdocs-search-results" data-no-results-text="No results found"></div>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div><div class="modal" id="mkdocs_keyboard_modal" tabindex="-1" role="dialog" aria-labelledby="keyboardModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="keyboardModalLabel">Keyboard Shortcuts</h4>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th style="width: 20%;">Keys</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td class="help shortcut"><kbd>?</kbd></td>
+                    <td>Open this help</td>
+                  </tr>
+                  <tr>
+                    <td class="next shortcut"><kbd>n</kbd></td>
+                    <td>Next page</td>
+                  </tr>
+                  <tr>
+                    <td class="prev shortcut"><kbd>p</kbd></td>
+                    <td>Previous page</td>
+                  </tr>
+                  <tr>
+                    <td class="search shortcut"><kbd>s</kbd></td>
+                    <td>Search</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div>
+
+    </body>
+</html>

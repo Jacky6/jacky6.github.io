@@ -1,0 +1,623 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="light">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        
+        
+        
+        <link rel="shortcut icon" href="../../../../img/favicon.ico">
+        <title>07_装饰器模式 - My Docs</title>
+        <link href="../../../../css/bootstrap.min.css" rel="stylesheet">
+        <link href="../../../../css/fontawesome.min.css" rel="stylesheet">
+        <link href="../../../../css/brands.min.css" rel="stylesheet">
+        <link href="../../../../css/solid.min.css" rel="stylesheet">
+        <link href="../../../../css/v4-font-face.min.css" rel="stylesheet">
+        <link href="../../../../css/base.css" rel="stylesheet">
+        <link id="hljs-light" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" >
+        <link id="hljs-dark" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github-dark.min.css" disabled>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+        <script>hljs.highlightAll();</script> 
+    </head>
+
+    <body>
+        <div class="navbar fixed-top navbar-expand-lg navbar-dark bg-primary">
+            <div class="container">
+                <a class="navbar-brand" href="../../../..">My Docs</a>
+
+                <!-- Expanded navigation -->
+                <div id="navbar-collapse" class="navbar-collapse collapse">
+
+                    <ul class="nav navbar-nav ms-md-auto">
+                        <li class="nav-item">
+                            <a href="#" class="nav-link" data-bs-toggle="modal" data-bs-target="#mkdocs_search_modal">
+                                <i class="fa fa-search"></i> Search
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="container">
+            <div class="row">
+                    <div class="col-md-3"><div class="navbar-expand-md bs-sidebar hidden-print affix" role="complementary">
+    <div class="navbar-header">
+        <button type="button" class="navbar-toggler collapsed" data-bs-toggle="collapse" data-bs-target="#toc-collapse" title="Table of Contents">
+            <span class="fa fa-angle-down"></span>
+        </button>
+    </div>
+
+    
+    <div id="toc-collapse" class="navbar-collapse collapse card bg-body-tertiary">
+        <ul class="nav flex-column">
+            
+            <li class="nav-item" data-bs-level="1"><a href="#07_" class="nav-link">07_装饰器模式</a>
+              <ul class="nav flex-column">
+            <li class="nav-item" data-bs-level="2"><a href="#1" class="nav-link">1. 装饰器模式概述</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#2" class="nav-link">2. 实现方式</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#3" class="nav-link">3. 实战示例</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#4-vs" class="nav-link">4. 装饰器 vs 继承</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#5" class="nav-link">5. 优缺点</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#6" class="nav-link">6. 本章小结</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+              </ul>
+            </li>
+        </ul>
+    </div>
+</div></div>
+                    <div class="col-md-9" role="main">
+
+<h1 id="07_">07_装饰器模式</h1>
+<hr />
+<h2 id="1">1. 装饰器模式概述</h2>
+<h3 id="11">1.1 什么是装饰器模式</h3>
+<p><strong>装饰器模式</strong>（Decorator Pattern）动态地给对象添加一些额外的职责，比生成子类更为灵活。</p>
+<p><strong>适用场景</strong>：
+- ✅ 需要动态添加功能
+- ✅ 避免继承导致类爆炸
+- ✅ 功能可以组合使用</p>
+<h3 id="12">1.2 生活中的例子</h3>
+<pre><code>手机壳：
+- 手机本身 + 手机壳 = 保护功能
+- 可以更换不同的壳，不影响手机本身
+
+穿衣服：
+- 人 + 内衣 + 衬衫 + 外套 = 多层装饰
+- 每层都增强功能，但不改变人的本质
+</code></pre>
+<hr />
+<h2 id="2">2. 实现方式</h2>
+<h3 id="21">2.1 基本结构</h3>
+<pre><code class="language-java">// 组件接口
+public interface Component {
+    void operation();
+}
+
+// 具体组件
+public class ConcreteComponent implements Component {
+    @Override
+    public void operation() {
+        System.out.println(&quot;基本功能&quot;);
+    }
+}
+
+// 装饰器抽象类
+public abstract class Decorator implements Component {
+    protected Component component;
+
+    public Decorator(Component component) {
+        this.component = component;
+    }
+
+    @Override
+    public void operation() {
+        component.operation();
+    }
+}
+
+// 具体装饰器 A
+public class ConcreteDecoratorA extends Decorator {
+    public ConcreteDecoratorA(Component component) {
+        super(component);
+    }
+
+    @Override
+    public void operation() {
+        super.operation();
+        addedBehaviorA();
+    }
+
+    private void addedBehaviorA() {
+        System.out.println(&quot;装饰器 A 的功能&quot;);
+    }
+}
+
+// 具体装饰器 B
+public class ConcreteDecoratorB extends Decorator {
+    public ConcreteDecoratorB(Component component) {
+        super(component);
+    }
+
+    @Override
+    public void operation() {
+        super.operation();
+        addedBehaviorB();
+    }
+
+    private void addedBehaviorB() {
+        System.out.println(&quot;装饰器 B 的功能&quot;);
+    }
+}
+
+// 使用
+public class Main {
+    public static void main(String[] args) {
+        Component component = new ConcreteComponent();
+
+        // 添加装饰器 A
+        component = new ConcreteDecoratorA(component);
+
+        // 再添加装饰器 B
+        component = new ConcreteDecoratorB(component);
+
+        // 执行
+        component.operation();
+        // 输出：
+        // 基本功能
+        // 装饰器 A 的功能
+        // 装饰器 B 的功能
+    }
+}
+</code></pre>
+<hr />
+<h2 id="3">3. 实战示例</h2>
+<h3 id="31-java-io">3.1 Java IO 流（经典应用）</h3>
+<pre><code class="language-java">// 字节流
+InputStream fis = new FileInputStream(&quot;file.txt&quot;);  // 基础流
+InputStream bis = new BufferedInputStream(fis);     // 缓冲装饰
+InputStream gis = new GZIPInputStream(bis);         // 压缩装饰
+
+// 字符流
+Reader fr = new FileReader(&quot;file.txt&quot;);             // 基础流
+Reader br = new BufferedReader(fr);                 // 缓冲装饰
+Reader lr = new LineNumberReader(br);               // 行号装饰
+</code></pre>
+<h3 id="32">3.2 咖啡订单系统</h3>
+<pre><code class="language-java">// 组件接口
+public interface Coffee {
+    String getDescription();
+    double getCost();
+}
+
+// 具体组件
+public class SimpleCoffee implements Coffee {
+    @Override
+    public String getDescription() {
+        return &quot;普通咖啡&quot;;
+    }
+
+    @Override
+    public double getCost() {
+        return 10.0;
+    }
+}
+
+// 装饰器抽象类
+public abstract class CoffeeDecorator implements Coffee {
+    protected Coffee coffee;
+
+    public CoffeeDecorator(Coffee coffee) {
+        this.coffee = coffee;
+    }
+
+    @Override
+    public String getDescription() {
+        return coffee.getDescription();
+    }
+
+    @Override
+    public double getCost() {
+        return coffee.getCost();
+    }
+}
+
+// 具体装饰器：牛奶
+public class MilkDecorator extends CoffeeDecorator {
+    public MilkDecorator(Coffee coffee) {
+        super(coffee);
+    }
+
+    @Override
+    public String getDescription() {
+        return coffee.getDescription() + &quot; + 牛奶&quot;;
+    }
+
+    @Override
+    public double getCost() {
+        return coffee.getCost() + 2.0;
+    }
+}
+
+// 具体装饰器：糖
+public class SugarDecorator extends CoffeeDecorator {
+    public SugarDecorator(Coffee coffee) {
+        super(coffee);
+    }
+
+    @Override
+    public String getDescription() {
+        return coffee.getDescription() + &quot; + 糖&quot;;
+    }
+
+    @Override
+    public double getCost() {
+        return coffee.getCost() + 1.0;
+    }
+}
+
+// 具体装饰器：奶油
+public class WhipDecorator extends CoffeeDecorator {
+    public WhipDecorator(Coffee coffee) {
+        super(coffee);
+    }
+
+    @Override
+    public String getDescription() {
+        return coffee.getDescription() + &quot; + 奶油&quot;;
+    }
+
+    @Override
+    public double getCost() {
+        return coffee.getCost() + 3.0;
+    }
+}
+
+// 使用
+public class Main {
+    public static void main(String[] args) {
+        // 普通咖啡
+        Coffee coffee1 = new SimpleCoffee();
+        System.out.println(coffee1.getDescription() + &quot;: ¥&quot; + coffee1.getCost());
+
+        // 咖啡 + 牛奶
+        Coffee coffee2 = new MilkDecorator(new SimpleCoffee());
+        System.out.println(coffee2.getDescription() + &quot;: ¥&quot; + coffee2.getCost());
+
+        // 咖啡 + 牛奶 + 糖 + 奶油
+        Coffee coffee3 = new WhipDecorator(
+            new SugarDecorator(
+                new MilkDecorator(new SimpleCoffee())
+            )
+        );
+        System.out.println(coffee3.getDescription() + &quot;: ¥&quot; + coffee3.getCost());
+    }
+}
+</code></pre>
+<h3 id="33">3.3 日志装饰器</h3>
+<pre><code class="language-java">// 组件接口
+public interface Logger {
+    void log(String message);
+}
+
+// 具体组件
+public class ConsoleLogger implements Logger {
+    @Override
+    public void log(String message) {
+        System.out.println(message);
+    }
+}
+
+// 装饰器：时间戳
+public class TimestampLogger implements Logger {
+    private Logger logger;
+
+    public TimestampLogger(Logger logger) {
+        this.logger = logger;
+    }
+
+    @Override
+    public void log(String message) {
+        String timestamp = new SimpleDateFormat(&quot;yyyy-MM-dd HH:mm:ss&quot;)
+            .format(new Date());
+        logger.log(&quot;[&quot; + timestamp + &quot;] &quot; + message);
+    }
+}
+
+// 装饰器：级别
+public class LevelLogger implements Logger {
+    private Logger logger;
+    private String level;
+
+    public LevelLogger(Logger logger, String level) {
+        this.logger = logger;
+        this.level = level;
+    }
+
+    @Override
+    public void log(String message) {
+        logger.log(&quot;[&quot; + level + &quot;] &quot; + message);
+    }
+}
+
+// 装饰器：文件输出
+public class FileLogger implements Logger {
+    private Logger logger;
+    private String filePath;
+
+    public FileLogger(Logger logger, String filePath) {
+        this.logger = logger;
+        this.filePath = filePath;
+    }
+
+    @Override
+    public void log(String message) {
+        // 控制台输出
+        logger.log(message);
+
+        // 同时写入文件
+        try (PrintWriter writer = new PrintWriter(new FileWriter(filePath, true))) {
+            writer.println(message);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+}
+
+// 使用
+public class Main {
+    public static void main(String[] args) {
+        Logger logger = new FileLogger(
+            new LevelLogger(
+                new TimestampLogger(new ConsoleLogger()),
+                &quot;INFO&quot;
+            ),
+            &quot;app.log&quot;
+        );
+
+        logger.log(&quot;系统启动&quot;);
+        // 输出：[2026-03-26 14:30:00] [INFO] 系统启动
+    }
+}
+</code></pre>
+<h3 id="34">3.4 数据加密装饰器</h3>
+<pre><code class="language-java">// 组件接口
+public interface DataSource {
+    void writeData(String data);
+    String readData();
+}
+
+// 具体组件
+public class FileDataSource implements DataSource {
+    private String filename;
+
+    public FileDataSource(String filename) {
+        this.filename = filename;
+    }
+
+    @Override
+    public void writeData(String data) {
+        // 写入文件
+        System.out.println(&quot;写入文件：&quot; + data);
+    }
+
+    @Override
+    public String readData() {
+        return &quot;文件内容&quot;;
+    }
+}
+
+// 装饰器：压缩
+public class CompressionDecorator implements DataSource {
+    private DataSource dataSource;
+
+    public CompressionDecorator(DataSource dataSource) {
+        this.dataSource = dataSource;
+    }
+
+    @Override
+    public void writeData(String data) {
+        String compressed = compress(data);
+        dataSource.writeData(compressed);
+    }
+
+    @Override
+    public String readData() {
+        String data = dataSource.readData();
+        return decompress(data);
+    }
+
+    private String compress(String data) {
+        return &quot;压缩：&quot; + data;
+    }
+
+    private String decompress(String data) {
+        return &quot;解压：&quot; + data;
+    }
+}
+
+// 装饰器：加密
+public class EncryptionDecorator implements DataSource {
+    private DataSource dataSource;
+
+    public EncryptionDecorator(DataSource dataSource) {
+        this.dataSource = dataSource;
+    }
+
+    @Override
+    public void writeData(String data) {
+        String encrypted = encrypt(data);
+        dataSource.writeData(encrypted);
+    }
+
+    @Override
+    public String readData() {
+        String data = dataSource.readData();
+        return decrypt(data);
+    }
+
+    private String encrypt(String data) {
+        return &quot;加密：&quot; + data;
+    }
+
+    private String decrypt(String data) {
+        return &quot;解密：&quot; + data;
+    }
+}
+
+// 使用
+public class Main {
+    public static void main(String[] args) {
+        DataSource dataSource = new EncryptionDecorator(
+            new CompressionDecorator(
+                new FileDataSource(&quot;data.txt&quot;)
+            )
+        );
+
+        dataSource.writeData(&quot;敏感数据&quot;);
+        // 写入文件：加密：压缩：敏感数据
+
+        String data = dataSource.readData();
+        // 解密：解压：文件内容
+    }
+}
+</code></pre>
+<hr />
+<h2 id="4-vs">4. 装饰器 vs 继承</h2>
+<pre><code>继承：
+- 静态的，编译时确定
+- 类爆炸问题
+- 无法动态添加功能
+
+装饰器：
+- 动态的，运行时确定
+- 避免类爆炸
+- 可以灵活组合
+</code></pre>
+<hr />
+<h2 id="5">5. 优缺点</h2>
+<h3 id="51">5.1 优点</h3>
+<ul>
+<li>✅ <strong>动态添加功能</strong>：比继承更灵活</li>
+<li>✅ <strong>避免类爆炸</strong>：不需要为每个组合创建子类</li>
+<li>✅ <strong>符合开闭原则</strong>：新增装饰器无需修改原有代码</li>
+<li>✅ <strong>功能可组合</strong>：多个装饰器叠加使用</li>
+</ul>
+<h3 id="52">5.2 缺点</h3>
+<ul>
+<li>❌ <strong>增加复杂度</strong>：多层装饰难以理解</li>
+<li>❌ <strong>调试困难</strong>：多层嵌套难以定位问题</li>
+<li>❌ <strong>对象创建繁琐</strong>：需要创建多个装饰器对象</li>
+</ul>
+<hr />
+<h2 id="6">6. 本章小结</h2>
+<h3 id="_1">核心知识点</h3>
+<p>✅ <strong>基本结构</strong>：Component、Decorator、ConcreteDecorator<br />
+✅ <strong>Java IO</strong>：装饰器模式的经典应用<br />
+✅ <strong>功能组合</strong>：多层装饰叠加<br />
+✅ <strong>与继承对比</strong>：更灵活  </p>
+<h3 id="_2">最佳实践</h3>
+<ol>
+<li><strong>接口统一</strong>：装饰器和组件实现同一接口</li>
+<li><strong>保持简单</strong>：避免过多层装饰</li>
+<li><strong>文档化</strong>：说明装饰顺序</li>
+<li><strong>考虑替代方案</strong>：有时组合模式更合适</li>
+</ol>
+<hr />
+<p>🎉 <strong>恭喜完成装饰器模式学习！继续学习 <a href="../08_%E4%BB%A3%E7%90%86%E6%A8%A1%E5%BC%8F/">代理模式</a></strong></p></div>
+            </div>
+        </div>
+
+        <footer class="col-md-12">
+            <hr>
+            <p>Documentation built with <a href="https://www.mkdocs.org/">MkDocs</a>.</p>
+        </footer>
+        <script src="../../../../js/bootstrap.bundle.min.js"></script>
+        <script>
+            var base_url = "../../../..",
+                shortcuts = {"help": 191, "next": 78, "previous": 80, "search": 83};
+        </script>
+        <script src="../../../../js/base.js"></script>
+        <script src="../../../../search/main.js"></script>
+
+        <div class="modal" id="mkdocs_search_modal" tabindex="-1" role="dialog" aria-labelledby="searchModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="searchModalLabel">Search</h4>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>From here you can search these documents. Enter your search terms below.</p>
+                <form>
+                    <div class="form-group">
+                        <input type="search" class="form-control" placeholder="Search..." id="mkdocs-search-query" title="Type search term here">
+                    </div>
+                </form>
+                <div id="mkdocs-search-results" data-no-results-text="No results found"></div>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div><div class="modal" id="mkdocs_keyboard_modal" tabindex="-1" role="dialog" aria-labelledby="keyboardModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="keyboardModalLabel">Keyboard Shortcuts</h4>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th style="width: 20%;">Keys</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td class="help shortcut"><kbd>?</kbd></td>
+                    <td>Open this help</td>
+                  </tr>
+                  <tr>
+                    <td class="next shortcut"><kbd>n</kbd></td>
+                    <td>Next page</td>
+                  </tr>
+                  <tr>
+                    <td class="prev shortcut"><kbd>p</kbd></td>
+                    <td>Previous page</td>
+                  </tr>
+                  <tr>
+                    <td class="search shortcut"><kbd>s</kbd></td>
+                    <td>Search</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div>
+
+    </body>
+</html>

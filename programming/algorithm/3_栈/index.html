@@ -1,0 +1,1302 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="light">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        
+        
+        
+        <link rel="shortcut icon" href="../../../img/favicon.ico">
+        <title>栈（Stack）知识点 - My Docs</title>
+        <link href="../../../css/bootstrap.min.css" rel="stylesheet">
+        <link href="../../../css/fontawesome.min.css" rel="stylesheet">
+        <link href="../../../css/brands.min.css" rel="stylesheet">
+        <link href="../../../css/solid.min.css" rel="stylesheet">
+        <link href="../../../css/v4-font-face.min.css" rel="stylesheet">
+        <link href="../../../css/base.css" rel="stylesheet">
+        <link id="hljs-light" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" >
+        <link id="hljs-dark" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github-dark.min.css" disabled>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+        <script>hljs.highlightAll();</script> 
+    </head>
+
+    <body>
+        <div class="navbar fixed-top navbar-expand-lg navbar-dark bg-primary">
+            <div class="container">
+                <a class="navbar-brand" href="../../..">My Docs</a>
+
+                <!-- Expanded navigation -->
+                <div id="navbar-collapse" class="navbar-collapse collapse">
+
+                    <ul class="nav navbar-nav ms-md-auto">
+                        <li class="nav-item">
+                            <a href="#" class="nav-link" data-bs-toggle="modal" data-bs-target="#mkdocs_search_modal">
+                                <i class="fa fa-search"></i> Search
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="container">
+            <div class="row">
+                    <div class="col-md-3"><div class="navbar-expand-md bs-sidebar hidden-print affix" role="complementary">
+    <div class="navbar-header">
+        <button type="button" class="navbar-toggler collapsed" data-bs-toggle="collapse" data-bs-target="#toc-collapse" title="Table of Contents">
+            <span class="fa fa-angle-down"></span>
+        </button>
+    </div>
+
+    
+    <div id="toc-collapse" class="navbar-collapse collapse card bg-body-tertiary">
+        <ul class="nav flex-column">
+            
+            <li class="nav-item" data-bs-level="1"><a href="#stack" class="nav-link">栈（Stack）知识点</a>
+              <ul class="nav flex-column">
+            <li class="nav-item" data-bs-level="2"><a href="#1" class="nav-link">1. 定义</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#2" class="nav-link">2. 基本操作</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#3" class="nav-link">3. 实现方式</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#4" class="nav-link">4. 时间复杂度分析</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#5" class="nav-link">5. 应用场景（详解）</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#6" class="nav-link">6. 经典例题（详解）</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#7" class="nav-link">7. 单调栈专题（详解）</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#8" class="nav-link">8. 总结</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+              </ul>
+            </li>
+        </ul>
+    </div>
+</div></div>
+                    <div class="col-md-9" role="main">
+
+<h1 id="stack">栈（Stack）知识点</h1>
+<hr />
+<h2 id="1">1. 定义</h2>
+<p><strong>栈</strong>是一种<strong>后进先出</strong>（LIFO - Last In First Out）的线性数据结构。</p>
+<ul>
+<li>只允许在<strong>一端</strong>进行插入和删除操作</li>
+<li>允许操作的一端称为<strong>栈顶</strong>（Top）</li>
+<li>另一端称为<strong>栈底</strong>（Bottom）</li>
+<li>不含元素的空表称为<strong>空栈</strong></li>
+</ul>
+<pre><code>    ↑ 栈顶 (Top)
+    │
+┌───┐
+│ C │  ← 最后压入，最先弹出
+├───┤
+│ B │
+├───┤
+│ A │  ← 最先压入，最后弹出
+└───┘
+    │
+    ↓ 栈底 (Bottom)
+</code></pre>
+<hr />
+<h2 id="2">2. 基本操作</h2>
+<table>
+<thead>
+<tr>
+<th>操作</th>
+<th>描述</th>
+<th>时间复杂度</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>push(x)</code></td>
+<td>将元素 x 压入栈顶</td>
+<td>O(1)</td>
+</tr>
+<tr>
+<td><code>pop()</code></td>
+<td>弹出栈顶元素</td>
+<td>O(1)</td>
+</tr>
+<tr>
+<td><code>top()</code> / <code>peek()</code></td>
+<td>返回栈顶元素（不弹出）</td>
+<td>O(1)</td>
+</tr>
+<tr>
+<td><code>isEmpty()</code></td>
+<td>判断栈是否为空</td>
+<td>O(1)</td>
+</tr>
+<tr>
+<td><code>size()</code></td>
+<td>返回栈中元素个数</td>
+<td>O(1)</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="3">3. 实现方式</h2>
+<h3 id="31">3.1 数组实现（顺序栈）</h3>
+<pre><code class="language-python">class ArrayStack:
+    def __init__(self, capacity=100):
+        self.data = []
+        self.capacity = capacity
+
+    def push(self, x):
+        if len(self.data) &gt;= self.capacity:
+            raise Exception(&quot;Stack overflow&quot;)
+        self.data.append(x)
+
+    def pop(self):
+        if self.is_empty():
+            raise Exception(&quot;Stack underflow&quot;)
+        return self.data.pop()
+
+    def top(self):
+        if self.is_empty():
+            raise Exception(&quot;Stack is empty&quot;)
+        return self.data[-1]
+
+    def is_empty(self):
+        return len(self.data) == 0
+
+    def size(self):
+        return len(self.data)
+</code></pre>
+<h3 id="32">3.2 链表实现（链式栈）</h3>
+<pre><code class="language-python">class Node:
+    def __init__(self, val):
+        self.val = val
+        self.next = None
+
+class LinkedStack:
+    def __init__(self):
+        self.head = None
+        self._size = 0
+
+    def push(self, x):
+        node = Node(x)
+        node.next = self.head
+        self.head = node
+        self._size += 1
+
+    def pop(self):
+        if self.is_empty():
+            raise Exception(&quot;Stack underflow&quot;)
+        val = self.head.val
+        self.head = self.head.next
+        self._size -= 1
+        return val
+
+    def top(self):
+        if self.is_empty():
+            raise Exception(&quot;Stack is empty&quot;)
+        return self.head.val
+
+    def is_empty(self):
+        return self.head is None
+
+    def size(self):
+        return self._size
+</code></pre>
+<hr />
+<h2 id="4">4. 时间复杂度分析</h2>
+<table>
+<thead>
+<tr>
+<th>操作</th>
+<th>数组实现</th>
+<th>链表实现</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>push</td>
+<td>O(1)*</td>
+<td>O(1)</td>
+</tr>
+<tr>
+<td>pop</td>
+<td>O(1)</td>
+<td>O(1)</td>
+</tr>
+<tr>
+<td>top</td>
+<td>O(1)</td>
+<td>O(1)</td>
+</tr>
+<tr>
+<td>空间</td>
+<td>O(n)</td>
+<td>O(n)</td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p>*数组实现动态扩容时摊还 O(1)</p>
+</blockquote>
+<hr />
+<h2 id="5">5. 应用场景（详解）</h2>
+<h3 id="51">5.1 括号匹配 ✅</h3>
+<p><strong>问题</strong>：判断字符串中的括号是否有效配对</p>
+<p><strong>核心思想</strong>：
+- 左括号入栈
+- 右括号与栈顶匹配
+- 最终栈应为空</p>
+<pre><code class="language-python">def isValid(s: str) -&gt; bool:
+    # 奇数长度直接返回 False
+    if len(s) % 2 == 1:
+        return False
+
+    stack = []
+    mapping = {')': '(', '}': '{', ']': '['}
+
+    for char in s:
+        if char in mapping:
+            # 右括号：检查栈顶
+            if not stack or stack.pop() != mapping[char]:
+                return False
+        else:
+            # 左括号：入栈
+            stack.append(char)
+
+    return not stack
+
+# 测试
+print(isValid(&quot;()[]{}&quot;))      # True
+print(isValid(&quot;([)]&quot;))        # False
+print(isValid(&quot;{[]}&quot;))        # True
+</code></pre>
+<p><strong>变体</strong>：
+- 生成有效括号组合（回溯 + 栈）
+- 最长有效括号子串（栈存索引）
+- 最少添加使括号有效</p>
+<hr />
+<h3 id="52">5.2 表达式求值 🧮</h3>
+<h4 id="1_1">（1）中缀转后缀（逆波兰表示）</h4>
+<p><strong>中缀表达式</strong>：<code>3 + 4 × 2</code>（人类习惯）<br />
+<strong>后缀表达式</strong>：<code>3 4 2 × +</code>（计算机友好）</p>
+<p><strong>转换算法（Shunting Yard）</strong>：</p>
+<pre><code class="language-python">def infixToPostfix(expression):
+    precedence = {'+': 1, '-': 1, '*': 2, '/': 2, '^': 3}
+    output = []
+    stack = []
+
+    for token in expression.split():
+        if token.isdigit():  # 操作数
+            output.append(token)
+        elif token == '(':
+            stack.append(token)
+        elif token == ')':
+            while stack and stack[-1] != '(':
+                output.append(stack.pop())
+            stack.pop()  # 弹出 '('
+        else:  # 运算符
+            while (stack and stack[-1] != '(' and 
+                   precedence.get(stack[-1], 0) &gt;= precedence.get(token, 0)):
+                output.append(stack.pop())
+            stack.append(token)
+
+    while stack:
+        output.append(stack.pop())
+
+    return ' '.join(output)
+
+# 测试
+print(infixToPostfix(&quot;3 + 4 * 2&quot;))  # &quot;3 4 2 * +&quot;
+</code></pre>
+<h4 id="2_1">（2）后缀表达式求值</h4>
+<pre><code class="language-python">def evalRPN(tokens):
+    stack = []
+    ops = {
+        '+': lambda a, b: a + b,
+        '-': lambda a, b: a - b,
+        '*': lambda a, b: a * b,
+        '/': lambda a, b: int(a / b),  # 向零取整
+    }
+
+    for token in tokens:
+        if token in ops:
+            b = stack.pop()
+            a = stack.pop()
+            stack.append(ops[token](a, b))
+        else:
+            stack.append(int(token))
+
+    return stack[0]
+
+# 测试
+print(evalRPN([&quot;3&quot;, &quot;4&quot;, &quot;2&quot;, &quot;*&quot;, &quot;+&quot;]))  # 11
+print(evalRPN([&quot;10&quot;, &quot;6&quot;, &quot;9&quot;, &quot;3&quot;, &quot;+&quot;, &quot;-11&quot;, &quot;*&quot;, &quot;/&quot;, &quot;*&quot;, &quot;17&quot;, &quot;+&quot;, &quot;5&quot;, &quot;+&quot;]))  # 22
+</code></pre>
+<hr />
+<h3 id="53">5.3 函数调用栈 📞</h3>
+<p><strong>原理</strong>：每次函数调用时，系统会将调用信息压入调用栈</p>
+<pre><code>调用栈示例：
+main() 调用 fact(3)
+┌─────────────────┐
+│ fact(3)         │ ← 栈顶（当前执行）
+├─────────────────┤
+│ fact(2)         │
+├─────────────────┤
+│ fact(1)         │
+├─────────────────┤
+│ main()          │ ← 栈底
+└─────────────────┘
+
+fact(3) = 3 × fact(2)
+fact(2) = 2 × fact(1)
+fact(1) = 1 × fact(0)
+fact(0) = 1  ← 开始返回
+</code></pre>
+<p><strong>递归的栈帧包含</strong>：
+- 返回地址
+- 参数值
+- 局部变量
+- 保存的寄存器</p>
+<p><strong>栈溢出示例</strong>：</p>
+<pre><code class="language-python">def infinite_recursion(n):
+    # 没有终止条件 → 栈溢出
+    return n + infinite_recursion(n + 1)
+
+# RecursionError: maximum recursion depth exceeded
+</code></pre>
+<hr />
+<h3 id="54">5.4 浏览器历史记录 🌐</h3>
+<p><strong>双栈实现</strong>：后退/前进功能</p>
+<pre><code class="language-python">class BrowserHistory:
+    def __init__(self, homepage: str):
+        self.back_stack = [homepage]  # 后退栈
+        self.forward_stack = []       # 前进栈
+
+    def visit(self, url: str) -&gt; None:
+        &quot;&quot;&quot;访问新页面，清空前进历史&quot;&quot;&quot;
+        self.back_stack.append(url)
+        self.forward_stack.clear()
+
+    def back(self, steps: int) -&gt; str:
+        &quot;&quot;&quot;后退 steps 步&quot;&quot;&quot;
+        while steps &gt; 0 and len(self.back_stack) &gt; 1:
+            self.forward_stack.append(self.back_stack.pop())
+            steps -= 1
+        return self.back_stack[-1]
+
+    def forward(self, steps: int) -&gt; str:
+        &quot;&quot;&quot;前进 steps 步&quot;&quot;&quot;
+        while steps &gt; 0 and self.forward_stack:
+            self.back_stack.append(self.forward_stack.pop())
+            steps -= 1
+        return self.back_stack[-1]
+
+# 测试
+browser = BrowserHistory(&quot;leetcode.com&quot;)
+browser.visit(&quot;google.com&quot;)
+browser.visit(&quot;facebook.com&quot;)
+print(browser.back(1))      # &quot;google.com&quot;
+print(browser.forward(1))   # &quot;facebook.com&quot;
+</code></pre>
+<p><strong>状态变化</strong>：</p>
+<pre><code>访问顺序：A → B → C
+back_stack:  [A, B, C]
+forward_stack: []
+
+执行 back(1):
+back_stack:  [A, B]
+forward_stack: [C]
+
+执行 forward(1):
+back_stack:  [A, B, C]
+forward_stack: []
+</code></pre>
+<hr />
+<h3 id="55-dfs">5.5 深度优先搜索（DFS）🔍</h3>
+<h4 id="1-dfs">（1）树的 DFS（递归版）</h4>
+<pre><code class="language-python">def dfs_recursive(node):
+    if not node:
+        return
+    print(node.val)      # 前序遍历
+    dfs_recursive(node.left)
+    dfs_recursive(node.right)
+</code></pre>
+<h4 id="2-dfs">（2）树的 DFS（显式栈版）</h4>
+<pre><code class="language-python">def dfs_iterative(root):
+    if not root:
+        return
+
+    stack = [root]
+    while stack:
+        node = stack.pop()
+        print(node.val)
+        # 先右后左，保证左子树先处理
+        if node.right:
+            stack.append(node.right)
+        if node.left:
+            stack.append(node.left)
+</code></pre>
+<h4 id="3-dfs">（3）图的 DFS</h4>
+<pre><code class="language-python">def dfs_graph(graph, start):
+    visited = set()
+    stack = [start]
+    result = []
+
+    while stack:
+        node = stack.pop()
+        if node not in visited:
+            visited.add(node)
+            result.append(node)
+            # 逆序入栈，保证正序访问
+            for neighbor in reversed(graph[node]):
+                if neighbor not in visited:
+                    stack.append(neighbor)
+
+    return result
+
+# 测试
+graph = {
+    'A': ['B', 'C'],
+    'B': ['D', 'E'],
+    'C': ['F'],
+    'D': [],
+    'E': ['F'],
+    'F': []
+}
+print(dfs_graph(graph, 'A'))  # ['A', 'B', 'D', 'E', 'F', 'C']
+</code></pre>
+<p><strong>应用场景</strong>：
+- 路径查找
+- 连通分量
+- 拓扑排序
+- 迷宫求解</p>
+<hr />
+<h3 id="56">5.6 单调栈 📊</h3>
+<p><strong>定义</strong>：栈内元素保持单调递增或递减</p>
+<h4 id="_1">模板代码</h4>
+<pre><code class="language-python"># 单调递减栈（找下一个更大元素）
+def nextGreaterElement(nums):
+    n = len(nums)
+    res = [-1] * n
+    stack = []  # 存索引
+
+    for i in range(n):
+        # 当前元素比栈顶大 → 找到栈顶的下一个更大元素
+        while stack and nums[stack[-1]] &lt; nums[i]:
+            idx = stack.pop()
+            res[idx] = nums[i]
+        stack.append(i)
+
+    return res
+
+# 测试
+print(nextGreaterElement([2, 1, 2, 4, 3]))  # [4, 2, 4, -1, -1]
+</code></pre>
+<h4 id="_2">经典问题对比</h4>
+<table>
+<thead>
+<tr>
+<th>问题</th>
+<th>栈类型</th>
+<th>触发条件</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>下一个更大元素</td>
+<td>单调递减</td>
+<td>当前 &gt; 栈顶</td>
+</tr>
+<tr>
+<td>接雨水</td>
+<td>单调递减</td>
+<td>当前 &gt; 栈顶</td>
+</tr>
+<tr>
+<td>最大矩形</td>
+<td>单调递增</td>
+<td>当前 &lt; 栈顶</td>
+</tr>
+<tr>
+<td>每日温度</td>
+<td>单调递减</td>
+<td>当前 &gt; 栈顶</td>
+</tr>
+</tbody>
+</table>
+<h4 id="_3">接雨水详解</h4>
+<pre><code class="language-python">def trap(height):
+    stack = []  # 存索引，单调递减
+    water = 0
+
+    for i, h in enumerate(height):
+        # 遇到更高的柱子，计算积水
+        while stack and h &gt; height[stack[-1]]:
+            bottom = stack.pop()
+            if not stack:
+                break
+            # 宽度：当前索引 - 新栈顶索引 - 1
+            width = i - stack[-1] - 1
+            # 高度：两侧较矮者 - 底部高度
+            bound_h = min(height[stack[-1]], h) - height[bottom]
+            water += width * bound_h
+
+        stack.append(i)
+
+    return water
+
+# 测试
+print(trap([0,1,0,2,1,0,1,3,2,1,2,1]))  # 6
+</code></pre>
+<p><strong>可视化</strong>：</p>
+<pre><code>输入：[0,1,0,2,1,0,1,3,2,1,2,1]
+
+    █
+    █   █
+█   █ █ █
+█ █ █ █ █ █ █
+0 1 0 2 1 0 1 3 2 1 2 1
+    ↑ ↑ ↑   ↑ ↑
+    这些位置会积水，总共 6 单位
+</code></pre>
+<hr />
+<h2 id="6">6. 经典例题（详解）</h2>
+<h3 id="61-leetcode-20">6.1 有效的括号（LeetCode 20）⭐</h3>
+<p><strong>题目</strong>：判断只包含 <code>'()[]{}'</code> 的字符串是否有效</p>
+<p><strong>有效条件</strong>：
+1. 左括号必须用相同类型的右括号闭合
+2. 左括号必须以正确的顺序闭合
+3. 空字符串有效</p>
+<pre><code class="language-python">def isValid(s: str) -&gt; bool:
+    # 优化：奇数长度直接返回
+    if len(s) % 2 == 1:
+        return False
+
+    stack = []
+    # 映射：右括号 → 左括号
+    mapping = {')': '(', '}': '{', ']': '['}
+
+    for char in s:
+        if char in mapping:
+            # 右括号：栈顶必须匹配
+            top = stack.pop() if stack else '#'
+            if mapping[char] != top:
+                return False
+        else:
+            # 左括号：入栈
+            stack.append(char)
+
+    # 栈空说明全部匹配
+    return not stack
+
+# 测试用例
+test_cases = [
+    (&quot;()&quot;, True),
+    (&quot;()[]{}&quot;, True),
+    (&quot;(]&quot;, False),
+    (&quot;([)]&quot;, False),
+    (&quot;{[]}&quot;, True),
+    (&quot;&quot;, True),
+    (&quot;(&quot;, False),
+    (&quot;]&quot;, False),
+]
+
+for s, expected in test_cases:
+    result = isValid(s)
+    status = &quot;✓&quot; if result == expected else &quot;✗&quot;
+    print(f&quot;{status} isValid('{s}') = {result}&quot;)
+</code></pre>
+<p><strong>复杂度分析</strong>：
+- 时间：O(n)，遍历一次
+- 空间：O(n)，最坏全左括号</p>
+<p><strong>易错点</strong>：
+- 空字符串 → True
+- 栈空时遇到右括号 → False
+- 遍历完栈非空 → False</p>
+<hr />
+<h3 id="62-leetcode-155">6.2 最小栈（LeetCode 155）⭐⭐</h3>
+<p><strong>题目</strong>：设计支持 push/pop/top/getMin 的栈，所有操作 O(1)</p>
+<p><strong>思路</strong>：辅助栈同步记录最小值</p>
+<pre><code class="language-python">class MinStack:
+    def __init__(self):
+        self.stack = []       # 主栈
+        self.min_stack = []   # 辅助栈，记录最小值
+
+    def push(self, val: int) -&gt; None:
+        self.stack.append(val)
+        # 辅助栈：保持栈顶为当前最小值
+        if not self.min_stack or val &lt;= self.min_stack[-1]:
+            self.min_stack.append(val)
+        else:
+            # 重复压入当前最小值，保证两栈同步
+            self.min_stack.append(self.min_stack[-1])
+
+    def pop(self) -&gt; None:
+        self.stack.pop()
+        self.min_stack.pop()
+
+    def top(self) -&gt; int:
+        return self.stack[-1]
+
+    def getMin(self) -&gt; int:
+        return self.min_stack[-1]
+
+# 测试
+minStack = MinStack()
+minStack.push(3)
+minStack.push(5)
+print(minStack.getMin())  # 3
+minStack.push(2)
+minStack.push(1)
+print(minStack.getMin())  # 1
+minStack.pop()
+print(minStack.getMin())  # 2
+</code></pre>
+<p><strong>优化版本</strong>（空间更优）：</p>
+<pre><code class="language-python">class MinStackOptimized:
+    def __init__(self):
+        self.stack = []
+        self.min_stack = []  # 只在更小/相等时压入
+
+    def push(self, val: int) -&gt; None:
+        self.stack.append(val)
+        if not self.min_stack or val &lt;= self.min_stack[-1]:
+            self.min_stack.append(val)
+
+    def pop(self) -&gt; None:
+        if self.stack.pop() == self.min_stack[-1]:
+            self.min_stack.pop()
+
+    def top(self) -&gt; int:
+        return self.stack[-1]
+
+    def getMin(self) -&gt; int:
+        return self.min_stack[-1]
+</code></pre>
+<p><strong>两种实现对比</strong>：
+| 版本 | push 空间 | pop 逻辑 | 适用场景 |
+|------|----------|---------|---------|
+| 同步版 | O(n) 固定 | 简单 | 代码清晰 |
+| 优化版 | O(n) 最坏 | 需判断 | 节省空间 |</p>
+<hr />
+<h3 id="63-leetcode-42">6.3 接雨水（LeetCode 42）⭐⭐⭐</h3>
+<p><strong>题目</strong>：给定 n 个非负整数表示高度图，计算能接多少雨水</p>
+<p><strong>解法一：单调栈</strong></p>
+<pre><code class="language-python">def trap_stack(height):
+    &quot;&quot;&quot;
+    单调递减栈：遇到更高柱子时计算积水
+    &quot;&quot;&quot;
+    stack = []  # 存索引
+    water = 0
+
+    for i, h in enumerate(height):
+        # 当前高度 &gt; 栈顶高度 → 形成凹槽
+        while stack and h &gt; height[stack[-1]]:
+            bottom = stack.pop()  # 凹槽底部
+            if not stack:
+                break
+            # 左边界（栈顶）和右边界（当前）
+            left = stack[-1]
+            width = i - left - 1
+            bound_h = min(height[left], h) - height[bottom]
+            water += width * bound_h
+
+        stack.append(i)
+
+    return water
+</code></pre>
+<p><strong>解法二：双指针</strong></p>
+<pre><code class="language-python">def trap_two_pointers(height):
+    &quot;&quot;&quot;
+    预处理左右最大值，然后双指针扫描
+    &quot;&quot;&quot;
+    if not height:
+        return 0
+
+    n = len(height)
+    left_max = [0] * n
+    right_max = [0] * n
+
+    # 预处理
+    left_max[0] = height[0]
+    for i in range(1, n):
+        left_max[i] = max(left_max[i-1], height[i])
+
+    right_max[n-1] = height[n-1]
+    for i in range(n-2, -1, -1):
+        right_max[i] = max(right_max[i+1], height[i])
+
+    # 计算雨水
+    water = 0
+    for i in range(n):
+        water += min(left_max[i], right_max[i]) - height[i]
+
+    return water
+</code></pre>
+<p><strong>解法三：双指针优化（空间 O(1)）</strong></p>
+<pre><code class="language-python">def trap_optimized(height):
+    left, right = 0, len(height) - 1
+    left_max = right_max = 0
+    water = 0
+
+    while left &lt; right:
+        if height[left] &lt; height[right]:
+            if height[left] &gt;= left_max:
+                left_max = height[left]
+            else:
+                water += left_max - height[left]
+            left += 1
+        else:
+            if height[right] &gt;= right_max:
+                right_max = height[right]
+            else:
+                water += right_max - height[right]
+            right -= 1
+
+    return water
+</code></pre>
+<p><strong>测试</strong>：</p>
+<pre><code class="language-python">height = [0, 1, 0, 2, 1, 0, 1, 3, 2, 1, 2, 1]
+print(trap_stack(height))      # 6
+print(trap_two_pointers(height))  # 6
+print(trap_optimized(height))  # 6
+</code></pre>
+<p><strong>图解</strong>：</p>
+<pre><code>高度图：
+        █
+        █   █
+    █   █ █ █
+    █ █ █ █ █ █ █
+    0 1 0 2 1 0 1 3 2 1 2 1
+
+积水位置（·表示水）：
+        █
+        █████
+    ███████ █
+    █ █ █ █ █ █ █
+    0 1 0 2 1 0 1 3 2 1 2 1
+
+总计：6 单位雨水
+</code></pre>
+<hr />
+<h3 id="64-leetcode-739">6.4 每日温度（LeetCode 739）⭐⭐</h3>
+<p><strong>题目</strong>：给定每天温度，返回等待更高温度的天数</p>
+<pre><code class="language-python">def dailyTemperatures(temps):
+    &quot;&quot;&quot;
+    单调递减栈：找到下一个更高温度
+    &quot;&quot;&quot;
+    n = len(temps)
+    res = [0] * n  # 默认 0（无更高温度）
+    stack = []     # 存索引
+
+    for i, t in enumerate(temps):
+        # 当前温度 &gt; 栈顶温度 → 找到答案
+        while stack and temps[stack[-1]] &lt; t:
+            idx = stack.pop()
+            res[idx] = i - idx  # 天数差
+        stack.append(i)
+
+    return res
+
+# 测试
+temps = [73, 74, 75, 71, 69, 72, 76, 73]
+print(dailyTemperatures(temps))  # [1, 1, 4, 2, 1, 1, 0, 0]
+
+# 解释：
+# 73 → 等 1 天到 74
+# 74 → 等 1 天到 75
+# 75 → 等 4 天到 76
+# 71 → 等 2 天到 72
+# 69 → 等 1 天到 72
+# 72 → 等 1 天到 76
+# 76 → 无更高温度
+# 73 → 无更高温度
+</code></pre>
+<p><strong>状态追踪</strong>：</p>
+<pre><code>i=0, t=73: stack=[0]
+i=1, t=74: 74&gt;73 → res[0]=1, stack=[1]
+i=2, t=75: 75&gt;74 → res[1]=1, stack=[2]
+i=3, t=71: 71&lt;75 → stack=[2,3]
+i=4, t=69: 69&lt;71 → stack=[2,3,4]
+i=5, t=72: 72&gt;69 → res[4]=1
+         72&gt;71 → res[3]=2, stack=[2,5]
+i=6, t=76: 76&gt;72 → res[5]=1
+         76&gt;75 → res[2]=4, stack=[6]
+i=7, t=73: 73&lt;76 → stack=[6,7]
+结果：[1,1,4,2,1,1,0,0]
+</code></pre>
+<hr />
+<h3 id="65-leetcode-84">6.5 柱状图中最大矩形（LeetCode 84）⭐⭐⭐</h3>
+<p><strong>题目</strong>：给定柱状图，求最大矩形面积</p>
+<pre><code class="language-python">def largestRectangleArea(heights):
+    &quot;&quot;&quot;
+    单调递增栈：找到每个柱子能扩展的最大宽度
+    &quot;&quot;&quot;
+    # 添加哨兵，简化边界处理
+    heights = [0] + heights + [0]
+    stack = [0]  # 存索引
+    max_area = 0
+
+    for i in range(1, len(heights)):
+        # 当前高度 &lt; 栈顶高度 → 计算栈顶的矩形
+        while heights[i] &lt; heights[stack[-1]]:
+            h = heights[stack.pop()]
+            # 宽度 = 右边界(i) - 左边界(新栈顶) - 1
+            w = i - stack[-1] - 1
+            max_area = max(max_area, h * w)
+        stack.append(i)
+
+    return max_area
+
+# 测试
+heights = [2, 1, 5, 6, 2, 3]
+print(largestRectangleArea(heights))  # 10
+
+# 解释：
+# 高度 5 和 6 可以形成 5×2=10 的矩形
+</code></pre>
+<p><strong>图解</strong>：</p>
+<pre><code>柱状图：
+      █
+      █
+      █   █
+      █   █
+  █   █   █
+  █   █   █   █
+  2   1   5   6   2   3
+
+最大矩形（█表示矩形区域）：
+      ░
+      ░
+      ░   ░
+      ░   ░
+  ░   ░   ░
+  ░   ░   ░   ░
+  2   1   5   6   2   3
+
+高度=5, 宽度=2, 面积=10
+</code></pre>
+<p><strong>执行过程</strong>：</p>
+<pre><code>i=1, h=1: 1&lt;2 → 弹出 2, 面积=2×1=2, stack=[0,1]
+i=2, h=5: 5&gt;1 → stack=[0,1,2]
+i=3, h=6: 6&gt;5 → stack=[0,1,2,3]
+i=4, h=2: 2&lt;6 → 弹出 6, 面积=6×1=6
+         2&lt;5 → 弹出 5, 面积=5×2=10 ✓
+         stack=[0,1,4]
+i=5, h=3: 3&gt;2 → stack=[0,1,4,5]
+i=6, h=0: 弹出所有，计算剩余面积
+最大面积 = 10
+</code></pre>
+<hr />
+<h3 id="66-leetcode-716">6.6 最大栈（LeetCode 716）⭐⭐⭐</h3>
+<p><strong>题目</strong>：设计支持查找/删除最大元素的栈</p>
+<pre><code class="language-python">class MaxStack:
+    &quot;&quot;&quot;
+    使用双向链表 + HashMap 实现高效操作
+    &quot;&quot;&quot;
+    def __init__(self):
+        self.stack = []  # (value, index)
+        self.max_map = {}  # value -&gt; [indices]
+
+    def push(self, x: int) -&gt; None:
+        idx = len(self.stack)
+        self.stack.append((x, idx))
+        if x not in self.max_map:
+            self.max_map[x] = []
+        self.max_map[x].append(idx)
+
+    def pop(self) -&gt; int:
+        val, idx = self.stack.pop()
+        self.max_map[val].pop()
+        if not self.max_map[val]:
+            del self.max_map[val]
+        return val
+
+    def top(self) -&gt; int:
+        return self.stack[-1][0]
+
+    def peekMax(self) -&gt; int:
+        return max(self.max_map.keys())
+
+    def popMax(self) -&gt; int:
+        max_val = self.peekMax()
+        idx = self.max_map[max_val].pop()
+        if not self.max_map[max_val]:
+            del self.max_map[max_val]
+
+        # 标记删除（惰性删除）
+        self.stack[idx] = None
+
+        # 清理栈顶的 None
+        while self.stack and self.stack[-1] is None:
+            self.stack.pop()
+
+        return max_val
+
+# 测试
+stk = MaxStack()
+stk.push(5)
+stk.push(1)
+stk.push(5)
+print(stk.top())      # 5
+print(stk.popMax())   # 5（最靠近栈顶的 5）
+print(stk.top())      # 1
+print(stk.peekMax())  # 5
+print(stk.pop())      # 1
+print(stk.top())      # 5
+</code></pre>
+<p><strong>复杂度</strong>：
+- push/pop/top: O(1)
+- peekMax: O(k)，k 为不同值的数量
+- popMax: O(n)，需要清理</p>
+<hr />
+<h2 id="7">7. 单调栈专题（详解）</h2>
+<h3 id="71">7.1 核心概念</h3>
+<p><strong>单调栈</strong>：栈内元素保持严格单调递增或递减</p>
+<table>
+<thead>
+<tr>
+<th>类型</th>
+<th>栈内顺序</th>
+<th>弹出条件</th>
+<th>典型应用</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>单调递增</td>
+<td>小 → 大</td>
+<td>当前 &lt; 栈顶</td>
+<td>找前一个更小元素</td>
+</tr>
+<tr>
+<td>单调递减</td>
+<td>大 → 小</td>
+<td>当前 &gt; 栈顶</td>
+<td>找下一个更大元素</td>
+</tr>
+</tbody>
+</table>
+<h3 id="72">7.2 通用模板</h3>
+<pre><code class="language-python">def monotonic_stack_template(nums):
+    &quot;&quot;&quot;
+    单调栈通用模板
+    &quot;&quot;&quot;
+    stack = []  # 存索引
+    result = [0] * len(nums)
+
+    for i, num in enumerate(nums):
+        # 根据单调性决定弹出条件
+        while stack and CONDITION:
+            idx = stack.pop()
+            # 处理被弹出的元素
+            result[idx] = PROCESS(idx, i, num)
+        stack.append(i)
+
+    # 处理栈中剩余元素
+    while stack:
+        idx = stack.pop()
+        result[idx] = DEFAULT_VALUE
+
+    return result
+</code></pre>
+<h3 id="73">7.3 经典题型全解</h3>
+<h4 id="1-ileetcode-496">（1）下一个更大元素 I（LeetCode 496）⭐</h4>
+<pre><code class="language-python">def nextGreaterElement(nums1, nums2):
+    &quot;&quot;&quot;
+    nums1 是 nums2 的子集，找 nums1 中元素在 nums2 中的下一个更大元素
+    &quot;&quot;&quot;
+    # 先处理 nums2，建立映射
+    next_greater = {}
+    stack = []
+
+    for num in nums2:
+        while stack and stack[-1] &lt; num:
+            next_greater[stack.pop()] = num
+        stack.append(num)
+
+    # 查询 nums1
+    return [next_greater.get(num, -1) for num in nums1]
+
+# 测试
+nums1 = [4, 1, 2]
+nums2 = [1, 3, 4, 2]
+print(nextGreaterElement(nums1, nums2))  # [-1, 3, -1]
+</code></pre>
+<h4 id="2-ii">（2）下一个更大元素 II（循环数组）⭐⭐</h4>
+<pre><code class="language-python">def nextGreaterElements(nums):
+    &quot;&quot;&quot;
+    数组是循环的，最后一个元素的下一个是第一个元素
+    &quot;&quot;&quot;
+    n = len(nums)
+    res = [-1] * n
+    stack = []
+
+    # 遍历两遍模拟循环
+    for i in range(n * 2):
+        idx = i % n
+        while stack and nums[stack[-1]] &lt; nums[idx]:
+            res[stack.pop()] = nums[idx]
+        if i &lt; n:
+            stack.append(idx)
+
+    return res
+
+# 测试
+nums = [1, 2, 1]
+print(nextGreaterElements(nums))  # [2, -1, 2]
+# 解释：第一个 1→2, 2→无, 第二个 1→2（循环）
+</code></pre>
+<h4 id="3leetcode-901">（3）股票价格跨度（LeetCode 901）⭐⭐</h4>
+<pre><code class="language-python">class StockSpanner:
+    &quot;&quot;&quot;
+    计算股票价格跨度：小于等于今天价格的连续天数
+    &quot;&quot;&quot;
+    def __init__(self):
+        self.stack = []  # (price, span)
+
+    def next(self, price: int) -&gt; int:
+        span = 1
+        # 弹出所有小于等于当前价格的
+        while self.stack and self.stack[-1][0] &lt;= price:
+            span += self.stack.pop()[1]
+        self.stack.append((price, span))
+        return span
+
+# 测试
+spanner = StockSpanner()
+print(spanner.next(100))  # 1
+print(spanner.next(80))   # 1
+print(spanner.next(60))   # 1
+print(spanner.next(70))   # 2（60,70）
+print(spanner.next(60))   # 1
+print(spanner.next(75))   # 4（60,70,60,75）
+print(spanner.next(85))   # 6（全部）
+</code></pre>
+<h4 id="4-k-leetcode-402">（4）移除 K 位数字使剩余最小（LeetCode 402）⭐⭐⭐</h4>
+<pre><code class="language-python">def removeKdigits(num: str, k: int) -&gt; str:
+    &quot;&quot;&quot;
+    单调递增栈：保持结果最小
+    &quot;&quot;&quot;
+    stack = []
+
+    for digit in num:
+        # 栈顶 &gt; 当前数字，且还能删除 → 弹出
+        while k &gt; 0 and stack and stack[-1] &gt; digit:
+            stack.pop()
+            k -= 1
+        stack.append(digit)
+
+    # 如果还有剩余删除次数，从末尾删除
+    while k &gt; 0:
+        stack.pop()
+        k -= 1
+
+    # 处理前导零
+    result = ''.join(stack).lstrip('0')
+    return result if result else '0'
+
+# 测试
+print(removeKdigits(&quot;1432219&quot;, 3))  # &quot;1219&quot;
+print(removeKdigits(&quot;10200&quot;, 1))    # &quot;200&quot;
+print(removeKdigits(&quot;10&quot;, 2))       # &quot;0&quot;
+</code></pre>
+<h4 id="5_1">（5）最长连续子数组（最小值×和最大）⭐⭐</h4>
+<pre><code class="language-python">def maxScore(nums, k):
+    &quot;&quot;&quot;
+    找长度为 k 的子数组，使得 min(subarray) * sum(subarray) 最大
+    &quot;&quot;&quot;
+    n = len(nums)
+
+    # 单调栈找左右边界
+    left = [-1] * n
+    right = [n] * n
+    stack = []
+
+    # 找左边第一个更小的
+    for i in range(n):
+        while stack and nums[stack[-1]] &gt;= nums[i]:
+            stack.pop()
+        left[i] = stack[-1] if stack else -1
+        stack.append(i)
+
+    stack = []
+    # 找右边第一个更小的
+    for i in range(n-1, -1, -1):
+        while stack and nums[stack[-1]] &gt;= nums[i]:
+            stack.pop()
+        right[i] = stack[-1] if stack else n
+        stack.append(i)
+
+    # 计算每个元素作为最小值时的最大贡献
+    max_score = 0
+    for i in range(n):
+        # 以 nums[i] 为最小值的最大窗口
+        window_len = right[i] - left[i] - 1
+        if window_len &gt;= k:
+            # 需要计算最优的 k 长度子数组
+            pass
+
+    return max_score
+</code></pre>
+<h3 id="74">7.4 解题技巧总结</h3>
+<p><strong>识别单调栈的信号</strong>：
+1. 找"下一个更大/更小"元素
+2. 找"前一个更大/更小"元素
+3. 涉及"宽度×高度"的面积问题
+4. 需要知道元素左右边界</p>
+<p><strong>选择栈类型</strong>：</p>
+<pre><code>找下一个更大 → 单调递减栈
+找下一个更小 → 单调递增栈
+找前一个更大 → 单调递减栈
+找前一个更小 → 单调递增栈
+</code></pre>
+<p><strong>边界处理技巧</strong>：
+1. 添加哨兵元素（如首尾加 0）
+2. 存索引而非值
+3. 循环数组：遍历 2n 次取模</p>
+<p><strong>常见陷阱</strong>：
+- 忘记处理栈中剩余元素
+- 相等元素的处理（严格 vs 非严格单调）
+- 边界条件（空数组、单元素）</p>
+<hr />
+<h2 id="8">8. 总结</h2>
+<table>
+<thead>
+<tr>
+<th>特性</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>核心原则</td>
+<td>后进先出（LIFO）</td>
+</tr>
+<tr>
+<td>操作限制</td>
+<td>只能在一端操作</td>
+</tr>
+<tr>
+<td>时间复杂度</td>
+<td>基本操作均为 O(1)</td>
+</tr>
+<tr>
+<td>空间复杂度</td>
+<td>O(n)</td>
+</tr>
+<tr>
+<td>典型应用</td>
+<td>括号匹配、表达式求值、DFS、单调栈</td>
+</tr>
+</tbody>
+</table>
+<p><strong>单调栈进阶</strong>：
+- 识别模式：下一个/前一个更大更小
+- 选择类型：递增/递减
+- 处理边界：哨兵、存索引、循环数组</p>
+<hr />
+<p><strong>关键思想</strong>：当你需要<strong>回溯</strong>、<strong>撤销</strong>、或者处理<strong>嵌套结构</strong>时，优先考虑栈！</p>
+<p><strong>单调栈口诀</strong>：</p>
+<blockquote>
+<p>更大用递减，更小用递增；
+存索引不存值，边界要处理；
+面积问题找左右，宽度乘高度。</p>
+</blockquote>
+<hr />
+<p>🎉 <strong>恭喜完成栈学习！继续学习 <a href="../4_%E9%98%9F%E5%88%97/">队列</a></strong></p></div>
+            </div>
+        </div>
+
+        <footer class="col-md-12">
+            <hr>
+            <p>Documentation built with <a href="https://www.mkdocs.org/">MkDocs</a>.</p>
+        </footer>
+        <script src="../../../js/bootstrap.bundle.min.js"></script>
+        <script>
+            var base_url = "../../..",
+                shortcuts = {"help": 191, "next": 78, "previous": 80, "search": 83};
+        </script>
+        <script src="../../../js/base.js"></script>
+        <script src="../../../search/main.js"></script>
+
+        <div class="modal" id="mkdocs_search_modal" tabindex="-1" role="dialog" aria-labelledby="searchModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="searchModalLabel">Search</h4>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>From here you can search these documents. Enter your search terms below.</p>
+                <form>
+                    <div class="form-group">
+                        <input type="search" class="form-control" placeholder="Search..." id="mkdocs-search-query" title="Type search term here">
+                    </div>
+                </form>
+                <div id="mkdocs-search-results" data-no-results-text="No results found"></div>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div><div class="modal" id="mkdocs_keyboard_modal" tabindex="-1" role="dialog" aria-labelledby="keyboardModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="keyboardModalLabel">Keyboard Shortcuts</h4>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th style="width: 20%;">Keys</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td class="help shortcut"><kbd>?</kbd></td>
+                    <td>Open this help</td>
+                  </tr>
+                  <tr>
+                    <td class="next shortcut"><kbd>n</kbd></td>
+                    <td>Next page</td>
+                  </tr>
+                  <tr>
+                    <td class="prev shortcut"><kbd>p</kbd></td>
+                    <td>Previous page</td>
+                  </tr>
+                  <tr>
+                    <td class="search shortcut"><kbd>s</kbd></td>
+                    <td>Search</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div>
+
+    </body>
+</html>

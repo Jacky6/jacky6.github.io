@@ -1,0 +1,653 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="light">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        
+        
+        
+        <link rel="shortcut icon" href="../../../img/favicon.ico">
+        <title>05. Agent 深入 - My Docs</title>
+        <link href="../../../css/bootstrap.min.css" rel="stylesheet">
+        <link href="../../../css/fontawesome.min.css" rel="stylesheet">
+        <link href="../../../css/brands.min.css" rel="stylesheet">
+        <link href="../../../css/solid.min.css" rel="stylesheet">
+        <link href="../../../css/v4-font-face.min.css" rel="stylesheet">
+        <link href="../../../css/base.css" rel="stylesheet">
+        <link id="hljs-light" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" >
+        <link id="hljs-dark" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github-dark.min.css" disabled>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+        <script>hljs.highlightAll();</script> 
+    </head>
+
+    <body>
+        <div class="navbar fixed-top navbar-expand-lg navbar-dark bg-primary">
+            <div class="container">
+                <a class="navbar-brand" href="../../..">My Docs</a>
+
+                <!-- Expanded navigation -->
+                <div id="navbar-collapse" class="navbar-collapse collapse">
+
+                    <ul class="nav navbar-nav ms-md-auto">
+                        <li class="nav-item">
+                            <a href="#" class="nav-link" data-bs-toggle="modal" data-bs-target="#mkdocs_search_modal">
+                                <i class="fa fa-search"></i> Search
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="container">
+            <div class="row">
+                    <div class="col-md-3"><div class="navbar-expand-md bs-sidebar hidden-print affix" role="complementary">
+    <div class="navbar-header">
+        <button type="button" class="navbar-toggler collapsed" data-bs-toggle="collapse" data-bs-target="#toc-collapse" title="Table of Contents">
+            <span class="fa fa-angle-down"></span>
+        </button>
+    </div>
+
+    
+    <div id="toc-collapse" class="navbar-collapse collapse card bg-body-tertiary">
+        <ul class="nav flex-column">
+            
+            <li class="nav-item" data-bs-level="1"><a href="#05-agent" class="nav-link">05. Agent 深入</a>
+              <ul class="nav flex-column">
+            <li class="nav-item" data-bs-level="2"><a href="#system-prompt" class="nav-link">系统提示（System Prompt）</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#_4" class="nav-link">上下文工程</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#_7" class="nav-link">工具选择策略</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#_10" class="nav-link">错误处理和恢复</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#human-in-the-loop" class="nav-link">人机交互（Human-in-the-loop）</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#_15" class="nav-link">流式输出</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#agent" class="nav-link">Agent 评估</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#_19" class="nav-link">最佳实践</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#_22" class="nav-link">调试技巧</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#_23" class="nav-link">下一步</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#_24" class="nav-link">参考资源</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+              </ul>
+            </li>
+        </ul>
+    </div>
+</div></div>
+                    <div class="col-md-9" role="main">
+
+<h1 id="05-agent">05. Agent 深入</h1>
+<h2 id="system-prompt">系统提示（System Prompt）</h2>
+<p>系统提示是指导 Agent 行为的关键配置。</p>
+<h3 id="_1">基础系统提示</h3>
+<pre><code class="language-python">from langchain.agents import create_agent
+
+agent = create_agent(
+    model=&quot;claude-sonnet-4-6&quot;,
+    tools=[...],
+    system_prompt=&quot;You are a helpful assistant.&quot;,
+)
+</code></pre>
+<h3 id="_2">详细的系统提示</h3>
+<pre><code class="language-python">system_prompt = &quot;&quot;&quot;You are a professional customer service assistant.
+
+Your responsibilities:
+1. Answer customer questions politely and accurately
+2. Use available tools to find information
+3. Escalate complex issues to human agents
+
+Guidelines:
+- Be concise and clear
+- Use professional language
+- Show empathy for customer concerns
+- Never make promises you can't keep
+
+Available tools:
+- search_knowledge_base: Find company information
+- check_order_status: Look up order information
+- create_ticket: Create support tickets
+
+Always use tools before answering factual questions.&quot;&quot;&quot;
+
+agent = create_agent(
+    model=&quot;claude-sonnet-4-6&quot;,
+    tools=[...],
+    system_prompt=system_prompt,
+)
+</code></pre>
+<h3 id="_3">角色扮演的系统提示</h3>
+<pre><code class="language-python">system_prompt = &quot;&quot;&quot;You are a senior software engineer with 10 years of experience.
+
+Expertise:
+- Python, Java, JavaScript
+- System design and architecture
+- Code review and best practices
+
+Communication style:
+- Explain concepts clearly with examples
+- Point out potential issues
+- Suggest improvements
+- Be encouraging but honest
+
+When reviewing code:
+1. Check for correctness
+2. Look for performance issues
+3. Suggest best practices
+4. Consider security implications&quot;&quot;&quot;
+
+agent = create_agent(
+    model=&quot;claude-sonnet-4-6&quot;,
+    tools=[code_review_tool, search_docs_tool],
+    system_prompt=system_prompt,
+)
+</code></pre>
+<h2 id="_4">上下文工程</h2>
+<h3 id="_5">多轮对话</h3>
+<pre><code class="language-python">from langchain.agents import create_agent
+
+agent = create_agent(
+    model=&quot;claude-sonnet-4-6&quot;,
+    tools=[...],
+)
+
+# 第一轮
+messages = [{&quot;role&quot;: &quot;user&quot;, &quot;content&quot;: &quot;北京天气如何？&quot;}]
+result = agent.invoke({&quot;messages&quot;: messages})
+messages.extend(result[&quot;messages&quot;])
+
+# 第二轮（有上下文）
+messages.append({&quot;role&quot;: &quot;user&quot;, &quot;content&quot;: &quot;那上海呢？&quot;})
+result = agent.invoke({&quot;messages&quot;: messages})
+messages.extend(result[&quot;messages&quot;])
+
+# 第三轮
+messages.append({&quot;role&quot;: &quot;user&quot;, &quot;content&quot;: &quot;哪个城市更热？&quot;})
+result = agent.invoke({&quot;messages&quot;: messages})
+</code></pre>
+<h3 id="_6">添加上下文信息</h3>
+<pre><code class="language-python">from langchain.agents import create_agent
+
+agent = create_agent(
+    model=&quot;claude-sonnet-4-6&quot;,
+    tools=[...],
+)
+
+# 添加系统上下文
+context = &quot;&quot;&quot;Current context:
+- User location: Beijing
+- User timezone: UTC+8
+- Current date: 2026-03-24
+- User preferences: Metric system&quot;&quot;&quot;
+
+messages = [
+    {&quot;role&quot;: &quot;system&quot;, &quot;content&quot;: context},
+    {&quot;role&quot;: &quot;user&quot;, &quot;content&quot;: &quot;今天天气如何？&quot;}
+]
+
+result = agent.invoke({&quot;messages&quot;: messages})
+</code></pre>
+<h2 id="_7">工具选择策略</h2>
+<h3 id="_8">明确工具用途</h3>
+<pre><code class="language-python">system_prompt = &quot;&quot;&quot;You have access to these tools:
+
+1. get_weather(city: str) - Use ONLY for weather questions
+   Example: &quot;What's the weather in Beijing?&quot;
+
+2. search_web(query: str) - Use for current events, news, facts
+   Example: &quot;Who won the 2024 election?&quot;
+
+3. calculator(expression: str) - Use ONLY for math calculations
+   Example: &quot;What is 123 * 456?&quot;
+
+4. get_time() - Use for time/date questions
+   Example: &quot;What time is it?&quot;
+
+Choose the most appropriate tool based on the user's question.
+If no tool is needed, answer directly.&quot;&quot;&quot;
+
+agent = create_agent(
+    model=&quot;claude-sonnet-4-6&quot;,
+    tools=[get_weather, search_web, calculator, get_time],
+    system_prompt=system_prompt,
+)
+</code></pre>
+<h3 id="_9">工具调用链</h3>
+<pre><code class="language-python">from langchain.agents import create_agent
+
+def get_city_coordinates(city: str) -&gt; str:
+    &quot;&quot;&quot;Get coordinates for a city.
+
+    Returns: &quot;lat,lon&quot; format
+    &quot;&quot;&quot;
+    # 返回坐标
+    return &quot;39.9042,116.4074&quot;
+
+def get_weather_by_coords(lat: float, lon: float) -&gt; str:
+    &quot;&quot;&quot;Get weather by coordinates.&quot;&quot;&quot;
+    return f&quot;Weather at {lat},{lon}: Sunny&quot;
+
+# Agent 会自动串联这两个工具
+agent = create_agent(
+    model=&quot;claude-sonnet-4-6&quot;,
+    tools=[get_city_coordinates, get_weather_by_coords],
+    system_prompt=&quot;Use tools to get weather information.&quot;,
+)
+
+result = agent.invoke({
+    &quot;messages&quot;: [{&quot;role&quot;: &quot;user&quot;, &quot;content&quot;: &quot;北京天气&quot;}]
+})
+# Agent 可能：
+# 1. 调用 get_city_coordinates(&quot;北京&quot;) → &quot;39.9042,116.4074&quot;
+# 2. 调用 get_weather_by_coords(39.9042, 116.4074) → &quot;Sunny&quot;
+# 3. 整合回复
+</code></pre>
+<h2 id="_10">错误处理和恢复</h2>
+<h3 id="_11">工具错误处理</h3>
+<pre><code class="language-python">def search_api(query: str) -&gt; str:
+    &quot;&quot;&quot;Search an API that might fail.&quot;&quot;&quot;
+    try:
+        response = requests.get(f&quot;https://api.example.com/search?q={query}&quot;)
+        response.raise_for_status()
+        return response.text
+    except requests.exceptions.Timeout:
+        return &quot;Error: API timeout, please try again&quot;
+    except requests.exceptions.HTTPError as e:
+        return f&quot;Error: API returned {e.response.status_code}&quot;
+    except Exception as e:
+        return f&quot;Error: {str(e)}&quot;
+
+agent = create_agent(
+    model=&quot;claude-sonnet-4-6&quot;,
+    tools=[search_api],
+    system_prompt=&quot;&quot;&quot;If a tool returns an error:
+1. Inform the user about the error
+2. Suggest trying again
+3. Offer alternative approaches&quot;&quot;&quot;,
+)
+</code></pre>
+<h3 id="_12">重试逻辑</h3>
+<pre><code class="language-python">import time
+from functools import wraps
+
+def retry(max_attempts=3, delay=1):
+    &quot;&quot;&quot;Retry decorator for tools.&quot;&quot;&quot;
+    def decorator(func):
+        @wraps(func)
+        def wrapper(*args, **kwargs):
+            for attempt in range(max_attempts):
+                try:
+                    return func(*args, **kwargs)
+                except Exception as e:
+                    if attempt == max_attempts - 1:
+                        return f&quot;Error after {max_attempts} attempts: {e}&quot;
+                    time.sleep(delay * (attempt + 1))  # 指数退避
+            return &quot;Error: Unknown&quot;
+        return wrapper
+    return decorator
+
+@retry(max_attempts=3, delay=1)
+def flaky_tool(data: str) -&gt; str:
+    &quot;&quot;&quot;A tool that sometimes fails.&quot;&quot;&quot;
+    # 可能失败的实现
+    pass
+</code></pre>
+<h2 id="human-in-the-loop">人机交互（Human-in-the-loop）</h2>
+<h3 id="_13">需要确认的操作</h3>
+<pre><code class="language-python">from langchain.agents import create_agent
+
+def delete_user(user_id: str) -&gt; str:
+    &quot;&quot;&quot;Delete a user (requires confirmation).&quot;&quot;&quot;
+    # 实际删除逻辑
+    return f&quot;User {user_id} deleted&quot;
+
+system_prompt = &quot;&quot;&quot;For destructive operations (delete, remove, etc.):
+1. Explain what will happen
+2. Ask for explicit confirmation
+3. Only proceed after confirmation
+
+Example:
+User: &quot;Delete user 123&quot;
+You: &quot;This will permanently delete user 123. Are you sure? (yes/no)&quot;
+User: &quot;yes&quot;
+You: [call delete_user tool]&quot;&quot;&quot;
+
+agent = create_agent(
+    model=&quot;claude-sonnet-4-6&quot;,
+    tools=[delete_user],
+    system_prompt=system_prompt,
+)
+</code></pre>
+<h3 id="_14">多步骤审批</h3>
+<pre><code class="language-python">def submit_expense(amount: float, description: str) -&gt; str:
+    &quot;&quot;&quot;Submit expense for approval.&quot;&quot;&quot;
+    return f&quot;Expense ${amount} submitted: {description}&quot;
+
+def approve_expense(expense_id: str) -&gt; str:
+    &quot;&quot;&quot;Approve an expense.&quot;&quot;&quot;
+    return f&quot;Expense {expense_id} approved&quot;
+
+system_prompt = &quot;&quot;&quot;For expense operations:
+- Expenses under $100: Submit directly
+- Expenses $100-$500: Submit and notify manager
+- Expenses over $500: Require manager approval before submitting&quot;&quot;&quot;
+
+agent = create_agent(
+    model=&quot;claude-sonnet-4-6&quot;,
+    tools=[submit_expense, approve_expense],
+    system_prompt=system_prompt,
+)
+</code></pre>
+<h2 id="_15">流式输出</h2>
+<h3 id="_16">基础流式</h3>
+<pre><code class="language-python">from langchain.agents import create_agent
+
+agent = create_agent(
+    model=&quot;claude-sonnet-4-6&quot;,
+    tools=[...],
+)
+
+# 流式处理
+for chunk in agent.stream({&quot;messages&quot;: [{&quot;role&quot;: &quot;user&quot;, &quot;content&quot;: &quot;Hello&quot;}]}):
+    if &quot;messages&quot; in chunk:
+        for message in chunk[&quot;messages&quot;]:
+            if hasattr(message, 'content') and message.content:
+                print(message.content, end=&quot;&quot;, flush=True)
+</code></pre>
+<h3 id="_17">实时显示工具调用</h3>
+<pre><code class="language-python">from langchain.agents import create_agent
+
+agent = create_agent(
+    model=&quot;claude-sonnet-4-6&quot;,
+    tools=[...],
+)
+
+print(&quot;🤖 Agent started...\n&quot;)
+
+for chunk in agent.stream({&quot;messages&quot;: [{&quot;role&quot;: &quot;user&quot;, &quot;content&quot;: &quot;...&quot;}]}):
+    if &quot;messages&quot; in chunk:
+        for message in chunk[&quot;messages&quot;]:
+            if message.type == &quot;tool&quot;:
+                print(f&quot;\n🛠️  调用工具：{message.name}&quot;)
+                print(f&quot;    参数：{message.additional_kwargs}&quot;)
+            elif message.type == &quot;assistant&quot; and message.content:
+                print(f&quot;\n💬 {message.content}&quot;, end=&quot;&quot;, flush=True)
+</code></pre>
+<h2 id="agent">Agent 评估</h2>
+<h3 id="agent_1">测试 Agent</h3>
+<pre><code class="language-python">from langchain.agents import create_agent
+
+agent = create_agent(
+    model=&quot;claude-sonnet-4-6&quot;,
+    tools=[...],
+)
+
+# 测试用例
+test_cases = [
+    {
+        &quot;input&quot;: &quot;北京天气如何？&quot;,
+        &quot;expected_tool&quot;: &quot;get_weather&quot;,
+    },
+    {
+        &quot;input&quot;: &quot;计算 123 * 456&quot;,
+        &quot;expected_tool&quot;: &quot;calculator&quot;,
+    },
+    {
+        &quot;input&quot;: &quot;你好&quot;,
+        &quot;expected_tool&quot;: None,  # 不需要工具
+    },
+]
+
+# 运行测试
+for test in test_cases:
+    result = agent.invoke({
+        &quot;messages&quot;: [{&quot;role&quot;: &quot;user&quot;, &quot;content&quot;: test[&quot;input&quot;]}]
+    })
+
+    # 检查是否使用了正确的工具
+    tool_calls = [m for m in result[&quot;messages&quot;] if m.type == &quot;tool&quot;]
+
+    if test[&quot;expected_tool&quot;]:
+        assert any(m.name == test[&quot;expected_tool&quot;] for m in tool_calls)
+        print(f&quot;✅ {test['input']}&quot;)
+    else:
+        assert len(tool_calls) == 0
+        print(f&quot;✅ {test['input']} (no tool needed)&quot;)
+</code></pre>
+<h3 id="_18">性能测试</h3>
+<pre><code class="language-python">import time
+
+def benchmark_agent(agent, queries, iterations=3):
+    &quot;&quot;&quot;Benchmark agent performance.&quot;&quot;&quot;
+    results = []
+
+    for query in queries:
+        times = []
+        for _ in range(iterations):
+            start = time.time()
+            agent.invoke({&quot;messages&quot;: [{&quot;role&quot;: &quot;user&quot;, &quot;content&quot;: query}]})
+            end = time.time()
+            times.append(end - start)
+
+        avg_time = sum(times) / len(times)
+        results.append({
+            &quot;query&quot;: query,
+            &quot;avg_time&quot;: avg_time,
+            &quot;min_time&quot;: min(times),
+            &quot;max_time&quot;: max(times),
+        })
+
+    return results
+
+# 使用
+queries = [&quot;简单问题&quot;, &quot;复杂问题&quot;, &quot;多步骤问题&quot;]
+results = benchmark_agent(agent, queries)
+
+for r in results:
+    print(f&quot;{r['query']}: {r['avg_time']:.2f}s&quot;)
+</code></pre>
+<h2 id="_19">最佳实践</h2>
+<h3 id="_20">✅ 推荐</h3>
+<pre><code class="language-python"># 1. 编写详细的系统提示
+system_prompt = &quot;&quot;&quot;You are a helpful assistant.
+- Use tools for factual questions
+- Be concise but thorough
+- Ask for clarification if unsure&quot;&quot;&quot;
+
+# 2. 保持对话历史
+messages = []
+while True:
+    user_input = input(&quot;你：&quot;)
+    messages.append({&quot;role&quot;: &quot;user&quot;, &quot;content&quot;: user_input})
+    result = agent.invoke({&quot;messages&quot;: messages})
+    messages.extend(result[&quot;messages&quot;])
+
+# 3. 限制上下文长度
+MAX_MESSAGES = 20
+if len(messages) &gt; MAX_MESSAGES:
+    messages = messages[-MAX_MESSAGES:]
+
+# 4. 清晰的工具文档
+def tool(param: str) -&gt; str:
+    &quot;&quot;&quot;Clear description.
+
+    Args:
+        param: Detailed description
+
+    Returns:
+        What this returns
+    &quot;&quot;&quot;
+
+# 5. 适当的错误处理
+def tool(param: str) -&gt; str:
+    &quot;&quot;&quot;A tool.&quot;&quot;&quot;
+    try:
+        return do_something(param)
+    except Exception as e:
+        return f&quot;Error: {e}&quot;
+</code></pre>
+<h3 id="_21">❌ 避免</h3>
+<pre><code class="language-python"># 1. 模糊的系统提示
+system_prompt = &quot;Be helpful&quot;  # ❌ 太模糊
+
+# 2. 忽略对话历史
+messages = [{&quot;role&quot;: &quot;user&quot;, &quot;content&quot;: user_input}]  # ❌ 没有上下文
+
+# 3. 不限制上下文长度
+# ❌ 可能导致 token 超限或成本过高
+
+# 4. 工具文档不清晰
+def tool(x):  # ❌ 没有文档
+    return x
+
+# 5. 不处理错误
+def tool(param):  # ❌ 可能崩溃
+    return api_call(param)
+</code></pre>
+<h2 id="_22">调试技巧</h2>
+<h3 id="agent_2">打印 Agent 思考过程</h3>
+<pre><code class="language-python">result = agent.invoke({&quot;messages&quot;: [...]})
+
+print(&quot;=== 完整对话历史 ===&quot;)
+for i, msg in enumerate(result[&quot;messages&quot;]):
+    print(f&quot;\n[{i}] {msg.type.upper()}:&quot;)
+    if hasattr(msg, 'name'):
+        print(f&quot;    工具：{msg.name}&quot;)
+    print(f&quot;    内容：{msg.content[:200]}...&quot;)
+</code></pre>
+<h3 id="langsmith">使用 LangSmith</h3>
+<pre><code class="language-python">import os
+
+# 启用 LangSmith
+os.environ[&quot;LANGSMITH_TRACING&quot;] = &quot;true&quot;
+os.environ[&quot;LANGSMITH_API_KEY&quot;] = &quot;lsv2_...&quot;
+os.environ[&quot;LANGSMITH_PROJECT&quot;] = &quot;my-agent&quot;
+
+# 所有调用自动追踪
+agent.invoke({&quot;messages&quot;: [...]})
+
+# 访问 https://smith.langchain.com/ 查看：
+# - 完整的执行轨迹
+# - 工具调用详情
+# - LLM 输入输出
+# - 性能指标
+</code></pre>
+<h2 id="_23">下一步</h2>
+<ul>
+<li><a href="../06-langgraph-basics/">06-LangGraph 基础</a>：了解底层框架</li>
+<li><a href="../08-examples/">08-实战项目</a>：完整项目示例</li>
+</ul>
+<h2 id="_24">参考资源</h2>
+<ul>
+<li><a href="https://docs.langchain.com/oss/python/langchain/agents">LangChain Agent 文档</a></li>
+<li><a href="https://docs.langchain.com/langsmith">LangSmith 文档</a></li>
+</ul>
+<hr />
+<p><em>构建更智能的 Agent！🧠</em></p></div>
+            </div>
+        </div>
+
+        <footer class="col-md-12">
+            <hr>
+            <p>Documentation built with <a href="https://www.mkdocs.org/">MkDocs</a>.</p>
+        </footer>
+        <script src="../../../js/bootstrap.bundle.min.js"></script>
+        <script>
+            var base_url = "../../..",
+                shortcuts = {"help": 191, "next": 78, "previous": 80, "search": 83};
+        </script>
+        <script src="../../../js/base.js"></script>
+        <script src="../../../search/main.js"></script>
+
+        <div class="modal" id="mkdocs_search_modal" tabindex="-1" role="dialog" aria-labelledby="searchModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="searchModalLabel">Search</h4>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>From here you can search these documents. Enter your search terms below.</p>
+                <form>
+                    <div class="form-group">
+                        <input type="search" class="form-control" placeholder="Search..." id="mkdocs-search-query" title="Type search term here">
+                    </div>
+                </form>
+                <div id="mkdocs-search-results" data-no-results-text="No results found"></div>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div><div class="modal" id="mkdocs_keyboard_modal" tabindex="-1" role="dialog" aria-labelledby="keyboardModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="keyboardModalLabel">Keyboard Shortcuts</h4>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th style="width: 20%;">Keys</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td class="help shortcut"><kbd>?</kbd></td>
+                    <td>Open this help</td>
+                  </tr>
+                  <tr>
+                    <td class="next shortcut"><kbd>n</kbd></td>
+                    <td>Next page</td>
+                  </tr>
+                  <tr>
+                    <td class="prev shortcut"><kbd>p</kbd></td>
+                    <td>Previous page</td>
+                  </tr>
+                  <tr>
+                    <td class="search shortcut"><kbd>s</kbd></td>
+                    <td>Search</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div>
+
+    </body>
+</html>

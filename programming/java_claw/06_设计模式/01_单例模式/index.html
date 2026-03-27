@@ -1,0 +1,593 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="light">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        
+        
+        
+        <link rel="shortcut icon" href="../../../../img/favicon.ico">
+        <title>32_单例模式 - My Docs</title>
+        <link href="../../../../css/bootstrap.min.css" rel="stylesheet">
+        <link href="../../../../css/fontawesome.min.css" rel="stylesheet">
+        <link href="../../../../css/brands.min.css" rel="stylesheet">
+        <link href="../../../../css/solid.min.css" rel="stylesheet">
+        <link href="../../../../css/v4-font-face.min.css" rel="stylesheet">
+        <link href="../../../../css/base.css" rel="stylesheet">
+        <link id="hljs-light" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" >
+        <link id="hljs-dark" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github-dark.min.css" disabled>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+        <script>hljs.highlightAll();</script> 
+    </head>
+
+    <body>
+        <div class="navbar fixed-top navbar-expand-lg navbar-dark bg-primary">
+            <div class="container">
+                <a class="navbar-brand" href="../../../..">My Docs</a>
+
+                <!-- Expanded navigation -->
+                <div id="navbar-collapse" class="navbar-collapse collapse">
+
+                    <ul class="nav navbar-nav ms-md-auto">
+                        <li class="nav-item">
+                            <a href="#" class="nav-link" data-bs-toggle="modal" data-bs-target="#mkdocs_search_modal">
+                                <i class="fa fa-search"></i> Search
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="container">
+            <div class="row">
+                    <div class="col-md-3"><div class="navbar-expand-md bs-sidebar hidden-print affix" role="complementary">
+    <div class="navbar-header">
+        <button type="button" class="navbar-toggler collapsed" data-bs-toggle="collapse" data-bs-target="#toc-collapse" title="Table of Contents">
+            <span class="fa fa-angle-down"></span>
+        </button>
+    </div>
+
+    
+    <div id="toc-collapse" class="navbar-collapse collapse card bg-body-tertiary">
+        <ul class="nav flex-column">
+            
+            <li class="nav-item" data-bs-level="1"><a href="#32_" class="nav-link">32_单例模式</a>
+              <ul class="nav flex-column">
+            <li class="nav-item" data-bs-level="2"><a href="#1" class="nav-link">1. 单例模式概述</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#2" class="nav-link">2. 饿汉式单例</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#3" class="nav-link">3. 懒汉式单例</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#4" class="nav-link">4. 静态内部类</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#5" class="nav-link">5. 枚举单例</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#6" class="nav-link">6. 单例模式对比</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#7" class="nav-link">7. 单例模式破坏</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#8" class="nav-link">8. 实战示例</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#9" class="nav-link">9. 本章小结</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+              </ul>
+            </li>
+        </ul>
+    </div>
+</div></div>
+                    <div class="col-md-9" role="main">
+
+<h1 id="32_">32_单例模式</h1>
+<hr />
+<h2 id="1">1. 单例模式概述</h2>
+<h3 id="11">1.1 什么是单例模式</h3>
+<p><strong>单例模式</strong>（Singleton Pattern）确保一个类只有一个实例，并提供全局访问点。</p>
+<p><strong>应用场景</strong>：
+- ✅ 配置管理器
+- ✅ 数据库连接池
+- ✅ 日志记录器
+- ✅ 线程池
+- ✅ 缓存系统</p>
+<h3 id="12">1.2 实现要点</h3>
+<ol>
+<li><strong>私有构造方法</strong>：防止外部创建实例</li>
+<li><strong>私有静态变量</strong>：保存唯一实例</li>
+<li><strong>公共静态方法</strong>：提供全局访问点</li>
+</ol>
+<hr />
+<h2 id="2">2. 饿汉式单例</h2>
+<h3 id="21">2.1 实现方式</h3>
+<pre><code class="language-java">public class Singleton {
+    // 类加载时创建实例
+    private static final Singleton INSTANCE = new Singleton();
+
+    // 私有构造
+    private Singleton() {
+    }
+
+    // 全局访问点
+    public static Singleton getInstance() {
+        return INSTANCE;
+    }
+}
+</code></pre>
+<h3 id="22">2.2 特点</h3>
+<table>
+<thead>
+<tr>
+<th>优点</th>
+<th>缺点</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>线程安全</td>
+<td>可能浪费资源</td>
+</tr>
+<tr>
+<td>实现简单</td>
+<td>无法延迟加载</td>
+</tr>
+<tr>
+<td>无锁开销</td>
+<td>类加载就创建</td>
+</tr>
+</tbody>
+</table>
+<h3 id="23">2.3 使用</h3>
+<pre><code class="language-java">Singleton s1 = Singleton.getInstance();
+Singleton s2 = Singleton.getInstance();
+System.out.println(s1 == s2);  // true
+</code></pre>
+<hr />
+<h2 id="3">3. 懒汉式单例</h2>
+<h3 id="31">3.1 线程不安全版本</h3>
+<pre><code class="language-java">public class Singleton {
+    private static Singleton instance;
+
+    private Singleton() {
+    }
+
+    public static Singleton getInstance() {
+        if (instance == null) {
+            instance = new Singleton();  // 线程不安全
+        }
+        return instance;
+    }
+}
+</code></pre>
+<h3 id="32">3.2 线程安全版本（同步方法）</h3>
+<pre><code class="language-java">public class Singleton {
+    private static Singleton instance;
+
+    private Singleton() {
+    }
+
+    public static synchronized Singleton getInstance() {
+        if (instance == null) {
+            instance = new Singleton();
+        }
+        return instance;
+    }
+}
+</code></pre>
+<p><strong>缺点</strong>：每次调用都同步，性能低</p>
+<h3 id="33-dcl">3.3 双重检查锁定（DCL）⭐</h3>
+<pre><code class="language-java">public class Singleton {
+    // volatile 保证可见性和禁止指令重排
+    private static volatile Singleton instance;
+
+    private Singleton() {
+    }
+
+    public static Singleton getInstance() {
+        if (instance == null) {  // 第一次检查
+            synchronized (Singleton.class) {
+                if (instance == null) {  // 第二次检查
+                    instance = new Singleton();
+                }
+            }
+        }
+        return instance;
+    }
+}
+</code></pre>
+<p><strong>优点</strong>：
+- ✅ 线程安全
+- ✅ 延迟加载
+- ✅ 性能高（只在第一次同步）</p>
+<hr />
+<h2 id="4">4. 静态内部类</h2>
+<h3 id="41">4.1 实现方式</h3>
+<pre><code class="language-java">public class Singleton {
+    private Singleton() {
+    }
+
+    // 静态内部类，类加载时不初始化
+    private static class Holder {
+        private static final Singleton INSTANCE = new Singleton();
+    }
+
+    public static Singleton getInstance() {
+        return Holder.INSTANCE;
+    }
+}
+</code></pre>
+<h3 id="42">4.2 特点</h3>
+<table>
+<thead>
+<tr>
+<th>优点</th>
+<th>缺点</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>线程安全</td>
+<td>理解略复杂</td>
+</tr>
+<tr>
+<td>延迟加载</td>
+<td></td>
+</tr>
+<tr>
+<td>无锁开销</td>
+<td></td>
+</tr>
+<tr>
+<td>JVM 保证线程安全</td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<p><strong>原理</strong>：
+- 外部类加载时，内部类不加载
+- 调用 <code>getInstance()</code> 时才加载内部类
+- JVM 保证类加载的线程安全性</p>
+<hr />
+<h2 id="5">5. 枚举单例</h2>
+<h3 id="51">5.1 实现方式</h3>
+<pre><code class="language-java">public enum Singleton {
+    INSTANCE;
+
+    public void doSomething() {
+        System.out.println(&quot;Hello&quot;);
+    }
+}
+</code></pre>
+<h3 id="52">5.2 使用</h3>
+<pre><code class="language-java">Singleton s1 = Singleton.INSTANCE;
+Singleton s2 = Singleton.INSTANCE;
+s1.doSomething();
+</code></pre>
+<h3 id="53">5.3 特点</h3>
+<table>
+<thead>
+<tr>
+<th>优点</th>
+<th>缺点</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>线程安全</td>
+<td>不够灵活</td>
+</tr>
+<tr>
+<td>防止反射攻击</td>
+<td>无法继承</td>
+</tr>
+<tr>
+<td>防止序列化破坏</td>
+<td></td>
+</tr>
+<tr>
+<td>最简洁</td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<p><strong>推荐</strong>：Effective Java 推荐的实现方式</p>
+<hr />
+<h2 id="6">6. 单例模式对比</h2>
+<table>
+<thead>
+<tr>
+<th>实现方式</th>
+<th>线程安全</th>
+<th>延迟加载</th>
+<th>性能</th>
+<th>推荐度</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>饿汉式</td>
+<td>✅</td>
+<td>❌</td>
+<td>高</td>
+<td>⭐⭐⭐</td>
+</tr>
+<tr>
+<td>懒汉式（同步）</td>
+<td>✅</td>
+<td>✅</td>
+<td>低</td>
+<td>⭐⭐</td>
+</tr>
+<tr>
+<td>双重检查（DCL）</td>
+<td>✅</td>
+<td>✅</td>
+<td>高</td>
+<td>⭐⭐⭐⭐</td>
+</tr>
+<tr>
+<td>静态内部类</td>
+<td>✅</td>
+<td>✅</td>
+<td>高</td>
+<td>⭐⭐⭐⭐⭐</td>
+</tr>
+<tr>
+<td>枚举</td>
+<td>✅</td>
+<td>✅</td>
+<td>高</td>
+<td>⭐⭐⭐⭐⭐</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="7">7. 单例模式破坏</h2>
+<h3 id="71">7.1 反射攻击</h3>
+<pre><code class="language-java">// DCL 实现可以被反射破坏
+Singleton s1 = Singleton.getInstance();
+
+Constructor&lt;Singleton&gt; constructor = Singleton.class.getDeclaredConstructor();
+constructor.setAccessible(true);
+Singleton s2 = constructor.newInstance();
+
+System.out.println(s1 == s2);  // false（单例被破坏）
+
+// 防御：构造方法中检查
+private Singleton() {
+    if (instance != null) {
+        throw new RuntimeException(&quot;Cannot create more than one instance&quot;);
+    }
+}
+</code></pre>
+<h3 id="72">7.2 序列化攻击</h3>
+<pre><code class="language-java">// 序列化会创建新实例
+Singleton s1 = Singleton.getInstance();
+
+ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(&quot;obj.dat&quot;));
+oos.writeObject(s1);
+
+ObjectInputStream ois = new ObjectInputStream(new FileInputStream(&quot;obj.dat&quot;));
+Singleton s2 = (Singleton) ois.readObject();
+
+System.out.println(s1 == s2);  // false（单例被破坏）
+
+// 防御：实现 readResolve 方法
+private Object readResolve() {
+    return instance;
+}
+</code></pre>
+<h3 id="73">7.3 枚举防止破坏</h3>
+<pre><code class="language-java">// 枚举天然防止反射和序列化攻击
+public enum Singleton {
+    INSTANCE;
+}
+
+// 测试
+Singleton s1 = Singleton.INSTANCE;
+Singleton s2 = Singleton.INSTANCE;
+System.out.println(s1 == s2);  // true（始终安全）
+</code></pre>
+<hr />
+<h2 id="8">8. 实战示例</h2>
+<h3 id="81">8.1 配置管理器</h3>
+<pre><code class="language-java">public class ConfigManager {
+    private static volatile ConfigManager instance;
+    private Properties properties;
+
+    private ConfigManager() {
+        properties = new Properties();
+        loadConfig();
+    }
+
+    public static ConfigManager getInstance() {
+        if (instance == null) {
+            synchronized (ConfigManager.class) {
+                if (instance == null) {
+                    instance = new ConfigManager();
+                }
+            }
+        }
+        return instance;
+    }
+
+    private void loadConfig() {
+        try (InputStream input = new FileInputStream(&quot;config.properties&quot;)) {
+            properties.load(input);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public String getProperty(String key) {
+        return properties.getProperty(key);
+    }
+}
+</code></pre>
+<h3 id="82">8.2 日志记录器</h3>
+<pre><code class="language-java">public class Logger {
+    private static volatile Logger instance;
+    private PrintWriter writer;
+
+    private Logger() {
+        try {
+            writer = new PrintWriter(new FileWriter(&quot;app.log&quot;, true));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static Logger getInstance() {
+        if (instance == null) {
+            synchronized (Logger.class) {
+                if (instance == null) {
+                    instance = new Logger();
+                }
+            }
+        }
+        return instance;
+    }
+
+    public void log(String message) {
+        writer.println(new Date() + &quot; - &quot; + message);
+        writer.flush();
+    }
+
+    public void close() {
+        writer.close();
+    }
+}
+</code></pre>
+<hr />
+<h2 id="9">9. 本章小结</h2>
+<h3 id="_1">核心知识点</h3>
+<p>✅ <strong>饿汉式</strong>：类加载创建，线程安全<br />
+✅ <strong>懒汉式</strong>：延迟加载，需同步<br />
+✅ <strong>双重检查</strong>：线程安全 + 延迟加载 + 高性能<br />
+✅ <strong>静态内部类</strong>：JVM 保证线程安全<br />
+✅ <strong>枚举</strong>：最安全，防止攻击  </p>
+<h3 id="_2">最佳实践</h3>
+<ol>
+<li><strong>优先使用枚举</strong>：最安全、最简洁</li>
+<li><strong>使用静态内部类</strong>：次选，灵活性好</li>
+<li><strong>使用双重检查</strong>：需要更多控制时</li>
+<li><strong>避免懒汉式（同步）</strong>：性能低</li>
+<li><strong>注意反射和序列化攻击</strong>：使用枚举或添加防御</li>
+</ol>
+<h3 id="_3">推荐实现</h3>
+<pre><code class="language-java">// 最推荐：枚举
+public enum Singleton {
+    INSTANCE;
+}
+
+// 次推荐：静态内部类
+public class Singleton {
+    private Singleton() {}
+
+    private static class Holder {
+        private static final Singleton INSTANCE = new Singleton();
+    }
+
+    public static Singleton getInstance() {
+        return Holder.INSTANCE;
+    }
+}
+</code></pre>
+<hr />
+<p>🎉 <strong>恭喜完成单例模式学习！继续学习 <a href="../02_%E5%B7%A5%E5%8E%82%E6%A8%A1%E5%BC%8F/">工厂模式</a></strong></p></div>
+            </div>
+        </div>
+
+        <footer class="col-md-12">
+            <hr>
+            <p>Documentation built with <a href="https://www.mkdocs.org/">MkDocs</a>.</p>
+        </footer>
+        <script src="../../../../js/bootstrap.bundle.min.js"></script>
+        <script>
+            var base_url = "../../../..",
+                shortcuts = {"help": 191, "next": 78, "previous": 80, "search": 83};
+        </script>
+        <script src="../../../../js/base.js"></script>
+        <script src="../../../../search/main.js"></script>
+
+        <div class="modal" id="mkdocs_search_modal" tabindex="-1" role="dialog" aria-labelledby="searchModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="searchModalLabel">Search</h4>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>From here you can search these documents. Enter your search terms below.</p>
+                <form>
+                    <div class="form-group">
+                        <input type="search" class="form-control" placeholder="Search..." id="mkdocs-search-query" title="Type search term here">
+                    </div>
+                </form>
+                <div id="mkdocs-search-results" data-no-results-text="No results found"></div>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div><div class="modal" id="mkdocs_keyboard_modal" tabindex="-1" role="dialog" aria-labelledby="keyboardModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="keyboardModalLabel">Keyboard Shortcuts</h4>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th style="width: 20%;">Keys</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td class="help shortcut"><kbd>?</kbd></td>
+                    <td>Open this help</td>
+                  </tr>
+                  <tr>
+                    <td class="next shortcut"><kbd>n</kbd></td>
+                    <td>Next page</td>
+                  </tr>
+                  <tr>
+                    <td class="prev shortcut"><kbd>p</kbd></td>
+                    <td>Previous page</td>
+                  </tr>
+                  <tr>
+                    <td class="search shortcut"><kbd>s</kbd></td>
+                    <td>Search</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div>
+
+    </body>
+</html>

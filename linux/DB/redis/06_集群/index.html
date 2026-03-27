@@ -1,0 +1,738 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="light">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        
+        
+        
+        <link rel="shortcut icon" href="../../../../img/favicon.ico">
+        <title>06_集群 - My Docs</title>
+        <link href="../../../../css/bootstrap.min.css" rel="stylesheet">
+        <link href="../../../../css/fontawesome.min.css" rel="stylesheet">
+        <link href="../../../../css/brands.min.css" rel="stylesheet">
+        <link href="../../../../css/solid.min.css" rel="stylesheet">
+        <link href="../../../../css/v4-font-face.min.css" rel="stylesheet">
+        <link href="../../../../css/base.css" rel="stylesheet">
+        <link id="hljs-light" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" >
+        <link id="hljs-dark" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github-dark.min.css" disabled>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+        <script>hljs.highlightAll();</script> 
+    </head>
+
+    <body>
+        <div class="navbar fixed-top navbar-expand-lg navbar-dark bg-primary">
+            <div class="container">
+                <a class="navbar-brand" href="../../../..">My Docs</a>
+
+                <!-- Expanded navigation -->
+                <div id="navbar-collapse" class="navbar-collapse collapse">
+
+                    <ul class="nav navbar-nav ms-md-auto">
+                        <li class="nav-item">
+                            <a href="#" class="nav-link" data-bs-toggle="modal" data-bs-target="#mkdocs_search_modal">
+                                <i class="fa fa-search"></i> Search
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="container">
+            <div class="row">
+                    <div class="col-md-3"><div class="navbar-expand-md bs-sidebar hidden-print affix" role="complementary">
+    <div class="navbar-header">
+        <button type="button" class="navbar-toggler collapsed" data-bs-toggle="collapse" data-bs-target="#toc-collapse" title="Table of Contents">
+            <span class="fa fa-angle-down"></span>
+        </button>
+    </div>
+
+    
+    <div id="toc-collapse" class="navbar-collapse collapse card bg-body-tertiary">
+        <ul class="nav flex-column">
+            
+            <li class="nav-item" data-bs-level="1"><a href="#06_" class="nav-link">06_集群</a>
+              <ul class="nav flex-column">
+            <li class="nav-item" data-bs-level="2"><a href="#1" class="nav-link">1. 集群概述</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#2" class="nav-link">2. 集群部署</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#3" class="nav-link">3. 集群操作</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#4" class="nav-link">4. 客户端连接</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#5-hash-slot" class="nav-link">5. 哈希槽（Hash Slot）</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#6" class="nav-link">6. 集群运维</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#7-vs" class="nav-link">7. 集群 vs 哨兵</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#8" class="nav-link">8. 本章小结</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+              </ul>
+            </li>
+        </ul>
+    </div>
+</div></div>
+                    <div class="col-md-9" role="main">
+
+<h1 id="06_">06_集群</h1>
+<blockquote>
+<p>Redis Cluster 是 Redis 的分布式解决方案，支持自动分片和高可用</p>
+</blockquote>
+<hr />
+<h2 id="1">1. 集群概述</h2>
+<h3 id="11">1.1 为什么需要集群？</h3>
+<table>
+<thead>
+<tr>
+<th>问题</th>
+<th>单机限制</th>
+<th>集群方案</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>内存容量</td>
+<td>单实例内存有限</td>
+<td>多实例分片，总容量 = 各节点之和</td>
+</tr>
+<tr>
+<td>写性能</td>
+<td>单线程写瓶颈</td>
+<td>多主库并行写</td>
+</tr>
+<tr>
+<td>高可用</td>
+<td>单点故障</td>
+<td>主从复制 + 自动故障转移</td>
+</tr>
+</tbody>
+</table>
+<h3 id="12">1.2 集群架构</h3>
+<pre><code>Redis Cluster 典型架构（6 节点）：
+
+  ┌─────────────┐     ┌─────────────┐     ┌─────────────┐
+  │  Master A   │     │  Master B   │     │  Master C   │
+  │ 192.168.1.1 │     │ 192.168.1.2 │     │ 192.168.1.3 │
+  │   :7000     │     │   :7001     │     │   :7002     │
+  │  0-5460 槽   │     │ 5461-10922 槽│     │10923-16383 槽│
+  └──────┬──────┘     └──────┬──────┘     └──────┬──────┘
+         │                   │                   │
+         │                   │                   │
+         ▼                   ▼                   ▼
+  ┌─────────────┐     ┌─────────────┐     ┌─────────────┐
+  │   Slave A   │     │   Slave B   │     │   Slave C   │
+  │ 192.168.1.4 │     │ 192.168.1.5 │     │ 192.168.1.6 │
+  │   :7003     │     │   :7004     │     │   :7005     │
+  └─────────────┘     └─────────────┘     └─────────────┘
+</code></pre>
+<h3 id="13">1.3 核心概念</h3>
+<table>
+<thead>
+<tr>
+<th>概念</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>槽（Slot）</strong></td>
+<td>16384 个槽，数据分片的基本单位</td>
+</tr>
+<tr>
+<td><strong>主节点</strong></td>
+<td>负责处理读写请求，持有槽</td>
+</tr>
+<tr>
+<td><strong>从节点</strong></td>
+<td>复制主节点数据，主库故障时提升</td>
+</tr>
+<tr>
+<td><strong>哈希槽</strong></td>
+<td>key 通过 CRC16(key) % 16384 计算槽位</td>
+</tr>
+<tr>
+<td><strong>Gossip 协议</strong></td>
+<td>节点间通信协议，传播集群状态</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="2">2. 集群部署</h2>
+<h3 id="21">2.1 环境准备</h3>
+<pre><code class="language-bash"># 创建目录
+mkdir -p /data/redis/cluster/{7000..7005}
+
+# 下载 Redis（需要 3.0+）
+wget https://download.redis.io/releases/redis-7.2.4.tar.gz
+tar xzf redis-7.2.4.tar.gz
+cd redis-7.2.4 &amp;&amp; make &amp;&amp; sudo make install
+</code></pre>
+<h3 id="22">2.2 节点配置</h3>
+<pre><code class="language-conf"># /data/redis/cluster/7000/redis.conf
+
+# 端口
+port 7000
+
+# 绑定地址
+bind 0.0.0.0
+
+# 守护进程
+daemonize yes
+
+# 工作目录
+dir /data/redis/cluster/7000
+
+# 日志文件
+logfile &quot;/data/redis/cluster/7000/redis.log&quot;
+
+# 启用集群模式
+cluster-enabled yes
+
+# 集群配置文件（自动生成）
+cluster-config-file nodes-7000.conf
+
+# 节点超时时间（毫秒）
+cluster-node-timeout 5000
+
+# 密码（可选）
+requirepass your-password
+masterauth your-password
+
+# 持久化
+appendonly yes
+</code></pre>
+<h3 id="23">2.3 创建集群</h3>
+<h4 id="redis-cli">方式一：redis-cli 自动创建（推荐）</h4>
+<pre><code class="language-bash"># 创建 3 主 3 从集群
+redis-cli --cluster create \
+  192.168.1.1:7000 192.168.1.2:7001 192.168.1.3:7002 \
+  192.168.1.4:7003 192.168.1.5:7004 192.168.1.6:7005 \
+  --cluster-replicas 1 \
+  -a your-password
+
+# 输出：
+# &gt;&gt;&gt; Performing hash slots allocation on 6 nodes...
+# &gt;&gt;&gt; Using 3 masters:
+# &gt;&gt;&gt; 192.168.1.1:7000
+# &gt;&gt;&gt; 192.168.1.2:7001
+# &gt;&gt;&gt; 192.168.1.3:7002
+# &gt;&gt;&gt; Adding replica 192.168.1.4:7003 to 192.168.1.1:7000
+# &gt;&gt;&gt; Adding replica 192.168.1.5:7004 to 192.168.1.2:7001
+# &gt;&gt;&gt; Adding replica 192.168.1.6:7005 to 192.168.1.3:7002
+# &gt;&gt;&gt; M: abc123... 192.168.1.1:7000
+# &gt;&gt;&gt;    slots:[0-5460] (5461 slots) master
+# &gt;&gt;&gt; M: def456... 192.168.1.2:7001
+# &gt;&gt;&gt;    slots:[5461-10922] (5462 slots) master
+# &gt;&gt;&gt; M: ghi789... 192.168.1.3:7002
+# &gt;&gt;&gt;    slots:[10923-16383] (5461 slots) master
+# &gt;&gt;&gt; S: jkl012... 192.168.1.4:7003
+# &gt;&gt;&gt;    replicates abc123...
+# &gt;&gt;&gt; S: mno345... 192.168.1.5:7004
+# &gt;&gt;&gt;    replicates def456...
+# &gt;&gt;&gt; S: pqr678... 192.168.1.6:7005
+# &gt;&gt;&gt;    replicates ghi789...
+# Can I set the above configuration? (type 'yes' to accept): yes
+# &gt;&gt;&gt; Nodes configuration updated
+# &gt;&gt;&gt; Assign a different config epoch to each node
+# &gt;&gt;&gt; Sending CLUSTER MEET messages to join the cluster
+</code></pre>
+<h4 id="_1">方式二：手动创建</h4>
+<pre><code class="language-bash"># 1. 启动所有节点
+for port in 7000 7001 7002 7003 7004 7005; do
+    redis-server /data/redis/cluster/$port/redis.conf
+done
+
+# 2. 互相 MEET（让节点互相认识）
+redis-cli -p 7000 CLUSTER MEET 192.168.1.2 7001
+redis-cli -p 7000 CLUSTER MEET 192.168.1.3 7002
+redis-cli -p 7000 CLUSTER MEET 192.168.1.4 7003
+redis-cli -p 7000 CLUSTER MEET 192.168.1.5 7004
+redis-cli -p 7000 CLUSTER MEET 192.168.1.6 7005
+
+# 3. 分配槽给主节点
+for slot in $(seq 0 5460); do
+    redis-cli -p 7000 CLUSTER ADDSLOTS $slot
+done
+
+for slot in $(seq 5461 10922); do
+    redis-cli -p 7001 CLUSTER ADDSLOTS $slot
+done
+
+for slot in $(seq 10923 16383); do
+    redis-cli -p 7002 CLUSTER ADDSLOTS $slot
+done
+
+# 4. 设置从节点
+redis-cli -p 7003 CLUSTER REPLICATE abc123...  # Master A 的 nodeId
+redis-cli -p 7004 CLUSTER REPLICATE def456...  # Master B 的 nodeId
+redis-cli -p 7005 CLUSTER REPLICATE ghi789...  # Master C 的 nodeId
+</code></pre>
+<h3 id="24">2.4 查看集群状态</h3>
+<pre><code class="language-bash"># 查看集群信息
+redis-cli -p 7000 CLUSTER INFO
+# cluster_state:ok
+# cluster_slots_assigned:16384
+# cluster_slots_ok:16384
+# cluster_slots_pfail:0
+# cluster_slots_fail:0
+# cluster_known_nodes:6
+# cluster_size:3
+
+# 查看节点列表
+redis-cli -p 7000 CLUSTER NODES
+# abc123... 192.168.1.1:7000@17000 myself,master - 0 0 1 connected 0-5460
+# def456... 192.168.1.2:7001@17001 master - 0 1711353600000 2 connected 5461-10922
+# ghi789... 192.168.1.3:7002@17002 master - 0 1711353600000 3 connected 10923-16383
+# jkl012... 192.168.1.4:7003@17003 slave abc123... 0 1711353600000 1 connected
+# mno345... 192.168.1.5:7004@17004 slave def456... 0 1711353600000 2 connected
+# pqr678... 192.168.1.6:7005@17005 slave ghi789... 0 1711353600000 3 connected
+
+# 查看槽分布
+redis-cli -p 7000 CLUSTER SLOTS
+# 1) 1) (integer) 0
+#    2) (integer) 5460
+#    3) 1) &quot;192.168.1.1&quot;
+#       2) (integer) 7000
+#       3) &quot;abc123...&quot;
+#    4) 1) &quot;192.168.1.4&quot;
+#       2) (integer) 7003
+#       3) &quot;jkl012...&quot;
+
+# 检查集群健康
+redis-cli --cluster check 192.168.1.1:7000
+# &gt;&gt;&gt; Performing Cluster Check (using node 192.168.1.1:7000)
+# M: abc123... 192.168.1.1:7000
+#    slots:[0-5460] (5461 slots) master
+#    1 additional replica(s)
+# ...
+# [OK] All nodes agree about slots configuration.
+# [OK] All 16384 slots covered.
+</code></pre>
+<hr />
+<h2 id="3">3. 集群操作</h2>
+<h3 id="31">3.1 数据读写</h3>
+<pre><code class="language-bash"># 连接集群（任意节点）
+redis-cli -c -h 192.168.1.1 -p 7000 -a your-password
+
+# -c 选项启用集群模式，自动重定向
+
+# 写操作
+127.0.0.1:7000&gt; SET user:1001:name &quot;张三&quot;
+# -&gt; Redirected to slot [1234] located at 192.168.1.2:7001
+# OK
+
+# 读操作
+127.0.0.1:7000&gt; GET user:1001:name
+# -&gt; Redirected to slot [1234] located at 192.168.1.2:7001
+# &quot;张三&quot;
+
+# 查看 key 所在槽
+127.0.0.1:7000&gt; CLUSTER KEYSLOT user:1001:name
+(integer) 1234
+
+# 批量操作（key 必须在同一槽）
+127.0.0.1:7000&gt; MSET {user:1001}:name &quot;张三&quot; {user:1001}:age 25
+OK
+</code></pre>
+<h3 id="32">3.2 添加节点</h3>
+<pre><code class="language-bash"># 1. 启动新节点
+redis-server /data/redis/cluster/7006/redis.conf
+
+# 2. 加入集群（作为从节点）
+redis-cli --cluster add-node 192.168.1.7:7006 192.168.1.1:7000
+
+# 3. 作为主节点并分配槽
+redis-cli --cluster add-node 192.168.1.7:7006 192.168.1.1:7000 \
+  --cluster-master-id abc123...
+
+# 4. 重新分片（移动槽）
+redis-cli --cluster reshard 192.168.1.1:7000
+# &gt;&gt;&gt; How many slots do you want to move? 2000
+# &gt;&gt;&gt; What is the receiving node ID? xyz789...  # 新节点 ID
+# &gt;&gt;&gt; Source node #1: abc123...  # 从哪个节点移动
+# &gt;&gt;&gt; Source node #2: done  # 结束
+
+# 5. 检查集群
+redis-cli --cluster check 192.168.1.1:7000
+</code></pre>
+<h3 id="33">3.3 删除节点</h3>
+<pre><code class="language-bash"># 1. 迁移该节点的槽到其他节点
+redis-cli --cluster reshard 192.168.1.1:7000
+# 将该节点的所有槽移走
+
+# 2. 如果是主节点，确保有从节点
+# 如果没有从节点，先添加一个
+
+# 3. 删除节点
+redis-cli --cluster del-node 192.168.1.1:7000 abc123...
+
+# 4. 检查集群
+redis-cli --cluster check 192.168.1.1:7000
+</code></pre>
+<h3 id="34">3.4 故障转移</h3>
+<pre><code class="language-bash"># 手动故障转移（从节点提升为主节点）
+redis-cli -p 7003 CLUSTER FAILOVER
+
+# 强制故障转移（即使主节点正常）
+redis-cli -p 7003 CLUSTER FAILOVER FORCE
+
+# 接管故障转移
+redis-cli -p 7003 CLUSTER FAILOVER TAKEOVER
+
+# 查看故障转移状态
+redis-cli -p 7003 CLUSTER INFO | grep cluster_state
+</code></pre>
+<h3 id="35">3.5 槽迁移详解</h3>
+<pre><code class="language-bash"># 查看槽状态
+redis-cli -p 7000 CLUSTER SLOTS
+
+# 迁移槽（手动）
+# 1. 在源节点设置槽为 MIGRATING
+redis-cli -p 7000 CLUSTER SETSLOT 100 MIGRATING xyz789...
+
+# 2. 在目标节点设置槽为 IMPORTING
+redis-cli -p 7006 CLUSTER SETSLOT 100 IMPORTING abc123...
+
+# 3. 迁移 key
+redis-cli -p 7000 MIGRATE 192.168.1.7 7006 &quot;key_name&quot; 0 5000
+
+# 4. 完成槽迁移
+redis-cli -p 7000 CLUSTER SETSLOT 100 NODE xyz789...
+redis-cli -p 7006 CLUSTER SETSLOT 100 NODE xyz789...
+</code></pre>
+<hr />
+<h2 id="4">4. 客户端连接</h2>
+<h3 id="41-python">4.1 Python 示例</h3>
+<pre><code class="language-python">from redis.cluster import RedisCluster, ClusterNode
+
+# 连接集群
+rc = RedisCluster(
+    startup_nodes=[
+        ClusterNode('192.168.1.1', 7000),
+        ClusterNode('192.168.1.2', 7001),
+        ClusterNode('192.168.1.3', 7002),
+    ],
+    password='your-password',
+    decode_responses=True,
+)
+
+# 写操作
+rc.set('user:1001:name', '张三')
+
+# 读操作
+name = rc.get('user:1001:name')
+print(name)  # 张三
+
+# 批量操作（key 必须在同一槽）
+rc.mset({
+    '{user:1001}:name': '张三',
+    '{user:1001}:age': '25',
+    '{user:1001}:email': 'zhangsan@example.com',
+})
+
+# 关闭连接
+rc.close()
+</code></pre>
+<h3 id="42-java-jedis">4.2 Java 示例（Jedis）</h3>
+<pre><code class="language-java">import redis.clients.jedis.ClusterCommandArguments;
+import redis.clients.jedis.HostAndPort;
+import redis.clients.jedis.JedisCluster;
+
+import java.util.HashSet;
+import java.util.Set;
+
+Set&lt;HostAndPort&gt; nodes = new HashSet&lt;&gt;();
+nodes.add(new HostAndPort(&quot;192.168.1.1&quot;, 7000));
+nodes.add(new HostAndPort(&quot;192.168.1.2&quot;, 7001));
+nodes.add(new HostAndPort(&quot;192.168.1.3&quot;, 7002));
+
+JedisCluster cluster = new JedisCluster(nodes);
+
+// 写操作
+cluster.set(&quot;user:1001:name&quot;, &quot;张三&quot;);
+
+// 读操作
+String name = cluster.get(&quot;user:1001:name&quot;);
+System.out.println(name);  // 张三
+
+// 关闭连接
+cluster.close();
+</code></pre>
+<h3 id="43-nodejs-ioredis">4.3 Node.js 示例（ioredis）</h3>
+<pre><code class="language-javascript">const Redis = require('ioredis');
+
+const cluster = new Redis.Cluster([
+  { host: '192.168.1.1', port: 7000 },
+  { host: '192.168.1.2', port: 7001 },
+  { host: '192.168.1.3', port: 7002 },
+], {
+  redisOptions: {
+    password: 'your-password',
+  },
+});
+
+// 写操作
+await cluster.set('user:1001:name', '张三');
+
+// 读操作
+const name = await cluster.get('user:1001:name');
+console.log(name);  // 张三
+
+// 关闭连接
+await cluster.quit();
+</code></pre>
+<hr />
+<h2 id="5-hash-slot">5. 哈希槽（Hash Slot）</h2>
+<h3 id="51">5.1 槽计算</h3>
+<pre><code>槽位计算公式：
+SLOT = CRC16(key) % 16384
+
+示例：
+CRC16(&quot;user:1001:name&quot;) = 12345
+SLOT = 12345 % 16384 = 12345
+</code></pre>
+<h3 id="52-hash-tag">5.2 哈希标签（Hash Tag）</h3>
+<pre><code>使用 {} 强制 key 在同一槽：
+
+{user:1001}:name → CRC16(&quot;user:1001&quot;) % 16384
+{user:1001}:age  → CRC16(&quot;user:1001&quot;) % 16384
+{user:1001}:email → CRC16(&quot;user:1001&quot;) % 16384
+
+所有 key 都在同一槽，支持批量操作
+</code></pre>
+<pre><code class="language-bash"># 验证哈希标签
+127.0.0.1:7000&gt; CLUSTER KEYSLOT {user:1001}:name
+(integer) 5398
+127.0.0.1:7000&gt; CLUSTER KEYSLOT {user:1001}:age
+(integer) 5398  # 相同槽
+127.0.0.1:7000&gt; CLUSTER KEYSLOT {user:1001}:email
+(integer) 5398  # 相同槽
+
+# 没有哈希标签
+127.0.0.1:7000&gt; CLUSTER KEYSLOT user:1001:name
+(integer) 12345
+127.0.0.1:7000&gt; CLUSTER KEYSLOT user:1001:age
+(integer) 67890  # 不同槽
+</code></pre>
+<hr />
+<h2 id="6">6. 集群运维</h2>
+<h3 id="61">6.1 备份与恢复</h3>
+<pre><code class="language-bash"># 备份（在每个主节点执行）
+redis-cli -p 7000 BGSAVE
+redis-cli -p 7001 BGSAVE
+redis-cli -p 7002 BGSAVE
+
+# 复制 RDB 文件
+scp 192.168.1.1:/data/redis/cluster/7000/dump.rdb /backup/
+scp 192.168.1.2:/data/redis/cluster/7001/dump.rdb /backup/
+scp 192.168.1.3:/data/redis/cluster/7002/dump.rdb /backup/
+
+# 恢复
+# 1. 停止集群
+redis-cli --cluster call 192.168.1.1:7000 shutdown
+
+# 2. 替换 RDB 文件
+cp /backup/dump.rdb /data/redis/cluster/7000/
+
+# 3. 启动集群
+redis-server /data/redis/cluster/7000/redis.conf
+</code></pre>
+<h3 id="62">6.2 监控指标</h3>
+<pre><code class="language-bash"># 关键监控指标
+redis-cli -p 7000 INFO cluster
+# cluster_state:ok
+# cluster_slots_assigned:16384
+# cluster_slots_ok:16384
+# cluster_known_nodes:6
+# cluster_size:3
+
+# 内存使用
+redis-cli -p 7000 INFO memory | grep used_memory_human
+
+# 连接数
+redis-cli -p 7000 INFO clients | grep connected_clients
+</code></pre>
+<h3 id="63">6.3 常见故障处理</h3>
+<h4 id="1_1">（1）节点下线</h4>
+<pre><code class="language-bash"># 检查集群状态
+redis-cli --cluster check 192.168.1.1:7000
+
+# 如果有节点 FAIL
+# 1. 重启故障节点
+redis-server /data/redis/cluster/7000/redis.conf
+
+# 2. 让其他节点重新认识它
+redis-cli -p 7001 CLUSTER MEET 192.168.1.1 7000
+</code></pre>
+<h4 id="2_1">（2）槽未覆盖</h4>
+<pre><code class="language-bash"># 查看未覆盖的槽
+redis-cli -p 7000 CLUSTER INFO | grep cluster_slots
+
+# 修复
+redis-cli --cluster fix 192.168.1.1:7000
+</code></pre>
+<h4 id="3_1">（3）数据不一致</h4>
+<pre><code class="language-bash"># 重新同步
+redis-cli -p 7003 CLUSTER REPLICATE abc123...
+</code></pre>
+<hr />
+<h2 id="7-vs">7. 集群 vs 哨兵</h2>
+<table>
+<thead>
+<tr>
+<th>特性</th>
+<th>哨兵模式</th>
+<th>集群模式</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>数据分片</td>
+<td>❌</td>
+<td>✅</td>
+</tr>
+<tr>
+<td>写扩展</td>
+<td>❌</td>
+<td>✅</td>
+</tr>
+<tr>
+<td>读扩展</td>
+<td>✅</td>
+<td>✅</td>
+</tr>
+<tr>
+<td>高可用</td>
+<td>✅</td>
+<td>✅</td>
+</tr>
+<tr>
+<td>运维复杂度</td>
+<td>低</td>
+<td>高</td>
+</tr>
+<tr>
+<td>适用场景</td>
+<td>中小规模</td>
+<td>大规模</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="8">8. 本章小结</h2>
+<h3 id="_2">核心知识点</h3>
+<p>✅ Redis Cluster 架构原理<br />
+✅ 槽分配与数据分片<br />
+✅ 集群部署与配置<br />
+✅ 节点管理（添加/删除）<br />
+✅ 槽迁移与重新分片<br />
+✅ 客户端连接集群<br />
+✅ 哈希标签使用  </p>
+<h3 id="_3">最佳实践</h3>
+<ol>
+<li><strong>节点数量</strong>：至少 3 主 3 从（6 节点）</li>
+<li><strong>密码设置</strong>：生产环境必须设置密码</li>
+<li><strong>持久化</strong>：开启 AOF 保证数据安全</li>
+<li><strong>监控告警</strong>：监控集群状态、槽分布</li>
+<li><strong>定期演练</strong>：故障转移、节点扩容演练</li>
+</ol>
+<hr />
+<p>🎉 <strong>恭喜完成第六章！继续学习 <a href="../07_%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96/">07_性能优化.md</a></strong></p></div>
+            </div>
+        </div>
+
+        <footer class="col-md-12">
+            <hr>
+            <p>Documentation built with <a href="https://www.mkdocs.org/">MkDocs</a>.</p>
+        </footer>
+        <script src="../../../../js/bootstrap.bundle.min.js"></script>
+        <script>
+            var base_url = "../../../..",
+                shortcuts = {"help": 191, "next": 78, "previous": 80, "search": 83};
+        </script>
+        <script src="../../../../js/base.js"></script>
+        <script src="../../../../search/main.js"></script>
+
+        <div class="modal" id="mkdocs_search_modal" tabindex="-1" role="dialog" aria-labelledby="searchModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="searchModalLabel">Search</h4>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>From here you can search these documents. Enter your search terms below.</p>
+                <form>
+                    <div class="form-group">
+                        <input type="search" class="form-control" placeholder="Search..." id="mkdocs-search-query" title="Type search term here">
+                    </div>
+                </form>
+                <div id="mkdocs-search-results" data-no-results-text="No results found"></div>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div><div class="modal" id="mkdocs_keyboard_modal" tabindex="-1" role="dialog" aria-labelledby="keyboardModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="keyboardModalLabel">Keyboard Shortcuts</h4>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th style="width: 20%;">Keys</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td class="help shortcut"><kbd>?</kbd></td>
+                    <td>Open this help</td>
+                  </tr>
+                  <tr>
+                    <td class="next shortcut"><kbd>n</kbd></td>
+                    <td>Next page</td>
+                  </tr>
+                  <tr>
+                    <td class="prev shortcut"><kbd>p</kbd></td>
+                    <td>Previous page</td>
+                  </tr>
+                  <tr>
+                    <td class="search shortcut"><kbd>s</kbd></td>
+                    <td>Search</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div>
+
+    </body>
+</html>

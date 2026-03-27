@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="light">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        
+        
+        
+        <link rel="shortcut icon" href="../../../../img/favicon.ico">
+        <title>07_并发工具类详解 - My Docs</title>
+        <link href="../../../../css/bootstrap.min.css" rel="stylesheet">
+        <link href="../../../../css/fontawesome.min.css" rel="stylesheet">
+        <link href="../../../../css/brands.min.css" rel="stylesheet">
+        <link href="../../../../css/solid.min.css" rel="stylesheet">
+        <link href="../../../../css/v4-font-face.min.css" rel="stylesheet">
+        <link href="../../../../css/base.css" rel="stylesheet">
+        <link id="hljs-light" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" >
+        <link id="hljs-dark" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github-dark.min.css" disabled>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+        <script>hljs.highlightAll();</script> 
+    </head>
+
+    <body>
+        <div class="navbar fixed-top navbar-expand-lg navbar-dark bg-primary">
+            <div class="container">
+                <a class="navbar-brand" href="../../../..">My Docs</a>
+
+                <!-- Expanded navigation -->
+                <div id="navbar-collapse" class="navbar-collapse collapse">
+
+                    <ul class="nav navbar-nav ms-md-auto">
+                        <li class="nav-item">
+                            <a href="#" class="nav-link" data-bs-toggle="modal" data-bs-target="#mkdocs_search_modal">
+                                <i class="fa fa-search"></i> Search
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="container">
+            <div class="row">
+                    <div class="col-md-3"><div class="navbar-expand-md bs-sidebar hidden-print affix" role="complementary">
+    <div class="navbar-header">
+        <button type="button" class="navbar-toggler collapsed" data-bs-toggle="collapse" data-bs-target="#toc-collapse" title="Table of Contents">
+            <span class="fa fa-angle-down"></span>
+        </button>
+    </div>
+
+    
+    <div id="toc-collapse" class="navbar-collapse collapse card bg-body-tertiary">
+        <ul class="nav flex-column">
+            
+            <li class="nav-item" data-bs-level="1"><a href="#07_" class="nav-link">07_并发工具类详解</a>
+              <ul class="nav flex-column">
+            <li class="nav-item" data-bs-level="2"><a href="#1-countdownlatch" class="nav-link">1. CountDownLatch</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#2-cyclicbarrier" class="nav-link">2. CyclicBarrier</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#3-semaphore" class="nav-link">3. Semaphore</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#4-exchanger" class="nav-link">4. Exchanger</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#5-phaser" class="nav-link">5. Phaser</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#6" class="nav-link">6. 工具类对比</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#7" class="nav-link">7. 本章小结</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+              </ul>
+            </li>
+        </ul>
+    </div>
+</div></div>
+                    <div class="col-md-9" role="main">
+
+<h1 id="07_">07_并发工具类详解</h1>
+<hr />
+<h2 id="1-countdownlatch">1. CountDownLatch</h2>
+<h3 id="11">1.1 概述</h3>
+<p><strong>CountDownLatch</strong> 允许一个或多个线程等待其他线程完成操作。</p>
+<p><strong>特点</strong>：
+- ✅ 倒计时器，不可重用
+- ✅ 一个或多个线程等待
+- ✅ 其他线程执行后倒计数</p>
+<h3 id="12">1.2 基本使用</h3>
+<pre><code class="language-java">import java.util.concurrent.CountDownLatch;
+
+public class CountDownLatchDemo {
+    public static void main(String[] args) throws InterruptedException {
+        CountDownLatch latch = new CountDownLatch(3);
+
+        // 3 个工作线程
+        for (int i = 0; i &lt; 3; i++) {
+            new Thread(() -&gt; {
+                System.out.println(Thread.currentThread().getName() + &quot; 执行任务&quot;);
+                try {
+                    Thread.sleep(1000);
+                } catch (InterruptedException e) {}
+                latch.countDown();  // 计数减 1
+                System.out.println(Thread.currentThread().getName() + &quot; 完成&quot;);
+            }).start();
+        }
+
+        // 主线程等待
+        latch.await();  // 等待计数为 0
+        System.out.println(&quot;所有任务完成，继续执行&quot;);
+    }
+}
+</code></pre>
+<h3 id="13">1.3 使用场景</h3>
+<pre><code class="language-java">// 场景 1：等待多个服务启动
+public class ServiceStarter {
+    private CountDownLatch latch = new CountDownLatch(3);
+
+    public void startAll() throws InterruptedException {
+        startService(&quot;DB&quot;, latch);
+        startService(&quot;Cache&quot;, latch);
+        startService(&quot;MQ&quot;, latch);
+
+        latch.await();  // 等待所有服务启动
+        System.out.println(&quot;所有服务启动完成&quot;);
+    }
+
+    private void startService(String name, CountDownLatch latch) {
+        new Thread(() -&gt; {
+            System.out.println(name + &quot; 启动中...&quot;);
+            try { Thread.sleep(1000); } catch (InterruptedException e) {}
+            System.out.println(name + &quot; 启动完成&quot;);
+            latch.countDown();
+        }).start();
+    }
+}
+
+// 场景 2：并发测试
+public class PerformanceTest {
+    public static void test(List&lt;Runnable&gt; tasks) throws InterruptedException {
+        CountDownLatch startLatch = new CountDownLatch(1);
+        CountDownLatch endLatch = new CountDownLatch(tasks.size());
+
+        for (Runnable task : tasks) {
+            new Thread(() -&gt; {
+                try {
+                    startLatch.await();  // 等待开始信号
+                    task.run();
+                } catch (InterruptedException e) {}
+                finally {
+                    endLatch.countDown();
+                }
+            }).start();
+        }
+
+        Thread.sleep(100);  // 确保所有线程就绪
+        startLatch.countDown();  // 同时开始
+        endLatch.await();  // 等待所有完成
+    }
+}
+</code></pre>
+<hr />
+<h2 id="2-cyclicbarrier">2. CyclicBarrier</h2>
+<h3 id="21">2.1 概述</h3>
+<p><strong>CyclicBarrier</strong> 让一组线程互相等待，到达屏障点后再一起继续。</p>
+<p><strong>特点</strong>：
+- ✅ 可重用（循环使用）
+- ✅ 多个线程互相等待
+- ✅ 可执行屏障动作</p>
+<h3 id="22">2.2 基本使用</h3>
+<pre><code class="language-java">import java.util.concurrent.CyclicBarrier;
+
+public class CyclicBarrierDemo {
+    public static void main(String[] args) {
+        CyclicBarrier barrier = new CyclicBarrier(3, () -&gt; {
+            System.out.println(&quot;所有线程到达，执行屏障动作&quot;);
+        });
+
+        for (int i = 0; i &lt; 3; i++) {
+            new Thread(() -&gt; {
+                System.out.println(Thread.currentThread().getName() + &quot; 到达屏障&quot;);
+                try {
+                    barrier.await();  // 等待其他线程
+                    System.out.println(Thread.currentThread().getName() + &quot; 继续执行&quot;);
+                } catch (Exception e) {}
+            }).start();
+        }
+    }
+}
+</code></pre>
+<h3 id="23">2.3 使用场景</h3>
+<pre><code class="language-java">// 场景：多线程计算后合并结果
+public class DataProcessor {
+    private CyclicBarrier barrier;
+    private List&lt;Result&gt; results = new ArrayList&lt;&gt;();
+
+    public DataProcessor(int threadCount) {
+        barrier = new CyclicBarrier(threadCount, () -&gt; {
+            // 所有线程完成后合并结果
+            mergeResults();
+        });
+    }
+
+    public void process(List&lt;Data&gt; dataList) {
+        int chunkSize = dataList.size() / 3;
+
+        for (int i = 0; i &lt; 3; i++) {
+            int start = i * chunkSize;
+            int end = (i == 2) ? dataList.size() : start + chunkSize;
+            List&lt;Data&gt; chunk = dataList.subList(start, end);
+
+            new Thread(() -&gt; {
+                Result result = processChunk(chunk);
+                synchronized (results) {
+                    results.add(result);
+                }
+                try {
+                    barrier.await();
+                } catch (Exception e) {}
+            }).start();
+        }
+    }
+
+    private void mergeResults() {
+        System.out.println(&quot;合并结果：&quot; + results.size() + &quot; 个&quot;);
+    }
+}
+</code></pre>
+<hr />
+<h2 id="3-semaphore">3. Semaphore</h2>
+<h3 id="31">3.1 概述</h3>
+<p><strong>Semaphore</strong>（信号量）控制同时访问特定资源的线程数量。</p>
+<p><strong>特点</strong>：
+- ✅ 限流
+- ✅ 控制并发访问数
+- ✅ 公平/非公平模式</p>
+<h3 id="32">3.2 基本使用</h3>
+<pre><code class="language-java">import java.util.concurrent.Semaphore;
+
+public class SemaphoreDemo {
+    private Semaphore semaphore = new Semaphore(3);  // 允许 3 个并发
+
+    public void access() {
+        try {
+            semaphore.acquire();  // 获取许可
+            System.out.println(Thread.currentThread().getName() + &quot; 开始访问&quot;);
+            Thread.sleep(1000);
+            System.out.println(Thread.currentThread().getName() + &quot; 结束访问&quot;);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        } finally {
+            semaphore.release();  // 释放许可
+        }
+    }
+
+    public static void main(String[] args) {
+        SemaphoreDemo demo = new SemaphoreDemo();
+
+        for (int i = 0; i &lt; 10; i++) {
+            new Thread(() -&gt; demo.access()).start();
+        }
+    }
+}
+</code></pre>
+<h3 id="33">3.3 使用场景</h3>
+<pre><code class="language-java">// 场景 1：数据库连接池限流
+public class DatabasePool {
+    private Semaphore connections = new Semaphore(10);
+
+    public Connection getConnection() throws InterruptedException {
+        connections.acquire();
+        return createConnection();
+    }
+
+    public void releaseConnection(Connection conn) {
+        closeConnection(conn);
+        connections.release();
+    }
+}
+
+// 场景 2：API 限流
+public class RateLimiter {
+    private Semaphore semaphore = new Semaphore(100);  // 每秒 100 请求
+
+    public Response handleRequest(Request request) {
+        try {
+            semaphore.acquire();
+            return processRequest(request);
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        } finally {
+            semaphore.release();
+        }
+    }
+}
+</code></pre>
+<hr />
+<h2 id="4-exchanger">4. Exchanger</h2>
+<h3 id="41">4.1 概述</h3>
+<p><strong>Exchanger</strong> 用于两个线程之间交换数据。</p>
+<p><strong>特点</strong>：
+- ✅ 仅支持两个线程
+- ✅ 双向数据交换
+- ✅ 屏障点交换</p>
+<h3 id="42">4.2 基本使用</h3>
+<pre><code class="language-java">import java.util.concurrent.Exchanger;
+
+public class ExchangerDemo {
+    public static void main(String[] args) {
+        Exchanger&lt;String&gt; exchanger = new Exchanger&lt;&gt;();
+
+        new Thread(() -&gt; {
+            try {
+                String data = &quot;数据 A&quot;;
+                System.out.println(&quot;线程 1 发送：&quot; + data);
+                String received = exchanger.exchange(data);
+                System.out.println(&quot;线程 1 接收：&quot; + received);
+            } catch (InterruptedException e) {}
+        }).start();
+
+        new Thread(() -&gt; {
+            try {
+                String data = &quot;数据 B&quot;;
+                System.out.println(&quot;线程 2 发送：&quot; + data);
+                String received = exchanger.exchange(data);
+                System.out.println(&quot;线程 2 接收：&quot; + received);
+            } catch (InterruptedException e) {}
+        }).start();
+    }
+}
+</code></pre>
+<hr />
+<h2 id="5-phaser">5. Phaser</h2>
+<h3 id="51">5.1 概述</h3>
+<p><strong>Phaser</strong> 是更灵活的屏障工具，支持动态注册/注销。</p>
+<p><strong>特点</strong>：
+- ✅ 动态调整线程数
+- ✅ 多阶段屏障
+- ✅ 可重用</p>
+<h3 id="52">5.2 基本使用</h3>
+<pre><code class="language-java">import java.util.concurrent.Phaser;
+
+public class PhaserDemo {
+    public static void main(String[] args) {
+        Phaser phaser = new Phaser(1);  // 初始 1 个（主线程）
+
+        for (int i = 0; i &lt; 3; i++) {
+            phaser.register();  // 注册新线程
+            new Thread(() -&gt; {
+                System.out.println(Thread.currentThread().getName() + &quot; 阶段 1&quot;);
+                phaser.arriveAndAwaitAdvance();  // 等待所有线程
+
+                System.out.println(Thread.currentThread().getName() + &quot; 阶段 2&quot;);
+                phaser.arriveAndAwaitAdvance();
+
+                phaser.arriveAndDeregister();  // 注销
+            }).start();
+        }
+
+        phaser.arriveAndDeregister();  // 主线程注销
+    }
+}
+</code></pre>
+<hr />
+<h2 id="6">6. 工具类对比</h2>
+<table>
+<thead>
+<tr>
+<th>工具类</th>
+<th>可重用</th>
+<th>线程数</th>
+<th>主要用途</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>CountDownLatch</td>
+<td>❌</td>
+<td>任意</td>
+<td>等待其他线程完成</td>
+</tr>
+<tr>
+<td>CyclicBarrier</td>
+<td>✅</td>
+<td>固定</td>
+<td>线程互相等待</td>
+</tr>
+<tr>
+<td>Semaphore</td>
+<td>✅</td>
+<td>任意</td>
+<td>限流、控制并发</td>
+</tr>
+<tr>
+<td>Exchanger</td>
+<td>✅</td>
+<td>2</td>
+<td>数据交换</td>
+</tr>
+<tr>
+<td>Phaser</td>
+<td>✅</td>
+<td>动态</td>
+<td>多阶段屏障</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="7">7. 本章小结</h2>
+<h3 id="_1">核心知识点</h3>
+<p>✅ <strong>CountDownLatch</strong>：等待其他线程完成<br />
+✅ <strong>CyclicBarrier</strong>：线程互相等待<br />
+✅ <strong>Semaphore</strong>：限流、控制并发<br />
+✅ <strong>Exchanger</strong>：数据交换<br />
+✅ <strong>Phaser</strong>：灵活的多阶段屏障  </p>
+<h3 id="_2">最佳实践</h3>
+<ol>
+<li><strong>CountDownLatch</strong>：一次性等待场景</li>
+<li><strong>CyclicBarrier</strong>：循环屏障、多轮计算</li>
+<li><strong>Semaphore</strong>：资源限流、连接池</li>
+<li><strong>选择合适工具</strong>：根据场景选择</li>
+</ol>
+<hr />
+<p>🎉 <strong>恭喜完成并发工具类详解学习！继续学习 <a href="../08_%E5%8E%9F%E5%AD%90%E7%B1%BB/">原子类</a></strong></p></div>
+            </div>
+        </div>
+
+        <footer class="col-md-12">
+            <hr>
+            <p>Documentation built with <a href="https://www.mkdocs.org/">MkDocs</a>.</p>
+        </footer>
+        <script src="../../../../js/bootstrap.bundle.min.js"></script>
+        <script>
+            var base_url = "../../../..",
+                shortcuts = {"help": 191, "next": 78, "previous": 80, "search": 83};
+        </script>
+        <script src="../../../../js/base.js"></script>
+        <script src="../../../../search/main.js"></script>
+
+        <div class="modal" id="mkdocs_search_modal" tabindex="-1" role="dialog" aria-labelledby="searchModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="searchModalLabel">Search</h4>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>From here you can search these documents. Enter your search terms below.</p>
+                <form>
+                    <div class="form-group">
+                        <input type="search" class="form-control" placeholder="Search..." id="mkdocs-search-query" title="Type search term here">
+                    </div>
+                </form>
+                <div id="mkdocs-search-results" data-no-results-text="No results found"></div>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div><div class="modal" id="mkdocs_keyboard_modal" tabindex="-1" role="dialog" aria-labelledby="keyboardModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="keyboardModalLabel">Keyboard Shortcuts</h4>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th style="width: 20%;">Keys</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td class="help shortcut"><kbd>?</kbd></td>
+                    <td>Open this help</td>
+                  </tr>
+                  <tr>
+                    <td class="next shortcut"><kbd>n</kbd></td>
+                    <td>Next page</td>
+                  </tr>
+                  <tr>
+                    <td class="prev shortcut"><kbd>p</kbd></td>
+                    <td>Previous page</td>
+                  </tr>
+                  <tr>
+                    <td class="search shortcut"><kbd>s</kbd></td>
+                    <td>Search</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div>
+
+    </body>
+</html>

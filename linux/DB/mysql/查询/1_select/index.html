@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="light">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        
+        
+        
+        <link rel="shortcut icon" href="../../../../../img/favicon.ico">
+        <title>1 select - My Docs</title>
+        <link href="../../../../../css/bootstrap.min.css" rel="stylesheet">
+        <link href="../../../../../css/fontawesome.min.css" rel="stylesheet">
+        <link href="../../../../../css/brands.min.css" rel="stylesheet">
+        <link href="../../../../../css/solid.min.css" rel="stylesheet">
+        <link href="../../../../../css/v4-font-face.min.css" rel="stylesheet">
+        <link href="../../../../../css/base.css" rel="stylesheet">
+        <link id="hljs-light" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" >
+        <link id="hljs-dark" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github-dark.min.css" disabled>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+        <script>hljs.highlightAll();</script> 
+    </head>
+
+    <body>
+        <div class="navbar fixed-top navbar-expand-lg navbar-dark bg-primary">
+            <div class="container">
+                <a class="navbar-brand" href="../../../../..">My Docs</a>
+
+                <!-- Expanded navigation -->
+                <div id="navbar-collapse" class="navbar-collapse collapse">
+
+                    <ul class="nav navbar-nav ms-md-auto">
+                        <li class="nav-item">
+                            <a href="#" class="nav-link" data-bs-toggle="modal" data-bs-target="#mkdocs_search_modal">
+                                <i class="fa fa-search"></i> Search
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="container">
+            <div class="row">
+                    <div class="col-md-3"><div class="navbar-expand-md bs-sidebar hidden-print affix" role="complementary">
+    <div class="navbar-header">
+        <button type="button" class="navbar-toggler collapsed" data-bs-toggle="collapse" data-bs-target="#toc-collapse" title="Table of Contents">
+            <span class="fa fa-angle-down"></span>
+        </button>
+    </div>
+
+    
+    <div id="toc-collapse" class="navbar-collapse collapse card bg-body-tertiary">
+        <ul class="nav flex-column">
+            
+            
+            
+            
+            
+            
+            
+            
+        </ul>
+    </div>
+</div></div>
+                    <div class="col-md-9" role="main">
+
+<h3 id="_1">基本查询</h3>
+<pre><code class="language-sql">SELECT * FROM &lt;表名&gt;
+</code></pre>
+<h3 id="_2">条件查询</h3>
+<p><code>ELECT</code> 语句可以通过 <code>WHERE</code> 条件来设定查询条件，查询结果是满足查询条件的记录。</p>
+<p>例如，要指定条件“分数在80分或以上的学生”，写成<code>WHERE</code>条件就是<code>SELECT * FROM students WHERE score &gt;= 80</code>。</p>
+<pre><code class="language-sql">-- 按条件查询students:
+SELECT * FROM students WHERE score &gt;= 80;
+</code></pre>
+<h3 id="_3">投影查询</h3>
+<p>使用 <code>SELECT * FROM &lt;表名&gt; WHERE &lt;条件&gt;</code> 可以选出表中的若干条记录。我们注意到返回的二维表结构和原表是相同的，即结果集的所有列与原表的所有列都一一对应。</p>
+<p>如果我们只希望返回某些列的数据，而不是所有列的数据，我们可以用 <code>SELECT 列1, 列2, 列3 FROM ...</code>，让结果集仅包含指定列。这种操作称为投影查询。</p>
+<p>例如，从students表中返回id、score和name这三列：</p>
+<pre><code class="language-sql">-- 使用投影查询
+SELECT id, score, name FROM students;
+</code></pre>
+<h3 id="_4">排序</h3>
+<p>我们使用<code>SELECT</code>查询时，细心的读者可能注意到，查询结果集通常是按照<code>id</code>排序的，也就是根据主键排序。这也是大部分数据库的做法。如果我们要根据其他条件排序怎么办？可以加上<code>ORDER BY</code>子句。例如按照成绩从低到高进行排序：</p>
+<pre><code class="language-sql">-- 按score从低到高:
+SELECT id, name, gender, score FROM students ORDER BY score;
+</code></pre>
+<p>如果要反过来，按照成绩从高到底排序，我们可以加上 <code>DESC</code> 表示“倒序”：</p>
+<pre><code class="language-sql">-- 按score从高到低:
+SELECT id, name, gender, score FROM students ORDER BY score DESC;
+</code></pre>
+<h3 id="_5">分页查询</h3>
+<ul>
+<li>使用<code>SELECT</code>查询时，如果结果集数据量很大，比如几万行数据，放在一个页面显示的话数据量太大，不如分页显示，每次显示100条。</li>
+<li>要实现分页功能，实际上就是从结果集中显示第1~100条记录作为第1页，显示第101~200条记录作为第2页，以此类推。</li>
+<li>因此，分页实际上就是从结果集中“截取”出第M~N条记录。这个查询可以通过 <code>LIMIT &lt;N-M&gt; OFFSET &lt;M&gt;</code> 子句实现。我们先把所有学生按照成绩从高到低进行排序：</li>
+</ul>
+<pre><code class="language-sql">-- 按score从高到低:
+SELECT id, name, gender, score FROM students ORDER BY score DESC;
+</code></pre>
+<ul>
+<li>现在，我们把结果集分页，每页3条记录。要获取第1页的记录，可以使用 <code>LIMIT 3 OFFSET 0</code>：</li>
+</ul>
+<pre><code class="language-sql">-- 查询第1页:
+SELECT id, name, gender, score
+FROM students
+ORDER BY score DESC
+LIMIT 3 OFFSET 0;
+</code></pre>
+<ul>
+<li>上述查询 <code>LIMIT 3 OFFSET 0</code> 表示，对结果集从<code>0</code>号记录开始，最多取3条。注意SQL记录集的索引从0开始。</li>
+<li>如果要查询第2页，那么我们只需要“跳过”头3条记录，也就是对结果集从3号记录开始查询，把OFFSET设定为3：</li>
+</ul>
+<pre><code class="language-sql">-- 查询第2页:
+SELECT id, name, gender, score
+FROM students
+ORDER BY score DESC
+LIMIT 3 OFFSET 3;
+</code></pre>
+<ul>
+<li>如果原本记录集一共就10条记录，但我们把OFFSET设置为20，会得到什么结果呢？</li>
+</ul>
+<pre><code class="language-sql">-- OFFSET设定为20:
+SELECT id, name, gender, score
+FROM students
+ORDER BY score DESC
+LIMIT 3 OFFSET 20;
+</code></pre>
+<ul>
+<li><code>OFFSET</code> 超过了查询的最大数量并不会报错，而是得到一个空的结果集。</li>
+</ul>
+<blockquote>
+<p><code>OFFSET</code>是可选的，如果只写 <code>LIMIT 15</code>，那么相当于<code>LIMIT 15 OFFSET 0</code>。
+在MySQL中，<code>LIMIT 15 OFFSET 30</code>还可以简写成<code>LIMIT 30, 15</code>。
++ 使用LIMIT <M> OFFSET <N>分页时，<strong>随着N越来越大，查询效率也会越来越低。</strong></p>
+</blockquote>
+<h3 id="_6">聚合查询</h3>
+<ul>
+<li>如果我们要统计一张表的数据量，例如，想查询 <code>students</code> 表一共有多少条记录，难道必须用<code>SELECT * FROM students</code> 查出来然后再数一数有多少行吗？</li>
+<li>这个方法当然可以，但是比较弱智。对于统计总数、平均数这类计算，SQL提供了专门的<strong>聚合函数，使用聚合函数进行查询，就是聚合查询，它可以快速获得结果</strong>。</li>
+</ul>
+<p>仍然以查询students表一共有多少条记录为例，我们可以使用SQL内置的<code>COUNT()</code>函数查询：</p>
+<pre><code class="language-sql">-- 使用聚合查询:
+SELECT COUNT(*) FROM students;
+</code></pre>
+<p><code>COUNT(*)</code> 表示查询所有列的行数，要<strong>注意聚合的计算结果虽然是一个数字，但查询的结果仍然是一个二维表，只是这个二维表只有一行一列，并且列名是<code>COUNT(*)</code></strong></p>
+<ul>
+<li>通常，使用聚合查询时，我们应该给列名设置一个别名，便于处理结果：</li>
+</ul>
+<pre><code class="language-sql">-- 使用聚合查询并设置结果集的列名为num:
+SELECT COUNT(*) num FROM students;
+-- or
+SELECT COUNT(*) as num FROM students;
+</code></pre>
+<ul>
+<li><code>COUNT(*)</code> 和 <code>COUNT(id)</code> 实际上是一样的效果。另外注意，聚合查询同样可以使用 <code>WHERE</code> 条件，因此我们可以方便地统计出有多少男生、多少女生、多少80分以上的学生等：</li>
+</ul>
+<pre><code class="language-sql">-- 使用聚合查询并设置WHERE条件:
+SELECT COUNT(*) boys FROM students WHERE gender = 'M';
+</code></pre>
+<ul>
+<li>除了<code>COUNT()</code>函数外，SQL 还提供了如下聚合函数：</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th>函数</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>SUM</td>
+<td>计算某一列的合计值，该列必须为数值类型</td>
+</tr>
+<tr>
+<td>AVG</td>
+<td>计算某一列的平均值，该列必须为数值类型</td>
+</tr>
+<tr>
+<td>MAX</td>
+<td>计算某一列的最大值</td>
+</tr>
+<tr>
+<td>MIN</td>
+<td>计算某一列的最小值</td>
+</tr>
+</tbody>
+</table>
+<ul>
+<li>注意，<strong><code>MAX()</code>和<code>MIN()</code>函数并不限于数值类型。如果是字符类型，<code>MAX()</code>和<code>MIN()</code>会返回排序最后和排序最前的字符。</strong></li>
+</ul>
+<p>要统计男生的平均成绩，我们用下面的聚合查询：</p>
+<pre><code class="language-sql">-- 使用聚合查询计算男生平均成绩:
+SELECT AVG(score) average FROM students WHERE gender = 'M';
+</code></pre>
+<blockquote>
+<p>要特别注意：<strong>如果聚合查询的WHERE条件没有匹配到任何行，<code>COUNT()</code> 会返回 <code>0</code>，而 <code>SUM()</code>、<code>AVG()</code>、<code>MAX()</code>和<code>MIN()</code>会返回<code>NULL</code></strong>：</p>
+</blockquote>
+<h3 id="_7">多表查询</h3>
+<ul>
+<li><code>SELECT</code> 查询不但可以从一张表查询数据，还可以从多张表同时查询数据。查询多张表的语法是：<code>SELECT * FROM &lt;表1&gt; &lt;表2&gt;</code></li>
+</ul>
+<p>例如，同时从<code>students</code>表和<code>classes</code>表的“乘积”，即查询数据，可以这么写：</p>
+<pre><code class="language-sql">-- FROM students, classes:
+SELECT * FROM students, classes;
+</code></pre>
+<ul>
+<li>
+<p><strong>这种一次查询两个表的数据，查询的结果也是一个二维表，它是 <code>students</code> 表和 <code>classes</code> 表的“乘积”，即<code>students</code> 表的每一行与 <code>classes</code> 表的每一行都两两拼在一起返回。结果集的列数是 <code>students</code> 表和 <code>classes</code> 表的列数之和，行数是 <code>students</code> 表和 <code>classes</code> 表的行数之积</strong>。</p>
+</li>
+<li>
+<p>这种多表查询又称<strong>笛卡尔查询</strong>，使用笛卡尔查询时要非常小心，由于结果集是目标表的行数乘积，<strong>对两个各自有100行记录的表进行笛卡尔查询将返回1万条记录，对两个各自有1万行记录的表进行笛卡尔查询将返回1亿条记录</strong>。</p>
+</li>
+</ul>
+<p>你可能还注意到了，上述查询的结果集有两列id和两列name，两列id是因为其中一列是students表的id，而另一列是classes表的id，但是在结果集中，不好区分。两列name同理
+要解决这个问题，我们仍然可以利用投影查询的“设置列的别名”来给两个表各自的id和name列起别名：</p>
+<pre><code class="language-sql">-- set alias:
+SELECT
+    students.id sid,
+    students.name,
+    students.gender,
+    students.score,
+    classes.id cid,
+    classes.name cname
+FROM students, classes;
+</code></pre>
+<ul>
+<li>注意到 <code>FROM</code> 子句给表设置别名的语法是 <code>FROM &lt;表名1&gt; &lt;别名1&gt;, &lt;表名2&gt; &lt;别名2&gt;</code>。这样我们用别名s和c分别表示students表和classes表。</li>
+</ul>
+<p>多表查询也是可以添加WHERE条件的，我们来试试：</p>
+<pre><code class="language-sql">-- set where clause:
+SELECT
+    s.id sid,
+    s.name,
+    s.gender,
+    s.score,
+    c.id cid,
+    c.name cname
+FROM students s, classes c
+WHERE s.gender = 'M' AND c.id = 1;
+</code></pre>
+<h3 id="_8">连接查询</h3>
+<ul>
+<li>连接查询是另一种类型的多表查询。连接查询对多个表进行 <code>JOIN</code> 运算，简单地说，就是先确定一个主表作为结果集，然后，把其他表的行有选择性地“连接”在主表结果集上。</li>
+</ul>
+<p>例如，我们想要选出 <code>students</code> 表的所有学生信息，可以用一条简单的SELECT语句完成</p>
+<pre><code class="language-sql">-- 选出所有学生:
+SELECT s.id, s.name, s.class_id, s.gender, s.score FROM students s;
+</code></pre>
+<p>但是，假设我们希望结果集同时包含所在班级的名称，上面的结果集只有<code>class_id</code>列，缺少对应班级的<code>name</code>列。</p>
+<p>现在问题来了，存放班级名称的<code>name</code>列存储在<code>classes</code>表中，只有根据<code>students</code>表的<code>class_id</code>，找到<code>classes</code>表对应的行，再取出<code>name</code>列，就可以获得班级名称。</p>
+<p>这时，连接查询就派上了用场。我们先使用最常用的一种内连接——<code>INNER JOIN</code>来实现：</p>
+<pre><code class="language-sql">-- 选出所有学生，同时返回班级名称:
+SELECT s.id, s.name, s.class_id, c.name class_name, s.gender, s.score
+FROM students s
+INNER JOIN classes c
+ON s.class_id = c.id;
+</code></pre>
+<p>注意INNER JOIN查询的写法是：</p>
+<ol>
+<li>先确定主表，仍然使用 <code>FROM &lt;表1&gt;</code> 的语法；</li>
+<li>再确定需要连接的表，使用 <code>INNER JOIN &lt;表2&gt;</code> 的语法；</li>
+<li>然后确定连接条件，使用 <code>ON &lt;条件...&gt;</code>，这里的条件是 <code>s.class_id = c.id</code>，表示 <code>students</code> 表的<code>class_id</code> 列与 <code>classes</code> 表的<code>id</code>列相同的行需要连接；</li>
+<li>
+<p>可选：加上<code>WHERE</code>子句、<code>ORDER BY</code>等子句。</p>
+</li>
+<li>
+<p>使用别名不是必须的，但可以更好地简化查询语句。</p>
+</li>
+</ol>
+<p>那什么是内连接（INNER JOIN）呢？先别着急，有内连接（INNER JOIN）就有外连接（OUTER JOIN）。我们把内连接查询改成外连接查询，看看效果：</p>
+<pre><code class="language-sql">-- 使用OUTER JOIN:
+SELECT s.id, s.name, s.class_id, c.name class_name, s.gender, s.score
+FROM students s
+RIGHT OUTER JOIN classes c
+ON s.class_id = c.id;
+</code></pre>
+<ul>
+<li>执行上述 <code>RIGHT OUTER JOIN</code> 可以看到，和 <code>INNER JOIN</code> 相比，<code>RIGHT OUTER JOIN</code> 多了一行，多出来的一行是“四班”，但是，学生相关的列如 <code>name、gender、score</code> 都为<code>NULL</code>。</li>
+</ul>
+<p>这也容易理解，因为根据 ON 条件 <code>s.class_id = c.id，classes</code> 表的id=4的行正是“四班”，但是，students表中并不存在 <code>class_id=4</code> 的行。</p>
+<p>有<code>RIGHT OUTER JOIN</code>，就有<code>LEFT OUTER JOIN</code>，以及<code>FULL OUTER JOIN</code>。它们的区别是：</p>
+<ol>
+<li>
+<p><code>INNER JOIN</code> <strong>只返回同时存在于两张表的行数据</strong>，由于<code>students</code>表的<code>class_id</code>包含1，2，3，classes表的id包含1，2，3，4，所以，<code>INNER JOIN</code>根据条件s.class_id = c.id返回的结果集仅包含1，2，3。</p>
+</li>
+<li>
+<p><code>RIGHT OUTER JOIN</code>返回右表都存在的行。如果某一行仅在右表存在，那么结果集就会以<code>NULL</code>填充剩下的字段。</p>
+</li>
+<li>
+<p><code>LEFT OUTER JOIN</code>则返回左表都存在的行。如果我们给<code>students</code>表增加一行，并添加<code>class_id=5</code>，由于<code>classes</code>表并不存在<code>id=5</code>的行，所以，<code>LEFT OUTER JOIN</code>的结果会增加一行，对应的<code>class_name</code>是<code>NULL</code>：</p>
+</li>
+</ol>
+<pre><code class="language-sql">-- 先增加一列class_id=5:
+INSERT INTO students (class_id, name, gender, score) values (5, '新生', 'M', 88);
+-- 使用LEFT OUTER JOIN:
+SELECT s.id, s.name, s.class_id, c.name class_name, s.gender, s.score
+FROM students s
+LEFT OUTER JOIN classes c
+ON s.class_id = c.id;
+</code></pre>
+<p>最后，我们使用FULL OUTER JOIN，它会把两张表的所有记录全部选择出来，并且，自动把对方不存在的列填充为NULL：</p>
+<pre><code class="language-sql">-- 使用FULL OUTER JOIN:
+SELECT s.id, s.name, s.class_id, c.name class_name, s.gender, s.score
+FROM students s
+FULL OUTER JOIN classes c
+ON s.class_id = c.id;
+</code></pre>
+<p>对于这么多种JOIN查询，到底什么使用应该用哪种呢？其实我们用图来表示结果集就一目了然了。</p>
+<p>假设查询语句是：</p>
+<pre><code class="language-sql">SELECT ... FROM tableA ??? JOIN tableB ON tableA.column1 = tableB.column2;
+</code></pre>
+<ul>
+<li>我们把tableA看作左表，把tableB看成右表，那么INNER JOIN是选出两张表都存在的记录：</li>
+</ul>
+<p><img alt="alt text" src="../select.assets/inner_join.png" /></p>
+<ul>
+<li><code>LEFT OUTER JOIN</code>是选出左表存在的记录：</li>
+</ul>
+<p><img alt="alt text" src="../select.assets/left_outer_join.png" /></p>
+<ul>
+<li>RIGHT OUTER JOIN是选出右表存在的记录：</li>
+</ul>
+<p><img alt="alt text" src="../select.assets/right_outer_join.png" /></p>
+<ul>
+<li>FULL OUTER JOIN则是选出左右表都存在的记录：</li>
+</ul>
+<p><img alt="alt text" src="../select.assets/full_outer_join.png" /></p>
+<blockquote>
+<p>JOIN查询需要先确定主表，然后把另一个表的数据“附加”到结果集上；
+INNER JOIN是最常用的一种JOIN查询，它的语法是<code>SELECT ... FROM &lt;表1&gt; INNER JOIN &lt;表2&gt; ON &lt;条件...&gt;</code>；
+JOIN查询仍然可以使用WHERE条件和ORDER BY排序。</p>
+</blockquote></div>
+            </div>
+        </div>
+
+        <footer class="col-md-12">
+            <hr>
+            <p>Documentation built with <a href="https://www.mkdocs.org/">MkDocs</a>.</p>
+        </footer>
+        <script src="../../../../../js/bootstrap.bundle.min.js"></script>
+        <script>
+            var base_url = "../../../../..",
+                shortcuts = {"help": 191, "next": 78, "previous": 80, "search": 83};
+        </script>
+        <script src="../../../../../js/base.js"></script>
+        <script src="../../../../../search/main.js"></script>
+
+        <div class="modal" id="mkdocs_search_modal" tabindex="-1" role="dialog" aria-labelledby="searchModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="searchModalLabel">Search</h4>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>From here you can search these documents. Enter your search terms below.</p>
+                <form>
+                    <div class="form-group">
+                        <input type="search" class="form-control" placeholder="Search..." id="mkdocs-search-query" title="Type search term here">
+                    </div>
+                </form>
+                <div id="mkdocs-search-results" data-no-results-text="No results found"></div>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div><div class="modal" id="mkdocs_keyboard_modal" tabindex="-1" role="dialog" aria-labelledby="keyboardModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="keyboardModalLabel">Keyboard Shortcuts</h4>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th style="width: 20%;">Keys</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td class="help shortcut"><kbd>?</kbd></td>
+                    <td>Open this help</td>
+                  </tr>
+                  <tr>
+                    <td class="next shortcut"><kbd>n</kbd></td>
+                    <td>Next page</td>
+                  </tr>
+                  <tr>
+                    <td class="prev shortcut"><kbd>p</kbd></td>
+                    <td>Previous page</td>
+                  </tr>
+                  <tr>
+                    <td class="search shortcut"><kbd>s</kbd></td>
+                    <td>Search</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div>
+
+    </body>
+</html>

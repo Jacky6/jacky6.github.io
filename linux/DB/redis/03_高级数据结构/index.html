@@ -1,0 +1,768 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="light">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        
+        
+        
+        <link rel="shortcut icon" href="../../../../img/favicon.ico">
+        <title>03_高级数据结构 - My Docs</title>
+        <link href="../../../../css/bootstrap.min.css" rel="stylesheet">
+        <link href="../../../../css/fontawesome.min.css" rel="stylesheet">
+        <link href="../../../../css/brands.min.css" rel="stylesheet">
+        <link href="../../../../css/solid.min.css" rel="stylesheet">
+        <link href="../../../../css/v4-font-face.min.css" rel="stylesheet">
+        <link href="../../../../css/base.css" rel="stylesheet">
+        <link id="hljs-light" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" >
+        <link id="hljs-dark" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github-dark.min.css" disabled>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+        <script>hljs.highlightAll();</script> 
+    </head>
+
+    <body>
+        <div class="navbar fixed-top navbar-expand-lg navbar-dark bg-primary">
+            <div class="container">
+                <a class="navbar-brand" href="../../../..">My Docs</a>
+
+                <!-- Expanded navigation -->
+                <div id="navbar-collapse" class="navbar-collapse collapse">
+
+                    <ul class="nav navbar-nav ms-md-auto">
+                        <li class="nav-item">
+                            <a href="#" class="nav-link" data-bs-toggle="modal" data-bs-target="#mkdocs_search_modal">
+                                <i class="fa fa-search"></i> Search
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="container">
+            <div class="row">
+                    <div class="col-md-3"><div class="navbar-expand-md bs-sidebar hidden-print affix" role="complementary">
+    <div class="navbar-header">
+        <button type="button" class="navbar-toggler collapsed" data-bs-toggle="collapse" data-bs-target="#toc-collapse" title="Table of Contents">
+            <span class="fa fa-angle-down"></span>
+        </button>
+    </div>
+
+    
+    <div id="toc-collapse" class="navbar-collapse collapse card bg-body-tertiary">
+        <ul class="nav flex-column">
+            
+            <li class="nav-item" data-bs-level="1"><a href="#03_" class="nav-link">03_高级数据结构</a>
+              <ul class="nav flex-column">
+            <li class="nav-item" data-bs-level="2"><a href="#1-bitmap" class="nav-link">1. Bitmap（位图）</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#2-hyperloglog" class="nav-link">2. HyperLogLog</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#3-geo" class="nav-link">3. Geo（地理位置）</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#4-stream" class="nav-link">4. Stream（流）</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#5-json" class="nav-link">5. JSON（文档存储）</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#6" class="nav-link">6. 概率数据结构</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#7" class="nav-link">7. 本章小结</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+              </ul>
+            </li>
+        </ul>
+    </div>
+</div></div>
+                    <div class="col-md-9" role="main">
+
+<h1 id="03_">03_高级数据结构</h1>
+<blockquote>
+<p>详解 Bitmap、HyperLogLog、Geo、Stream、JSON 等高级数据结构</p>
+</blockquote>
+<hr />
+<h2 id="1-bitmap">1. Bitmap（位图）</h2>
+<h3 id="11">1.1 概述</h3>
+<p><strong>Bitmap</strong> 不是一种独立的数据结构，而是基于 String 的<strong>位级操作</strong>。</p>
+<pre><code>位图结构（用户签到）：
+Day:   0  1  2  3  4  5  6  7  8  9 10 11 12...
+Bit:   1  0  1  1  0  0  1  0  1  1  0  1  1...
+       ↑        ↑           ↑     ↑     ↑
+      第 1 天    第 3 天       第 7 天  第 9 天  第 12 天
+
+内存占用：365 天 = 365 位 ≈ 46 字节
+</code></pre>
+<h3 id="12">1.2 基本命令</h3>
+<pre><code class="language-bash">SETBIT key offset value          # 设置位（0 或 1）
+GETBIT key offset                # 获取位
+BITCOUNT key [start end]         # 统计 1 的数量
+BITOP AND|OR|XOR|NOT dst src...  # 位运算
+BITPOS key bit [start] [end]     # 查找第一个 0 或 1 的位置
+BITFIELD key [GET|SET|INCRBY type offset value]  # 位字段操作
+</code></pre>
+<h3 id="13">1.3 实战示例</h3>
+<pre><code class="language-bash"># ===== 场景 1：用户签到 =====
+# 用户 1001 在 1 月 1 日、3 日、7 日签到
+127.0.0.1:6379&gt; SETBIT user:1001:signin:202401 0 1
+(integer) 0
+127.0.0.1:6379&gt; SETBIT user:1001:signin:202401 2 1
+(integer) 0
+127.0.0.1:6379&gt; SETBIT user:1001:signin:202401 6 1
+(integer) 0
+
+# 检查某天是否签到
+127.0.0.1:6379&gt; GETBIT user:1001:signin:202401 0
+(integer) 1  # 已签到
+127.0.0.1:6379&gt; GETBIT user:1001:signin:202401 1
+(integer) 0  # 未签到
+
+# 统计本月签到天数
+127.0.0.1:6379&gt; BITCOUNT user:1001:signin:202401
+(integer) 3
+
+# 查找第一次未签到的日期
+127.0.0.1:6379&gt; BITPOS user:1001:signin:202401 0
+(integer) 1  # 第 2 天未签到
+
+# ===== 场景 2：活跃用户统计 =====
+# 记录每日活跃用户（每个用户 ID 对应一个位）
+127.0.0.1:6379&gt; SETBIT active:20240325 1001 1
+(integer) 0
+127.0.0.1:6379&gt; SETBIT active:20240325 1002 1
+(integer) 0
+127.0.0.1:6379&gt; SETBIT active:20240325 1003 1
+(integer) 0
+
+# 统计 DAU
+127.0.0.1:6379&gt; BITCOUNT active:20240325
+(integer) 3
+
+# ===== 场景 3：多日活跃用户（交集） =====
+# 计算连续 3 天活跃的用户
+127.0.0.1:6379&gt; BITOP AND active:3days active:20240323 active:20240324 active:20240325
+(integer) 128  # 结果字节数
+
+# 统计连续活跃用户数
+127.0.0.1:6379&gt; BITCOUNT active:3days
+(integer) 150  # 150 个用户连续 3 天活跃
+
+# ===== 场景 4：权限控制 =====
+# 用户权限位（每个位代表一个权限）
+# bit0: 读，bit1: 写，bit2: 删除，bit3: 管理
+127.0.0.1:6379&gt; SETBIT user:1001:perms 0 1  # 读
+(integer) 0
+127.0.0.1:6379&gt; SETBIT user:1001:perms 1 1  # 写
+(integer) 0
+127.0.0.1:6379&gt; SETBIT user:1001:perms 3 1  # 管理
+(integer) 0
+
+# 检查是否有写权限
+127.0.0.1:6379&gt; GETBIT user:1001:perms 1
+(integer) 1
+
+# 检查是否有删除权限
+127.0.0.1:6379&gt; GETBIT user:1001:perms 2
+(integer) 0  # 无删除权限
+</code></pre>
+<h3 id="14">1.4 内存优势</h3>
+<table>
+<thead>
+<tr>
+<th>存储方式</th>
+<th>100 万用户</th>
+<th>1 亿用户</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>String/Set</td>
+<td>~7MB</td>
+<td>~700MB</td>
+</tr>
+<tr>
+<td>Bitmap</td>
+<td>~125KB</td>
+<td>~12MB</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="2-hyperloglog">2. HyperLogLog</h2>
+<h3 id="21">2.1 概述</h3>
+<p><strong>HyperLogLog</strong> 用于<strong>基数统计</strong>（去重计数），使用概率算法，误差约 0.81%。</p>
+<pre><code>特点：
+- 固定内存：12KB
+- 误差率：~0.81%
+- 适用：UV 统计、搜索关键词去重
+- 不适用：需要精确计数的场景
+</code></pre>
+<h3 id="22">2.2 基本命令</h3>
+<pre><code class="language-bash">PFADD key element [element ...]  # 添加元素
+PFCOUNT key [key ...]            # 统计基数
+PFMERGE destkey sourcekey [...]  # 合并多个 HLL
+</code></pre>
+<h3 id="23">2.3 实战示例</h3>
+<pre><code class="language-bash"># ===== 场景 1：网站 UV 统计 =====
+# 记录访问用户
+127.0.0.1:6379&gt; PFADD uv:20240325 &quot;user1001&quot; &quot;user1002&quot; &quot;user1003&quot;
+(integer) 1
+127.0.0.1:6379&gt; PFADD uv:20240325 &quot;user1001&quot;  # 重复访问
+(integer) 0  # 不增加计数
+
+# 统计 UV
+127.0.0.1:6379&gt; PFCOUNT uv:20240325
+(integer) 3
+
+# 模拟 100 万用户访问
+127.0.0.1:6379&gt; FOR i in {1..1000000}; do redis-cli PFADD uv:test &quot;user:$i&quot;; done
+127.0.0.1:6379&gt; PFCOUNT uv:test
+(integer) 1000234  # 约 0.02% 误差，非常准确
+
+# 查看内存占用
+127.0.0.1:6379&gt; MEMORY USAGE uv:test
+(integer) 12288  # 固定 12KB
+
+# ===== 场景 2：多日 UV 合并 =====
+# 合并多天 UV 统计总 UV
+127.0.0.1:6379&gt; PFADD uv:day1 &quot;user1&quot; &quot;user2&quot; &quot;user3&quot;
+127.0.0.1:6379&gt; PFADD uv:day2 &quot;user2&quot; &quot;user3&quot; &quot;user4&quot;
+127.0.0.1:6379&gt; PFADD uv:day3 &quot;user3&quot; &quot;user4&quot; &quot;user5&quot;
+
+# 合并统计
+127.0.0.1:6379&gt; PFMERGE uv:total uv:day1 uv:day2 uv:day3
+OK
+127.0.0.1:6379&gt; PFCOUNT uv:total
+(integer) 5  # user1,2,3,4,5 共 5 个独立用户
+
+# 分别统计
+127.0.0.1:6379&gt; PFCOUNT uv:day1 uv:day2 uv:day3
+1) (integer) 3
+2) (integer) 3
+3) (integer) 3
+
+# ===== 场景 3：搜索关键词去重 =====
+127.0.0.1:6379&gt; PFADD search:keywords &quot;redis tutorial&quot; &quot;python tips&quot; &quot;redis tutorial&quot;
+(integer) 1
+127.0.0.1:6379&gt; PFCOUNT search:keywords
+(integer) 2  # 去重后 2 个关键词
+</code></pre>
+<h3 id="24">2.4 与精确计数对比</h3>
+<table>
+<thead>
+<tr>
+<th>方案</th>
+<th>内存</th>
+<th>精度</th>
+<th>适用场景</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Set</td>
+<td>O(N)</td>
+<td>100%</td>
+<td>需要知道具体元素</td>
+</tr>
+<tr>
+<td>HyperLogLog</td>
+<td>12KB</td>
+<td>~99.19%</td>
+<td>只需统计数量</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="3-geo">3. Geo（地理位置）</h2>
+<h3 id="31">3.1 概述</h3>
+<p><strong>Geo</strong> 用于存储和查询<strong>地理位置信息</strong>，底层使用 Sorted Set。</p>
+<pre><code>原理：将经纬度编码为 Geohash 字符串，存入 ZSet
+</code></pre>
+<h3 id="32">3.2 基本命令</h3>
+<pre><code class="language-bash">GEOADD key longitude latitude member [member ...]  # 添加位置
+GEOPOS key member [member ...]                     # 获取位置
+GEODIST key member1 member2 [m|km|ft|mi]           # 计算距离
+GEORADIUS key x y radius m|km|ft|mi [WITHCOORD] [WITHDIST] [WITHHASH] [COUNT n]
+GEORADIUSBYMEMBER key member radius m|km|ft|mi [WITHCOORD] [WITHDIST] [COUNT n]
+GEOHASH key member [member ...]                    # 获取 Geohash
+GEOSEARCH key [FROMMEMBER member] [FROMLONLAT x y] [BYRADIUS radius m|km|ft|mi] [BYBOX width height m|km|ft|mi] [WITHCOORD] [WITHDIST] [WITHHASH] [COUNT n] [ASC|DESC]
+GEOSEARCHSTORE destination source [FROMMEMBER member] [FROMLONLAT x y] [BYRADIUS radius m|km|ft|mi] [BYBOX width height m|km|ft|mi] [COUNT n] [ASC|DESC] [STOREDIST]
+</code></pre>
+<h3 id="33">3.3 实战示例</h3>
+<pre><code class="language-bash"># ===== 场景 1：附近的人 =====
+# 添加用户位置（经度 纬度）
+127.0.0.1:6379&gt; GEOADD users:location 116.4074 39.9042 &quot;user:beijing&quot;
+(integer) 1
+127.0.0.1:6379&gt; GEOADD users:location 121.4737 31.2304 &quot;user:shanghai&quot;
+(integer) 1
+127.0.0.1:6379&gt; GEOADD users:location 113.2644 23.1291 &quot;user:guangzhou&quot;
+(integer) 1
+127.0.0.1:6379&gt; GEOADD users:location 114.0579 22.5431 &quot;user:shenzhen&quot;
+(integer) 1
+
+# 查找北京附近 500km 内的用户
+127.0.0.1:6379&gt; GEORADIUS users:location 116.4074 39.9042 500 km WITHDIST
+1) 1) &quot;user:beijing&quot;
+   2) &quot;0.0000&quot;
+
+# 查找上海附近 300km 内的用户
+127.0.0.1:6379&gt; GEORADIUS users:location 121.4737 31.2304 300 km WITHDIST
+1) 1) &quot;user:shanghai&quot;
+   2) &quot;0.0000&quot;
+
+# 查找广州附近 200km 内的用户（包含深圳）
+127.0.0.1:6379&gt; GEORADIUS users:location 113.2644 23.1291 200 km WITHDIST
+1) 1) &quot;user:guangzhou&quot;
+   2) &quot;0.0000&quot;
+2) 1) &quot;user:shenzhen&quot;
+   2) &quot;108.4567&quot;  # 距离 108km
+
+# ===== 场景 2：计算两地距离 =====
+127.0.0.1:6379&gt; GEODIST users:location &quot;user:beijing&quot; &quot;user:shanghai&quot; km
+&quot;1067.5291&quot;  # 北京到上海 1067km
+127.0.0.1:6379&gt; GEODIST users:location &quot;user:guangzhou&quot; &quot;user:shenzhen&quot; km
+&quot;108.4567&quot;   # 广州到深圳 108km
+
+# ===== 场景 3：获取位置坐标 =====
+127.0.0.1:6379&gt; GEOPOS users:location &quot;user:beijing&quot;
+1) 1) &quot;116.40739977359771729&quot;
+   2) &quot;39.90420261758850693&quot;
+
+# ===== 场景 4：共享单车停放点 =====
+# 添加停放点
+127.0.0.1:6379&gt; GEOADD bikes:stations 116.404 39.915 &quot;station:A&quot;
+127.0.0.1:6379&gt; GEOADD bikes:stations 116.414 39.925 &quot;station:B&quot;
+127.0.0.1:6379&gt; GEOADD bikes:stations 116.394 39.905 &quot;station:C&quot;
+
+# 查找当前位置附近 2km 内的站点（按距离排序）
+127.0.0.1:6379&gt; GEORADIUS bikes:stations 116.4074 39.9042 2 km WITHDIST COUNT 3 ASC
+1) 1) &quot;station:C&quot;
+   2) &quot;0.5234&quot;
+2) 1) &quot;station:A&quot;
+   2) &quot;1.2345&quot;
+</code></pre>
+<hr />
+<h2 id="4-stream">4. Stream（流）</h2>
+<h3 id="41">4.1 概述</h3>
+<p><strong>Stream</strong> 是 Redis 5.0+ 引入的<strong>消息队列</strong>数据结构，支持消息持久化、消费者组。</p>
+<pre><code>Stream 结构：
+1711353600000-0 → {&quot;event&quot;: &quot;order_created&quot;, &quot;order_id&quot;: &quot;1001&quot;}
+1711353601000-0 → {&quot;event&quot;: &quot;payment_received&quot;, &quot;order_id&quot;: &quot;1001&quot;}
+1711353602000-0 → {&quot;event&quot;: &quot;order_shipped&quot;, &quot;order_id&quot;: &quot;1001&quot;}
+                    ↑
+                  消息 ID（时间戳 - 序列号）
+</code></pre>
+<h3 id="42">4.2 基本命令</h3>
+<pre><code class="language-bash"># ===== 生产者 =====
+XADD key [NOMKSTREAM] [MAXLEN|MINID [=|~] threshold] [LIMIT count] *|id field value [field value ...]
+
+# ===== 消费者 =====
+XREAD [COUNT count] [BLOCK milliseconds] STREAMS key [key ...] id [id ...]
+XREADGROUP GROUP group consumer [COUNT count] [BLOCK milliseconds] [NOACK] STREAMS key [key ...] id [id ...]
+
+# ===== 消费者组 =====
+XGROUP CREATE key groupname id|$ [MKSTREAM]
+XGROUP SETID key groupname id|$
+XGROUP DESTROY key groupname
+XGROUP DELCONSUMER key groupname consumername
+XGROUP CREATECONSUMER key groupname consumername
+
+# ===== 消息确认 =====
+XACK key group id [id ...]
+
+# ===== 消息处理 =====
+XPENDING key group [start end count] [consumer]
+XRANGE key start end [COUNT count]
+XREVRANGE key end start [COUNT count]
+XCLAIM key group consumer min-idle-time id [id ...] [IDLE ms] [TIME ms-unix-time] [RETRYCOUNT count] [FORCE] [JUSTID]
+XAUTOCLAIM key group consumer min-idle-time start [COUNT count] [JUSTID]
+
+# ===== 其他 =====
+XLEN key
+XDEL key id [id ...]
+XTRIM key MAXLEN|MINID [=|~] threshold [LIMIT count]
+XINFO STREAM key
+XINFO GROUPS key
+XINFO CONSUMERS key group
+</code></pre>
+<h3 id="43">4.3 实战示例</h3>
+<pre><code class="language-bash"># ===== 场景 1：简单消息队列 =====
+# 生产者：发送消息
+127.0.0.1:6379&gt; XADD orders:stream * event &quot;order_created&quot; order_id &quot;1001&quot; user_id &quot;101&quot;
+&quot;1711353600000-0&quot;
+127.0.0.1:6379&gt; XADD orders:stream * event &quot;order_created&quot; order_id &quot;1002&quot; user_id &quot;102&quot;
+&quot;1711353601000-0&quot;
+
+# 消费者：读取消息（从开头）
+127.0.0.1:6379&gt; XREAD COUNT 2 STREAMS orders:stream 0
+1) 1) &quot;orders:stream&quot;
+   2) 1) 1) &quot;1711353600000-0&quot;
+         2) 1) &quot;event&quot;
+            2) &quot;order_created&quot;
+            3) &quot;order_id&quot;
+            4) &quot;1001&quot;
+            5) &quot;user_id&quot;
+            6) &quot;101&quot;
+      2) 1) &quot;1711353601000-0&quot;
+         2) 1) &quot;event&quot;
+            2) &quot;order_created&quot;
+            3) &quot;order_id&quot;
+            4) &quot;1002&quot;
+            5) &quot;user_id&quot;
+            6) &quot;102&quot;
+
+# 阻塞式读取（等待 5 秒）
+127.0.0.1:6379&gt; XREAD BLOCK 5000 COUNT 1 STREAMS orders:stream 1711353601000-0
+
+# ===== 场景 2：消费者组 =====
+# 创建消费者组（$表示从新消息开始）
+127.0.0.1:6379&gt; XGROUP CREATE orders:stream order-processors $ MKSTREAM
+OK
+
+# 消费者 1 读取消息
+127.0.0.1:6379&gt; XREADGROUP GROUP order-processors consumer1 COUNT 1 STREAMS orders:stream &gt;
+1) 1) &quot;orders:stream&quot;
+   2) 1) 1) &quot;1711353600000-0&quot;
+         2) 1) &quot;event&quot;
+            2) &quot;order_created&quot;
+            ...
+
+# 确认消息处理完成
+127.0.0.1:6379&gt; XACK orders:stream order-processors 1711353600000-0
+(integer) 1
+
+# 消费者 2 读取下一条
+127.0.0.1:6379&gt; XREADGROUP GROUP order-processors consumer2 COUNT 1 STREAMS orders:stream &gt;
+
+# 查看待处理消息
+127.0.0.1:6379&gt; XPENDING orders:stream order-processers
+1) (integer) 1  # 1 条待处理
+2) &quot;1711353601000-0&quot;
+3) &quot;1711353601000-0&quot;
+4) 1) 1) &quot;consumer2&quot;
+      2) &quot;1&quot;
+
+# ===== 场景 3：消息回溯 =====
+# 读取历史消息
+127.0.0.1:6379&gt; XRANGE orders:stream - + COUNT 10
+1) 1) &quot;1711353600000-0&quot;
+   2) 1) &quot;event&quot;  2) &quot;order_created&quot; ...
+2) 1) &quot;1711353601000-0&quot;
+   2) 1) &quot;event&quot;  2) &quot;order_created&quot; ...
+
+# 从指定时间开始读取
+127.0.0.1:6379&gt; XREAD COUNT 5 STREAMS orders:stream 1711353600000-0
+
+# ===== 场景 4：消息修剪 =====
+# 只保留最近 1000 条消息
+127.0.0.1:6379&gt; XTRIM orders:stream MAXLEN 1000
+(integer) 5  # 删除了 5 条
+
+# 保留最近 1 小时的消息（近似）
+127.0.0.1:6379&gt; XTRIM orders:stream MINID ~ 1711350000000-0
+</code></pre>
+<h3 id="44-stream-vs-list">4.4 Stream vs List 队列</h3>
+<table>
+<thead>
+<tr>
+<th>特性</th>
+<th>Stream</th>
+<th>List</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>消息持久化</td>
+<td>✅</td>
+<td>✅</td>
+</tr>
+<tr>
+<td>消费者组</td>
+<td>✅</td>
+<td>❌</td>
+</tr>
+<tr>
+<td>消息确认</td>
+<td>✅</td>
+<td>❌</td>
+</tr>
+<tr>
+<td>消息回溯</td>
+<td>✅</td>
+<td>❌</td>
+</tr>
+<tr>
+<td>阻塞读取</td>
+<td>✅</td>
+<td>✅</td>
+</tr>
+<tr>
+<td>内存占用</td>
+<td>较高</td>
+<td>较低</td>
+</tr>
+<tr>
+<td>适用场景</td>
+<td>复杂消息队列</td>
+<td>简单队列</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="5-json">5. JSON（文档存储）</h2>
+<h3 id="51">5.1 概述</h3>
+<p><strong>RedisJSON</strong> 是 Redis 模块，支持存储和查询 JSON 文档。</p>
+<blockquote>
+<p>需要安装 RedisJSON 模块</p>
+</blockquote>
+<h3 id="52">5.2 基本命令</h3>
+<pre><code class="language-bash">JSON.SET key path json [NX|XX]     # 设置 JSON
+JSON.GET key [path]                # 获取 JSON
+JSON.MGET key [key ...] path       # 批量获取
+JSON.STRAPPEND key [path] value    # 字符串追加
+JSON.ARRAPPEND key [path] value [value ...]  # 数组追加
+JSON.ARRINDEX key path value [start [stop]]  # 数组索引
+JSON.ARRINSERT key path index value [value ...]  # 数组插入
+JSON.ARRLEN key [path]             # 数组长度
+JSON.ARRPOP key [path [index]]     # 数组弹出
+JSON.ARRTRIM key path start stop   # 数组修剪
+JSON.CLEAR key [path]              # 清空
+JSON.DEL key [path]                # 删除
+JSON.FORGET key [path]             # 删除（同 DEL）
+JSON.NUMINCRBY key path number     # 数字自增
+JSON.NUMMULTBY key path number     # 数字自乘
+JSON.OBJKEYS key [path]            # 对象键名
+JSON.OBJLEN key [path]             # 对象长度
+JSON.RESP key [path]               # RESP 格式
+JSON.STRLEN key [path]             # 字符串长度
+JSON.TOGGLE key [path]             # 布尔取反
+JSON.TYPE key [path]               # 类型
+</code></pre>
+<h3 id="53">5.3 实战示例</h3>
+<pre><code class="language-bash"># 设置用户文档
+127.0.0.1:6379&gt; JSON.SET user:1001 $ '{&quot;name&quot;:&quot;张三&quot;,&quot;age&quot;:25,&quot;email&quot;:&quot;zhangsan@example.com&quot;,&quot;address&quot;:{&quot;city&quot;:&quot;北京&quot;,&quot;district&quot;:&quot;朝阳&quot;}}'
+OK
+
+# 获取整个文档
+127.0.0.1:6379&gt; JSON.GET user:1001
+&quot;{\&quot;name\&quot;:\&quot;张三\&quot;,\&quot;age\&quot;:25,\&quot;email\&quot;:\&quot;zhangsan@example.com\&quot;,\&quot;address\&quot;:{\&quot;city\&quot;:\&quot;北京\&quot;,\&quot;district\&quot;:\&quot;朝阳\&quot;}}&quot;
+
+# 获取指定字段
+127.0.0.1:6379&gt; JSON.GET user:1001 $.name
+[&quot;张三&quot;]
+127.0.0.1:6379&gt; JSON.GET user:1001 $.address.city
+[&quot;北京&quot;]
+
+# 更新字段
+127.0.0.1:6379&gt; JSON.SET user:1001 $.age 26
+OK
+127.0.0.1:6379&gt; JSON.SET user:1001 $.address.district &quot;海淀&quot;
+OK
+
+# 数字自增
+127.0.0.1:6379&gt; JSON.NUMINCRBY user:1001 $.age 1
+[27]
+
+# 数组操作
+127.0.0.1:6379&gt; JSON.SET user:1001 $.hobbies '[&quot;读书&quot;,&quot;运动&quot;]'
+OK
+127.0.0.1:6379&gt; JSON.ARRAPPEND user:1001 $.hobbies '&quot;音乐&quot;'
+(integer) 3
+127.0.0.1:6379&gt; JSON.GET user:1001 $.hobbies
+[&quot;读书&quot;,&quot;运动&quot;,&quot;音乐&quot;]
+
+# 删除字段
+127.0.0.1:6379&gt; JSON.DEL user:1001 $.email
+(integer) 1
+</code></pre>
+<hr />
+<h2 id="6">6. 概率数据结构</h2>
+<h3 id="61-bloom-filter">6.1 Bloom Filter（布隆过滤器）</h3>
+<p>用于判断元素<strong>是否存在</strong>，可能有误判但不会漏判。</p>
+<pre><code class="language-bash"># 需要 RedisBloom 模块
+BF.ADD key item              # 添加元素
+BF.EXISTS key item           # 检查是否存在
+BF.MADD key item [item ...]  # 批量添加
+BF.MEXISTS key item [item ...]  # 批量检查
+BF.INSERT key [CAPACITY capacity] [ERROR error] [NOCREATE] [EXPANSION expansion] ITEMS item [item ...]
+BF.INFO key                  # 获取信息
+BF.SCANDUMP key iterator     # 扫描
+BF.LOADCHUNK key iterator data  # 加载
+</code></pre>
+<h3 id="62-count-min-sketch">6.2 Count-Min Sketch</h3>
+<p>用于统计<strong>元素频率</strong>。</p>
+<pre><code class="language-bash">CMS.INITBYDIM key width depth     # 初始化（指定宽高）
+CMS.INITBYPROB key error probability  # 初始化（指定误差）
+CMS.INCRBY key item increment [item increment ...]  # 增加计数
+CMS.QUERY key item [item ...]     # 查询计数
+CMS.INFO key                      # 获取信息
+CMS.MERGE dest numKeys srcKey [srcKey ...] [WEIGHTS weight ...]  # 合并
+</code></pre>
+<h3 id="63-top-k">6.3 Top-K</h3>
+<p>用于统计<strong>出现频率最高的 K 个元素</strong>。</p>
+<pre><code class="language-bash">TOPK.RESERVE key k [width] [depth] [decay]  # 初始化
+TOPK.ADD key item [item ...]     # 添加元素
+TOPK.INCRBY key item increment [item increment ...]  # 增加计数
+TOPK.QUERY key item [item ...]   # 查询是否在 Top-K
+TOPK.COUNT key item [item ...]   # 获取计数
+TOPK.LIST key [WITHCOUNT]        # 获取 Top-K 列表
+TOPK.INFO key                    # 获取信息
+</code></pre>
+<h3 id="64-t-digest">6.4 T-Digest</h3>
+<p>用于统计<strong>分位数</strong>（百分位数）。</p>
+<pre><code class="language-bash">TDIGEST.CREATE key [compression compression]  # 创建
+TDIGEST.ADD key value [value ...]  # 添加值
+TDIGEST.MERGE destkey numkeys sourcekey [sourcekey ...] [COMPRESSION compression] [OVERRIDE]  # 合并
+TDIGEST.MIN key                    # 最小值
+TDIGEST.MAX key                    # 最大值
+TDIGEST.QUANTILE key quantile [quantile ...]  # 分位数
+TDIGEST.CDF key value [value ...]  # 累积分布函数
+TDIGEST.INFO key                   # 获取信息
+TDIGEST.RESET key                  # 重置
+TDIGEST.TRIMMED_MEAN key low_cut_quantile high_cut_quantile  # 截尾均值
+TDIGEST.RANK key value [value ...]  # 排名
+TDIGEST.REVRANK key value [value ...]  # 反向排名
+TDIGEST.BYRANK key rank [rank ...]  # 按排名查值
+TDIGEST.BYREVRANK key reverse_rank [reverse_rank ...]  # 按反向排名查值
+</code></pre>
+<hr />
+<h2 id="7">7. 本章小结</h2>
+<table>
+<thead>
+<tr>
+<th>数据结构</th>
+<th>核心用途</th>
+<th>内存效率</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Bitmap</td>
+<td>签到、状态标记</td>
+<td>⭐⭐⭐⭐⭐</td>
+</tr>
+<tr>
+<td>HyperLogLog</td>
+<td>UV 统计</td>
+<td>⭐⭐⭐⭐⭐</td>
+</tr>
+<tr>
+<td>Geo</td>
+<td>地理位置</td>
+<td>⭐⭐⭐⭐</td>
+</tr>
+<tr>
+<td>Stream</td>
+<td>消息队列</td>
+<td>⭐⭐⭐</td>
+</tr>
+<tr>
+<td>JSON</td>
+<td>文档存储</td>
+<td>⭐⭐⭐</td>
+</tr>
+<tr>
+<td>Bloom Filter</td>
+<td>存在判断</td>
+<td>⭐⭐⭐⭐⭐</td>
+</tr>
+<tr>
+<td>Top-K</td>
+<td>热门统计</td>
+<td>⭐⭐⭐⭐</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<p>🎉 <strong>恭喜完成第三章！继续学习 <a href="../04_%E6%8C%81%E4%B9%85%E5%8C%96/">04_持久化.md</a></strong></p></div>
+            </div>
+        </div>
+
+        <footer class="col-md-12">
+            <hr>
+            <p>Documentation built with <a href="https://www.mkdocs.org/">MkDocs</a>.</p>
+        </footer>
+        <script src="../../../../js/bootstrap.bundle.min.js"></script>
+        <script>
+            var base_url = "../../../..",
+                shortcuts = {"help": 191, "next": 78, "previous": 80, "search": 83};
+        </script>
+        <script src="../../../../js/base.js"></script>
+        <script src="../../../../search/main.js"></script>
+
+        <div class="modal" id="mkdocs_search_modal" tabindex="-1" role="dialog" aria-labelledby="searchModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="searchModalLabel">Search</h4>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>From here you can search these documents. Enter your search terms below.</p>
+                <form>
+                    <div class="form-group">
+                        <input type="search" class="form-control" placeholder="Search..." id="mkdocs-search-query" title="Type search term here">
+                    </div>
+                </form>
+                <div id="mkdocs-search-results" data-no-results-text="No results found"></div>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div><div class="modal" id="mkdocs_keyboard_modal" tabindex="-1" role="dialog" aria-labelledby="keyboardModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="keyboardModalLabel">Keyboard Shortcuts</h4>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th style="width: 20%;">Keys</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td class="help shortcut"><kbd>?</kbd></td>
+                    <td>Open this help</td>
+                  </tr>
+                  <tr>
+                    <td class="next shortcut"><kbd>n</kbd></td>
+                    <td>Next page</td>
+                  </tr>
+                  <tr>
+                    <td class="prev shortcut"><kbd>p</kbd></td>
+                    <td>Previous page</td>
+                  </tr>
+                  <tr>
+                    <td class="search shortcut"><kbd>s</kbd></td>
+                    <td>Search</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div>
+
+    </body>
+</html>

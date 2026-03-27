@@ -1,0 +1,578 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="light">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        
+        
+        
+        <link rel="shortcut icon" href="../../../../img/favicon.ico">
+        <title>04_数据修改 - My Docs</title>
+        <link href="../../../../css/bootstrap.min.css" rel="stylesheet">
+        <link href="../../../../css/fontawesome.min.css" rel="stylesheet">
+        <link href="../../../../css/brands.min.css" rel="stylesheet">
+        <link href="../../../../css/solid.min.css" rel="stylesheet">
+        <link href="../../../../css/v4-font-face.min.css" rel="stylesheet">
+        <link href="../../../../css/base.css" rel="stylesheet">
+        <link id="hljs-light" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" >
+        <link id="hljs-dark" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github-dark.min.css" disabled>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+        <script>hljs.highlightAll();</script> 
+    </head>
+
+    <body>
+        <div class="navbar fixed-top navbar-expand-lg navbar-dark bg-primary">
+            <div class="container">
+                <a class="navbar-brand" href="../../../..">My Docs</a>
+
+                <!-- Expanded navigation -->
+                <div id="navbar-collapse" class="navbar-collapse collapse">
+
+                    <ul class="nav navbar-nav ms-md-auto">
+                        <li class="nav-item">
+                            <a href="#" class="nav-link" data-bs-toggle="modal" data-bs-target="#mkdocs_search_modal">
+                                <i class="fa fa-search"></i> Search
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="container">
+            <div class="row">
+                    <div class="col-md-3"><div class="navbar-expand-md bs-sidebar hidden-print affix" role="complementary">
+    <div class="navbar-header">
+        <button type="button" class="navbar-toggler collapsed" data-bs-toggle="collapse" data-bs-target="#toc-collapse" title="Table of Contents">
+            <span class="fa fa-angle-down"></span>
+        </button>
+    </div>
+
+    
+    <div id="toc-collapse" class="navbar-collapse collapse card bg-body-tertiary">
+        <ul class="nav flex-column">
+            
+            <li class="nav-item" data-bs-level="1"><a href="#04_" class="nav-link">04_数据修改</a>
+              <ul class="nav flex-column">
+            <li class="nav-item" data-bs-level="2"><a href="#1-insert" class="nav-link">1. INSERT 插入数据</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#2-update" class="nav-link">2. UPDATE 更新数据</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#3-delete" class="nav-link">3. DELETE 删除数据</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#4-replace-into" class="nav-link">4. REPLACE INTO</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#5" class="nav-link">5. 批量操作优化</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#6-dml" class="nav-link">6. 事务中的 DML</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#7" class="nav-link">7. 实战示例</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#8" class="nav-link">8. 本章小结</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+              </ul>
+            </li>
+        </ul>
+    </div>
+</div></div>
+                    <div class="col-md-9" role="main">
+
+<h1 id="04_">04_数据修改</h1>
+<blockquote>
+<p>INSERT、UPDATE、DELETE、REPLACE INTO 详解</p>
+</blockquote>
+<hr />
+<h2 id="1-insert">1. INSERT 插入数据</h2>
+<h3 id="11">1.1 基本语法</h3>
+<pre><code class="language-sql">INSERT INTO table_name (column1, column2, ...)
+VALUES (value1, value2, ...);
+</code></pre>
+<h3 id="12">1.2 插入单行</h3>
+<pre><code class="language-sql">-- 指定列
+INSERT INTO users (username, email, password)
+VALUES ('zhangsan', 'zhangsan@example.com', 'hashed_password');
+
+-- 省略列名（必须包含所有列，按顺序）
+INSERT INTO users VALUES (1, 'zhangsan', 'zhangsan@example.com', ...);
+
+-- 使用 DEFAULT
+INSERT INTO users (username, email, password, status)
+VALUES ('lisi', 'lisi@example.com', 'password', DEFAULT);
+</code></pre>
+<h3 id="13">1.3 插入多行</h3>
+<pre><code class="language-sql">-- 批量插入
+INSERT INTO users (username, email, password) VALUES
+('zhangsan', 'zhangsan@example.com', 'pwd1'),
+('lisi', 'lisi@example.com', 'pwd2'),
+('wangwu', 'wangwu@example.com', 'pwd3');
+
+-- 从子查询插入
+INSERT INTO users_backup (id, username, email)
+SELECT id, username, email FROM users WHERE status = 1;
+</code></pre>
+<h3 id="14-insert-set">1.4 INSERT ... SET 语法</h3>
+<pre><code class="language-sql">INSERT INTO users SET
+    username = 'zhangsan',
+    email = 'zhangsan@example.com',
+    password = 'hashed_password';
+</code></pre>
+<h3 id="15-insert-on-duplicate-key-update">1.5 INSERT ... ON DUPLICATE KEY UPDATE</h3>
+<pre><code class="language-sql">-- 如果唯一键冲突则更新
+INSERT INTO users (username, email, password)
+VALUES ('zhangsan', 'new@example.com', 'new_pwd')
+ON DUPLICATE KEY UPDATE
+    email = VALUES(email),
+    password = VALUES(password),
+    updated_at = NOW();
+
+-- 使用 VALUES() 函数（8.0+ 已废弃，使用别名）
+INSERT INTO users (username, email) VALUES ('zhangsan', 'new@email.com')
+AS new
+ON DUPLICATE KEY UPDATE email = new.email;
+</code></pre>
+<h3 id="16-insert-ignore">1.6 INSERT IGNORE</h3>
+<pre><code class="language-sql">-- 忽略错误（如唯一键冲突）
+INSERT IGNORE INTO users (username, email)
+VALUES ('zhangsan', 'zhangsan@example.com');
+
+-- 如果已存在则跳过，不报错
+</code></pre>
+<hr />
+<h2 id="2-update">2. UPDATE 更新数据</h2>
+<h3 id="21">2.1 基本语法</h3>
+<pre><code class="language-sql">UPDATE table_name
+SET column1 = value1, column2 = value2, ...
+[WHERE condition]
+[ORDER BY column]
+[LIMIT count];
+</code></pre>
+<h3 id="22">2.2 更新单行</h3>
+<pre><code class="language-sql">-- 带 WHERE
+UPDATE users 
+SET email = 'new@example.com' 
+WHERE id = 1;
+
+-- 更新多列
+UPDATE users 
+SET email = 'new@example.com', 
+    phone = '13800138000',
+    updated_at = NOW()
+WHERE id = 1;
+</code></pre>
+<h3 id="23">2.3 批量更新</h3>
+<pre><code class="language-sql">-- 更新多行
+UPDATE users 
+SET status = 0 
+WHERE created_at &lt; '2023-01-01';
+
+-- CASE 批量更新
+UPDATE products 
+SET status = CASE 
+    WHEN stock = 0 THEN 0
+    WHEN stock &lt; 10 THEN 1
+    ELSE 2
+END;
+
+-- 使用 FIELD 批量更新
+UPDATE users 
+SET status = 1 
+WHERE id IN (1, 2, 3, 4, 5);
+</code></pre>
+<h3 id="24-limit">2.4 带 LIMIT 的更新</h3>
+<pre><code class="language-sql">-- 只更新前 10 条
+UPDATE users 
+SET status = 0 
+WHERE last_login_at &lt; '2023-01-01'
+LIMIT 10;
+</code></pre>
+<h3 id="25">2.5 多表更新</h3>
+<pre><code class="language-sql">-- 基于 JOIN 更新
+UPDATE orders o
+JOIN users u ON o.user_id = u.id
+SET o.status = 3
+WHERE u.status = 0;
+
+-- 多表同时更新
+UPDATE orders o
+JOIN order_items oi ON o.id = oi.order_id
+SET o.status = 3, oi.updated_at = NOW()
+WHERE o.id = 1;
+</code></pre>
+<h3 id="26">2.6 使用子查询更新</h3>
+<pre><code class="language-sql">-- 单值子查询
+UPDATE products 
+SET price = (SELECT AVG(price) FROM products)
+WHERE id = 1;
+
+-- 相关子查询
+UPDATE products p
+SET price = (
+    SELECT AVG(price) 
+    FROM products 
+    WHERE category_id = p.category_id
+);
+
+-- FROM 子查询（MySQL 特有）
+UPDATE products p
+JOIN (
+    SELECT category_id, AVG(price) AS avg_price
+    FROM products
+    GROUP BY category_id
+) AS stats ON p.category_id = stats.category_id
+SET p.price = stats.avg_price;
+</code></pre>
+<hr />
+<h2 id="3-delete">3. DELETE 删除数据</h2>
+<h3 id="31">3.1 基本语法</h3>
+<pre><code class="language-sql">DELETE FROM table_name
+[WHERE condition]
+[ORDER BY column]
+[LIMIT count];
+</code></pre>
+<h3 id="32">3.2 删除单行</h3>
+<pre><code class="language-sql">-- 带 WHERE
+DELETE FROM users WHERE id = 1;
+
+-- 使用主键
+DELETE FROM users WHERE id = 1;
+</code></pre>
+<h3 id="33">3.3 批量删除</h3>
+<pre><code class="language-sql">-- 删除多行
+DELETE FROM users WHERE status = 0;
+
+-- IN 删除
+DELETE FROM users WHERE id IN (1, 2, 3);
+
+-- 带条件删除
+DELETE FROM orders 
+WHERE created_at &lt; '2023-01-01' AND status = 'cancelled';
+</code></pre>
+<h3 id="34-limit">3.4 带 LIMIT 的删除</h3>
+<pre><code class="language-sql">-- 删除前 100 条
+DELETE FROM logs ORDER BY created_at ASC LIMIT 100;
+
+-- 分批删除大表
+DELETE FROM logs 
+WHERE created_at &lt; '2023-01-01'
+ORDER BY created_at ASC
+LIMIT 1000;
+</code></pre>
+<h3 id="35">3.5 多表删除</h3>
+<pre><code class="language-sql">-- 删除关联表数据
+DELETE o, oi
+FROM orders o
+JOIN order_items oi ON o.id = oi.order_id
+WHERE o.user_id = 1;
+
+-- 使用 USING
+DELETE FROM o, oi
+USING orders o
+JOIN order_items oi ON o.id = oi.order_id
+WHERE o.user_id = 1;
+</code></pre>
+<h3 id="36-truncate-vs-delete">3.6 TRUNCATE vs DELETE</h3>
+<pre><code class="language-sql">-- DELETE
+DELETE FROM users;  -- 逐行删除，可回滚，保留自增
+
+-- TRUNCATE
+TRUNCATE TABLE users;  -- 删除表重建，不可回滚，重置自增
+
+-- 区别：
+-- DELETE: DML，可带 WHERE，可回滚，速度慢，保留自增
+-- TRUNCATE: DDL，不能带 WHERE，不可回滚，速度快，重置自增
+</code></pre>
+<hr />
+<h2 id="4-replace-into">4. REPLACE INTO</h2>
+<h3 id="41">4.1 基本语法</h3>
+<pre><code class="language-sql">REPLACE INTO table_name (column1, column2, ...)
+VALUES (value1, value2, ...);
+</code></pre>
+<h3 id="42-replace">4.2 REPLACE 工作原理</h3>
+<pre><code class="language-sql">-- 如果唯一键/主键冲突：
+-- 1. 删除旧记录
+-- 2. 插入新记录
+
+REPLACE INTO users (id, username, email)
+VALUES (1, 'zhangsan', 'new@example.com');
+
+-- 等价于：
+-- DELETE FROM users WHERE id = 1;
+-- INSERT INTO users (id, username, email) VALUES (1, 'zhangsan', 'new@example.com');
+</code></pre>
+<h3 id="43-replace">4.3 REPLACE 注意事项</h3>
+<pre><code class="language-sql">-- 注意：REPLACE 会删除再插入
+-- 1. 自增 ID 会变化（如果不是主键冲突）
+-- 2. 触发器会触发 DELETE 和 INSERT
+-- 3. 外键约束可能失败
+
+-- 推荐使用 INSERT ... ON DUPLICATE KEY UPDATE 替代
+INSERT INTO users (id, username, email)
+VALUES (1, 'zhangsan', 'new@example.com')
+ON DUPLICATE KEY UPDATE
+    username = VALUES(username),
+    email = VALUES(email);
+</code></pre>
+<hr />
+<h2 id="5">5. 批量操作优化</h2>
+<h3 id="51">5.1 批量插入优化</h3>
+<pre><code class="language-sql">-- 方式 1：多 VALUES（推荐）
+INSERT INTO users (username, email) VALUES
+('u1', 'u1@example.com'),
+('u2', 'u2@example.com'),
+...
+('u1000', 'u1000@example.com');
+
+-- 方式 2：LOAD DATA（最快）
+LOAD DATA LOCAL INFILE '/path/to/users.csv'
+INTO TABLE users
+FIELDS TERMINATED BY ','
+LINES TERMINATED BY '\n'
+(username, email);
+
+-- 方式 3：事务包裹
+START TRANSACTION;
+INSERT INTO users ...;
+INSERT INTO users ...;
+...
+COMMIT;
+</code></pre>
+<h3 id="52">5.2 批量更新优化</h3>
+<pre><code class="language-sql">-- 方式 1：CASE 语句
+UPDATE products SET price = CASE id
+    WHEN 1 THEN 100
+    WHEN 2 THEN 200
+    WHEN 3 THEN 300
+    ELSE price
+END
+WHERE id IN (1, 2, 3);
+
+-- 方式 2：临时表
+CREATE TEMPORARY TABLE temp_prices (id INT, price DECIMAL(10,2));
+INSERT INTO temp_prices VALUES (1, 100), (2, 200), (3, 300);
+
+UPDATE products p
+JOIN temp_prices t ON p.id = t.id
+SET p.price = t.price;
+
+DROP TEMPORARY TABLE temp_prices;
+</code></pre>
+<h3 id="53">5.3 批量删除优化</h3>
+<pre><code class="language-sql">-- 分批删除，避免长事务
+DELETE FROM logs WHERE created_at &lt; '2023-01-01' LIMIT 1000;
+-- 重复执行直到影响行数为 0
+
+-- 使用分区表（如果表已分区）
+ALTER TABLE logs TRUNCATE PARTITION p2022;
+</code></pre>
+<hr />
+<h2 id="6-dml">6. 事务中的 DML</h2>
+<pre><code class="language-sql">-- 开启事务
+START TRANSACTION;
+-- 或
+BEGIN;
+
+-- 执行 DML
+INSERT INTO users (username, email) VALUES ('test', 'test@example.com');
+UPDATE users SET status = 1 WHERE id = 1;
+DELETE FROM logs WHERE created_at &lt; '2023-01-01';
+
+-- 提交事务
+COMMIT;
+
+-- 或回滚
+ROLLBACK;
+
+-- 设置保存点
+START TRANSACTION;
+INSERT INTO users ...;
+SAVEPOINT sp1;
+UPDATE users ...;
+-- 回滚到保存点
+ROLLBACK TO sp1;
+-- 继续或提交
+COMMIT;
+</code></pre>
+<hr />
+<h2 id="7">7. 实战示例</h2>
+<h3 id="71">7.1 用户注册</h3>
+<pre><code class="language-sql">-- 插入新用户
+INSERT INTO users (username, email, password_hash, nickname)
+VALUES ('zhangsan', 'zhangsan@example.com', 'hashed_pwd', '张三');
+
+-- 获取自增 ID
+SELECT LAST_INSERT_ID();
+</code></pre>
+<h3 id="72">7.2 用户信息更新</h3>
+<pre><code class="language-sql">-- 更新部分字段
+UPDATE users 
+SET nickname = '新昵称',
+    avatar_url = 'https://example.com/avatar.jpg',
+    updated_at = NOW()
+WHERE id = 1;
+
+-- 更新密码
+UPDATE users 
+SET password_hash = 'new_hashed_pwd',
+    updated_at = NOW()
+WHERE id = 1;
+</code></pre>
+<h3 id="73">7.3 下单流程</h3>
+<pre><code class="language-sql">START TRANSACTION;
+
+-- 1. 创建订单
+INSERT INTO orders (order_no, user_id, total_amount, status)
+VALUES ('ORD202403250001', 1, 299.00, 0);
+
+-- 获取订单 ID
+SET @order_id = LAST_INSERT_ID();
+
+-- 2. 插入订单详情
+INSERT INTO order_items (order_id, product_id, quantity, unit_price, subtotal)
+VALUES 
+(@order_id, 1, 2, 99.00, 198.00),
+(@order_id, 2, 1, 101.00, 101.00);
+
+-- 3. 扣减库存
+UPDATE products 
+SET stock = stock - 2 
+WHERE id = 1 AND stock &gt;= 2;
+
+UPDATE products 
+SET stock = stock - 1 
+WHERE id = 2 AND stock &gt;= 1;
+
+-- 4. 检查库存是否足够（ROW_COUNT() = 0 表示库存不足）
+-- 如果库存不足，ROLLBACK
+
+COMMIT;
+</code></pre>
+<h3 id="74">7.4 数据归档</h3>
+<pre><code class="language-sql">-- 创建归档表
+CREATE TABLE orders_archive LIKE orders;
+
+-- 移动旧数据
+START TRANSACTION;
+
+INSERT INTO orders_archive
+SELECT * FROM orders 
+WHERE created_at &lt; '2023-01-01';
+
+DELETE FROM orders 
+WHERE created_at &lt; '2023-01-01';
+
+COMMIT;
+</code></pre>
+<hr />
+<h2 id="8">8. 本章小结</h2>
+<h3 id="_1">核心知识点</h3>
+<p>✅ INSERT 插入数据<br />
+✅ UPDATE 更新数据<br />
+✅ DELETE 删除数据<br />
+✅ REPLACE INTO<br />
+✅ 批量操作优化<br />
+✅ 事务中的 DML  </p>
+<h3 id="_2">最佳实践</h3>
+<ol>
+<li><strong>批量插入</strong>：使用多 VALUES 或 LOAD DATA</li>
+<li><strong>批量更新</strong>：使用 CASE 或临时表</li>
+<li><strong>批量删除</strong>：分批执行，避免长事务</li>
+<li><strong>事务包裹</strong>：保证数据一致性</li>
+<li><strong>使用索引</strong>：WHERE 条件列添加索引</li>
+</ol>
+<hr />
+<p>🎉 <strong>恭喜完成第四章！继续学习 <a href="../05_%E7%B4%A2%E5%BC%95/">05_索引.md</a></strong></p></div>
+            </div>
+        </div>
+
+        <footer class="col-md-12">
+            <hr>
+            <p>Documentation built with <a href="https://www.mkdocs.org/">MkDocs</a>.</p>
+        </footer>
+        <script src="../../../../js/bootstrap.bundle.min.js"></script>
+        <script>
+            var base_url = "../../../..",
+                shortcuts = {"help": 191, "next": 78, "previous": 80, "search": 83};
+        </script>
+        <script src="../../../../js/base.js"></script>
+        <script src="../../../../search/main.js"></script>
+
+        <div class="modal" id="mkdocs_search_modal" tabindex="-1" role="dialog" aria-labelledby="searchModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="searchModalLabel">Search</h4>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>From here you can search these documents. Enter your search terms below.</p>
+                <form>
+                    <div class="form-group">
+                        <input type="search" class="form-control" placeholder="Search..." id="mkdocs-search-query" title="Type search term here">
+                    </div>
+                </form>
+                <div id="mkdocs-search-results" data-no-results-text="No results found"></div>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div><div class="modal" id="mkdocs_keyboard_modal" tabindex="-1" role="dialog" aria-labelledby="keyboardModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="keyboardModalLabel">Keyboard Shortcuts</h4>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th style="width: 20%;">Keys</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td class="help shortcut"><kbd>?</kbd></td>
+                    <td>Open this help</td>
+                  </tr>
+                  <tr>
+                    <td class="next shortcut"><kbd>n</kbd></td>
+                    <td>Next page</td>
+                  </tr>
+                  <tr>
+                    <td class="prev shortcut"><kbd>p</kbd></td>
+                    <td>Previous page</td>
+                  </tr>
+                  <tr>
+                    <td class="search shortcut"><kbd>s</kbd></td>
+                    <td>Search</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div>
+
+    </body>
+</html>

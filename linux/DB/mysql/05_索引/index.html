@@ -1,0 +1,711 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="light">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        
+        
+        
+        <link rel="shortcut icon" href="../../../../img/favicon.ico">
+        <title>05_索引 - My Docs</title>
+        <link href="../../../../css/bootstrap.min.css" rel="stylesheet">
+        <link href="../../../../css/fontawesome.min.css" rel="stylesheet">
+        <link href="../../../../css/brands.min.css" rel="stylesheet">
+        <link href="../../../../css/solid.min.css" rel="stylesheet">
+        <link href="../../../../css/v4-font-face.min.css" rel="stylesheet">
+        <link href="../../../../css/base.css" rel="stylesheet">
+        <link id="hljs-light" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" >
+        <link id="hljs-dark" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github-dark.min.css" disabled>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+        <script>hljs.highlightAll();</script> 
+    </head>
+
+    <body>
+        <div class="navbar fixed-top navbar-expand-lg navbar-dark bg-primary">
+            <div class="container">
+                <a class="navbar-brand" href="../../../..">My Docs</a>
+
+                <!-- Expanded navigation -->
+                <div id="navbar-collapse" class="navbar-collapse collapse">
+
+                    <ul class="nav navbar-nav ms-md-auto">
+                        <li class="nav-item">
+                            <a href="#" class="nav-link" data-bs-toggle="modal" data-bs-target="#mkdocs_search_modal">
+                                <i class="fa fa-search"></i> Search
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="container">
+            <div class="row">
+                    <div class="col-md-3"><div class="navbar-expand-md bs-sidebar hidden-print affix" role="complementary">
+    <div class="navbar-header">
+        <button type="button" class="navbar-toggler collapsed" data-bs-toggle="collapse" data-bs-target="#toc-collapse" title="Table of Contents">
+            <span class="fa fa-angle-down"></span>
+        </button>
+    </div>
+
+    
+    <div id="toc-collapse" class="navbar-collapse collapse card bg-body-tertiary">
+        <ul class="nav flex-column">
+            
+            <li class="nav-item" data-bs-level="1"><a href="#05_" class="nav-link">05_索引</a>
+              <ul class="nav flex-column">
+            <li class="nav-item" data-bs-level="2"><a href="#1" class="nav-link">1. 索引概述</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#2" class="nav-link">2. 索引数据结构</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#3" class="nav-link">3. 索引类型</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#4" class="nav-link">4. 聚簇索引与二级索引</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#5" class="nav-link">5. 索引管理</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#6" class="nav-link">6. 索引优化原则</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#7-explain" class="nav-link">7. 执行计划分析（EXPLAIN）</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#8" class="nav-link">8. 索引优化实战</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#9" class="nav-link">9. 本章小结</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+              </ul>
+            </li>
+        </ul>
+    </div>
+</div></div>
+                    <div class="col-md-9" role="main">
+
+<h1 id="05_">05_索引</h1>
+<blockquote>
+<p>索引原理、B+Tree、索引优化、执行计划分析</p>
+</blockquote>
+<hr />
+<h2 id="1">1. 索引概述</h2>
+<h3 id="11">1.1 什么是索引？</h3>
+<p><strong>索引</strong>是帮助数据库<strong>高效获取数据</strong>的数据结构，类似于书籍的目录。</p>
+<pre><code>无索引：全表扫描（O(N)）
+┌─────────────────────────────────┐
+│ row1 │ row2 │ row3 │ ... │ rowN │
+└─────────────────────────────────┘
+        ↑ 需要遍历所有行
+
+有索引：索引查找（O(logN)）
+┌─────────────────────────────────┐
+│  索引   │  指向  │
+│  key1  │ → row5 │
+│  key2  │ → row10│
+│  key3  │ → row15│
+└─────────────────────────────────┘
+        ↑ 直接定位到数据行
+</code></pre>
+<h3 id="12">1.2 索引优缺点</h3>
+<table>
+<thead>
+<tr>
+<th>优点</th>
+<th>缺点</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>加快查询速度</td>
+<td>占用额外存储空间</td>
+</tr>
+<tr>
+<td>加速排序和分组</td>
+<td>降低写入性能（INSERT/UPDATE/DELETE）</td>
+</tr>
+<tr>
+<td>加速表连接</td>
+<td>需要维护索引结构</td>
+</tr>
+<tr>
+<td>保证唯一性</td>
+<td>优化器可能选错索引</td>
+</tr>
+</tbody>
+</table>
+<h3 id="13">1.3 何时使用索引？</h3>
+<p><strong>适合创建索引的场景</strong>：
+- 主键、外键
+- WHERE 子句中的列
+- JOIN 连接条件
+- ORDER BY、GROUP BY 的列
+- 高选择性列（不同值多）</p>
+<p><strong>不适合创建索引的场景</strong>：
+- 表记录太少
+- 低选择性列（如性别）
+- 频繁更新的列
+- TEXT、BLOB 类型
+- 很少在查询中使用的列</p>
+<hr />
+<h2 id="2">2. 索引数据结构</h2>
+<h3 id="21-btree">2.1 B+Tree 索引</h3>
+<pre><code>B+Tree 结构（3 层）：
+         ┌─────────┐
+         │  50     │  ← 根节点（索引）
+         └────┬────┘
+              │
+       ┌──────┴──────┐
+       ▼             ▼
+┌──────────┐   ┌──────────┐
+│ 10  30   │   │ 70  90   │  ← 内部节点（索引）
+└────┬─────┘   └────┬─────┘
+     │              │
+  ┌──┴──┐       ┌──┴──┐
+  ▼     ▼       ▼     ▼
+┌────┐ ┌────┐ ┌────┐ ┌────┐
+│1-9 │ │10- │ │50- │ │70- │  ← 叶子节点（数据）
+│    │ │49  │ │69  │ │100 │
+└────┘ └────┘ └────┘ └────┘
+     │              │
+     └──────────────┘  ← 叶子节点链表（范围查询）
+</code></pre>
+<p><strong>B+Tree 特点</strong>：
+- 非叶子节点只存索引，不存数据
+- 所有数据都在叶子节点
+- 叶子节点用链表连接（范围查询快）
+- 树高度低（3-4 层可存千万级数据）</p>
+<h3 id="22">2.2 哈希索引</h3>
+<pre><code>哈希索引：
+key → hash(key) → 数据位置
+
+&quot;张三&quot; → hash(&quot;张三&quot;) = 12345 → row 100
+&quot;李四&quot; → hash(&quot;李四&quot;) = 67890 → row 200
+</code></pre>
+<p><strong>哈希索引特点</strong>：
+- 等值查询快（O(1)）
+- 不支持范围查询
+- 不支持排序
+- 不支持模糊查询
+- Memory 引擎默认使用</p>
+<hr />
+<h2 id="3">3. 索引类型</h2>
+<h3 id="31-index">3.1 普通索引（INDEX）</h3>
+<pre><code class="language-sql">-- 创建时添加
+CREATE TABLE users (
+    id INT PRIMARY KEY,
+    username VARCHAR(50),
+    INDEX idx_username (username)
+);
+
+-- 事后添加
+CREATE INDEX idx_username ON users(username);
+
+-- 删除索引
+DROP INDEX idx_username ON users;
+ALTER TABLE users DROP INDEX idx_username;
+</code></pre>
+<h3 id="32-unique">3.2 唯一索引（UNIQUE）</h3>
+<pre><code class="language-sql">-- 创建时添加
+CREATE TABLE users (
+    id INT PRIMARY KEY,
+    email VARCHAR(100),
+    UNIQUE INDEX uk_email (email)
+);
+
+-- 事后添加
+CREATE UNIQUE INDEX uk_email ON users(email);
+
+-- 与普通索引区别：不允许重复值
+</code></pre>
+<h3 id="33-primary-key">3.3 主键索引（PRIMARY KEY）</h3>
+<pre><code class="language-sql">-- 主键自动创建索引
+CREATE TABLE users (
+    id INT PRIMARY KEY,  -- 主键索引
+    username VARCHAR(50)
+);
+
+-- 主键特点：
+-- 1. 唯一且非 NULL
+-- 2. 一张表只能有一个主键
+-- 3. InnoDB 的主键是聚簇索引
+</code></pre>
+<h3 id="34">3.4 复合索引（联合索引）</h3>
+<pre><code class="language-sql">-- 多列索引
+CREATE INDEX idx_name_age ON users(username, age);
+
+-- 最左前缀原则
+SELECT * FROM users WHERE username = 'zhangsan';        -- ✅ 使用索引
+SELECT * FROM users WHERE username = 'zhangsan' AND age = 25;  -- ✅ 使用索引
+SELECT * FROM users WHERE age = 25;                     -- ❌ 不使用索引
+
+-- 创建复合索引
+CREATE INDEX idx_status_created ON orders(status, created_at);
+
+-- 查询
+SELECT * FROM orders WHERE status = 1 AND created_at &gt; '2024-01-01';  -- ✅
+SELECT * FROM orders WHERE status = 1;                    -- ✅
+SELECT * FROM orders WHERE created_at &gt; '2024-01-01';     -- ❌
+</code></pre>
+<h3 id="35-fulltext">3.5 全文索引（FULLTEXT）</h3>
+<pre><code class="language-sql">-- 创建全文索引（仅 MyISAM 和 InnoDB 5.6+）
+CREATE FULLTEXT INDEX ft_content ON articles(content);
+
+-- 全文搜索
+SELECT * FROM articles 
+WHERE MATCH(content) AGAINST('MySQL 教程' IN NATURAL LANGUAGE MODE);
+
+-- 布尔模式
+SELECT * FROM articles 
+WHERE MATCH(content) AGAINST('+MySQL -Oracle' IN BOOLEAN MODE);
+</code></pre>
+<h3 id="36-spatial">3.6 空间索引（SPATIAL）</h3>
+<pre><code class="language-sql">-- 创建空间索引
+CREATE TABLE locations (
+    id INT PRIMARY KEY,
+    location POINT NOT NULL,
+    SPATIAL INDEX idx_location (location)
+);
+</code></pre>
+<hr />
+<h2 id="4">4. 聚簇索引与二级索引</h2>
+<h3 id="41-clustered-index">4.1 聚簇索引（Clustered Index）</h3>
+<pre><code>InnoDB 聚簇索引：
+叶子节点存储完整行数据
+
+主键索引（聚簇索引）：
+┌─────────────────────────────────┐
+│  id=1  │  (1, '张三', 25, ...) │  ← 数据就在索引中
+│  id=2  │  (2, '李四', 30, ...) │
+│  id=3  │  (3, '王五', 28, ...) │
+└─────────────────────────────────┘
+</code></pre>
+<p><strong>特点</strong>：
+- InnoDB 使用聚簇索引
+- 数据按主键顺序存储
+- 一张表只有一个聚簇索引
+- 主键查询最快</p>
+<h3 id="42-secondary-index">4.2 二级索引（Secondary Index）</h3>
+<pre><code>二级索引（非聚簇索引）：
+叶子节点存储主键值
+
+username 索引（二级索引）：
+┌─────────────────────┐
+│ 'zhangsan' │ → 1    │  ← 指向主键
+│ 'lisi'     │ → 2    │
+│ 'wangwu'   │ → 3    │
+└─────────────────────┘
+
+查询过程：
+1. 在二级索引找到 'zhangsan' → 主键 id=1
+2. 回表：在聚簇索引找到 id=1 → 获取完整数据
+</code></pre>
+<h3 id="43">4.3 覆盖索引</h3>
+<pre><code class="language-sql">-- 查询只需要索引列，无需回表
+SELECT id, username FROM users WHERE username = 'zhangsan';
+-- ✅ 覆盖索引：username 索引包含 id 和 username
+
+-- 需要回表
+SELECT id, username, email FROM users WHERE username = 'zhangsan';
+-- ❌ 需要回表获取 email
+</code></pre>
+<hr />
+<h2 id="5">5. 索引管理</h2>
+<h3 id="51">5.1 查看索引</h3>
+<pre><code class="language-sql">-- 查看表的所有索引
+SHOW INDEX FROM users;
+
+-- 查看索引详情
+SELECT 
+    index_name,
+    column_name,
+    seq_in_index,
+    non_unique,
+    index_type
+FROM information_schema.statistics
+WHERE table_name = 'users';
+</code></pre>
+<h3 id="52">5.2 分析索引使用</h3>
+<pre><code class="language-sql">-- 查看索引使用情况
+SHOW STATUS LIKE 'Handler_read%';
+
+-- Handler_read_first: 索引第一个值读取次数
+-- Handler_read_key: 通过索引读取行数
+-- Handler_read_next: 按顺序读取下一行次数
+-- Handler_read_rnd: 随机读取行数（高表示索引不佳）
+-- Handler_read_rnd_next: 全表扫描读取行数
+</code></pre>
+<h3 id="53">5.3 索引维护</h3>
+<pre><code class="language-sql">-- 分析表（更新索引统计信息）
+ANALYZE TABLE users;
+
+-- 检查表
+CHECK TABLE users;
+
+-- 优化表（重建索引，回收空间）
+OPTIMIZE TABLE users;
+
+-- 重建索引（5.6+）
+ALTER TABLE users ENGINE=InnoDB;
+</code></pre>
+<hr />
+<h2 id="6">6. 索引优化原则</h2>
+<h3 id="61">6.1 最左前缀原则</h3>
+<pre><code class="language-sql">-- 复合索引 (a, b, c)
+SELECT * FROM t WHERE a = 1 AND b = 2 AND c = 3;  -- ✅ 完全使用
+SELECT * FROM t WHERE a = 1 AND b = 2;            -- ✅ 使用前两列
+SELECT * FROM t WHERE a = 1;                       -- ✅ 使用第一列
+SELECT * FROM t WHERE b = 2 AND c = 3;            -- ❌ 不使用索引
+SELECT * FROM t WHERE a = 1 AND c = 3;            -- ⚠️ 只使用 a
+</code></pre>
+<h3 id="62">6.2 避免索引失效</h3>
+<pre><code class="language-sql">-- ❌ 对索引列使用函数
+SELECT * FROM users WHERE YEAR(created_at) = 2024;
+-- ✅ 改为
+SELECT * FROM users WHERE created_at &gt;= '2024-01-01' AND created_at &lt; '2025-01-01';
+
+-- ❌ 对索引列进行运算
+SELECT * FROM products WHERE price * 2 &gt; 200;
+-- ✅ 改为
+SELECT * FROM products WHERE price &gt; 100;
+
+-- ❌ 隐式类型转换
+SELECT * FROM users WHERE phone = 13800138000;  -- phone 是字符串
+-- ✅ 改为
+SELECT * FROM users WHERE phone = '13800138000';
+
+-- ❌ LIKE 以通配符开头
+SELECT * FROM users WHERE username LIKE '%san';
+-- ✅ LIKE 不以通配符开头
+SELECT * FROM users WHERE username LIKE 'zhang%';
+
+-- ❌ OR 条件中有没有索引的列
+SELECT * FROM users WHERE username = 'zhangsan' OR email = 'zhang@example.com';
+-- 如果只有 username 有索引，则索引失效
+
+-- ❌ IS NULL / IS NOT NULL 可能导致索引失效（取决于数据分布）
+</code></pre>
+<h3 id="63">6.3 索引列选择性</h3>
+<pre><code class="language-sql">-- 选择性 = 不同值数量 / 总行数
+-- 选择性越高，索引效果越好
+
+-- 查看列的选择性
+SELECT 
+    COUNT(DISTINCT username) / COUNT(*) AS username_selectivity,
+    COUNT(DISTINCT gender) / COUNT(*) AS gender_selectivity
+FROM users;
+
+-- gender 选择性低（只有 2-3 个值），不适合建索引
+-- username 选择性高，适合建索引
+</code></pre>
+<h3 id="64">6.4 索引覆盖</h3>
+<pre><code class="language-sql">-- 创建覆盖索引
+CREATE INDEX idx_status_user ON orders(status, user_id, created_at);
+
+-- 查询使用覆盖索引
+SELECT status, user_id, created_at 
+FROM orders 
+WHERE status = 1 AND user_id = 100;
+-- ✅ 无需回表
+</code></pre>
+<h3 id="65">6.5 前缀索引</h3>
+<pre><code class="language-sql">-- 长字符串创建前缀索引
+CREATE INDEX idx_email_prefix ON users(email(10));
+-- 只索引 email 前 10 个字符
+
+-- 检查前缀选择性
+SELECT 
+    COUNT(DISTINCT email) / COUNT(*) AS full_selectivity,
+    COUNT(DISTINCT LEFT(email, 10)) / COUNT(*) AS prefix_selectivity
+FROM users;
+</code></pre>
+<hr />
+<h2 id="7-explain">7. 执行计划分析（EXPLAIN）</h2>
+<h3 id="71-explain">7.1 EXPLAIN 基本用法</h3>
+<pre><code class="language-sql">EXPLAIN SELECT * FROM users WHERE username = 'zhangsan';
+</code></pre>
+<h3 id="72-explain">7.2 EXPLAIN 输出字段</h3>
+<table>
+<thead>
+<tr>
+<th>字段</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>id</strong></td>
+<td>查询序号，越大优先级越高</td>
+</tr>
+<tr>
+<td><strong>select_type</strong></td>
+<td>查询类型（SIMPLE/PRIMARY/SUBQUERY 等）</td>
+</tr>
+<tr>
+<td><strong>table</strong></td>
+<td>显示的表</td>
+</tr>
+<tr>
+<td><strong>type</strong></td>
+<td>访问类型（性能从好到差）</td>
+</tr>
+<tr>
+<td><strong>possible_keys</strong></td>
+<td>可能使用的索引</td>
+</tr>
+<tr>
+<td><strong>key</strong></td>
+<td>实际使用的索引</td>
+</tr>
+<tr>
+<td><strong>key_len</strong></td>
+<td>使用索引的长度</td>
+</tr>
+<tr>
+<td><strong>ref</strong></td>
+<td>显示哪个字段或常数与索引比较</td>
+</tr>
+<tr>
+<td><strong>rows</strong></td>
+<td>需要扫描的行数</td>
+</tr>
+<tr>
+<td><strong>Extra</strong></td>
+<td>额外信息</td>
+</tr>
+</tbody>
+</table>
+<h3 id="73-type">7.3 type 访问类型（重要）</h3>
+<pre><code>性能从好到差：
+
+system &gt; const &gt; eq_ref &gt; ref &gt; range &gt; index &gt; ALL
+
+- system: 表只有一行（系统表）
+- const: 主键或唯一索引等值查询
+- eq_ref: 主键或唯一索引关联查询
+- ref: 非唯一索引查询
+- range: 索引范围扫描
+- index: 全索引扫描
+- ALL: 全表扫描（最差）
+</code></pre>
+<pre><code class="language-sql">-- const 示例
+EXPLAIN SELECT * FROM users WHERE id = 1;
+-- type: const
+
+-- ref 示例
+EXPLAIN SELECT * FROM users WHERE username = 'zhangsan';
+-- type: ref
+
+-- range 示例
+EXPLAIN SELECT * FROM products WHERE price &gt; 100;
+-- type: range
+
+-- ALL 示例
+EXPLAIN SELECT * FROM users WHERE email LIKE '%@example.com';
+-- type: ALL（全表扫描）
+</code></pre>
+<h3 id="74-extra">7.4 Extra 常见值</h3>
+<table>
+<thead>
+<tr>
+<th>值</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Using index</strong></td>
+<td>使用覆盖索引（好）</td>
+</tr>
+<tr>
+<td><strong>Using where</strong></td>
+<td>使用 WHERE 过滤</td>
+</tr>
+<tr>
+<td><strong>Using temporary</strong></td>
+<td>使用临时表（需要优化）</td>
+</tr>
+<tr>
+<td><strong>Using filesort</strong></td>
+<td>使用文件排序（需要优化）</td>
+</tr>
+<tr>
+<td><strong>Using join buffer</strong></td>
+<td>使用连接缓冲</td>
+</tr>
+<tr>
+<td><strong>Impossible WHERE</strong></td>
+<td>WHERE 条件不可能成立</td>
+</tr>
+</tbody>
+</table>
+<pre><code class="language-sql">-- Using index（好）
+EXPLAIN SELECT id, username FROM users WHERE username = 'zhangsan';
+-- Extra: Using index
+
+-- Using temporary（需要优化）
+EXPLAIN SELECT status, COUNT(*) FROM users GROUP BY status;
+-- Extra: Using temporary
+
+-- Using filesort（需要优化）
+EXPLAIN SELECT * FROM users ORDER BY created_at;
+-- Extra: Using filesort
+</code></pre>
+<hr />
+<h2 id="8">8. 索引优化实战</h2>
+<h3 id="81">8.1 慢查询优化</h3>
+<pre><code class="language-sql">-- 1. 找到慢查询
+SELECT * FROM orders WHERE user_id = 100 ORDER BY created_at DESC LIMIT 10;
+
+-- 2. 分析执行计划
+EXPLAIN SELECT * FROM orders WHERE user_id = 100 ORDER BY created_at DESC LIMIT 10;
+
+-- 3. 创建优化索引
+CREATE INDEX idx_user_created ON orders(user_id, created_at DESC);
+
+-- 4. 验证优化
+EXPLAIN SELECT * FROM orders WHERE user_id = 100 ORDER BY created_at DESC LIMIT 10;
+-- type: ref, Extra: Using index condition
+</code></pre>
+<h3 id="82">8.2 分页优化</h3>
+<pre><code class="language-sql">-- 慢的分页（深分页）
+SELECT * FROM products ORDER BY id LIMIT 100000, 10;
+
+-- 优化 1：使用覆盖索引 + 回表
+SELECT p.* FROM products p
+INNER JOIN (
+    SELECT id FROM products ORDER BY id LIMIT 100000, 10
+) AS tmp ON p.id = tmp.id;
+
+-- 优化 2：记录上次 ID
+SELECT * FROM products WHERE id &gt; 100000 ORDER BY id LIMIT 10;
+</code></pre>
+<h3 id="83-count">8.3 COUNT 优化</h3>
+<pre><code class="language-sql">-- 慢的 COUNT
+SELECT COUNT(*) FROM users WHERE status = 1;
+
+-- 优化 1：使用覆盖索引
+CREATE INDEX idx_status ON users(status);
+
+-- 优化 2：使用近似值
+SELECT TABLE_ROWS FROM information_schema.tables 
+WHERE table_name = 'users';
+
+-- 优化 3：维护计数表
+CREATE TABLE user_stats (
+    status TINYINT PRIMARY KEY,
+    count INT DEFAULT 0
+);
+-- 每次 INSERT/DELETE 时更新计数
+</code></pre>
+<hr />
+<h2 id="9">9. 本章小结</h2>
+<h3 id="_1">核心知识点</h3>
+<p>✅ B+Tree 索引原理<br />
+✅ 索引类型（普通、唯一、主键、复合、全文）<br />
+✅ 聚簇索引与二级索引<br />
+✅ 最左前缀原则<br />
+✅ 索引失效场景<br />
+✅ EXPLAIN 执行计划分析  </p>
+<h3 id="_2">最佳实践</h3>
+<ol>
+<li><strong>主键设计</strong>：使用自增整数</li>
+<li><strong>索引列</strong>：WHERE、JOIN、ORDER BY 列</li>
+<li><strong>复合索引</strong>：高选择性列在前</li>
+<li><strong>覆盖索引</strong>：减少回表</li>
+<li><strong>定期分析</strong>：ANALYZE TABLE 更新统计信息</li>
+</ol>
+<hr />
+<p>🎉 <strong>恭喜完成第五章！继续学习 <a href="../06_%E4%BA%8B%E5%8A%A1%E4%B8%8E%E9%94%81/">06_事务与锁.md</a></strong></p></div>
+            </div>
+        </div>
+
+        <footer class="col-md-12">
+            <hr>
+            <p>Documentation built with <a href="https://www.mkdocs.org/">MkDocs</a>.</p>
+        </footer>
+        <script src="../../../../js/bootstrap.bundle.min.js"></script>
+        <script>
+            var base_url = "../../../..",
+                shortcuts = {"help": 191, "next": 78, "previous": 80, "search": 83};
+        </script>
+        <script src="../../../../js/base.js"></script>
+        <script src="../../../../search/main.js"></script>
+
+        <div class="modal" id="mkdocs_search_modal" tabindex="-1" role="dialog" aria-labelledby="searchModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="searchModalLabel">Search</h4>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>From here you can search these documents. Enter your search terms below.</p>
+                <form>
+                    <div class="form-group">
+                        <input type="search" class="form-control" placeholder="Search..." id="mkdocs-search-query" title="Type search term here">
+                    </div>
+                </form>
+                <div id="mkdocs-search-results" data-no-results-text="No results found"></div>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div><div class="modal" id="mkdocs_keyboard_modal" tabindex="-1" role="dialog" aria-labelledby="keyboardModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="keyboardModalLabel">Keyboard Shortcuts</h4>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th style="width: 20%;">Keys</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td class="help shortcut"><kbd>?</kbd></td>
+                    <td>Open this help</td>
+                  </tr>
+                  <tr>
+                    <td class="next shortcut"><kbd>n</kbd></td>
+                    <td>Next page</td>
+                  </tr>
+                  <tr>
+                    <td class="prev shortcut"><kbd>p</kbd></td>
+                    <td>Previous page</td>
+                  </tr>
+                  <tr>
+                    <td class="search shortcut"><kbd>s</kbd></td>
+                    <td>Search</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div>
+
+    </body>
+</html>

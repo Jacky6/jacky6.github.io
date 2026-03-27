@@ -1,0 +1,722 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="light">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        
+        
+        
+        <link rel="shortcut icon" href="../../../../img/favicon.ico">
+        <title>Structured output - My Docs</title>
+        <link href="../../../../css/bootstrap.min.css" rel="stylesheet">
+        <link href="../../../../css/fontawesome.min.css" rel="stylesheet">
+        <link href="../../../../css/brands.min.css" rel="stylesheet">
+        <link href="../../../../css/solid.min.css" rel="stylesheet">
+        <link href="../../../../css/v4-font-face.min.css" rel="stylesheet">
+        <link href="../../../../css/base.css" rel="stylesheet">
+        <link id="hljs-light" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" >
+        <link id="hljs-dark" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github-dark.min.css" disabled>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+        <script>hljs.highlightAll();</script> 
+    </head>
+
+    <body>
+        <div class="navbar fixed-top navbar-expand-lg navbar-dark bg-primary">
+            <div class="container">
+                <a class="navbar-brand" href="../../../..">My Docs</a>
+
+                <!-- Expanded navigation -->
+                <div id="navbar-collapse" class="navbar-collapse collapse">
+
+                    <ul class="nav navbar-nav ms-md-auto">
+                        <li class="nav-item">
+                            <a href="#" class="nav-link" data-bs-toggle="modal" data-bs-target="#mkdocs_search_modal">
+                                <i class="fa fa-search"></i> Search
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="container">
+            <div class="row">
+                    <div class="col-md-3"><div class="navbar-expand-md bs-sidebar hidden-print affix" role="complementary">
+    <div class="navbar-header">
+        <button type="button" class="navbar-toggler collapsed" data-bs-toggle="collapse" data-bs-target="#toc-collapse" title="Table of Contents">
+            <span class="fa fa-angle-down"></span>
+        </button>
+    </div>
+
+    
+    <div id="toc-collapse" class="navbar-collapse collapse card bg-body-tertiary">
+        <ul class="nav flex-column">
+            
+            <li class="nav-item" data-bs-level="1"><a href="#structured-output" class="nav-link">Structured output</a>
+              <ul class="nav flex-column">
+            <li class="nav-item" data-bs-level="2"><a href="#tool-calling-strategy" class="nav-link">Tool calling strategy</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+              </ul>
+            </li>
+        </ul>
+    </div>
+</div></div>
+                    <div class="col-md-9" role="main">
+
+<h1 id="structured-output">Structured output</h1>
+<p>Structured output allows agents to return data in a specific, predictable format. Instead of parsing natural language responses, you get structured data in the form of JSON objects, Pydantic models, or dataclasses that your application can directly use.</p>
+<p>LangChain's <a href="https://reference.langchain.com/python/langchain/agents/#langchain.agents.create_agent"><code>create_agent</code></a> handles structured output automatically. The user sets their desired structured output schema, and when the model generates the structured data, it's captured, validated, and returned in the <code>'structured_response'</code> key of the agent's state.</p>
+<p>```python  theme={null}
+def create_agent(
+    ...
+    response_format: Union[
+        ToolStrategy[StructuredResponseT],
+        ProviderStrategy[StructuredResponseT],
+        type[StructuredResponseT],
+    ]</p>
+<pre><code>
+## Response Format
+
+Controls how the agent returns structured data:
+
+* **`ToolStrategy[StructuredResponseT]`**: Uses tool calling for structured output
+* **`ProviderStrategy[StructuredResponseT]`**: Uses provider-native structured output
+* **`type[StructuredResponseT]`**: Schema type - automatically selects best strategy based on model capabilities
+* **`None`**: No structured output
+
+When a schema type is provided directly, LangChain automatically chooses:
+
+* `ProviderStrategy` for models supporting native structured output (e.g. [OpenAI](/oss/python/integrations/providers/openai), [Grok](/oss/python/integrations/providers/xai))
+* `ToolStrategy` for all other models
+
+The structured response is returned in the `structured_response` key of the agent's final state.
+
+## Provider strategy
+
+Some model providers support structured output natively through their APIs (e.g. OpenAI, Grok, Gemini). This is the most reliable method when available.
+
+To use this strategy, configure a `ProviderStrategy`:
+
+```python  theme={null}
+class ProviderStrategy(Generic[SchemaT]):
+    schema: type[SchemaT]
+</code></pre>
+<p><ParamField path="schema" required>
+  The schema defining the structured output format. Supports:</p>
+<ul>
+<li><strong>Pydantic models</strong>: <code>BaseModel</code> subclasses with field validation</li>
+<li><strong>Dataclasses</strong>: Python dataclasses with type annotations</li>
+<li><strong>TypedDict</strong>: Typed dictionary classes</li>
+<li><strong>JSON Schema</strong>: Dictionary with JSON schema specification
+</ParamField></li>
+</ul>
+<p>LangChain automatically uses <code>ProviderStrategy</code> when you pass a schema type directly to <a href="https://reference.langchain.com/python/langchain/agents/#langchain.agents.create_agent(response_format)"><code>create_agent.response_format</code></a> and the model supports native structured output:</p>
+<p><CodeGroup>
+  ```python Pydantic Model theme={null}
+  from pydantic import BaseModel, Field
+  from langchain.agents import create_agent</p>
+<p>class ContactInfo(BaseModel):
+      """Contact information for a person."""
+      name: str = Field(description="The name of the person")
+      email: str = Field(description="The email address of the person")
+      phone: str = Field(description="The phone number of the person")</p>
+<p>agent = create_agent(
+      model="gpt-5",
+      tools=tools,
+      response_format=ContactInfo  # Auto-selects ProviderStrategy
+  )</p>
+<p>result = agent.invoke({
+      "messages": [{"role": "user", "content": "Extract contact info from: John Doe, john@example.com, (555) 123-4567"}]
+  })</p>
+<p>result["structured_response"]
+  # ContactInfo(name='John Doe', email='john@example.com', phone='(555) 123-4567')
+  ```</p>
+<p>```python Dataclass theme={null}
+  from dataclasses import dataclass
+  from langchain.agents import create_agent</p>
+<p>@dataclass
+  class ContactInfo:
+      """Contact information for a person."""
+      name: str # The name of the person
+      email: str # The email address of the person
+      phone: str # The phone number of the person</p>
+<p>agent = create_agent(
+      model="gpt-5",
+      tools=tools,
+      response_format=ContactInfo  # Auto-selects ProviderStrategy
+  )</p>
+<p>result = agent.invoke({
+      "messages": [{"role": "user", "content": "Extract contact info from: John Doe, john@example.com, (555) 123-4567"}]
+  })</p>
+<p>result["structured_response"]
+  # ContactInfo(name='John Doe', email='john@example.com', phone='(555) 123-4567')
+  ```</p>
+<p>```python TypedDict theme={null}
+  from typing_extensions import TypedDict
+  from langchain.agents import create_agent</p>
+<p>class ContactInfo(TypedDict):
+      """Contact information for a person."""
+      name: str # The name of the person
+      email: str # The email address of the person
+      phone: str # The phone number of the person</p>
+<p>agent = create_agent(
+      model="gpt-5",
+      tools=tools,
+      response_format=ContactInfo  # Auto-selects ProviderStrategy
+  )</p>
+<p>result = agent.invoke({
+      "messages": [{"role": "user", "content": "Extract contact info from: John Doe, john@example.com, (555) 123-4567"}]
+  })</p>
+<p>result["structured_response"]
+  # {'name': 'John Doe', 'email': 'john@example.com', 'phone': '(555) 123-4567'}
+  ```</p>
+<p>```python JSON Schema theme={null}
+  from langchain.agents import create_agent</p>
+<p>contact_info_schema = {
+      "type": "object",
+      "description": "Contact information for a person.",
+      "properties": {
+          "name": {"type": "string", "description": "The name of the person"},
+          "email": {"type": "string", "description": "The email address of the person"},
+          "phone": {"type": "string", "description": "The phone number of the person"}
+      },
+      "required": ["name", "email", "phone"]
+  }</p>
+<p>agent = create_agent(
+      model="gpt-5",
+      tools=tools,
+      response_format=ProviderStrategy(contact_info_schema)
+  )</p>
+<p>result = agent.invoke({
+      "messages": [{"role": "user", "content": "Extract contact info from: John Doe, john@example.com, (555) 123-4567"}]
+  })</p>
+<p>result["structured_response"]
+  # {'name': 'John Doe', 'email': 'john@example.com', 'phone': '(555) 123-4567'}
+  ```
+</CodeGroup></p>
+<p>Provider-native structured output provides high reliability and strict validation because the model provider enforces the schema. Use it when available.</p>
+<p><Note>
+  If the provider natively supports structured output for your model choice, it is functionally equivalent to write <code>response_format=ProductReview</code> instead of <code>response_format=ToolStrategy(ProductReview)</code>. In either case, if structured output is not supported, the agent will fall back to a tool calling strategy.
+</Note></p>
+<h2 id="tool-calling-strategy">Tool calling strategy</h2>
+<p>For models that don't support native structured output, LangChain uses tool calling to achieve the same result. This works with all models that support tool calling, which is most modern models.</p>
+<p>To use this strategy, configure a <code>ToolStrategy</code>:</p>
+<p>```python  theme={null}
+class ToolStrategy(Generic[SchemaT]):
+    schema: type[SchemaT]
+    tool_message_content: str | None
+    handle_errors: Union[
+        bool,
+        str,
+        type[Exception],
+        tuple[type[Exception], ...],
+        Callable[[Exception], str],
+    ]</p>
+<pre><code>
+&lt;ParamField path=&quot;schema&quot; required&gt;
+  The schema defining the structured output format. Supports:
+
+  * **Pydantic models**: `BaseModel` subclasses with field validation
+  * **Dataclasses**: Python dataclasses with type annotations
+  * **TypedDict**: Typed dictionary classes
+  * **JSON Schema**: Dictionary with JSON schema specification
+  * **Union types**: Multiple schema options. The model will choose the most appropriate schema based on the context.
+&lt;/ParamField&gt;
+
+&lt;ParamField path=&quot;tool_message_content&quot;&gt;
+  Custom content for the tool message returned when structured output is generated.
+  If not provided, defaults to a message showing the structured response data.
+&lt;/ParamField&gt;
+
+&lt;ParamField path=&quot;handle_errors&quot;&gt;
+  Error handling strategy for structured output validation failures. Defaults to `True`.
+
+  * **`True`**: Catch all errors with default error template
+  * **`str`**: Catch all errors with this custom message
+  * **`type[Exception]`**: Only catch this exception type with default message
+  * **`tuple[type[Exception], ...]`**: Only catch these exception types with default message
+  * **`Callable[[Exception], str]`**: Custom function that returns error message
+  * **`False`**: No retry, let exceptions propagate
+&lt;/ParamField&gt;
+
+&lt;CodeGroup&gt;
+  ```python Pydantic Model theme={null}
+  from pydantic import BaseModel, Field
+  from typing import Literal
+  from langchain.agents import create_agent
+  from langchain.agents.structured_output import ToolStrategy
+
+
+  class ProductReview(BaseModel):
+      &quot;&quot;&quot;Analysis of a product review.&quot;&quot;&quot;
+      rating: int | None = Field(description=&quot;The rating of the product&quot;, ge=1, le=5)
+      sentiment: Literal[&quot;positive&quot;, &quot;negative&quot;] = Field(description=&quot;The sentiment of the review&quot;)
+      key_points: list[str] = Field(description=&quot;The key points of the review. Lowercase, 1-3 words each.&quot;)
+
+  agent = create_agent(
+      model=&quot;gpt-5&quot;,
+      tools=tools,
+      response_format=ToolStrategy(ProductReview)
+  )
+
+  result = agent.invoke({
+      &quot;messages&quot;: [{&quot;role&quot;: &quot;user&quot;, &quot;content&quot;: &quot;Analyze this review: 'Great product: 5 out of 5 stars. Fast shipping, but expensive'&quot;}]
+  })
+  result[&quot;structured_response&quot;]
+  # ProductReview(rating=5, sentiment='positive', key_points=['fast shipping', 'expensive'])
+  ```
+
+  ```python Dataclass theme={null}
+  from dataclasses import dataclass
+  from typing import Literal
+  from langchain.agents import create_agent
+  from langchain.agents.structured_output import ToolStrategy
+
+
+  @dataclass
+  class ProductReview:
+      &quot;&quot;&quot;Analysis of a product review.&quot;&quot;&quot;
+      rating: int | None  # The rating of the product (1-5)
+      sentiment: Literal[&quot;positive&quot;, &quot;negative&quot;]  # The sentiment of the review
+      key_points: list[str]  # The key points of the review
+
+  agent = create_agent(
+      model=&quot;gpt-5&quot;,
+      tools=tools,
+      response_format=ToolStrategy(ProductReview)
+  )
+
+  result = agent.invoke({
+      &quot;messages&quot;: [{&quot;role&quot;: &quot;user&quot;, &quot;content&quot;: &quot;Analyze this review: 'Great product: 5 out of 5 stars. Fast shipping, but expensive'&quot;}]
+  })
+  result[&quot;structured_response&quot;]
+  # ProductReview(rating=5, sentiment='positive', key_points=['fast shipping', 'expensive'])
+  ```
+
+  ```python TypedDict theme={null}
+  from typing import Literal
+  from typing_extensions import TypedDict
+  from langchain.agents import create_agent
+  from langchain.agents.structured_output import ToolStrategy
+
+
+  class ProductReview(TypedDict):
+      &quot;&quot;&quot;Analysis of a product review.&quot;&quot;&quot;
+      rating: int | None  # The rating of the product (1-5)
+      sentiment: Literal[&quot;positive&quot;, &quot;negative&quot;]  # The sentiment of the review
+      key_points: list[str]  # The key points of the review
+
+  agent = create_agent(
+      model=&quot;gpt-5&quot;,
+      tools=tools,
+      response_format=ToolStrategy(ProductReview)
+  )
+
+  result = agent.invoke({
+      &quot;messages&quot;: [{&quot;role&quot;: &quot;user&quot;, &quot;content&quot;: &quot;Analyze this review: 'Great product: 5 out of 5 stars. Fast shipping, but expensive'&quot;}]
+  })
+  result[&quot;structured_response&quot;]
+  # {'rating': 5, 'sentiment': 'positive', 'key_points': ['fast shipping', 'expensive']}
+  ```
+
+  ```python JSON Schema theme={null}
+  from langchain.agents import create_agent
+  from langchain.agents.structured_output import ToolStrategy
+
+
+  product_review_schema = {
+      &quot;type&quot;: &quot;object&quot;,
+      &quot;description&quot;: &quot;Analysis of a product review.&quot;,
+      &quot;properties&quot;: {
+          &quot;rating&quot;: {
+              &quot;type&quot;: [&quot;integer&quot;, &quot;null&quot;],
+              &quot;description&quot;: &quot;The rating of the product (1-5)&quot;,
+              &quot;minimum&quot;: 1,
+              &quot;maximum&quot;: 5
+          },
+          &quot;sentiment&quot;: {
+              &quot;type&quot;: &quot;string&quot;,
+              &quot;enum&quot;: [&quot;positive&quot;, &quot;negative&quot;],
+              &quot;description&quot;: &quot;The sentiment of the review&quot;
+          },
+          &quot;key_points&quot;: {
+              &quot;type&quot;: &quot;array&quot;,
+              &quot;items&quot;: {&quot;type&quot;: &quot;string&quot;},
+              &quot;description&quot;: &quot;The key points of the review&quot;
+          }
+      },
+      &quot;required&quot;: [&quot;sentiment&quot;, &quot;key_points&quot;]
+  }
+
+  agent = create_agent(
+      model=&quot;gpt-5&quot;,
+      tools=tools,
+      response_format=ToolStrategy(product_review_schema)
+  )
+
+  result = agent.invoke({
+      &quot;messages&quot;: [{&quot;role&quot;: &quot;user&quot;, &quot;content&quot;: &quot;Analyze this review: 'Great product: 5 out of 5 stars. Fast shipping, but expensive'&quot;}]
+  })
+  result[&quot;structured_response&quot;]
+  # {'rating': 5, 'sentiment': 'positive', 'key_points': ['fast shipping', 'expensive']}
+  ```
+
+  ```python Union Types theme={null}
+  from pydantic import BaseModel, Field
+  from typing import Literal, Union
+  from langchain.agents import create_agent
+  from langchain.agents.structured_output import ToolStrategy
+
+
+  class ProductReview(BaseModel):
+      &quot;&quot;&quot;Analysis of a product review.&quot;&quot;&quot;
+      rating: int | None = Field(description=&quot;The rating of the product&quot;, ge=1, le=5)
+      sentiment: Literal[&quot;positive&quot;, &quot;negative&quot;] = Field(description=&quot;The sentiment of the review&quot;)
+      key_points: list[str] = Field(description=&quot;The key points of the review. Lowercase, 1-3 words each.&quot;)
+
+  class CustomerComplaint(BaseModel):
+      &quot;&quot;&quot;A customer complaint about a product or service.&quot;&quot;&quot;
+      issue_type: Literal[&quot;product&quot;, &quot;service&quot;, &quot;shipping&quot;, &quot;billing&quot;] = Field(description=&quot;The type of issue&quot;)
+      severity: Literal[&quot;low&quot;, &quot;medium&quot;, &quot;high&quot;] = Field(description=&quot;The severity of the complaint&quot;)
+      description: str = Field(description=&quot;Brief description of the complaint&quot;)
+
+  agent = create_agent(
+      model=&quot;gpt-5&quot;,
+      tools=tools,
+      response_format=ToolStrategy(Union[ProductReview, CustomerComplaint])
+  )
+
+  result = agent.invoke({
+      &quot;messages&quot;: [{&quot;role&quot;: &quot;user&quot;, &quot;content&quot;: &quot;Analyze this review: 'Great product: 5 out of 5 stars. Fast shipping, but expensive'&quot;}]
+  })
+  result[&quot;structured_response&quot;]
+  # ProductReview(rating=5, sentiment='positive', key_points=['fast shipping', 'expensive'])
+  ```
+&lt;/CodeGroup&gt;
+
+### Custom tool message content
+
+The `tool_message_content` parameter allows you to customize the message that appears in the conversation history when structured output is generated:
+
+```python  theme={null}
+from pydantic import BaseModel, Field
+from typing import Literal
+from langchain.agents import create_agent
+from langchain.agents.structured_output import ToolStrategy
+
+
+class MeetingAction(BaseModel):
+    &quot;&quot;&quot;Action items extracted from a meeting transcript.&quot;&quot;&quot;
+    task: str = Field(description=&quot;The specific task to be completed&quot;)
+    assignee: str = Field(description=&quot;Person responsible for the task&quot;)
+    priority: Literal[&quot;low&quot;, &quot;medium&quot;, &quot;high&quot;] = Field(description=&quot;Priority level&quot;)
+
+agent = create_agent(
+    model=&quot;gpt-5&quot;,
+    tools=[],
+    response_format=ToolStrategy(
+        schema=MeetingAction,
+        tool_message_content=&quot;Action item captured and added to meeting notes!&quot;
+    )
+)
+
+agent.invoke({
+    &quot;messages&quot;: [{&quot;role&quot;: &quot;user&quot;, &quot;content&quot;: &quot;From our meeting: Sarah needs to update the project timeline as soon as possible&quot;}]
+})
+</code></pre>
+<pre><code>================================ Human Message =================================
+
+From our meeting: Sarah needs to update the project timeline as soon as possible
+================================== Ai Message ==================================
+Tool Calls:
+  MeetingAction (call_1)
+ Call ID: call_1
+  Args:
+    task: Update the project timeline
+    assignee: Sarah
+    priority: high
+================================= Tool Message =================================
+Name: MeetingAction
+
+Action item captured and added to meeting notes!
+</code></pre>
+<p>Without <code>tool_message_content</code>, our final <a href="https://reference.langchain.com/python/langchain/messages/#langchain.messages.ToolMessage"><code>ToolMessage</code></a> would be:</p>
+<pre><code>================================= Tool Message =================================
+Name: MeetingAction
+
+Returning structured response: {'task': 'update the project timeline', 'assignee': 'Sarah', 'priority': 'high'}
+</code></pre>
+<h3 id="error-handling">Error handling</h3>
+<p>Models can make mistakes when generating structured output via tool calling. LangChain provides intelligent retry mechanisms to handle these errors automatically.</p>
+<h4 id="multiple-structured-outputs-error">Multiple structured outputs error</h4>
+<p>When a model incorrectly calls multiple structured output tools, the agent provides error feedback in a <a href="https://reference.langchain.com/python/langchain/messages/#langchain.messages.ToolMessage"><code>ToolMessage</code></a> and prompts the model to retry:</p>
+<p>```python  theme={null}
+from pydantic import BaseModel, Field
+from typing import Union
+from langchain.agents import create_agent
+from langchain.agents.structured_output import ToolStrategy</p>
+<p>class ContactInfo(BaseModel):
+    name: str = Field(description="Person's name")
+    email: str = Field(description="Email address")</p>
+<p>class EventDetails(BaseModel):
+    event_name: str = Field(description="Name of the event")
+    date: str = Field(description="Event date")</p>
+<p>agent = create_agent(
+    model="gpt-5",
+    tools=[],
+    response_format=ToolStrategy(Union[ContactInfo, EventDetails])  # Default: handle_errors=True
+)</p>
+<p>agent.invoke({
+    "messages": [{"role": "user", "content": "Extract info: John Doe (john@email.com) is organizing Tech Conference on March 15th"}]
+})</p>
+<pre><code>
+</code></pre>
+<p>================================ Human Message =================================</p>
+<p>Extract info: John Doe (john@email.com) is organizing Tech Conference on March 15th
+None
+================================== Ai Message ==================================
+Tool Calls:
+  ContactInfo (call_1)
+ Call ID: call_1
+  Args:
+    name: John Doe
+    email: john@email.com
+  EventDetails (call_2)
+ Call ID: call_2
+  Args:
+    event_name: Tech Conference
+    date: March 15th
+================================= Tool Message =================================
+Name: ContactInfo</p>
+<p>Error: Model incorrectly returned multiple structured responses (ContactInfo, EventDetails) when only one is expected.
+ Please fix your mistakes.
+================================= Tool Message =================================
+Name: EventDetails</p>
+<p>Error: Model incorrectly returned multiple structured responses (ContactInfo, EventDetails) when only one is expected.
+ Please fix your mistakes.
+================================== Ai Message ==================================
+Tool Calls:
+  ContactInfo (call_3)
+ Call ID: call_3
+  Args:
+    name: John Doe
+    email: john@email.com
+================================= Tool Message =================================
+Name: ContactInfo</p>
+<p>Returning structured response: {'name': 'John Doe', 'email': 'john@email.com'}</p>
+<pre><code>
+#### Schema validation error
+
+When structured output doesn't match the expected schema, the agent provides specific error feedback:
+
+```python  theme={null}
+from pydantic import BaseModel, Field
+from langchain.agents import create_agent
+from langchain.agents.structured_output import ToolStrategy
+
+
+class ProductRating(BaseModel):
+    rating: int | None = Field(description=&quot;Rating from 1-5&quot;, ge=1, le=5)
+    comment: str = Field(description=&quot;Review comment&quot;)
+
+agent = create_agent(
+    model=&quot;gpt-5&quot;,
+    tools=[],
+    response_format=ToolStrategy(ProductRating),  # Default: handle_errors=True
+    system_prompt=&quot;You are a helpful assistant that parses product reviews. Do not make any field or value up.&quot;
+)
+
+agent.invoke({
+    &quot;messages&quot;: [{&quot;role&quot;: &quot;user&quot;, &quot;content&quot;: &quot;Parse this: Amazing product, 10/10!&quot;}]
+})
+</code></pre>
+<pre><code>================================ Human Message =================================
+
+Parse this: Amazing product, 10/10!
+================================== Ai Message ==================================
+Tool Calls:
+  ProductRating (call_1)
+ Call ID: call_1
+  Args:
+    rating: 10
+    comment: Amazing product
+================================= Tool Message =================================
+Name: ProductRating
+
+Error: Failed to parse structured output for tool 'ProductRating': 1 validation error for ProductRating.rating
+  Input should be less than or equal to 5 [type=less_than_equal, input_value=10, input_type=int].
+ Please fix your mistakes.
+================================== Ai Message ==================================
+Tool Calls:
+  ProductRating (call_2)
+ Call ID: call_2
+  Args:
+    rating: 5
+    comment: Amazing product
+================================= Tool Message =================================
+Name: ProductRating
+
+Returning structured response: {'rating': 5, 'comment': 'Amazing product'}
+</code></pre>
+<h4 id="error-handling-strategies">Error handling strategies</h4>
+<p>You can customize how errors are handled using the <code>handle_errors</code> parameter:</p>
+<p><strong>Custom error message:</strong></p>
+<p>```python  theme={null}
+ToolStrategy(
+    schema=ProductRating,
+    handle_errors="Please provide a valid rating between 1-5 and include a comment."
+)</p>
+<pre><code>
+If `handle_errors` is a string, the agent will *always* prompt the model to re-try with a fixed tool message:
+
+</code></pre>
+<p>================================= Tool Message =================================
+Name: ProductRating</p>
+<p>Please provide a valid rating between 1-5 and include a comment.</p>
+<pre><code>
+**Handle specific exceptions only:**
+
+```python  theme={null}
+ToolStrategy(
+    schema=ProductRating,
+    handle_errors=ValueError  # Only retry on ValueError, raise others
+)
+</code></pre>
+<p>If <code>handle_errors</code> is an exception type, the agent will only retry (using the default error message) if the exception raised is the specified type. In all other cases, the exception will be raised.</p>
+<p><strong>Handle multiple exception types:</strong></p>
+<p>```python  theme={null}
+ToolStrategy(
+    schema=ProductRating,
+    handle_errors=(ValueError, TypeError)  # Retry on ValueError and TypeError
+)</p>
+<pre><code>
+If `handle_errors` is a tuple of exceptions, the agent will only retry (using the default error message) if the exception raised is one of the specified types. In all other cases, the exception will be raised.
+
+**Custom error handler function:**
+
+```python  theme={null}
+def custom_error_handler(error: Exception) -&gt; str:
+    if isinstance(error, StructuredOutputValidationError):
+        return &quot;There was an issue with the format. Try again.
+    elif isinstance(error, MultipleStructuredOutputsError):
+        return &quot;Multiple structured outputs were returned. Pick the most relevant one.&quot;
+    else:
+        return f&quot;Error: {str(error)}&quot;
+
+ToolStrategy(
+    schema=ToolStrategy(Union[ContactInfo, EventDetails]),
+    handle_errors=custom_error_handler
+)
+</code></pre>
+<p>On <code>StructuredOutputValidationError</code>:</p>
+<pre><code>================================= Tool Message =================================
+Name: ToolStrategy
+
+There was an issue with the format. Try again.
+</code></pre>
+<p>On <code>MultipleStructuredOutputsError</code>:</p>
+<pre><code>================================= Tool Message =================================
+Name: ToolStrategy
+
+Multiple structured outputs were returned. Pick the most relevant one.
+</code></pre>
+<p>On other errors:</p>
+<pre><code>================================= Tool Message =================================
+Name: ToolStrategy
+
+Error: &lt;error message&gt;
+</code></pre>
+<p><strong>No error handling:</strong></p>
+<p><code>python  theme={null}
+response_format = ToolStrategy(
+    schema=ProductRating,
+    handle_errors=False  # All errors raised
+)</code></p>
+<hr />
+<p><Callout icon="pen-to-square" iconType="regular">
+  <a href="https://github.com/langchain-ai/docs/edit/main/src/oss/langchain/structured-output.mdx">Edit the source of this page on GitHub.</a>
+</Callout></p>
+<p><Tip icon="terminal" iconType="regular">
+  <a href="/use-these-docs">Connect these docs programmatically</a> to Claude, VSCode, and more via MCP for    real-time answers.
+</Tip></p></div>
+            </div>
+        </div>
+
+        <footer class="col-md-12">
+            <hr>
+            <p>Documentation built with <a href="https://www.mkdocs.org/">MkDocs</a>.</p>
+        </footer>
+        <script src="../../../../js/bootstrap.bundle.min.js"></script>
+        <script>
+            var base_url = "../../../..",
+                shortcuts = {"help": 191, "next": 78, "previous": 80, "search": 83};
+        </script>
+        <script src="../../../../js/base.js"></script>
+        <script src="../../../../search/main.js"></script>
+
+        <div class="modal" id="mkdocs_search_modal" tabindex="-1" role="dialog" aria-labelledby="searchModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="searchModalLabel">Search</h4>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>From here you can search these documents. Enter your search terms below.</p>
+                <form>
+                    <div class="form-group">
+                        <input type="search" class="form-control" placeholder="Search..." id="mkdocs-search-query" title="Type search term here">
+                    </div>
+                </form>
+                <div id="mkdocs-search-results" data-no-results-text="No results found"></div>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div><div class="modal" id="mkdocs_keyboard_modal" tabindex="-1" role="dialog" aria-labelledby="keyboardModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="keyboardModalLabel">Keyboard Shortcuts</h4>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th style="width: 20%;">Keys</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td class="help shortcut"><kbd>?</kbd></td>
+                    <td>Open this help</td>
+                  </tr>
+                  <tr>
+                    <td class="next shortcut"><kbd>n</kbd></td>
+                    <td>Next page</td>
+                  </tr>
+                  <tr>
+                    <td class="prev shortcut"><kbd>p</kbd></td>
+                    <td>Previous page</td>
+                  </tr>
+                  <tr>
+                    <td class="search shortcut"><kbd>s</kbd></td>
+                    <td>Search</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div>
+
+    </body>
+</html>

@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="light">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        
+        
+        
+        <link rel="shortcut icon" href="../../img/favicon.ico">
+        <title>Frp 内网透出 - My Docs</title>
+        <link href="../../css/bootstrap.min.css" rel="stylesheet">
+        <link href="../../css/fontawesome.min.css" rel="stylesheet">
+        <link href="../../css/brands.min.css" rel="stylesheet">
+        <link href="../../css/solid.min.css" rel="stylesheet">
+        <link href="../../css/v4-font-face.min.css" rel="stylesheet">
+        <link href="../../css/base.css" rel="stylesheet">
+        <link id="hljs-light" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" >
+        <link id="hljs-dark" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github-dark.min.css" disabled>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+        <script>hljs.highlightAll();</script> 
+    </head>
+
+    <body>
+        <div class="navbar fixed-top navbar-expand-lg navbar-dark bg-primary">
+            <div class="container">
+                <a class="navbar-brand" href="../..">My Docs</a>
+
+                <!-- Expanded navigation -->
+                <div id="navbar-collapse" class="navbar-collapse collapse">
+
+                    <ul class="nav navbar-nav ms-md-auto">
+                        <li class="nav-item">
+                            <a href="#" class="nav-link" data-bs-toggle="modal" data-bs-target="#mkdocs_search_modal">
+                                <i class="fa fa-search"></i> Search
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="container">
+            <div class="row">
+                    <div class="col-md-3"><div class="navbar-expand-md bs-sidebar hidden-print affix" role="complementary">
+    <div class="navbar-header">
+        <button type="button" class="navbar-toggler collapsed" data-bs-toggle="collapse" data-bs-target="#toc-collapse" title="Table of Contents">
+            <span class="fa fa-angle-down"></span>
+        </button>
+    </div>
+
+    
+    <div id="toc-collapse" class="navbar-collapse collapse card bg-body-tertiary">
+        <ul class="nav flex-column">
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            <li class="nav-item" data-bs-level="1"><a href="#systemd" class="nav-link">升级成 systemd 服务</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+        </ul>
+    </div>
+</div></div>
+                    <div class="col-md-9" role="main">
+
+<p><think>
+好的，用户现在需要一个关于如何使用 Frp 将内网的 22 端口（SSH）透出的教程。之前他们已经询问过 Frp 的整体教程，现在需要更具体的配置步骤。首先，我需要确认他们的需求：将内网中的 SSH 服务通过 Frp 暴露到公网，以便远程访问。</p>
+<p>首先，我应该回顾之前的 Frp 教程内容，确保这次的回答与之前一致，避免重复。用户可能已经了解了 Frp 的基本安装和配置，但需要针对 SSH 端口的具体设置。需要详细说明如何配置 Frp 客户端和服务端，确保 SSH 端口正确转发。</p>
+<p>接下来，我需要考虑用户可能的环境。比如，他们可能有一台公网服务器作为 Frp 服务端，内网设备运行着 SSH 服务。需要指导他们如何在服务端和客户端配置文件中添加 SSH 转发规则。</p>
+<p>同时，用户可能对安全性有疑问，比如如何设置 token 和加密通信。需要提醒他们设置强密码，并建议使用加密功能。另外，防火墙设置也是关键，确保公网服务器的 7000 端口（默认）和 SSH 的远程端口开放。</p>
+<p>还要注意用户可能遇到的常见问题，比如配置错误、端口冲突或防火墙限制。需要提供解决方法，比如检查日志、验证域名解析等。最后，给出实际测试步骤，确保用户能够成功连接。</p>
+<p>需要确保步骤清晰，分点说明，使用代码块展示配置文件示例，并强调关键配置项。同时，提醒用户根据实际环境调整参数，比如 IP 地址、端口号等。</p>
+<p></think></p>
+<p>以下是使用 <strong>Frp（Fast Reverse Proxy）</strong> 将内网 <strong>SSH 端口（22）</strong> 透出到公网的详细教程：</p>
+<hr />
+<h3 id="1"><strong>1. 环境准备</strong></h3>
+<ul>
+<li><strong>公网服务器</strong>（Frp 服务端）：  </li>
+<li>IP 地址：<code>42.121.162.247</code>（示例）</li>
+<li>安装 Frp 服务端（<code>frps</code>）。</li>
+<li><strong>内网设备</strong>（Frp 客户端）：  </li>
+<li>IP 地址：<code>192.168.1.100</code>（示例）</li>
+<li>运行 SSH 服务（默认端口 <code>22</code>）。</li>
+</ul>
+<hr />
+<h3 id="2-frp"><strong>2. 安装 Frp</strong></h3>
+<h4 id="1-frp"><strong>(1) 下载 Frp</strong></h4>
+<p>从 <a href="https://github.com/fatedier/frp">GitHub 仓库</a> 下载最新版本（以 <code>v0.45.0</code> 为例）：</p>
+<pre><code class="language-bash">wget https://github.com/fatedier/frp/releases/download/v0.45.0/frp_0.45.0_linux_amd64.tar.gz
+tar -zxvf frp_0.45.0_linux_amd64.tar.gz
+cd frp_0.45.0_linux_amd64
+</code></pre>
+<hr />
+<h3 id="3-frp"><strong>3. 配置 Frp 服务端（公网服务器）</strong></h3>
+<h4 id="1-frpsini"><strong>(1) 编辑服务端配置文件 <code>frps.ini</code></strong></h4>
+<pre><code class="language-ini">[common]
+bind_port = 7000
+dashboard_port = 7500
+token = 123456
+</code></pre>
+<p><code>token</code> 是客户端认证密钥</p>
+<h4 id="2-frp_1"><strong>(2) 启动 Frp 服务端</strong></h4>
+<pre><code class="language-bash">./frps -c ./frps.ini
+</code></pre>
+<hr />
+<h3 id="4-frp"><strong>4. 配置 Frp 客户端（内网设备）</strong></h3>
+<h4 id="1-frpcini"><strong>(1) 编辑客户端配置文件 <code>frpc.ini</code></strong></h4>
+<pre><code class="language-ini">[common]
+server_addr = 42.121.162.247  # 公网服务器IP
+server_port = 7000
+token = 123456
+
+[ssh]
+type = tcp
+local_ip = 192.168.1.100  # 内网设备IP
+local_port = 22
+remote_port = 2222  # 公网暴露的端口（可自定义）
+</code></pre>
+<h4 id="2-frp_2"><strong>(2) 启动 Frp 客户端</strong></h4>
+<pre><code class="language-bash">./frpc -c ./frpc.ini
+</code></pre>
+<hr />
+<h3 id="5-ssh"><strong>5. 验证 SSH 连接</strong></h3>
+<h4 id="1-ssh"><strong>(1) 通过公网服务器访问内网 SSH</strong></h4>
+<pre><code class="language-bash">ssh user@1.1.1.1 -p 2222
+</code></pre>
+<ul>
+<li><code>1.1.1.1</code>：公网服务器 IP。</li>
+<li><code>2222</code>：Frp 客户端配置的 <code>remote_port</code>。</li>
+</ul>
+<h4 id="2-frp_3"><strong>(2) 检查 Frp 日志</strong></h4>
+<ul>
+<li><strong>服务端日志</strong>：<code>nohup.out</code>（查看是否成功连接）。</li>
+<li><strong>客户端日志</strong>：<code>nohup.out</code>（查看是否成功注册 SSH 服务）。</li>
+</ul>
+<hr />
+<h3 id="6"><strong>6. 高级配置（可选）</strong></h3>
+<h4 id="1_1"><strong>(1) 自定义域名（可选）</strong></h4>
+<ol>
+<li>在 DNS 服务商（如阿里云、Cloudflare）添加 CNAME 记录：
+   <code>yourdomain.com  -&gt; 1.1.1.1</code></li>
+<li>修改 <code>frpc.ini</code>：
+   <code>ini
+   [ssh]
+   type = tcp
+   local_ip = 192.168.1.100
+   local_port = 22
+   remote_port = 2222
+   custom_domain = yourdomain.com</code></li>
+</ol>
+<h4 id="2"><strong>(2) 加密通信</strong></h4>
+<p>修改 <code>frpc.ini</code> 添加加密配置：</p>
+<pre><code class="language-ini">[common]
+use_encryption = true
+use_compression = true
+</code></pre>
+<hr />
+<h3 id="7"><strong>7. 常见问题排查</strong></h3>
+<h4 id="1-ssh_1"><strong>(1) 无法连接 SSH</strong></h4>
+<ul>
+<li><strong>原因</strong>：  </li>
+<li>公网服务器防火墙未开放 <code>7000</code>（Frp 服务端端口）和 <code>2222</code>（SSH 端口）。</li>
+<li>内网设备 SSH 服务未启动。</li>
+<li><strong>解决</strong>：  </li>
+<li>开放端口：
+    <code>bash
+    sudo ufw allow 7000
+    sudo ufw allow 2222</code></li>
+<li>检查内网 SSH 服务：
+    <code>bash
+    systemctl status ssh</code></li>
+</ul>
+<h4 id="2-frp_4"><strong>(2) Frp 客户端无法连接服务端</strong></h4>
+<ul>
+<li><strong>原因</strong>：  </li>
+<li><code>server_addr</code> 配置错误。</li>
+<li><code>token</code> 不匹配。</li>
+<li><strong>解决</strong>：  </li>
+<li>检查 <code>frpc.ini</code> 中的 <code>server_addr</code> 和 <code>token</code>。</li>
+</ul>
+<h4 id="3"><strong>(3) 自定义域名无法访问</strong></h4>
+<ul>
+<li><strong>原因</strong>：  </li>
+<li>域名未正确解析到公网服务器 IP。</li>
+<li><strong>解决</strong>：  </li>
+<li>使用 <code>nslookup yourdomain.com</code> 验证解析。</li>
+</ul>
+<hr />
+<h3 id="8"><strong>8. 安全建议</strong></h3>
+<ol>
+<li><strong>修改默认配置</strong>：  </li>
+<li>更改 <code>token</code> 为复杂密码。</li>
+<li>禁用默认的 <code>dashboard_port</code>（可选）。</li>
+<li><strong>限制端口</strong>：<br />
+   在 <code>frps.ini</code> 中配置 <code>allow_ports</code> 限制允许的端口范围：
+   <code>ini
+   allow_ports = 2222, 80, 443</code></li>
+</ol>
+<hr />
+<h3 id="9"><strong>9. 总结</strong></h3>
+<p>通过 Frp，你可以将内网的 SSH 服务（22 端口）安全地暴露到公网。只需配置服务端和客户端的 <code>frps.ini</code> 和 <code>frpc.ini</code> 文件，即可实现远程 SSH 连接。如果遇到问题，检查防火墙、日志和配置文件即可快速定位原因。</p>
+<h1 id="systemd">升级成 systemd 服务</h1>
+<ul>
+<li>现在这样跑太原始了，重启得手动搞。用 systemd 管理就爽多了</li>
+</ul>
+<pre><code class="language-bash">sudo vim /etc/systemd/system/frpc.service
+</code></pre>
+<pre><code>[Unit]
+Description=frp client
+After=network.target
+Wants=network.target
+
+[Service]
+Type=simple
+User=yixiu
+WorkingDirectory=/home/yixiu/frp_0.65.0_linux_amd64
+ExecStart=/home/yixiu/frp_0.65.0_linux_amd64/frpc -c /home/yixiu/frp_0.65.0_linux_amd64/frpc.ini
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
+</code></pre>
+<pre><code class="language-shell"># 2. 先停止旧的 frpc 进程 
+pkill frpc
+# 3. 启用 systemd 服务
+sudo systemctl daemon-reload
+sudo systemctl enable frpc
+sudo systemctl start frpc
+# 4. 查看状态
+sudo systemctl status frpc
+
+# 5. 以后管理就超简单了
+sudo systemctl restart frpc   # 重启
+sudo systemctl stop frpc      # 停止
+sudo journalctl -u frpc -f    # 看日志
+</code></pre></div>
+            </div>
+        </div>
+
+        <footer class="col-md-12">
+            <hr>
+            <p>Documentation built with <a href="https://www.mkdocs.org/">MkDocs</a>.</p>
+        </footer>
+        <script src="../../js/bootstrap.bundle.min.js"></script>
+        <script>
+            var base_url = "../..",
+                shortcuts = {"help": 191, "next": 78, "previous": 80, "search": 83};
+        </script>
+        <script src="../../js/base.js"></script>
+        <script src="../../search/main.js"></script>
+
+        <div class="modal" id="mkdocs_search_modal" tabindex="-1" role="dialog" aria-labelledby="searchModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="searchModalLabel">Search</h4>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>From here you can search these documents. Enter your search terms below.</p>
+                <form>
+                    <div class="form-group">
+                        <input type="search" class="form-control" placeholder="Search..." id="mkdocs-search-query" title="Type search term here">
+                    </div>
+                </form>
+                <div id="mkdocs-search-results" data-no-results-text="No results found"></div>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div><div class="modal" id="mkdocs_keyboard_modal" tabindex="-1" role="dialog" aria-labelledby="keyboardModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="keyboardModalLabel">Keyboard Shortcuts</h4>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th style="width: 20%;">Keys</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td class="help shortcut"><kbd>?</kbd></td>
+                    <td>Open this help</td>
+                  </tr>
+                  <tr>
+                    <td class="next shortcut"><kbd>n</kbd></td>
+                    <td>Next page</td>
+                  </tr>
+                  <tr>
+                    <td class="prev shortcut"><kbd>p</kbd></td>
+                    <td>Previous page</td>
+                  </tr>
+                  <tr>
+                    <td class="search shortcut"><kbd>s</kbd></td>
+                    <td>Search</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div>
+
+    </body>
+</html>

@@ -1,0 +1,807 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="light">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        
+        
+        
+        <link rel="shortcut icon" href="../../../../img/favicon.ico">
+        <title>06. 安全认证 - My Docs</title>
+        <link href="../../../../css/bootstrap.min.css" rel="stylesheet">
+        <link href="../../../../css/fontawesome.min.css" rel="stylesheet">
+        <link href="../../../../css/brands.min.css" rel="stylesheet">
+        <link href="../../../../css/solid.min.css" rel="stylesheet">
+        <link href="../../../../css/v4-font-face.min.css" rel="stylesheet">
+        <link href="../../../../css/base.css" rel="stylesheet">
+        <link id="hljs-light" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" >
+        <link id="hljs-dark" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github-dark.min.css" disabled>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+        <script>hljs.highlightAll();</script> 
+    </head>
+
+    <body>
+        <div class="navbar fixed-top navbar-expand-lg navbar-dark bg-primary">
+            <div class="container">
+                <a class="navbar-brand" href="../../../..">My Docs</a>
+
+                <!-- Expanded navigation -->
+                <div id="navbar-collapse" class="navbar-collapse collapse">
+
+                    <ul class="nav navbar-nav ms-md-auto">
+                        <li class="nav-item">
+                            <a href="#" class="nav-link" data-bs-toggle="modal" data-bs-target="#mkdocs_search_modal">
+                                <i class="fa fa-search"></i> Search
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="container">
+            <div class="row">
+                    <div class="col-md-3"><div class="navbar-expand-md bs-sidebar hidden-print affix" role="complementary">
+    <div class="navbar-header">
+        <button type="button" class="navbar-toggler collapsed" data-bs-toggle="collapse" data-bs-target="#toc-collapse" title="Table of Contents">
+            <span class="fa fa-angle-down"></span>
+        </button>
+    </div>
+
+    
+    <div id="toc-collapse" class="navbar-collapse collapse card bg-body-tertiary">
+        <ul class="nav flex-column">
+            
+            <li class="nav-item" data-bs-level="1"><a href="#06" class="nav-link">06. 安全认证</a>
+              <ul class="nav flex-column">
+            <li class="nav-item" data-bs-level="2"><a href="#spring-security" class="nav-link">Spring Security 简介</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#_3" class="nav-link">快速开始</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#_6" class="nav-link">自定义安全配置</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#_7" class="nav-link">用户认证</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#jwt" class="nav-link">JWT 认证</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#_12" class="nav-link">方法级安全</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#_16" class="nav-link">密码加密</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#cors" class="nav-link">CORS 配置</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#_18" class="nav-link">最佳实践</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#_21" class="nav-link">下一步</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#_22" class="nav-link">参考资源</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+              </ul>
+            </li>
+        </ul>
+    </div>
+</div></div>
+                    <div class="col-md-9" role="main">
+
+<h1 id="06">06. 安全认证</h1>
+<h2 id="spring-security">Spring Security 简介</h2>
+<p><strong>Spring Security</strong> 是 Spring 生态系统中的安全框架，提供认证、授权和其他安全功能。</p>
+<h3 id="_1">核心概念</h3>
+<table>
+<thead>
+<tr>
+<th>概念</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>认证（Authentication）</strong></td>
+<td>验证用户身份（你是谁）</td>
+</tr>
+<tr>
+<td><strong>授权（Authorization）</strong></td>
+<td>验证用户权限（你能做什么）</td>
+</tr>
+<tr>
+<td><strong>攻击防护</strong></td>
+<td>CSRF、XSS、点击劫持等防护</td>
+</tr>
+</tbody>
+</table>
+<h3 id="_2">安全过滤器链</h3>
+<pre><code>请求 → SecurityFilterChain → 认证过滤器 → 授权过滤器 → 控制器
+                              ↓
+                        AuthenticationManager
+                              ↓
+                        UserDetailsService
+</code></pre>
+<h2 id="_3">快速开始</h2>
+<h3 id="_4">添加依赖</h3>
+<pre><code class="language-xml">&lt;dependency&gt;
+    &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
+    &lt;artifactId&gt;spring-boot-starter-security&lt;/artifactId&gt;
+&lt;/dependency&gt;
+</code></pre>
+<h3 id="_5">默认安全配置</h3>
+<p>添加依赖后，Spring Security 会自动启用：</p>
+<ul>
+<li>所有端点需要认证</li>
+<li>默认用户：<code>user</code></li>
+<li>默认密码：控制台打印的 UUID</li>
+</ul>
+<pre><code class="language-yaml"># 自定义默认密码
+spring:
+  security:
+    user:
+      name: admin
+      password: admin123
+      roles: ADMIN
+</code></pre>
+<h2 id="_6">自定义安全配置</h2>
+<h3 id="spring-security-6">Spring Security 6+ 配置方式</h3>
+<pre><code class="language-java">package com.example.demo.config;
+
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.web.SecurityFilterChain;
+
+@Configuration
+@EnableWebSecurity
+public class SecurityConfig {
+
+    @Bean
+    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+        http
+            .authorizeHttpRequests(auth -&gt; auth
+                .requestMatchers(&quot;/api/public/**&quot;).permitAll()      // 公开端点
+                .requestMatchers(&quot;/api/admin/**&quot;).hasRole(&quot;ADMIN&quot;)  // 需要 ADMIN 角色
+                .requestMatchers(&quot;/api/user/**&quot;).authenticated()    // 需要认证
+                .anyRequest().authenticated()
+            )
+            .formLogin(form -&gt; form
+                .loginPage(&quot;/login&quot;)
+                .permitAll()
+            )
+            .logout(logout -&gt; logout
+                .logoutUrl(&quot;/logout&quot;)
+                .logoutSuccessUrl(&quot;/&quot;)
+                .permitAll()
+            )
+            .csrf(csrf -&gt; csrf.disable());  // REST API 通常禁用 CSRF
+
+        return http.build();
+    }
+}
+</code></pre>
+<h2 id="_7">用户认证</h2>
+<h3 id="_8">内存用户存储（测试用）</h3>
+<pre><code class="language-java">@Bean
+public UserDetailsService userDetailsService() {
+    UserDetails user = User.withUsername(&quot;user&quot;)
+        .password(passwordEncoder().encode(&quot;password&quot;))
+        .roles(&quot;USER&quot;)
+        .build();
+
+    UserDetails admin = User.withUsername(&quot;admin&quot;)
+        .password(passwordEncoder().encode(&quot;admin&quot;))
+        .roles(&quot;USER&quot;, &quot;ADMIN&quot;)
+        .build();
+
+    return new InMemoryUserDetailsManager(user, admin);
+}
+
+@Bean
+public PasswordEncoder passwordEncoder() {
+    return new BCryptPasswordEncoder();
+}
+</code></pre>
+<h3 id="_9">数据库用户存储（生产用）</h3>
+<pre><code class="language-java">// 1. 定义用户实体
+@Entity
+public class AppUser {
+    @Id
+    @GeneratedValue
+    private Long id;
+
+    @Column(unique = true, nullable = false)
+    private String username;
+
+    @Column(nullable = false)
+    private String password;
+
+    @ElementCollection(fetch = FetchType.EAGER)
+    private Set&lt;String&gt; roles = new HashSet&lt;&gt;();
+
+    // Getter 和 Setter
+}
+
+// 2. 创建 Repository
+public interface UserRepository extends JpaRepository&lt;AppUser, Long&gt; {
+    Optional&lt;AppUser&gt; findByUsername(String username);
+}
+
+// 3. 实现 UserDetailsService
+@Service
+public class CustomUserDetailsService implements UserDetailsService {
+
+    private final UserRepository userRepository;
+
+    public CustomUserDetailsService(UserRepository userRepository) {
+        this.userRepository = userRepository;
+    }
+
+    @Override
+    public UserDetails loadUserByUsername(String username) 
+            throws UsernameNotFoundException {
+
+        AppUser user = userRepository.findByUsername(username)
+            .orElseThrow(() -&gt; new UsernameNotFoundException(
+                &quot;User not found: &quot; + username));
+
+        return org.springframework.security.core.userdetails.User
+            .withUsername(user.getUsername())
+            .password(user.getPassword())
+            .roles(user.getRoles().toArray(new String[0]))
+            .build();
+    }
+}
+
+// 4. 配置中使用
+@Configuration
+@EnableWebSecurity
+public class SecurityConfig {
+
+    @Bean
+    public SecurityFilterChain filterChain(HttpSecurity http, 
+            UserDetailsService userDetailsService) throws Exception {
+        http
+            .userDetailsService(userDetailsService)
+            .authorizeHttpRequests(auth -&gt; auth
+                .anyRequest().authenticated()
+            )
+            .formLogin(form -&gt; form.permitAll());
+
+        return http.build();
+    }
+
+    @Bean
+    public PasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder();
+    }
+}
+</code></pre>
+<h2 id="jwt">JWT 认证</h2>
+<h3 id="_10">添加依赖</h3>
+<pre><code class="language-xml">&lt;!-- JWT --&gt;
+&lt;dependency&gt;
+    &lt;groupId&gt;io.jsonwebtoken&lt;/groupId&gt;
+    &lt;artifactId&gt;jjwt-api&lt;/artifactId&gt;
+    &lt;version&gt;0.12.3&lt;/version&gt;
+&lt;/dependency&gt;
+&lt;dependency&gt;
+    &lt;groupId&gt;io.jsonwebtoken&lt;/groupId&gt;
+    &lt;artifactId&gt;jjwt-impl&lt;/artifactId&gt;
+    &lt;version&gt;0.12.3&lt;/version&gt;
+    &lt;scope&gt;runtime&lt;/scope&gt;
+&lt;/dependency&gt;
+&lt;dependency&gt;
+    &lt;groupId&gt;io.jsonwebtoken&lt;/groupId&gt;
+    &lt;artifactId&gt;jjwt-jackson&lt;/artifactId&gt;
+    &lt;version&gt;0.12.3&lt;/version&gt;
+    &lt;scope&gt;runtime&lt;/scope&gt;
+&lt;/dependency&gt;
+</code></pre>
+<h3 id="jwt_1">JWT 工具类</h3>
+<pre><code class="language-java">package com.example.demo.security;
+
+import io.jsonwebtoken.*;
+import io.jsonwebtoken.security.Keys;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.stereotype.Component;
+
+import javax.crypto.SecretKey;
+import java.nio.charset.StandardCharsets;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.function.Function;
+
+@Component
+public class JwtUtil {
+
+    @Value(&quot;${jwt.secret}&quot;)
+    private String secret;
+
+    @Value(&quot;${jwt.expiration:3600000}&quot;)
+    private long expiration;
+
+    private SecretKey getSigningKey() {
+        byte[] keyBytes = secret.getBytes(StandardCharsets.UTF_8);
+        return Keys.hmacShaKeyFor(keyBytes);
+    }
+
+    public String extractUsername(String token) {
+        return extractClaim(token, Claims::getSubject);
+    }
+
+    public Date extractExpiration(String token) {
+        return extractClaim(token, Claims::getExpiration);
+    }
+
+    public &lt;T&gt; T extractClaim(String token, Function&lt;Claims, T&gt; claimsResolver) {
+        final Claims claims = extractAllClaims(token);
+        return claimsResolver.apply(claims);
+    }
+
+    private Claims extractAllClaims(String token) {
+        return Jwts.parser()
+            .verifyWith(getSigningKey())
+            .build()
+            .parseSignedClaims(token)
+            .getPayload();
+    }
+
+    private Boolean isTokenExpired(String token) {
+        return extractExpiration(token).before(new Date());
+    }
+
+    public String generateToken(UserDetails userDetails) {
+        Map&lt;String, Object&gt; claims = new HashMap&lt;&gt;();
+        return createToken(claims, userDetails.getUsername());
+    }
+
+    private String createToken(Map&lt;String, Object&gt; claims, String subject) {
+        Date now = new Date();
+        Date expirationDate = new Date(now.getTime() + expiration);
+
+        return Jwts.builder()
+            .claims(claims)
+            .subject(subject)
+            .issuedAt(now)
+            .expiration(expirationDate)
+            .signWith(getSigningKey())
+            .compact();
+    }
+
+    public Boolean validateToken(String token, UserDetails userDetails) {
+        final String username = extractUsername(token);
+        return (username.equals(userDetails.getUsername()) &amp;&amp; !isTokenExpired(token));
+    }
+}
+</code></pre>
+<h3 id="jwt_2">JWT 认证过滤器</h3>
+<pre><code class="language-java">package com.example.demo.security;
+
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
+import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
+import org.springframework.web.filter.OncePerRequestFilter;
+
+import java.io.IOException;
+
+@Component
+public class JwtAuthenticationFilter extends OncePerRequestFilter {
+
+    private final JwtUtil jwtUtil;
+    private final UserDetailsService userDetailsService;
+
+    public JwtAuthenticationFilter(JwtUtil jwtUtil, UserDetailsService userDetailsService) {
+        this.jwtUtil = jwtUtil;
+        this.userDetailsService = userDetailsService;
+    }
+
+    @Override
+    protected void doFilterInternal(HttpServletRequest request, 
+                                    HttpServletResponse response, 
+                                    FilterChain filterChain) 
+            throws ServletException, IOException {
+
+        try {
+            String jwt = parseJwt(request);
+
+            if (jwt != null &amp;&amp; jwtUtil.validateToken(jwt, 
+                    userDetailsService.loadUserByUsername(jwtUtil.extractUsername(jwt)))) {
+
+                UserDetails userDetails = userDetailsService.loadUserByUsername(
+                    jwtUtil.extractUsername(jwt));
+
+                UsernamePasswordAuthenticationToken authentication = 
+                    new UsernamePasswordAuthenticationToken(
+                        userDetails, null, userDetails.getAuthorities());
+
+                authentication.setDetails(
+                    new WebAuthenticationDetailsSource().buildDetails(request));
+
+                SecurityContextHolder.getContext().setAuthentication(authentication);
+            }
+        } catch (Exception e) {
+            logger.error(&quot;Cannot set user authentication: {}&quot;, e);
+        }
+
+        filterChain.doFilter(request, response);
+    }
+
+    private String parseJwt(HttpServletRequest request) {
+        String headerAuth = request.getHeader(&quot;Authorization&quot;);
+
+        if (StringUtils.hasText(headerAuth) &amp;&amp; headerAuth.startsWith(&quot;Bearer &quot;)) {
+            return headerAuth.substring(7);
+        }
+
+        return null;
+    }
+}
+</code></pre>
+<h3 id="jwt_3">配置 JWT</h3>
+<pre><code class="language-java">@Configuration
+@EnableWebSecurity
+public class SecurityConfig {
+
+    private final JwtAuthenticationFilter jwtAuthFilter;
+    private final AuthenticationManager authenticationManager;
+
+    public SecurityConfig(JwtAuthenticationFilter jwtAuthFilter, 
+                         AuthenticationConfiguration authConfig) throws Exception {
+        this.jwtAuthFilter = jwtAuthFilter;
+        this.authenticationManager = authConfig.getAuthenticationManager();
+    }
+
+    @Bean
+    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+        http
+            .csrf(csrf -&gt; csrf.disable())
+            .authorizeHttpRequests(auth -&gt; auth
+                .requestMatchers(&quot;/api/auth/**&quot;).permitAll()
+                .anyRequest().authenticated()
+            )
+            .sessionManagement(session -&gt; 
+                session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+            .authenticationManager(authenticationManager)
+            .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
+
+        return http.build();
+    }
+}
+</code></pre>
+<h3 id="_11">认证端点</h3>
+<pre><code class="language-java">@RestController
+@RequestMapping(&quot;/api/auth&quot;)
+public class AuthController {
+
+    private final AuthenticationManager authenticationManager;
+    private final JwtUtil jwtUtil;
+    private final UserDetailsService userDetailsService;
+
+    public AuthController(AuthenticationManager authenticationManager,
+                         JwtUtil jwtUtil,
+                         UserDetailsService userDetailsService) {
+        this.authenticationManager = authenticationManager;
+        this.jwtUtil = jwtUtil;
+        this.userDetailsService = userDetailsService;
+    }
+
+    @PostMapping(&quot;/login&quot;)
+    public ResponseEntity&lt;Map&lt;String, String&gt;&gt; login(
+            @RequestBody LoginRequest request) {
+
+        authenticationManager.authenticate(
+            new UsernamePasswordAuthenticationToken(
+                request.username(), request.password()));
+
+        UserDetails userDetails = userDetailsService.loadUserByUsername(request.username());
+        String token = jwtUtil.generateToken(userDetails);
+
+        Map&lt;String, String&gt; response = new HashMap&lt;&gt;();
+        response.put(&quot;token&quot;, token);
+        response.put(&quot;username&quot;, request.username());
+
+        return ResponseEntity.ok(response);
+    }
+
+    public record LoginRequest(String username, String password) {}
+}
+</code></pre>
+<h2 id="_12">方法级安全</h2>
+<h3 id="_13">启用方法安全</h3>
+<pre><code class="language-java">@Configuration
+@EnableMethodSecurity  // 启用方法级安全
+public class SecurityConfig {
+    // ...
+}
+</code></pre>
+<h3 id="_14">使用安全注解</h3>
+<pre><code class="language-java">@Service
+public class UserService {
+
+    // 需要认证
+    @PreAuthorize(&quot;isAuthenticated()&quot;)
+    public User getCurrentUser() { ... }
+
+    // 需要特定角色
+    @PreAuthorize(&quot;hasRole('ADMIN')&quot;)
+    public List&lt;User&gt; getAllUsers() { ... }
+
+    // 需要特定权限
+    @PreAuthorize(&quot;hasAuthority('user:read')&quot;)
+    public User getUserById(Long id) { ... }
+
+    // 基于所有权的检查
+    @PreAuthorize(&quot;#userId == authentication.principal.id&quot;)
+    public User getUserIfOwner(Long userId) { ... }
+
+    // 后置检查
+    @PostAuthorize(&quot;returnObject.owner == authentication.name&quot;)
+    public Document getDocument(Long id) { ... }
+}
+</code></pre>
+<h3 id="_15">常用表达式</h3>
+<table>
+<thead>
+<tr>
+<th>表达式</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>permitAll()</code></td>
+<td>允许所有人</td>
+</tr>
+<tr>
+<td><code>denyAll()</code></td>
+<td>拒绝所有人</td>
+</tr>
+<tr>
+<td><code>anonymous()</code></td>
+<td>匿名用户</td>
+</tr>
+<tr>
+<td><code>authenticated()</code></td>
+<td>已认证用户</td>
+</tr>
+<tr>
+<td><code>hasRole('ADMIN')</code></td>
+<td>有 ADMIN 角色</td>
+</tr>
+<tr>
+<td><code>hasAnyRole('USER', 'ADMIN')</code></td>
+<td>有任意指定角色</td>
+</tr>
+<tr>
+<td><code>hasAuthority('user:read')</code></td>
+<td>有指定权限</td>
+</tr>
+<tr>
+<td><code>hasIpAddress('192.168.1.0/24')</code></td>
+<td>来自指定 IP</td>
+</tr>
+</tbody>
+</table>
+<h2 id="_16">密码加密</h2>
+<h3 id="passwordencoder">PasswordEncoder</h3>
+<pre><code class="language-java">@Bean
+public PasswordEncoder passwordEncoder() {
+    return new BCryptPasswordEncoder();  // 推荐
+}
+
+// 其他选项
+new Pbkdf2PasswordEncoder();  // PBKDF2
+new SCryptPasswordEncoder();  // SCrypt
+new Argon2EncodingUtils();    // Argon2
+</code></pre>
+<h3 id="_17">使用</h3>
+<pre><code class="language-java">@Service
+public class AuthService {
+
+    private final PasswordEncoder passwordEncoder;
+    private final UserRepository userRepository;
+
+    public void register(String username, String rawPassword) {
+        String encodedPassword = passwordEncoder.encode(rawPassword);
+
+        AppUser user = new AppUser();
+        user.setUsername(username);
+        user.setPassword(encodedPassword);
+
+        userRepository.save(user);
+    }
+
+    public boolean matches(String rawPassword, String encodedPassword) {
+        return passwordEncoder.matches(rawPassword, encodedPassword);
+    }
+}
+</code></pre>
+<h2 id="cors">CORS 配置</h2>
+<pre><code class="language-java">@Configuration
+@EnableWebSecurity
+public class SecurityConfig {
+
+    @Bean
+    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+        http
+            .cors(cors -&gt; cors.configurationSource(corsConfigurationSource()))
+            .csrf(csrf -&gt; csrf.disable());
+
+        return http.build();
+    }
+
+    @Bean
+    public CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration configuration = new CorsConfiguration();
+
+        configuration.setAllowedOrigins(List.of(&quot;http://localhost:3000&quot;));
+        configuration.setAllowedMethods(List.of(&quot;GET&quot;, &quot;POST&quot;, &quot;PUT&quot;, &quot;DELETE&quot;, &quot;OPTIONS&quot;));
+        configuration.setAllowedHeaders(List.of(&quot;*&quot;));
+        configuration.setAllowCredentials(true);
+        configuration.setMaxAge(3600L);
+
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration(&quot;/**&quot;, configuration);
+
+        return source;
+    }
+}
+</code></pre>
+<h2 id="_18">最佳实践</h2>
+<h3 id="_19">✅ 推荐</h3>
+<pre><code class="language-java">// 1. 使用 BCrypt 加密密码
+@Bean
+public PasswordEncoder passwordEncoder() {
+    return new BCryptPasswordEncoder();
+}
+
+// 2. 使用 JWT 进行无状态认证
+// 适合 REST API 和微服务
+
+// 3. 最小权限原则
+.requestMatchers(&quot;/api/admin/**&quot;).hasRole(&quot;ADMIN&quot;)
+.requestMatchers(&quot;/api/user/**&quot;).authenticated()
+
+// 4. 禁用 CSRF（REST API）
+.csrf(csrf -&gt; csrf.disable())
+
+// 5. 使用 HTTPS（生产环境）
+server:
+  ssl:
+    enabled: true
+</code></pre>
+<h3 id="_20">❌ 避免</h3>
+<pre><code class="language-java">// 1. 明文存储密码
+user.setPassword(rawPassword);  // ❌
+
+// 2. 硬编码密钥
+private String secret = &quot;my-secret-key&quot;;  // ❌
+// 应该使用环境变量或配置中心
+
+// 3. 过长的 token 过期时间
+@Value(&quot;${jwt.expiration:31536000000}&quot;)  // 1 年 ❌
+// 建议 1-24 小时
+
+// 4. 禁用所有安全
+.httpBasic().disable()  // ❌ 除非有替代方案
+</code></pre>
+<h2 id="_21">下一步</h2>
+<ul>
+<li><a href="../07-testing/">07-测试</a>：学习 Spring 测试</li>
+<li><a href="../08-deployment/">08-部署与生产</a>：学习部署和监控</li>
+</ul>
+<h2 id="_22">参考资源</h2>
+<ul>
+<li><a href="https://docs.spring.io/spring-security/reference/index.html">Spring Security 参考</a></li>
+<li><a href="https://jwt.io">JWT.io</a></li>
+</ul>
+<hr />
+<p><em>保护你的应用安全！🔒</em></p></div>
+            </div>
+        </div>
+
+        <footer class="col-md-12">
+            <hr>
+            <p>Documentation built with <a href="https://www.mkdocs.org/">MkDocs</a>.</p>
+        </footer>
+        <script src="../../../../js/bootstrap.bundle.min.js"></script>
+        <script>
+            var base_url = "../../../..",
+                shortcuts = {"help": 191, "next": 78, "previous": 80, "search": 83};
+        </script>
+        <script src="../../../../js/base.js"></script>
+        <script src="../../../../search/main.js"></script>
+
+        <div class="modal" id="mkdocs_search_modal" tabindex="-1" role="dialog" aria-labelledby="searchModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="searchModalLabel">Search</h4>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>From here you can search these documents. Enter your search terms below.</p>
+                <form>
+                    <div class="form-group">
+                        <input type="search" class="form-control" placeholder="Search..." id="mkdocs-search-query" title="Type search term here">
+                    </div>
+                </form>
+                <div id="mkdocs-search-results" data-no-results-text="No results found"></div>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div><div class="modal" id="mkdocs_keyboard_modal" tabindex="-1" role="dialog" aria-labelledby="keyboardModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="keyboardModalLabel">Keyboard Shortcuts</h4>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th style="width: 20%;">Keys</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td class="help shortcut"><kbd>?</kbd></td>
+                    <td>Open this help</td>
+                  </tr>
+                  <tr>
+                    <td class="next shortcut"><kbd>n</kbd></td>
+                    <td>Next page</td>
+                  </tr>
+                  <tr>
+                    <td class="prev shortcut"><kbd>p</kbd></td>
+                    <td>Previous page</td>
+                  </tr>
+                  <tr>
+                    <td class="search shortcut"><kbd>s</kbd></td>
+                    <td>Search</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div>
+
+    </body>
+</html>

@@ -1,0 +1,742 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="light">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        
+        
+        
+        <link rel="shortcut icon" href="../../../../img/favicon.ico">
+        <title>04_持久化 - My Docs</title>
+        <link href="../../../../css/bootstrap.min.css" rel="stylesheet">
+        <link href="../../../../css/fontawesome.min.css" rel="stylesheet">
+        <link href="../../../../css/brands.min.css" rel="stylesheet">
+        <link href="../../../../css/solid.min.css" rel="stylesheet">
+        <link href="../../../../css/v4-font-face.min.css" rel="stylesheet">
+        <link href="../../../../css/base.css" rel="stylesheet">
+        <link id="hljs-light" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" >
+        <link id="hljs-dark" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github-dark.min.css" disabled>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+        <script>hljs.highlightAll();</script> 
+    </head>
+
+    <body>
+        <div class="navbar fixed-top navbar-expand-lg navbar-dark bg-primary">
+            <div class="container">
+                <a class="navbar-brand" href="../../../..">My Docs</a>
+
+                <!-- Expanded navigation -->
+                <div id="navbar-collapse" class="navbar-collapse collapse">
+
+                    <ul class="nav navbar-nav ms-md-auto">
+                        <li class="nav-item">
+                            <a href="#" class="nav-link" data-bs-toggle="modal" data-bs-target="#mkdocs_search_modal">
+                                <i class="fa fa-search"></i> Search
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="container">
+            <div class="row">
+                    <div class="col-md-3"><div class="navbar-expand-md bs-sidebar hidden-print affix" role="complementary">
+    <div class="navbar-header">
+        <button type="button" class="navbar-toggler collapsed" data-bs-toggle="collapse" data-bs-target="#toc-collapse" title="Table of Contents">
+            <span class="fa fa-angle-down"></span>
+        </button>
+    </div>
+
+    
+    <div id="toc-collapse" class="navbar-collapse collapse card bg-body-tertiary">
+        <ul class="nav flex-column">
+            
+            <li class="nav-item" data-bs-level="1"><a href="#04_" class="nav-link">04_持久化</a>
+              <ul class="nav flex-column">
+            <li class="nav-item" data-bs-level="2"><a href="#1" class="nav-link">1. 持久化概述</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#2-rdb" class="nav-link">2. RDB（快照）</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#3-aof" class="nav-link">3. AOF（追加日志）</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#4-redis-40" class="nav-link">4. 混合持久化（Redis 4.0+）</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#5" class="nav-link">5. 持久化策略选择</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#6" class="nav-link">6. 备份与恢复</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#7" class="nav-link">7. 性能影响</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#8" class="nav-link">8. 常见问题</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#9" class="nav-link">9. 本章小结</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+              </ul>
+            </li>
+        </ul>
+    </div>
+</div></div>
+                    <div class="col-md-9" role="main">
+
+<h1 id="04_">04_持久化</h1>
+<blockquote>
+<p>Redis 是内存数据库，持久化用于防止数据丢失。详解 RDB 和 AOF 两种持久化方式。</p>
+</blockquote>
+<hr />
+<h2 id="1">1. 持久化概述</h2>
+<h3 id="11">1.1 为什么需要持久化？</h3>
+<pre><code>Redis 数据存储在内存中 → 断电/重启会导致数据丢失
+          ↓
+    持久化到磁盘
+          ↓
+    重启时恢复数据
+</code></pre>
+<h3 id="12">1.2 两种持久化方式</h3>
+<table>
+<thead>
+<tr>
+<th>特性</th>
+<th>RDB</th>
+<th>AOF</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>全称</td>
+<td>Redis Database Backup</td>
+<td>Append Only File</td>
+</tr>
+<tr>
+<td>原理</td>
+<td>数据快照</td>
+<td>记录写命令</td>
+</tr>
+<tr>
+<td>文件</td>
+<td>dump.rdb</td>
+<td>appendonly.aof</td>
+</tr>
+<tr>
+<td>密度</td>
+<td>紧凑、二进制</td>
+<td>较大、文本</td>
+</tr>
+<tr>
+<td>恢复速度</td>
+<td>快</td>
+<td>慢</td>
+</tr>
+<tr>
+<td>数据完整性</td>
+<td>可能丢失最后一次快照后的数据</td>
+<td>可配置丢失秒数</td>
+</tr>
+<tr>
+<td>适用场景</td>
+<td>备份、快速恢复</td>
+<td>高数据安全性</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="2-rdb">2. RDB（快照）</h2>
+<h3 id="21">2.1 工作原理</h3>
+<pre><code>触发 RDB 快照
+      ↓
+fork() 子进程
+      ↓
+子进程写入临时文件
+      ↓
+写入完成，替换旧 RDB 文件
+      ↓
+主进程继续服务（无阻塞）
+</code></pre>
+<h3 id="22">2.2 触发方式</h3>
+<h4 id="1_1">（1）自动触发（配置文件）</h4>
+<pre><code class="language-conf"># redis.conf
+
+# 900 秒内至少 1 个 key 变化
+save 900 1
+
+# 300 秒内至少 10 个 key 变化
+save 300 10
+
+# 60 秒内至少 10000 个 key 变化
+save 60 10000
+
+# RDB 文件名
+dbfilename dump.rdb
+
+# 工作目录
+dir /var/lib/redis
+
+# 压缩 RDB 文件
+rdbcompression yes
+
+# RDB 校验和
+rdbchecksum yes
+
+# 停止保存（禁用 RDB）
+# save &quot;&quot;
+</code></pre>
+<h4 id="2">（2）手动触发</h4>
+<pre><code class="language-bash"># 阻塞式保存（生产环境慎用）
+127.0.0.1:6379&gt; SAVE
+OK
+
+# 非阻塞式保存（推荐）
+127.0.0.1:6379&gt; BGSAVE
+Background saving started
+
+# 查看保存进度
+127.0.0.1:6379&gt; LASTSAVE
+(integer) 1711353600  # Unix 时间戳
+
+# 查看持久化状态
+127.0.0.1:6379&gt; INFO persistence
+# Persistence
+loading:0
+current_cow_size:0
+rdb_changes_since_last_save:15
+rdb_bgsave_in_progress:0
+rdb_last_save_time:1711353600
+rdb_last_bgsave_status:ok
+</code></pre>
+<h3 id="23-rdb">2.3 RDB 文件操作</h3>
+<pre><code class="language-bash"># 查看 RDB 文件信息
+$ ls -lh /var/lib/redis/dump.rdb
+-rw-r--r-- 1 redis redis 1.2M Mar 25 10:00 dump.rdb
+
+# 使用 redis-check-rdb 检查文件
+$ redis-check-rdb /var/lib/redis/dump.rdb
+[offset 0] Checking RDB file /var/lib/redis/dump.rdb
+[offset 26] AUX FIELD 'redis-ver' = '7.2.4'
+[offset 42] AUX FIELD 'redis-bits' = '64'
+[offset 54] AUX FIELD 'ctime' = '1711353600'
+[offset 69] AUX FIELD 'used-mem' = '1234567'
+[offset 87] AUX FIELD 'repl-stream-db' = '0'
+[offset 109] AUX FIELD 'repl-id' = '...'
+[offset 154] AUX FIELD 'repl-offset' = '0'
+RDB file is valid
+
+# 分析 RDB 文件内容（使用 rdb 工具）
+$ pip install rdb-tools
+$ rdb --command json /var/lib/redis/dump.rdb &gt; dump.json
+</code></pre>
+<h3 id="24">2.4 优缺点</h3>
+<table>
+<thead>
+<tr>
+<th>优点</th>
+<th>缺点</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>文件紧凑，适合备份</td>
+<td>可能丢失最后一次快照后的数据</td>
+</tr>
+<tr>
+<td>恢复速度快</td>
+<td>fork() 时可能阻塞（大数据集）</td>
+</tr>
+<tr>
+<td>性能最大化（子进程处理）</td>
+<td>无法实时持久化</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="3-aof">3. AOF（追加日志）</h2>
+<h3 id="31">3.1 工作原理</h3>
+<pre><code>写命令执行
+      ↓
+追加到 AOF 缓冲区
+      ↓
+根据策略刷盘
+      ↓
+重启时重放 AOF 恢复数据
+</code></pre>
+<h3 id="32">3.2 配置选项</h3>
+<pre><code class="language-conf"># redis.conf
+
+# 启用 AOF
+appendonly yes
+
+# AOF 文件名
+appendfilename &quot;appendonly.aof&quot;
+
+# 同步策略
+# always: 每次写入都同步（最安全，性能最差）
+# everysec: 每秒同步一次（推荐，丢失最多 1 秒数据）
+# no: 由操作系统决定何时同步（性能最好，可能丢失较多）
+appendfsync everysec
+
+# AOF 重写时是否禁用同步
+no-appendfsync-on-rewrite no
+
+# 自动重写触发条件
+# 当前 AOF 文件大小比上次重写后增长 100%
+# 且 AOF 文件至少 64MB
+auto-aof-rewrite-percentage 100
+auto-aof-rewrite-min-size 64mb
+
+# 加载损坏的 AOF 文件
+aof-load-truncated yes
+
+# 使用 RDB 前缀加速加载
+aof-use-rdb-preamble yes
+</code></pre>
+<h3 id="33-aof">3.3 AOF 重写</h3>
+<p><strong>问题</strong>：AOF 文件会越来越大（如 INCR 命令记录 100 次）</p>
+<p><strong>解决</strong>：AOF 重写，将多次操作合并为一条</p>
+<pre><code class="language-bash"># 手动触发重写
+127.0.0.1:6379&gt; BGREWRITEAOF
+Background append only file rewriting started
+
+# 查看重写状态
+127.0.0.1:6379&gt; INFO persistence
+# Persistence
+aof_enabled:1
+aof_rewrite_in_progress:0
+aof_last_rewrite_time_sec:5
+aof_current_rewrite_time_sec:-1
+aof_last_bgrewrite_status:ok
+aof_last_write_status:ok
+</code></pre>
+<p><strong>重写过程</strong>：</p>
+<pre><code>原始 AOF：
+SET count 0
+INCR count  → 1
+INCR count  → 2
+INCR count  → 3
+...
+INCR count  → 100
+
+重写后 AOF：
+SET count 100
+</code></pre>
+<h3 id="34-aof">3.4 AOF 文件操作</h3>
+<pre><code class="language-bash"># 查看 AOF 文件
+$ ls -lh /var/lib/redis/appendonly.aof
+-rw-r--r-- 1 redis redis 15M Mar 25 10:00 appendonly.aof
+
+# 查看 AOF 内容（文本格式）
+$ tail -20 /var/lib/redis/appendonly.aof
+*2
+$6
+SELECT
+$1
+0
+*3
+$3
+SET
+$8
+user:101
+$33
+{&quot;name&quot;:&quot;张三&quot;,&quot;email&quot;:&quot;zhangsan@example.com&quot;}
+
+# 检查 AOF 文件
+$ redis-check-aof --fix /var/lib/redis/appendonly.aof
+Start checking Multi Part AOF
+AOF analyzed: size=15728640, ok_up_to=15728640, ok_up_to_line=123456
+AOF is valid
+</code></pre>
+<h3 id="35">3.5 优缺点</h3>
+<table>
+<thead>
+<tr>
+<th>优点</th>
+<th>缺点</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>数据安全性高</td>
+<td>文件较大</td>
+</tr>
+<tr>
+<td>可配置丢失秒数</td>
+<td>恢复速度慢于 RDB</td>
+</tr>
+<tr>
+<td>追加写，不易损坏</td>
+<td>性能略低于 RDB</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="4-redis-40">4. 混合持久化（Redis 4.0+）</h2>
+<h3 id="41">4.1 原理</h3>
+<p>结合 RDB 和 AOF 的优点：</p>
+<pre><code>AOF 重写时：
+┌─────────────────────────────────────┐
+│ RDB 格式（现有数据快照）             │
+├─────────────────────────────────────┤
+│ AOF 格式（增量写命令）               │
+└─────────────────────────────────────┘
+</code></pre>
+<h3 id="42">4.2 配置</h3>
+<pre><code class="language-conf"># 启用混合持久化
+aof-use-rdb-preamble yes
+</code></pre>
+<h3 id="43">4.3 优势</h3>
+<table>
+<thead>
+<tr>
+<th>特性</th>
+<th>传统 AOF</th>
+<th>混合持久化</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>文件大小</td>
+<td>大</td>
+<td>小</td>
+</tr>
+<tr>
+<td>加载速度</td>
+<td>慢</td>
+<td>快</td>
+</tr>
+<tr>
+<td>数据完整性</td>
+<td>高</td>
+<td>高</td>
+</tr>
+<tr>
+<td>兼容性</td>
+<td>所有版本</td>
+<td>Redis 4.0+</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="5">5. 持久化策略选择</h2>
+<h3 id="51">5.1 场景推荐</h3>
+<table>
+<thead>
+<tr>
+<th>场景</th>
+<th>推荐方案</th>
+<th>配置建议</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>缓存（可丢失）</td>
+<td>禁用持久化</td>
+<td>save "", appendonly no</td>
+</tr>
+<tr>
+<td>一般业务</td>
+<td>RDB + AOF</td>
+<td>默认配置</td>
+</tr>
+<tr>
+<td>高数据安全</td>
+<td>AOF everysec</td>
+<td>appendfsync always</td>
+</tr>
+<tr>
+<td>高性能</td>
+<td>RDB 为主</td>
+<td>延长 save 间隔</td>
+</tr>
+<tr>
+<td>大数据集</td>
+<td>混合持久化</td>
+<td>aof-use-rdb-preamble yes</td>
+</tr>
+</tbody>
+</table>
+<h3 id="52">5.2 生产环境配置示例</h3>
+<pre><code class="language-conf"># ==================== 持久化配置 ====================
+
+# RDB 快照（适度频率）
+save 900 1
+save 300 10
+save 60 10000
+
+# RDB 文件
+dbfilename dump.rdb
+dir /data/redis
+
+# AOF 持久化
+appendonly yes
+appendfilename &quot;appendonly.aof&quot;
+appendfsync everysec
+
+# AOF 重写
+auto-aof-rewrite-percentage 100
+auto-aof-rewrite-min-size 64mb
+
+# 混合持久化（加速加载）
+aof-use-rdb-preamble yes
+
+# 安全选项
+no-appendfsync-on-rewrite no
+aof-load-truncated yes
+</code></pre>
+<hr />
+<h2 id="6">6. 备份与恢复</h2>
+<h3 id="61">6.1 备份策略</h3>
+<pre><code class="language-bash">#!/bin/bash
+# backup-redis.sh - Redis 备份脚本
+
+BACKUP_DIR=&quot;/backup/redis&quot;
+DATE=$(date +%Y%m%d_%H%M%S)
+REDIS_DIR=&quot;/var/lib/redis&quot;
+
+# 创建备份目录
+mkdir -p $BACKUP_DIR
+
+# 触发 BGSAVE
+redis-cli BGSAVE
+
+# 等待保存完成
+sleep 5
+
+# 复制 RDB 文件
+cp $REDIS_DIR/dump.rdb $BACKUP_DIR/dump_$DATE.rdb
+
+# 复制 AOF 文件（如果启用）
+if [ -f &quot;$REDIS_DIR/appendonly.aof&quot; ]; then
+    cp $REDIS_DIR/appendonly.aof $BACKUP_DIR/appendonly_$DATE.aof
+fi
+
+# 压缩备份
+cd $BACKUP_DIR
+tar -czf redis_backup_$DATE.tar.gz dump_$DATE.rdb appendonly_$DATE.aof 2&gt;/dev/null
+
+# 删除旧备份（保留 7 天）
+find $BACKUP_DIR -name &quot;redis_backup_*.tar.gz&quot; -mtime +7 -delete
+
+echo &quot;Backup completed: redis_backup_$DATE.tar.gz&quot;
+</code></pre>
+<h3 id="62">6.2 恢复数据</h3>
+<pre><code class="language-bash"># 方式 1：恢复 RDB
+# 1. 停止 Redis
+sudo systemctl stop redis
+
+# 2. 替换 RDB 文件
+cp /backup/redis/dump_20240325_100000.rdb /var/lib/redis/dump.rdb
+
+# 3. 启动 Redis
+sudo systemctl start redis
+
+# 方式 2：恢复 AOF
+# 1. 停止 Redis
+sudo systemctl stop redis
+
+# 2. 替换 AOF 文件
+cp /backup/redis/appendonly_20240325_100000.aof /var/lib/redis/appendonly.aof
+
+# 3. 启动 Redis
+sudo systemctl start redis
+
+# 方式 3：从 RDB+AOF 混合恢复
+# 同时替换两个文件，Redis 会优先加载 AOF
+</code></pre>
+<h3 id="63">6.3 故障恢复流程</h3>
+<pre><code>1. 检查持久化文件状态
+   $ redis-check-rdb dump.rdb
+   $ redis-check-aof --fix appendonly.aof
+
+2. 查看 Redis 日志
+   $ tail -100 /var/log/redis/redis-server.log
+
+3. 尝试启动 Redis
+   $ redis-server /etc/redis/redis.conf
+
+4. 检查数据完整性
+   $ redis-cli
+   &gt; DBSIZE
+   &gt; KEYS *
+   &gt; INFO persistence
+</code></pre>
+<hr />
+<h2 id="7">7. 性能影响</h2>
+<h3 id="71-rdb">7.1 RDB 性能</h3>
+<pre><code>fork() 时的影响：
+- 小数据集（&lt;1GB）：几乎无感知
+- 大数据集（&gt;10GB）：可能短暂阻塞（毫秒级）
+
+写入磁盘：
+- 子进程完成，主进程无阻塞
+- 磁盘 I/O 不影响 Redis 性能
+</code></pre>
+<h3 id="72-aof">7.2 AOF 性能</h3>
+<pre><code>appendfsync always:
+- 每次写入都 fsync
+- 延迟：~1ms/写
+- 吞吐量：~1000 写/秒
+
+appendfsync everysec（推荐）:
+- 每秒 fsync 一次
+- 延迟：正常 &lt;1ms，fsync 时可能 2ms
+- 吞吐量：~10000 写/秒
+
+appendfsync no:
+- 由 OS 决定
+- 延迟：最低
+- 风险：可能丢失较多数据
+</code></pre>
+<h3 id="73">7.3 监控指标</h3>
+<pre><code class="language-bash"># 查看持久化相关指标
+127.0.0.1:6379&gt; INFO persistence
+
+# 关键指标
+rdb_changes_since_last_save  # 自上次保存后的变化数
+rdb_last_bgsave_time_sec     # 上次保存耗时
+aof_current_size             # 当前 AOF 大小
+aof_last_rewrite_time_sec    # 上次重写耗时
+</code></pre>
+<hr />
+<h2 id="8">8. 常见问题</h2>
+<h3 id="q1-rdb-aof">Q1: RDB 和 AOF 同时启用，恢复时用哪个？</h3>
+<p><strong>A</strong>: Redis 启动时优先加载 <strong>AOF</strong>，因为 AOF 数据更完整。</p>
+<h3 id="q2-aof">Q2: AOF 文件太大怎么办？</h3>
+<p><strong>A</strong>: 
+1. 触发 BGREWRITEAOF 重写
+2. 调整 auto-aof-rewrite-percentage
+3. 启用混合持久化</p>
+<h3 id="q3">Q3: 如何禁用持久化？</h3>
+<p><strong>A</strong>:</p>
+<pre><code class="language-conf">save &quot;&quot;
+appendonly no
+</code></pre>
+<h3 id="q4">Q4: 持久化导致性能下降？</h3>
+<p><strong>A</strong>:
+1. 使用 SSD 磁盘
+2. 调整 save 频率
+3. AOF 使用 everysec 而非 always
+4. 避免大数据集频繁 fork()</p>
+<h3 id="q5-redis">Q5: 如何迁移 Redis 数据？</h3>
+<p><strong>A</strong>:</p>
+<pre><code class="language-bash"># 方式 1：复制持久化文件
+scp dump.rdb appendonly.aof new-server:/var/lib/redis/
+
+# 方式 2：使用 redis-cli --rdb
+redis-cli --rdb /tmp/dump.rdb
+
+# 方式 3：在线同步（使用主从复制）
+</code></pre>
+<hr />
+<h2 id="9">9. 本章小结</h2>
+<h3 id="_1">核心知识点</h3>
+<p>✅ RDB 快照原理与配置<br />
+✅ AOF 日志原理与配置<br />
+✅ AOF 重写机制<br />
+✅ 混合持久化优势<br />
+✅ 持久化策略选择<br />
+✅ 备份与恢复流程  </p>
+<h3 id="_2">最佳实践</h3>
+<ol>
+<li><strong>生产环境</strong>：RDB + AOF 同时启用</li>
+<li><strong>AOF 策略</strong>：appendfsync everysec</li>
+<li><strong>定期备份</strong>：脚本自动化 + 异地存储</li>
+<li><strong>监控告警</strong>：监控持久化状态和文件大小</li>
+<li><strong>测试恢复</strong>：定期验证备份可恢复</li>
+</ol>
+<hr />
+<p>🎉 <strong>恭喜完成第四章！继续学习 <a href="../05_%E5%A4%8D%E5%88%B6%E4%B8%8E%E5%93%A8%E5%85%B5/">05_复制与哨兵.md</a></strong></p></div>
+            </div>
+        </div>
+
+        <footer class="col-md-12">
+            <hr>
+            <p>Documentation built with <a href="https://www.mkdocs.org/">MkDocs</a>.</p>
+        </footer>
+        <script src="../../../../js/bootstrap.bundle.min.js"></script>
+        <script>
+            var base_url = "../../../..",
+                shortcuts = {"help": 191, "next": 78, "previous": 80, "search": 83};
+        </script>
+        <script src="../../../../js/base.js"></script>
+        <script src="../../../../search/main.js"></script>
+
+        <div class="modal" id="mkdocs_search_modal" tabindex="-1" role="dialog" aria-labelledby="searchModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="searchModalLabel">Search</h4>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>From here you can search these documents. Enter your search terms below.</p>
+                <form>
+                    <div class="form-group">
+                        <input type="search" class="form-control" placeholder="Search..." id="mkdocs-search-query" title="Type search term here">
+                    </div>
+                </form>
+                <div id="mkdocs-search-results" data-no-results-text="No results found"></div>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div><div class="modal" id="mkdocs_keyboard_modal" tabindex="-1" role="dialog" aria-labelledby="keyboardModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="keyboardModalLabel">Keyboard Shortcuts</h4>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th style="width: 20%;">Keys</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td class="help shortcut"><kbd>?</kbd></td>
+                    <td>Open this help</td>
+                  </tr>
+                  <tr>
+                    <td class="next shortcut"><kbd>n</kbd></td>
+                    <td>Next page</td>
+                  </tr>
+                  <tr>
+                    <td class="prev shortcut"><kbd>p</kbd></td>
+                    <td>Previous page</td>
+                  </tr>
+                  <tr>
+                    <td class="search shortcut"><kbd>s</kbd></td>
+                    <td>Search</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div>
+
+    </body>
+</html>

@@ -1,0 +1,706 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="light">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        
+        
+        
+        <link rel="shortcut icon" href="../../../../img/favicon.ico">
+        <title>10_应用场景 - My Docs</title>
+        <link href="../../../../css/bootstrap.min.css" rel="stylesheet">
+        <link href="../../../../css/fontawesome.min.css" rel="stylesheet">
+        <link href="../../../../css/brands.min.css" rel="stylesheet">
+        <link href="../../../../css/solid.min.css" rel="stylesheet">
+        <link href="../../../../css/v4-font-face.min.css" rel="stylesheet">
+        <link href="../../../../css/base.css" rel="stylesheet">
+        <link id="hljs-light" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" >
+        <link id="hljs-dark" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github-dark.min.css" disabled>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+        <script>hljs.highlightAll();</script> 
+    </head>
+
+    <body>
+        <div class="navbar fixed-top navbar-expand-lg navbar-dark bg-primary">
+            <div class="container">
+                <a class="navbar-brand" href="../../../..">My Docs</a>
+
+                <!-- Expanded navigation -->
+                <div id="navbar-collapse" class="navbar-collapse collapse">
+
+                    <ul class="nav navbar-nav ms-md-auto">
+                        <li class="nav-item">
+                            <a href="#" class="nav-link" data-bs-toggle="modal" data-bs-target="#mkdocs_search_modal">
+                                <i class="fa fa-search"></i> Search
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="container">
+            <div class="row">
+                    <div class="col-md-3"><div class="navbar-expand-md bs-sidebar hidden-print affix" role="complementary">
+    <div class="navbar-header">
+        <button type="button" class="navbar-toggler collapsed" data-bs-toggle="collapse" data-bs-target="#toc-collapse" title="Table of Contents">
+            <span class="fa fa-angle-down"></span>
+        </button>
+    </div>
+
+    
+    <div id="toc-collapse" class="navbar-collapse collapse card bg-body-tertiary">
+        <ul class="nav flex-column">
+            
+            <li class="nav-item" data-bs-level="1"><a href="#10_" class="nav-link">10_应用场景</a>
+              <ul class="nav flex-column">
+            <li class="nav-item" data-bs-level="2"><a href="#1" class="nav-link">1. 电商系统</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#2" class="nav-link">2. 用户系统</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#3" class="nav-link">3. 日志系统</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#4" class="nav-link">4. 数据分析</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#5" class="nav-link">5. 本章小结</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+              </ul>
+            </li>
+        </ul>
+    </div>
+</div></div>
+                    <div class="col-md-9" role="main">
+
+<h1 id="10_">10_应用场景</h1>
+<blockquote>
+<p>电商、用户、日志、数据分析等典型应用场景</p>
+</blockquote>
+<hr />
+<h2 id="1">1. 电商系统</h2>
+<h3 id="11">1.1 数据库设计</h3>
+<pre><code class="language-sql">-- 用户表
+CREATE TABLE users (
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    username VARCHAR(50) NOT NULL UNIQUE,
+    email VARCHAR(100) NOT NULL UNIQUE,
+    password_hash VARCHAR(255) NOT NULL,
+    nickname VARCHAR(50),
+    avatar_url VARCHAR(255),
+    phone VARCHAR(20),
+    status TINYINT DEFAULT 1,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    INDEX idx_username (username),
+    INDEX idx_email (email),
+    INDEX idx_status (status)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- 商品分类表
+CREATE TABLE categories (
+    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    parent_id INT UNSIGNED DEFAULT NULL,
+    level TINYINT DEFAULT 1,
+    sort_order INT DEFAULT 0,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (parent_id) REFERENCES categories(id),
+    INDEX idx_parent (parent_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- 商品表
+CREATE TABLE products (
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(200) NOT NULL,
+    description TEXT,
+    category_id INT UNSIGNED,
+    price DECIMAL(10,2) NOT NULL,
+    original_price DECIMAL(10,2),
+    stock INT DEFAULT 0,
+    sales INT DEFAULT 0,
+    status TINYINT DEFAULT 1,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (category_id) REFERENCES categories(id),
+    INDEX idx_category (category_id),
+    INDEX idx_status (status),
+    INDEX idx_price (price),
+    INDEX idx_sales (sales DESC)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- 商品图片表
+CREATE TABLE product_images (
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    product_id BIGINT UNSIGNED NOT NULL,
+    image_url VARCHAR(255) NOT NULL,
+    sort_order INT DEFAULT 0,
+    is_main TINYINT DEFAULT 0,
+    FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE CASCADE,
+    INDEX idx_product (product_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- 购物车表
+CREATE TABLE cart_items (
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    user_id BIGINT UNSIGNED NOT NULL,
+    product_id BIGINT UNSIGNED NOT NULL,
+    quantity INT NOT NULL DEFAULT 1,
+    selected TINYINT DEFAULT 1,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    UNIQUE KEY uk_user_product (user_id, product_id),
+    INDEX idx_user (user_id),
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- 订单表
+CREATE TABLE orders (
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    order_no VARCHAR(50) NOT NULL UNIQUE,
+    user_id BIGINT UNSIGNED NOT NULL,
+    total_amount DECIMAL(10,2) NOT NULL,
+    discount_amount DECIMAL(10,2) DEFAULT 0,
+    pay_amount DECIMAL(10,2) NOT NULL,
+    status TINYINT DEFAULT 0 COMMENT '0 待付款 1 已付款 2 已发货 3 已完成 4 已取消',
+    payment_method TINYINT COMMENT '1 微信 2 支付宝 3 银行卡',
+    shipping_address JSON,
+    remark VARCHAR(500),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    paid_at TIMESTAMP NULL,
+    shipped_at TIMESTAMP NULL,
+    completed_at TIMESTAMP NULL,
+    cancelled_at TIMESTAMP NULL,
+    FOREIGN KEY (user_id) REFERENCES users(id),
+    INDEX idx_user (user_id),
+    INDEX idx_status (status),
+    INDEX idx_order_no (order_no),
+    INDEX idx_created_at (created_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- 订单详情表
+CREATE TABLE order_items (
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    order_id BIGINT UNSIGNED NOT NULL,
+    product_id BIGINT UNSIGNED NOT NULL,
+    product_name VARCHAR(200) NOT NULL,
+    product_image VARCHAR(255),
+    quantity INT NOT NULL,
+    unit_price DECIMAL(10,2) NOT NULL,
+    subtotal DECIMAL(10,2) NOT NULL,
+    FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE CASCADE,
+    FOREIGN KEY (product_id) REFERENCES products(id),
+    INDEX idx_order (order_id),
+    INDEX idx_product (product_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- 库存日志表（用于库存追溯）
+CREATE TABLE stock_logs (
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    product_id BIGINT UNSIGNED NOT NULL,
+    change_qty INT NOT NULL,
+    before_qty INT NOT NULL,
+    after_qty INT NOT NULL,
+    order_id BIGINT UNSIGNED,
+    remark VARCHAR(255),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    INDEX idx_product (product_id),
+    INDEX idx_order (order_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+</code></pre>
+<h3 id="12-sql">1.2 核心业务 SQL</h3>
+<pre><code class="language-sql">-- 1. 商品列表（分页 + 排序）
+SELECT id, name, price, sales, image_url
+FROM products
+WHERE status = 1 AND stock &gt; 0
+ORDER BY sales DESC
+LIMIT 0, 20;
+
+-- 2. 商品详情
+SELECT p.*, c.name AS category_name,
+       GROUP_CONCAT(pi.image_url) AS images
+FROM products p
+LEFT JOIN categories c ON p.category_id = c.id
+LEFT JOIN product_images pi ON p.id = pi.product_id
+WHERE p.id = 1 AND p.status = 1
+GROUP BY p.id;
+
+-- 3. 加入购物车
+INSERT INTO cart_items (user_id, product_id, quantity)
+VALUES (1, 100, 2)
+ON DUPLICATE KEY UPDATE quantity = quantity + 2;
+
+-- 4. 创建订单（事务）
+START TRANSACTION;
+
+-- 4.1 生成订单号
+SET @order_no = CONCAT('ORD', DATE_FORMAT(NOW(), '%Y%m%d%H%i%s'), LPAD(FLOOR(RAND()*10000), 4, '0'));
+
+-- 4.2 插入订单
+INSERT INTO orders (order_no, user_id, total_amount, pay_amount, shipping_address)
+VALUES (@order_no, 1, 299.00, 299.00, '{&quot;address&quot;:&quot;xxx&quot;,&quot;phone&quot;:&quot;138xxx&quot;}');
+
+SET @order_id = LAST_INSERT_ID();
+
+-- 4.3 插入订单详情
+INSERT INTO order_items (order_id, product_id, product_name, quantity, unit_price, subtotal)
+SELECT @order_id, id, name, 2, price, price * 2
+FROM products WHERE id = 100;
+
+-- 4.4 扣减库存
+UPDATE products SET stock = stock - 2 WHERE id = 100 AND stock &gt;= 2;
+
+-- 4.5 记录库存日志
+INSERT INTO stock_logs (product_id, change_qty, before_qty, after_qty, order_id, remark)
+SELECT 100, -2, stock + 2, stock, @order_id, '订单扣减' FROM products WHERE id = 100;
+
+COMMIT;
+
+-- 5. 用户订单列表
+SELECT o.id, o.order_no, o.total_amount, o.status, o.created_at,
+       GROUP_CONCAT(oi.product_name) AS products
+FROM orders o
+LEFT JOIN order_items oi ON o.id = oi.order_id
+WHERE o.user_id = 1
+GROUP BY o.id
+ORDER BY o.created_at DESC
+LIMIT 0, 10;
+
+-- 6. 销售统计
+SELECT 
+    DATE_FORMAT(created_at, '%Y-%m-%d') AS date,
+    COUNT(*) AS order_count,
+    SUM(pay_amount) AS total_amount,
+    AVG(pay_amount) AS avg_amount
+FROM orders
+WHERE status &gt;= 1 AND created_at &gt;= DATE_SUB(NOW(), INTERVAL 30 DAY)
+GROUP BY DATE_FORMAT(created_at, '%Y-%m-%d')
+ORDER BY date DESC;
+</code></pre>
+<hr />
+<h2 id="2">2. 用户系统</h2>
+<h3 id="21">2.1 数据库设计</h3>
+<pre><code class="language-sql">-- 用户表
+CREATE TABLE users (
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    username VARCHAR(50) NOT NULL UNIQUE,
+    email VARCHAR(100) NOT NULL UNIQUE,
+    password_hash VARCHAR(255) NOT NULL,
+    salt VARCHAR(32),
+    nickname VARCHAR(50),
+    avatar_url VARCHAR(255),
+    gender TINYINT DEFAULT 0 COMMENT '0 未知 1 男 2 女',
+    birthday DATE,
+    phone VARCHAR(20),
+    status TINYINT DEFAULT 1 COMMENT '0 禁用 1 正常',
+    is_deleted TINYINT DEFAULT 0,
+    last_login_at TIMESTAMP NULL,
+    last_login_ip VARCHAR(50),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    INDEX idx_username (username),
+    INDEX idx_email (email),
+    INDEX idx_phone (phone),
+    INDEX idx_status (status)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- 用户资料表
+CREATE TABLE user_profiles (
+    user_id BIGINT UNSIGNED PRIMARY KEY,
+    real_name VARCHAR(50),
+    id_card VARCHAR(20),
+    company VARCHAR(100),
+    department VARCHAR(100),
+    position VARCHAR(100),
+    address VARCHAR(255),
+    bio TEXT,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- 角色表
+CREATE TABLE roles (
+    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(50) NOT NULL UNIQUE,
+    description VARCHAR(255),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- 权限表
+CREATE TABLE permissions (
+    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(50) NOT NULL UNIQUE,
+    module VARCHAR(50),
+    action VARCHAR(50),
+    description VARCHAR(255)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- 用户角色关联表
+CREATE TABLE user_roles (
+    user_id BIGINT UNSIGNED NOT NULL,
+    role_id INT UNSIGNED NOT NULL,
+    PRIMARY KEY (user_id, role_id),
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (role_id) REFERENCES roles(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- 角色权限关联表
+CREATE TABLE role_permissions (
+    role_id INT UNSIGNED NOT NULL,
+    permission_id INT UNSIGNED NOT NULL,
+    PRIMARY KEY (role_id, permission_id),
+    FOREIGN KEY (role_id) REFERENCES roles(id) ON DELETE CASCADE,
+    FOREIGN KEY (permission_id) REFERENCES permissions(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- 登录日志表
+CREATE TABLE login_logs (
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    user_id BIGINT UNSIGNED,
+    username VARCHAR(50),
+    ip VARCHAR(50),
+    user_agent VARCHAR(255),
+    status TINYINT COMMENT '0 失败 1 成功',
+    reason VARCHAR(100),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    INDEX idx_user (user_id),
+    INDEX idx_created_at (created_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- 操作日志表
+CREATE TABLE operation_logs (
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    user_id BIGINT UNSIGNED,
+    module VARCHAR(50),
+    action VARCHAR(50),
+    content JSON,
+    ip VARCHAR(50),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    INDEX idx_user (user_id),
+    INDEX idx_module (module),
+    INDEX idx_created_at (created_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+</code></pre>
+<h3 id="22-sql">2.2 核心业务 SQL</h3>
+<pre><code class="language-sql">-- 1. 用户登录
+SELECT id, username, password_hash, status
+FROM users
+WHERE (username = 'zhangsan' OR email = 'zhangsan@example.com')
+  AND is_deleted = 0;
+
+-- 2. 记录登录日志
+INSERT INTO login_logs (user_id, username, ip, user_agent, status)
+VALUES (1, 'zhangsan', '192.168.1.1', 'Mozilla/5.0...', 1);
+
+-- 3. 更新最后登录时间
+UPDATE users SET last_login_at = NOW(), last_login_ip = '192.168.1.1'
+WHERE id = 1;
+
+-- 4. 获取用户权限
+SELECT DISTINCT p.name AS permission
+FROM users u
+JOIN user_roles ur ON u.id = ur.user_id
+JOIN role_permissions rp ON ur.role_id = rp.role_id
+JOIN permissions p ON rp.permission_id = p.id
+WHERE u.id = 1;
+
+-- 5. 检查权限
+SELECT COUNT(*) AS has_permission
+FROM users u
+JOIN user_roles ur ON u.id = ur.user_id
+JOIN role_permissions rp ON ur.role_id = rp.role_id
+JOIN permissions p ON rp.permission_id = p.id
+WHERE u.id = 1 AND p.name = 'user:delete';
+
+-- 6. 记录操作日志
+INSERT INTO operation_logs (user_id, module, action, content, ip)
+VALUES (1, 'user', 'update', '{&quot;user_id&quot;: 2, &quot;field&quot;: &quot;status&quot;}', '192.168.1.1');
+</code></pre>
+<hr />
+<h2 id="3">3. 日志系统</h2>
+<h3 id="31">3.1 数据库设计</h3>
+<pre><code class="language-sql">-- 应用日志表（按日期分区）
+CREATE TABLE app_logs (
+    id BIGINT UNSIGNED AUTO_INCREMENT,
+    level TINYINT NOT NULL COMMENT '1 DEBUG 2 INFO 3 WARN 4 ERROR',
+    module VARCHAR(50),
+    message TEXT NOT NULL,
+    trace TEXT,
+    context JSON,
+    ip VARCHAR(50),
+    user_id BIGINT UNSIGNED,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (id, created_at),
+    INDEX idx_level (level),
+    INDEX idx_module (module),
+    INDEX idx_created_at (created_at),
+    INDEX idx_user (user_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
+PARTITION BY RANGE (TO_DAYS(created_at)) (
+    PARTITION p202401 VALUES LESS THAN (TO_DAYS('2024-02-01')),
+    PARTITION p202402 VALUES LESS THAN (TO_DAYS('2024-03-01')),
+    PARTITION p202403 VALUES LESS THAN (TO_DAYS('2024-04-01')),
+    PARTITION pmax VALUES LESS THAN MAXVALUE
+);
+
+-- 访问日志表
+CREATE TABLE access_logs (
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    method VARCHAR(10),
+    path VARCHAR(255),
+    query_string VARCHAR(500),
+    status_code INT,
+    response_time INT,
+    request_size INT,
+    response_size INT,
+    ip VARCHAR(50),
+    user_agent VARCHAR(255),
+    referer VARCHAR(255),
+    user_id BIGINT UNSIGNED,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    INDEX idx_path (path),
+    INDEX idx_status (status_code),
+    INDEX idx_created_at (created_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- 错误日志表
+CREATE TABLE error_logs (
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    error_type VARCHAR(100),
+    error_message TEXT,
+    stack_trace TEXT,
+    url VARCHAR(255),
+    method VARCHAR(10),
+    params JSON,
+    user_id BIGINT UNSIGNED,
+    ip VARCHAR(50),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    INDEX idx_type (error_type),
+    INDEX idx_created_at (created_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+</code></pre>
+<h3 id="32">3.2 日志管理</h3>
+<pre><code class="language-sql">-- 1. 插入日志
+INSERT INTO app_logs (level, module, message, context, ip, user_id)
+VALUES (3, 'order', '库存不足', '{&quot;product_id&quot;: 100, &quot;required&quot;: 10, &quot;available&quot;: 5}', '192.168.1.1', 1);
+
+-- 2. 查询错误日志
+SELECT * FROM app_logs 
+WHERE level &gt;= 3 AND created_at &gt;= DATE_SUB(NOW(), INTERVAL 1 DAY)
+ORDER BY created_at DESC
+LIMIT 100;
+
+-- 3. 统计日志数量
+SELECT 
+    level,
+    COUNT(*) AS count
+FROM app_logs 
+WHERE created_at &gt;= DATE_SUB(NOW(), INTERVAL 7 DAY)
+GROUP BY level;
+
+-- 4. 删除旧日志（按月清理）
+DELETE FROM app_logs 
+WHERE created_at &lt; DATE_SUB(NOW(), INTERVAL 3 MONTH);
+
+-- 5. 删除旧分区（更快）
+ALTER TABLE app_logs DROP PARTITION p202401;
+</code></pre>
+<hr />
+<h2 id="4">4. 数据分析</h2>
+<h3 id="41">4.1 数据库设计</h3>
+<pre><code class="language-sql">-- 用户行为表
+CREATE TABLE user_actions (
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    user_id BIGINT UNSIGNED,
+    action_type VARCHAR(50),
+    action_target VARCHAR(100),
+    action_value VARCHAR(255),
+    session_id VARCHAR(64),
+    ip VARCHAR(50),
+    user_agent VARCHAR(255),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    INDEX idx_user (user_id),
+    INDEX idx_type (action_type),
+    INDEX idx_created_at (created_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- 日统计表
+CREATE TABLE daily_stats (
+    stat_date DATE NOT NULL,
+    metric_name VARCHAR(50) NOT NULL,
+    metric_value BIGINT DEFAULT 0,
+    PRIMARY KEY (stat_date, metric_name)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- 用户统计表
+CREATE TABLE user_stats (
+    stat_date DATE NOT NULL,
+    new_users INT DEFAULT 0,
+    active_users INT DEFAULT 0,
+    paying_users INT DEFAULT 0,
+    total_users INT DEFAULT 0,
+    PRIMARY KEY (stat_date)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+</code></pre>
+<h3 id="42-sql">4.2 分析 SQL</h3>
+<pre><code class="language-sql">-- 1. DAU（日活跃用户）
+SELECT 
+    DATE(created_at) AS stat_date,
+    COUNT(DISTINCT user_id) AS dau
+FROM user_actions
+WHERE created_at &gt;= DATE_SUB(NOW(), INTERVAL 30 DAY)
+GROUP BY DATE(created_at)
+ORDER BY stat_date;
+
+-- 2. 用户留存率
+WITH new_users AS (
+    SELECT DATE(created_at) AS register_date, id AS user_id
+    FROM users
+    WHERE created_at &gt;= '2024-01-01'
+),
+retention AS (
+    SELECT 
+        nu.register_date,
+        COUNT(DISTINCT CASE WHEN DATEDIFF(ua.created_at, nu.register_date) = 1 THEN nu.user_id END) AS day1,
+        COUNT(DISTINCT CASE WHEN DATEDIFF(ua.created_at, nu.register_date) = 7 THEN nu.user_id END) AS day7,
+        COUNT(DISTINCT CASE WHEN DATEDIFF(ua.created_at, nu.register_date) = 30 THEN nu.user_id END) AS day30
+    FROM new_users nu
+    LEFT JOIN user_actions ua ON nu.user_id = ua.user_id
+    GROUP BY nu.register_date
+)
+SELECT 
+    register_date,
+    COUNT(*) AS new_users,
+    ROUND(day1 * 100.0 / COUNT(*), 2) AS day1_retention,
+    ROUND(day7 * 100.0 / COUNT(*), 2) AS day7_retention,
+    ROUND(day30 * 100.0 / COUNT(*), 2) AS day30_retention
+FROM retention
+GROUP BY register_date
+ORDER BY register_date;
+
+-- 3. 漏斗分析
+SELECT 
+    SUM(CASE WHEN action_type = 'view' THEN 1 ELSE 0 END) AS views,
+    SUM(CASE WHEN action_type = 'click' THEN 1 ELSE 0 END) AS clicks,
+    SUM(CASE WHEN action_type = 'add_cart' THEN 1 ELSE 0 END) AS add_carts,
+    SUM(CASE WHEN action_type = 'purchase' THEN 1 ELSE 0 END) AS purchases,
+    ROUND(SUM(CASE WHEN action_type = 'click' THEN 1 ELSE 0 END) * 100.0 / 
+          SUM(CASE WHEN action_type = 'view' THEN 1 ELSE 0 END), 2) AS click_rate,
+    ROUND(SUM(CASE WHEN action_type = 'purchase' THEN 1 ELSE 0 END) * 100.0 / 
+          SUM(CASE WHEN action_type = 'view' THEN 1 ELSE 0 END), 2) AS conversion_rate
+FROM user_actions
+WHERE created_at &gt;= DATE_SUB(NOW(), INTERVAL 7 DAY);
+
+-- 4. 生成日报
+INSERT INTO daily_stats (stat_date, metric_name, metric_value)
+SELECT 
+    DATE(NOW()) AS stat_date,
+    'dau' AS metric_name,
+    COUNT(DISTINCT user_id) AS metric_value
+FROM user_actions
+WHERE DATE(created_at) = DATE(NOW());
+</code></pre>
+<hr />
+<h2 id="5">5. 本章小结</h2>
+<h3 id="_1">核心应用场景</h3>
+<p>✅ 电商系统（商品、订单、库存）<br />
+✅ 用户系统（RBAC 权限、登录日志）<br />
+✅ 日志系统（应用日志、访问日志）<br />
+✅ 数据分析（用户行为、留存率、漏斗）  </p>
+<h3 id="_2">最佳实践</h3>
+<ol>
+<li><strong>合理分表</strong>：大表按时间或 ID 分区</li>
+<li><strong>适当冗余</strong>：减少 JOIN，提高查询性能</li>
+<li><strong>日志轮转</strong>：定期清理旧日志</li>
+<li><strong>统计预计算</strong>：日报、月报提前计算</li>
+<li><strong>索引优化</strong>：根据查询模式创建索引</li>
+</ol>
+<hr />
+<p>🎉 <strong>恭喜完成第十章！继续学习 <a href="../11_%E5%91%BD%E4%BB%A4%E9%80%9F%E6%9F%A5/">11_命令速查.md</a></strong></p></div>
+            </div>
+        </div>
+
+        <footer class="col-md-12">
+            <hr>
+            <p>Documentation built with <a href="https://www.mkdocs.org/">MkDocs</a>.</p>
+        </footer>
+        <script src="../../../../js/bootstrap.bundle.min.js"></script>
+        <script>
+            var base_url = "../../../..",
+                shortcuts = {"help": 191, "next": 78, "previous": 80, "search": 83};
+        </script>
+        <script src="../../../../js/base.js"></script>
+        <script src="../../../../search/main.js"></script>
+
+        <div class="modal" id="mkdocs_search_modal" tabindex="-1" role="dialog" aria-labelledby="searchModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="searchModalLabel">Search</h4>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>From here you can search these documents. Enter your search terms below.</p>
+                <form>
+                    <div class="form-group">
+                        <input type="search" class="form-control" placeholder="Search..." id="mkdocs-search-query" title="Type search term here">
+                    </div>
+                </form>
+                <div id="mkdocs-search-results" data-no-results-text="No results found"></div>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div><div class="modal" id="mkdocs_keyboard_modal" tabindex="-1" role="dialog" aria-labelledby="keyboardModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="keyboardModalLabel">Keyboard Shortcuts</h4>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th style="width: 20%;">Keys</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td class="help shortcut"><kbd>?</kbd></td>
+                    <td>Open this help</td>
+                  </tr>
+                  <tr>
+                    <td class="next shortcut"><kbd>n</kbd></td>
+                    <td>Next page</td>
+                  </tr>
+                  <tr>
+                    <td class="prev shortcut"><kbd>p</kbd></td>
+                    <td>Previous page</td>
+                  </tr>
+                  <tr>
+                    <td class="search shortcut"><kbd>s</kbd></td>
+                    <td>Search</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div>
+
+    </body>
+</html>

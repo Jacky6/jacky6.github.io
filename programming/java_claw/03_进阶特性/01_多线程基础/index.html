@@ -1,0 +1,583 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="light">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        
+        
+        
+        <link rel="shortcut icon" href="../../../../img/favicon.ico">
+        <title>18_多线程基础 - My Docs</title>
+        <link href="../../../../css/bootstrap.min.css" rel="stylesheet">
+        <link href="../../../../css/fontawesome.min.css" rel="stylesheet">
+        <link href="../../../../css/brands.min.css" rel="stylesheet">
+        <link href="../../../../css/solid.min.css" rel="stylesheet">
+        <link href="../../../../css/v4-font-face.min.css" rel="stylesheet">
+        <link href="../../../../css/base.css" rel="stylesheet">
+        <link id="hljs-light" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" >
+        <link id="hljs-dark" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github-dark.min.css" disabled>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+        <script>hljs.highlightAll();</script> 
+    </head>
+
+    <body>
+        <div class="navbar fixed-top navbar-expand-lg navbar-dark bg-primary">
+            <div class="container">
+                <a class="navbar-brand" href="../../../..">My Docs</a>
+
+                <!-- Expanded navigation -->
+                <div id="navbar-collapse" class="navbar-collapse collapse">
+
+                    <ul class="nav navbar-nav ms-md-auto">
+                        <li class="nav-item">
+                            <a href="#" class="nav-link" data-bs-toggle="modal" data-bs-target="#mkdocs_search_modal">
+                                <i class="fa fa-search"></i> Search
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="container">
+            <div class="row">
+                    <div class="col-md-3"><div class="navbar-expand-md bs-sidebar hidden-print affix" role="complementary">
+    <div class="navbar-header">
+        <button type="button" class="navbar-toggler collapsed" data-bs-toggle="collapse" data-bs-target="#toc-collapse" title="Table of Contents">
+            <span class="fa fa-angle-down"></span>
+        </button>
+    </div>
+
+    
+    <div id="toc-collapse" class="navbar-collapse collapse card bg-body-tertiary">
+        <ul class="nav flex-column">
+            
+            <li class="nav-item" data-bs-level="1"><a href="#18_" class="nav-link">18_多线程基础</a>
+              <ul class="nav flex-column">
+            <li class="nav-item" data-bs-level="2"><a href="#1" class="nav-link">1. 线程基础</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#2" class="nav-link">2. 创建线程</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#3" class="nav-link">3. 线程同步</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#4" class="nav-link">4. 线程池 ⭐⭐⭐</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#5" class="nav-link">5. 线程通信</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#6" class="nav-link">6. 经典问题</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#7" class="nav-link">7. 本章小结</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+              </ul>
+            </li>
+        </ul>
+    </div>
+</div></div>
+                    <div class="col-md-9" role="main">
+
+<h1 id="18_">18_多线程基础</h1>
+<hr />
+<h2 id="1">1. 线程基础</h2>
+<h3 id="11">1.1 什么是线程</h3>
+<p><strong>线程</strong>（Thread）是程序执行的最小单元，一个进程可以包含多个线程。</p>
+<p><strong>进程 vs 线程</strong>：</p>
+<table>
+<thead>
+<tr>
+<th>特性</th>
+<th>进程</th>
+<th>线程</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>资源</td>
+<td>独立内存空间</td>
+<td>共享进程资源</td>
+</tr>
+<tr>
+<td>开销</td>
+<td>大</td>
+<td>小</td>
+</tr>
+<tr>
+<td>通信</td>
+<td>复杂（IPC）</td>
+<td>简单（共享内存）</td>
+</tr>
+</tbody>
+</table>
+<h3 id="12">1.2 线程生命周期</h3>
+<pre><code>NEW → RUNNABLE → RUNNING → BLOCKED/WAITING → TERMINATED
+
+NEW：新建状态，创建但未启动
+RUNNABLE：可运行状态，等待或正在 CPU 执行
+BLOCKED：阻塞状态，等待获取锁
+WAITING：等待状态，无限期等待
+TIMED_WAITING：超时等待状态
+TERMINATED：终止状态，执行完成
+</code></pre>
+<hr />
+<h2 id="2">2. 创建线程</h2>
+<h3 id="21-thread">2.1 继承 Thread 类</h3>
+<pre><code class="language-java">class MyThread extends Thread {
+    @Override
+    public void run() {
+        for (int i = 0; i &lt; 5; i++) {
+            System.out.println(Thread.currentThread().getName() + &quot; - &quot; + i);
+        }
+    }
+}
+
+// 使用
+MyThread t1 = new MyThread();
+t1.start();  // 启动线程，调用 run()
+</code></pre>
+<h3 id="22-runnable">2.2 实现 Runnable 接口</h3>
+<pre><code class="language-java">class MyRunnable implements Runnable {
+    @Override
+    public void run() {
+        for (int i = 0; i &lt; 5; i++) {
+            System.out.println(Thread.currentThread().getName() + &quot; - &quot; + i);
+        }
+    }
+}
+
+// 使用
+Thread t1 = new Thread(new MyRunnable());
+t1.start();
+
+// Lambda 简化
+Thread t2 = new Thread(() -&gt; {
+    for (int i = 0; i &lt; 5; i++) {
+        System.out.println(Thread.currentThread().getName() + &quot; - &quot; + i);
+    }
+});
+t2.start();
+</code></pre>
+<h3 id="23-callable">2.3 实现 Callable 接口（有返回值）</h3>
+<pre><code class="language-java">import java.util.concurrent.Callable;
+import java.util.concurrent.FutureTask;
+
+class MyCallable implements Callable&lt;Integer&gt; {
+    @Override
+    public Integer call() throws Exception {
+        int sum = 0;
+        for (int i = 1; i &lt;= 100; i++) {
+            sum += i;
+        }
+        return sum;
+    }
+}
+
+// 使用
+FutureTask&lt;Integer&gt; task = new FutureTask&lt;&gt;(new MyCallable());
+Thread t1 = new Thread(task);
+t1.start();
+
+// 获取返回值
+Integer result = task.get();  // 阻塞等待结果
+System.out.println(&quot;结果：&quot; + result);  // 5050
+</code></pre>
+<h3 id="24">2.4 四种方式对比</h3>
+<table>
+<thead>
+<tr>
+<th>方式</th>
+<th>优点</th>
+<th>缺点</th>
+<th>推荐</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Thread</td>
+<td>简单</td>
+<td>不能继承其他类</td>
+<td>❌</td>
+</tr>
+<tr>
+<td>Runnable</td>
+<td>可继承、可共享</td>
+<td>无返回值</td>
+<td>⭐⭐</td>
+</tr>
+<tr>
+<td>Callable</td>
+<td>有返回值、可抛异常</td>
+<td>较复杂</td>
+<td>⭐⭐⭐</td>
+</tr>
+<tr>
+<td>线程池</td>
+<td>高效、可管理</td>
+<td>需理解配置</td>
+<td>⭐⭐⭐⭐</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="3">3. 线程同步</h2>
+<h3 id="31-synchronized">3.1 synchronized 关键字</h3>
+<h4 id="_1">同步方法</h4>
+<pre><code class="language-java">class Counter {
+    private int count = 0;
+
+    public synchronized void increment() {
+        count++;
+    }
+
+    public synchronized int getCount() {
+        return count;
+    }
+}
+</code></pre>
+<h4 id="_2">同步代码块</h4>
+<pre><code class="language-java">class Counter {
+    private int count = 0;
+    private final Object lock = new Object();
+
+    public void increment() {
+        synchronized (lock) {
+            count++;
+        }
+    }
+}
+</code></pre>
+<h3 id="32-volatile">3.2 volatile 关键字</h3>
+<pre><code class="language-java">class Flag {
+    private volatile boolean running = true;
+
+    public void stop() {
+        running = false;
+    }
+
+    public void run() {
+        while (running) {
+            // 每次循环都会读取最新值
+        }
+    }
+}
+</code></pre>
+<p><strong>volatile 作用</strong>：
+- ✅ 保证可见性（一个线程修改，其他线程立即可见）
+- ✅ 禁止指令重排序
+- ❌ 不保证原子性</p>
+<h3 id="33-reentrantlock">3.3 ReentrantLock</h3>
+<pre><code class="language-java">import java.util.concurrent.locks.ReentrantLock;
+
+class Counter {
+    private int count = 0;
+    private final ReentrantLock lock = new ReentrantLock();
+
+    public void increment() {
+        lock.lock();
+        try {
+            count++;
+        } finally {
+            lock.unlock();  // 必须释放
+        }
+    }
+}
+</code></pre>
+<p><strong>synchronized vs ReentrantLock</strong>：</p>
+<table>
+<thead>
+<tr>
+<th>特性</th>
+<th>synchronized</th>
+<th>ReentrantLock</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>实现</td>
+<td>JVM 层面</td>
+<td>API 层面</td>
+</tr>
+<tr>
+<td>锁释放</td>
+<td>自动</td>
+<td>手动</td>
+</tr>
+<tr>
+<td>可中断</td>
+<td>❌</td>
+<td>✅</td>
+</tr>
+<tr>
+<td>超时</td>
+<td>❌</td>
+<td>✅</td>
+</tr>
+<tr>
+<td>公平锁</td>
+<td>❌</td>
+<td>✅</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="4">4. 线程池 ⭐⭐⭐</h2>
+<h3 id="41-executors">4.1 使用 Executors 创建</h3>
+<pre><code class="language-java">import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
+// 固定大小线程池
+ExecutorService fixedPool = Executors.newFixedThreadPool(10);
+
+// 单线程池
+ExecutorService singlePool = Executors.newSingleThreadExecutor();
+
+// 缓存线程池
+ExecutorService cachedPool = Executors.newCachedThreadPool();
+
+// 定时任务
+ScheduledExecutorService scheduledPool = Executors.newScheduledThreadPool(5);
+scheduledPool.scheduleAtFixedRate(() -&gt; {
+    System.out.println(&quot;定时执行&quot;);
+}, 0, 1, TimeUnit.SECONDS);
+</code></pre>
+<h3 id="42-threadpoolexecutor">4.2 ThreadPoolExecutor（推荐）</h3>
+<pre><code class="language-java">import java.util.concurrent.*;
+
+ThreadPoolExecutor executor = new ThreadPoolExecutor(
+    5,                      // corePoolSize：核心线程数
+    10,                     // maximumPoolSize：最大线程数
+    60L,                    // keepAliveTime：空闲线程存活时间
+    TimeUnit.SECONDS,       // 时间单位
+    new ArrayBlockingQueue&lt;&gt;(100),  // workQueue：任务队列
+    new ThreadPoolExecutor.CallerRunsPolicy()  // handler：拒绝策略
+);
+
+executor.submit(() -&gt; {
+    System.out.println(&quot;任务执行&quot;);
+});
+
+executor.shutdown();
+</code></pre>
+<p><strong>参数说明</strong>：</p>
+<pre><code>任务提交流程：
+1. 核心线程数未满 → 创建新线程
+2. 核心线程已满 → 加入队列
+3. 队列已满 → 创建非核心线程
+4. 达到最大线程 → 触发拒绝策略
+</code></pre>
+<p><strong>拒绝策略</strong>：
+- <code>AbortPolicy</code>：抛异常（默认）
+- <code>CallerRunsPolicy</code>：调用者线程执行
+- <code>DiscardPolicy</code>：直接丢弃
+- <code>DiscardOldestPolicy</code>：丢弃最老任务</p>
+<hr />
+<h2 id="5">5. 线程通信</h2>
+<h3 id="51-countdownlatch">5.1 CountDownLatch</h3>
+<pre><code class="language-java">import java.util.concurrent.CountDownLatch;
+
+CountDownLatch latch = new CountDownLatch(3);
+
+// 线程 1
+new Thread(() -&gt; {
+    System.out.println(&quot;任务 1 完成&quot;);
+    latch.countDown();
+}).start();
+
+// 线程 2
+new Thread(() -&gt; {
+    System.out.println(&quot;任务 2 完成&quot;);
+    latch.countDown();
+}).start();
+
+// 线程 3
+new Thread(() -&gt; {
+    System.out.println(&quot;任务 3 完成&quot;);
+    latch.countDown();
+}).start();
+
+// 主线程等待
+latch.await();
+System.out.println(&quot;所有任务完成&quot;);
+</code></pre>
+<h3 id="52-cyclicbarrier">5.2 CyclicBarrier</h3>
+<pre><code class="language-java">import java.util.concurrent.CyclicBarrier;
+
+CyclicBarrier barrier = new CyclicBarrier(3, () -&gt; {
+    System.out.println(&quot;所有线程到达，执行屏障动作&quot;);
+});
+
+for (int i = 0; i &lt; 3; i++) {
+    new Thread(() -&gt; {
+        System.out.println(&quot;线程到达&quot;);
+        try {
+            barrier.await();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        System.out.println(&quot;继续执行&quot;);
+    }).start();
+}
+</code></pre>
+<hr />
+<h2 id="6">6. 经典问题</h2>
+<h3 id="61-">6.1 生产者 - 消费者</h3>
+<pre><code class="language-java">class ProducerConsumer {
+    private final Queue&lt;Integer&gt; queue = new LinkedList&lt;&gt;();
+    private final int LIMIT = 10;
+    private final Object lock = new Object();
+
+    class Producer implements Runnable {
+        public void run() {
+            int value = 0;
+            while (true) {
+                synchronized (lock) {
+                    while (queue.size() == LIMIT) {
+                        try { lock.wait(); } catch (InterruptedException e) {}
+                    }
+                    queue.offer(value++);
+                    lock.notifyAll();
+                }
+            }
+        }
+    }
+
+    class Consumer implements Runnable {
+        public void run() {
+            while (true) {
+                synchronized (lock) {
+                    while (queue.isEmpty()) {
+                        try { lock.wait(); } catch (InterruptedException e) {}
+                    }
+                    queue.poll();
+                    lock.notifyAll();
+                }
+            }
+        }
+    }
+}
+</code></pre>
+<h3 id="62">6.2 单例模式（双重检查）</h3>
+<pre><code class="language-java">class Singleton {
+    private static volatile Singleton instance;
+
+    private Singleton() {}
+
+    public static Singleton getInstance() {
+        if (instance == null) {
+            synchronized (Singleton.class) {
+                if (instance == null) {
+                    instance = new Singleton();
+                }
+            }
+        }
+        return instance;
+    }
+}
+</code></pre>
+<hr />
+<h2 id="7">7. 本章小结</h2>
+<h3 id="_3">核心知识点</h3>
+<p>✅ <strong>创建线程</strong>：Thread、Runnable、Callable、线程池<br />
+✅ <strong>线程同步</strong>：synchronized、volatile、ReentrantLock<br />
+✅ <strong>线程通信</strong>：CountDownLatch、CyclicBarrier<br />
+✅ <strong>线程池</strong>：Executors、ThreadPoolExecutor  </p>
+<h3 id="_4">最佳实践</h3>
+<ol>
+<li><strong>优先使用线程池</strong>，不要手动创建线程</li>
+<li><strong>优先使用并发工具类</strong>（ConcurrentHashMap、CountDownLatch）</li>
+<li><strong>避免死锁</strong>：按顺序获取锁、使用 tryLock</li>
+<li><strong>合理设置线程池参数</strong>：CPU 密集 vs IO 密集</li>
+</ol>
+<hr />
+<p>🎉 <strong>恭喜完成多线程基础学习！继续学习 <a href="../04_Lambda%20%E8%A1%A8%E8%BE%BE%E5%BC%8F/">Lambda 表达式</a></strong></p></div>
+            </div>
+        </div>
+
+        <footer class="col-md-12">
+            <hr>
+            <p>Documentation built with <a href="https://www.mkdocs.org/">MkDocs</a>.</p>
+        </footer>
+        <script src="../../../../js/bootstrap.bundle.min.js"></script>
+        <script>
+            var base_url = "../../../..",
+                shortcuts = {"help": 191, "next": 78, "previous": 80, "search": 83};
+        </script>
+        <script src="../../../../js/base.js"></script>
+        <script src="../../../../search/main.js"></script>
+
+        <div class="modal" id="mkdocs_search_modal" tabindex="-1" role="dialog" aria-labelledby="searchModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="searchModalLabel">Search</h4>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>From here you can search these documents. Enter your search terms below.</p>
+                <form>
+                    <div class="form-group">
+                        <input type="search" class="form-control" placeholder="Search..." id="mkdocs-search-query" title="Type search term here">
+                    </div>
+                </form>
+                <div id="mkdocs-search-results" data-no-results-text="No results found"></div>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div><div class="modal" id="mkdocs_keyboard_modal" tabindex="-1" role="dialog" aria-labelledby="keyboardModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="keyboardModalLabel">Keyboard Shortcuts</h4>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th style="width: 20%;">Keys</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td class="help shortcut"><kbd>?</kbd></td>
+                    <td>Open this help</td>
+                  </tr>
+                  <tr>
+                    <td class="next shortcut"><kbd>n</kbd></td>
+                    <td>Next page</td>
+                  </tr>
+                  <tr>
+                    <td class="prev shortcut"><kbd>p</kbd></td>
+                    <td>Previous page</td>
+                  </tr>
+                  <tr>
+                    <td class="search shortcut"><kbd>s</kbd></td>
+                    <td>Search</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div>
+
+    </body>
+</html>

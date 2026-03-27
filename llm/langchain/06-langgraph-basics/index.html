@@ -1,0 +1,558 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="light">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        
+        
+        
+        <link rel="shortcut icon" href="../../../img/favicon.ico">
+        <title>06. LangGraph 基础 - My Docs</title>
+        <link href="../../../css/bootstrap.min.css" rel="stylesheet">
+        <link href="../../../css/fontawesome.min.css" rel="stylesheet">
+        <link href="../../../css/brands.min.css" rel="stylesheet">
+        <link href="../../../css/solid.min.css" rel="stylesheet">
+        <link href="../../../css/v4-font-face.min.css" rel="stylesheet">
+        <link href="../../../css/base.css" rel="stylesheet">
+        <link id="hljs-light" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" >
+        <link id="hljs-dark" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github-dark.min.css" disabled>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+        <script>hljs.highlightAll();</script> 
+    </head>
+
+    <body>
+        <div class="navbar fixed-top navbar-expand-lg navbar-dark bg-primary">
+            <div class="container">
+                <a class="navbar-brand" href="../../..">My Docs</a>
+
+                <!-- Expanded navigation -->
+                <div id="navbar-collapse" class="navbar-collapse collapse">
+
+                    <ul class="nav navbar-nav ms-md-auto">
+                        <li class="nav-item">
+                            <a href="#" class="nav-link" data-bs-toggle="modal" data-bs-target="#mkdocs_search_modal">
+                                <i class="fa fa-search"></i> Search
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="container">
+            <div class="row">
+                    <div class="col-md-3"><div class="navbar-expand-md bs-sidebar hidden-print affix" role="complementary">
+    <div class="navbar-header">
+        <button type="button" class="navbar-toggler collapsed" data-bs-toggle="collapse" data-bs-target="#toc-collapse" title="Table of Contents">
+            <span class="fa fa-angle-down"></span>
+        </button>
+    </div>
+
+    
+    <div id="toc-collapse" class="navbar-collapse collapse card bg-body-tertiary">
+        <ul class="nav flex-column">
+            
+            <li class="nav-item" data-bs-level="1"><a href="#06-langgraph" class="nav-link">06. LangGraph 基础</a>
+              <ul class="nav flex-column">
+            <li class="nav-item" data-bs-level="2"><a href="#langgraph" class="nav-link">什么是 LangGraph？</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#_1" class="nav-link">核心概念</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#langgraph-langchain" class="nav-link">LangGraph 如何支撑 LangChain</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#_3" class="nav-link">高级特性</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#langgraph_1" class="nav-link">何时使用 LangGraph？</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#langchain-langgraph" class="nav-link">从 LangChain 迁移到 LangGraph</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#_8" class="nav-link">学习资源</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#_10" class="nav-link">最佳实践</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#_13" class="nav-link">总结</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#_14" class="nav-link">下一步</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#_15" class="nav-link">参考资源</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+              </ul>
+            </li>
+        </ul>
+    </div>
+</div></div>
+                    <div class="col-md-9" role="main">
+
+<h1 id="06-langgraph">06. LangGraph 基础</h1>
+<blockquote>
+<p>LangChain Agents 基于 LangGraph 构建。了解 LangGraph 有助于深入理解 Agent 的工作原理。</p>
+</blockquote>
+<h2 id="langgraph">什么是 LangGraph？</h2>
+<p><strong>LangGraph</strong> 是一个低级别的 Agent 编排框架，用于构建有状态的、多角色的应用程序。</p>
+<h3 id="langchain-vs-langgraph">LangChain vs LangGraph</h3>
+<pre><code>┌─────────────────────────────────────────────────────────┐
+│              LangChain vs LangGraph                      │
+├─────────────────────────────────────────────────────────┤
+│                                                         │
+│  LangChain（高层）                                       │
+│  ─────────────                                          │
+│  ✅ 预构建的 Agent 架构                                   │
+│  ✅ 简单易用（10 行代码）                                 │
+│  ✅ 适合快速开发                                         │
+│  ❌ 定制性有限                                           │
+│                                                         │
+│  LangGraph（底层）                                       │
+│  ─────────────                                          │
+│  ✅ 完全定制的工作流                                     │
+│  ✅ 细粒度控制                                           │
+│  ✅ 适合复杂场景                                         │
+│  ❌ 学习曲线陡峭                                         │
+│                                                         │
+│  关系：LangChain Agents 基于 LangGraph 构建              │
+│  建议：先用 LangChain，需要深度定制时再用 LangGraph       │
+│                                                         │
+└─────────────────────────────────────────────────────────┘
+</code></pre>
+<h2 id="_1">核心概念</h2>
+<h3 id="stategraph">StateGraph（状态图）</h3>
+<pre><code>StateGraph = 状态 + 节点 + 边
+
+状态（State）：在节点之间传递的数据
+节点（Nodes）：执行具体任务的函数
+边（Edges）：定义节点之间的执行顺序
+
+示例：
+┌─────────┐     ┌─────────┐     ┌─────────┐
+│  Node A │ ──→ │  Node B │ ──→ │  Node C │
+└─────────┘     └─────────┘     └─────────┘
+     ↑                                  │
+     └──────────────────────────────────┘
+
+状态流转：
+初始状态 → Node A → 更新状态 → Node B → 更新状态 → Node C
+</code></pre>
+<h3 id="_2">基础示例</h3>
+<pre><code class="language-python">from typing import TypedDict
+from langgraph.graph import StateGraph, START, END
+
+# 1. 定义状态
+class State(TypedDict):
+    value: int
+
+# 2. 定义节点函数
+def add_one(state: State) -&gt; State:
+    return {&quot;value&quot;: state[&quot;value&quot;] + 1}
+
+# 3. 创建图
+graph = StateGraph(State)
+
+# 4. 添加节点
+graph.add_node(&quot;add_one&quot;, add_one)
+
+# 5. 添加边
+graph.add_edge(START, &quot;add_one&quot;)
+graph.add_edge(&quot;add_one&quot;, END)
+
+# 6. 编译
+app = graph.compile()
+
+# 7. 运行
+result = app.invoke({&quot;value&quot;: 0})
+print(result)  # {'value': 1}
+</code></pre>
+<h2 id="langgraph-langchain">LangGraph 如何支撑 LangChain</h2>
+<h3 id="agent">Agent 的状态图</h3>
+<pre><code>LangChain Agent 的底层结构：
+
+┌─────────────────────────────────────────────────────────┐
+│              Agent StateGraph                            │
+├─────────────────────────────────────────────────────────┤
+│                                                         │
+│  状态（State）：                                         │
+│  {                                                      │
+│    &quot;messages&quot;: [...],  # 对话历史                       │
+│    &quot;tools&quot;: [...],     # 可用工具                       │
+│  }                                                      │
+│                                                         │
+│  节点（Nodes）：                                         │
+│  - agent_node: LLM 思考和决策                            │
+│  - tool_node: 执行工具调用                               │
+│                                                         │
+│  边（Edges）：                                           │
+│  START → agent_node                                     │
+│  agent_node → [工具调用？]                              │
+│    ├─ 是 → tool_node → agent_node（循环）              │
+│    └─ 否 → END                                          │
+│                                                         │
+└─────────────────────────────────────────────────────────┘
+</code></pre>
+<h3 id="agent_1">简化的 Agent 实现</h3>
+<pre><code class="language-python">from typing import TypedDict, List
+from langchain_core.messages import BaseMessage
+from langgraph.graph import StateGraph, START, END
+
+# 1. 定义状态
+class AgentState(TypedDict):
+    messages: List[BaseMessage]
+
+# 2. Agent 节点（LLM 思考）
+def agent_node(state: AgentState):
+    # 调用 LLM
+    response = llm.invoke(state[&quot;messages&quot;])
+    return {&quot;messages&quot;: [response]}
+
+# 3. 工具节点
+def tool_node(state: AgentState):
+    # 执行工具调用
+    last_message = state[&quot;messages&quot;][-1]
+    tool_result = execute_tool(last_message.tool_calls)
+    return {&quot;messages&quot;: [tool_result]}
+
+# 4. 路由函数
+def should_continue(state: AgentState):
+    last_message = state[&quot;messages&quot;][-1]
+    if last_message.tool_calls:
+        return &quot;tools&quot;  # 有工具调用，去 tool_node
+    return END  # 否则结束
+
+# 5. 构建图
+graph = StateGraph(AgentState)
+graph.add_node(&quot;agent&quot;, agent_node)
+graph.add_node(&quot;tools&quot;, tool_node)
+
+graph.add_edge(START, &quot;agent&quot;)
+graph.add_conditional_edges(&quot;agent&quot;, should_continue)
+graph.add_edge(&quot;tools&quot;, &quot;agent&quot;)  # 工具执行后回到 agent
+
+# 6. 编译
+app = graph.compile()
+
+# 7. 运行
+result = app.invoke({
+    &quot;messages&quot;: [{&quot;role&quot;: &quot;user&quot;, &quot;content&quot;: &quot;北京天气&quot;}]
+})
+</code></pre>
+<h2 id="_3">高级特性</h2>
+<h3 id="checkpointing">检查点（Checkpointing）</h3>
+<pre><code class="language-python">from langgraph.checkpoint.memory import MemorySaver
+
+# 创建检查点保存器
+memory = MemorySaver()
+
+# 编译时启用检查点
+app = graph.compile(checkpointer=memory)
+
+# 使用配置（thread_id 区分不同会话）
+config = {&quot;configurable&quot;: {&quot;thread_id&quot;: &quot;conversation-1&quot;}}
+
+# 第一次运行
+result = app.invoke({&quot;messages&quot;: [...]}, config)
+
+# 中断后可以从检查点恢复
+result = app.invoke(None, config)  # 继续执行
+</code></pre>
+<h3 id="_4">中断和恢复</h3>
+<pre><code class="language-python">from langgraph.graph import StateGraph, START, END
+
+# 在特定节点前中断
+app = graph.compile(
+    checkpointer=memory,
+    interrupt_before=[&quot;human_review&quot;]  # 在 human_review 节点前中断
+)
+
+# 运行到中断点
+result = app.invoke({&quot;messages&quot;: [...]}, config)
+
+# 检查状态
+snapshot = app.get_state(config)
+print(f&quot;下一个节点：{snapshot.next}&quot;)  # ['human_review']
+
+# 人工审核后继续
+app.update_state(config, {&quot;approved&quot;: True})
+result = app.invoke(None, config)
+</code></pre>
+<h3 id="_5">流式输出</h3>
+<pre><code class="language-python"># 流式处理每个节点
+for node, values in app.stream({&quot;messages&quot;: [...]}):
+    print(f&quot;节点：{node}&quot;)
+    print(f&quot;输出：{values}&quot;)
+
+# 流式完整状态
+for state in app.stream(input, stream_mode=&quot;values&quot;):
+    print(f&quot;当前状态：{state}&quot;)
+</code></pre>
+<h3 id="subgraphs">子图（Subgraphs）</h3>
+<pre><code class="language-python"># 创建子图
+subgraph = StateGraph(SubState)
+subgraph.add_node(&quot;sub_node&quot;, sub_function)
+# ... 添加更多节点和边
+compiled_subgraph = subgraph.compile()
+
+# 在主图中使用子图
+main_graph = StateGraph(MainState)
+main_graph.add_node(&quot;subgraph&quot;, compiled_subgraph)
+# ...
+</code></pre>
+<h2 id="langgraph_1">何时使用 LangGraph？</h2>
+<h3 id="langchain">适合 LangChain（高层）</h3>
+<pre><code>✅ 快速构建标准 Agent
+✅ 简单的工具调用
+✅ 对话式应用
+✅ 原型开发
+✅ 不需要复杂工作流
+</code></pre>
+<h3 id="langgraph_2">适合 LangGraph（底层）</h3>
+<pre><code>✅ 复杂的工作流编排
+✅ 多 Agent 协作
+✅ 需要精细控制状态
+✅ 自定义执行逻辑
+✅ 复杂的人机交互
+✅ 确定性 + Agent 混合流程
+</code></pre>
+<h2 id="langchain-langgraph">从 LangChain 迁移到 LangGraph</h2>
+<h3 id="_6">何时考虑迁移？</h3>
+<pre><code>如果你需要：
+- 完全自定义的 Agent 架构
+- 复杂的状态管理
+- 多 Agent 协作
+- 特殊的执行流程
+- 精细的流式控制
+
+→ 考虑使用 LangGraph
+</code></pre>
+<h3 id="_7">迁移示例</h3>
+<pre><code class="language-python"># LangChain 方式（高层）
+from langchain.agents import create_agent
+
+agent = create_agent(
+    model=&quot;claude-sonnet-4-6&quot;,
+    tools=[tool1, tool2],
+    system_prompt=&quot;You are helpful&quot;,
+)
+
+# 等价的 LangGraph 方式（底层）
+from langgraph.graph import StateGraph, START, END
+
+class State(TypedDict):
+    messages: List[BaseMessage]
+
+def agent_node(state: State):
+    response = model.invoke(state[&quot;messages&quot;])
+    return {&quot;messages&quot;: [response]}
+
+def tool_node(state: State):
+    # 执行工具
+    ...
+
+graph = StateGraph(State)
+graph.add_node(&quot;agent&quot;, agent_node)
+graph.add_node(&quot;tools&quot;, tool_node)
+graph.add_edge(START, &quot;agent&quot;)
+graph.add_conditional_edges(&quot;agent&quot;, route)
+graph.add_edge(&quot;tools&quot;, &quot;agent&quot;)
+
+app = graph.compile()
+</code></pre>
+<h2 id="_8">学习资源</h2>
+<h3 id="langgraph_3">LangGraph 官方文档</h3>
+<ul>
+<li><a href="https://docs.langchain.com/oss/python/langgraph/overview">LangGraph 概述</a></li>
+<li><a href="https://docs.langchain.com/oss/python/langgraph/graph/state/StateGraph">StateGraph API</a></li>
+<li><a href="https://docs.langchain.com/oss/python/langgraph/tutorials">教程</a></li>
+</ul>
+<h3 id="_9">推荐学习路径</h3>
+<pre><code>1. 掌握 LangChain Agents（本教程前 5 章）
+   ↓
+2. 理解 Agent 工作原理
+   ↓
+3. 学习 LangGraph 基础概念
+   ↓
+4. 尝试简单 StateGraph
+   ↓
+5. 构建复杂工作流
+</code></pre>
+<h2 id="_10">最佳实践</h2>
+<h3 id="_11">✅ 推荐</h3>
+<pre><code class="language-python"># 1. 先用 LangChain，需要时再迁移到 LangGraph
+agent = create_agent(...)  # 先快速原型
+
+# 2. 明确定义状态
+class State(TypedDict):
+    messages: List[BaseMessage]
+    metadata: Dict
+
+# 3. 保持节点函数单一职责
+def agent_node(state): ...  # 只负责 LLM 调用
+def tool_node(state): ...   # 只负责工具执行
+
+# 4. 使用检查点持久化
+app = graph.compile(checkpointer=MemorySaver())
+
+# 5. 添加错误处理
+def safe_node(state):
+    try:
+        return do_something()
+    except Exception as e:
+        return {&quot;error&quot;: str(e)}
+</code></pre>
+<h3 id="_12">❌ 避免</h3>
+<pre><code class="language-python"># 1. 过度工程化
+# 能用 LangChain 解决就不要用 LangGraph
+
+# 2. 状态过于复杂
+class State(TypedDict):
+    field1: ...
+    field2: ...
+    # ... 50 个字段 ❌
+
+# 3. 节点函数过于复杂
+def mega_node(state):
+    # 做 10 件事 ❌
+    # 应该拆分为多个节点
+
+# 4. 忽略检查点
+app = graph.compile()  # ❌ 没有持久化
+
+# 5. 循环没有退出条件
+graph.add_edge(&quot;A&quot;, &quot;B&quot;)
+graph.add_edge(&quot;B&quot;, &quot;A&quot;)  # ❌ 无限循环
+</code></pre>
+<h2 id="_13">总结</h2>
+<pre><code>LangChain 和 LangGraph 的关系：
+
+┌─────────────────────────────────────────────────────────┐
+│                                                         │
+│  LangChain（推荐起点）                                   │
+│  - 10 行代码创建 Agent                                    │
+│  - 预构建架构                                           │
+│  - 基于 LangGraph                                       │
+│  - 适合 90% 的场景                                       │
+│                                                         │
+│  LangGraph（高级定制）                                   │
+│  - 完全控制                                             │
+│  - 复杂工作流                                           │
+│  - 学习曲线陡峭                                         │
+│  - 适合 10% 的特殊场景                                   │
+│                                                         │
+│  建议：                                                  │
+│  1. 从 LangChain 开始                                    │
+│  2. 理解 Agent 工作原理                                  │
+│  3. 需要深度定制时学习 LangGraph                         │
+│  4. 不要过早优化                                         │
+│                                                         │
+└─────────────────────────────────────────────────────────┘
+</code></pre>
+<h2 id="_14">下一步</h2>
+<ul>
+<li><a href="../07-debugging/">07-调试与监控</a>：使用 LangSmith 调试</li>
+<li><a href="../08-examples/">08-实战项目</a>：完整项目示例</li>
+</ul>
+<h2 id="_15">参考资源</h2>
+<ul>
+<li><a href="https://docs.langchain.com/oss/python/langgraph/overview">LangGraph 官方文档</a></li>
+<li><a href="https://docs.langchain.com/oss/python/langgraph/tutorials">LangGraph 教程</a></li>
+<li><a href="https://docs.langchain.com/oss/python/langgraph/graph/state/StateGraph">StateGraph API</a></li>
+</ul>
+<hr />
+<p><em>理解底层原理，成为 LangChain 专家！🎓</em></p></div>
+            </div>
+        </div>
+
+        <footer class="col-md-12">
+            <hr>
+            <p>Documentation built with <a href="https://www.mkdocs.org/">MkDocs</a>.</p>
+        </footer>
+        <script src="../../../js/bootstrap.bundle.min.js"></script>
+        <script>
+            var base_url = "../../..",
+                shortcuts = {"help": 191, "next": 78, "previous": 80, "search": 83};
+        </script>
+        <script src="../../../js/base.js"></script>
+        <script src="../../../search/main.js"></script>
+
+        <div class="modal" id="mkdocs_search_modal" tabindex="-1" role="dialog" aria-labelledby="searchModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="searchModalLabel">Search</h4>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>From here you can search these documents. Enter your search terms below.</p>
+                <form>
+                    <div class="form-group">
+                        <input type="search" class="form-control" placeholder="Search..." id="mkdocs-search-query" title="Type search term here">
+                    </div>
+                </form>
+                <div id="mkdocs-search-results" data-no-results-text="No results found"></div>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div><div class="modal" id="mkdocs_keyboard_modal" tabindex="-1" role="dialog" aria-labelledby="keyboardModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="keyboardModalLabel">Keyboard Shortcuts</h4>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th style="width: 20%;">Keys</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td class="help shortcut"><kbd>?</kbd></td>
+                    <td>Open this help</td>
+                  </tr>
+                  <tr>
+                    <td class="next shortcut"><kbd>n</kbd></td>
+                    <td>Next page</td>
+                  </tr>
+                  <tr>
+                    <td class="prev shortcut"><kbd>p</kbd></td>
+                    <td>Previous page</td>
+                  </tr>
+                  <tr>
+                    <td class="search shortcut"><kbd>s</kbd></td>
+                    <td>Search</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div>
+
+    </body>
+</html>

@@ -1,0 +1,595 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="light">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        
+        
+        
+        <link rel="shortcut icon" href="../../../../img/favicon.ico">
+        <title>09_性能优化 - My Docs</title>
+        <link href="../../../../css/bootstrap.min.css" rel="stylesheet">
+        <link href="../../../../css/fontawesome.min.css" rel="stylesheet">
+        <link href="../../../../css/brands.min.css" rel="stylesheet">
+        <link href="../../../../css/solid.min.css" rel="stylesheet">
+        <link href="../../../../css/v4-font-face.min.css" rel="stylesheet">
+        <link href="../../../../css/base.css" rel="stylesheet">
+        <link id="hljs-light" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" >
+        <link id="hljs-dark" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github-dark.min.css" disabled>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+        <script>hljs.highlightAll();</script> 
+    </head>
+
+    <body>
+        <div class="navbar fixed-top navbar-expand-lg navbar-dark bg-primary">
+            <div class="container">
+                <a class="navbar-brand" href="../../../..">My Docs</a>
+
+                <!-- Expanded navigation -->
+                <div id="navbar-collapse" class="navbar-collapse collapse">
+
+                    <ul class="nav navbar-nav ms-md-auto">
+                        <li class="nav-item">
+                            <a href="#" class="nav-link" data-bs-toggle="modal" data-bs-target="#mkdocs_search_modal">
+                                <i class="fa fa-search"></i> Search
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="container">
+            <div class="row">
+                    <div class="col-md-3"><div class="navbar-expand-md bs-sidebar hidden-print affix" role="complementary">
+    <div class="navbar-header">
+        <button type="button" class="navbar-toggler collapsed" data-bs-toggle="collapse" data-bs-target="#toc-collapse" title="Table of Contents">
+            <span class="fa fa-angle-down"></span>
+        </button>
+    </div>
+
+    
+    <div id="toc-collapse" class="navbar-collapse collapse card bg-body-tertiary">
+        <ul class="nav flex-column">
+            
+            <li class="nav-item" data-bs-level="1"><a href="#09_" class="nav-link">09_性能优化</a>
+              <ul class="nav flex-column">
+            <li class="nav-item" data-bs-level="2"><a href="#1" class="nav-link">1. 性能优化概述</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#2" class="nav-link">2. 慢查询分析</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#3" class="nav-link">3. 查询优化</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#4_1" class="nav-link">4. 索引优化</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#5" class="nav-link">5. 表结构优化</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#6" class="nav-link">6. 配置优化</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#7" class="nav-link">7. 硬件优化</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#8" class="nav-link">8. 架构优化</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#9" class="nav-link">9. 本章小结</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+              </ul>
+            </li>
+        </ul>
+    </div>
+</div></div>
+                    <div class="col-md-9" role="main">
+
+<h1 id="09_">09_性能优化</h1>
+<blockquote>
+<p>查询优化、索引优化、配置调优、表结构优化</p>
+</blockquote>
+<hr />
+<h2 id="1">1. 性能优化概述</h2>
+<h3 id="11">1.1 优化层次</h3>
+<pre><code>性能优化层次（从上到下）：
+┌─────────────────────────────────────┐
+│  应用层：SQL 编写、缓存设计          │
+├─────────────────────────────────────┤
+│  数据库层：索引、查询优化            │
+├─────────────────────────────────────┤
+│  配置层：参数调优                    │
+├─────────────────────────────────────┤
+│  硬件层：CPU、内存、磁盘、网络       │
+└─────────────────────────────────────┘
+</code></pre>
+<h3 id="12">1.2 优化步骤</h3>
+<pre><code>1. 发现问题（监控、慢查询日志）
+2. 分析原因（EXPLAIN、SHOW PROFILE）
+3. 制定方案（索引、SQL 改写、配置）
+4. 实施优化
+5. 验证效果
+6. 持续监控
+</code></pre>
+<hr />
+<h2 id="2">2. 慢查询分析</h2>
+<h3 id="21">2.1 开启慢查询日志</h3>
+<pre><code class="language-ini">[mysqld]
+# 开启慢查询日志
+slow_query_log = 1
+slow_query_log_file = /var/log/mysql/slow.log
+
+# 慢查询阈值（秒）
+long_query_time = 2
+
+# 记录未使用索引的查询
+log_queries_not_using_indexes = 1
+
+# 记录管理语句
+log_slow_admin_statements = 1
+</code></pre>
+<h3 id="22">2.2 分析慢查询</h3>
+<pre><code class="language-bash"># 查看慢查询数量
+SELECT COUNT(*) FROM mysql.slow_log;
+
+# 使用 mysqldumpslow 分析
+mysqldumpslow /var/log/mysql/slow.log
+
+# 按时间排序
+mysqldumpslow -s t /var/log/mysql/slow.log
+
+# 按返回记录数排序
+mysqldumpslow -s r /var/log/mysql/slow.log
+
+# 查看前 10 条
+mysqldumpslow -t 10 /var/log/mysql/slow.log
+</code></pre>
+<h3 id="23-pt-query-digest">2.3 pt-query-digest</h3>
+<pre><code class="language-bash"># 安装 Percona Toolkit
+# yum install percona-toolkit
+# 或
+# apt install percona-toolkit
+
+# 分析慢查询
+pt-query-digest /var/log/mysql/slow.log
+
+# 分析输出：
+# 按查询时间排序
+# 显示执行次数、平均时间、锁时间等
+</code></pre>
+<hr />
+<h2 id="3">3. 查询优化</h2>
+<h3 id="31-explain">3.1 EXPLAIN 分析</h3>
+<pre><code class="language-sql">-- 基本用法
+EXPLAIN SELECT * FROM users WHERE username = 'zhangsan';
+
+-- 详细分析
+EXPLAIN FORMAT=JSON SELECT * FROM users WHERE username = 'zhangsan';
+
+-- 实时分析（8.0+）
+EXPLAIN ANALYZE SELECT * FROM users WHERE username = 'zhangsan';
+</code></pre>
+<h3 id="32">3.2 优化示例</h3>
+<h4 id="1_1">示例 1：避免全表扫描</h4>
+<pre><code class="language-sql">-- ❌ 全表扫描
+SELECT * FROM users WHERE YEAR(created_at) = 2024;
+
+-- ✅ 使用索引
+SELECT * FROM users 
+WHERE created_at &gt;= '2024-01-01' AND created_at &lt; '2025-01-01';
+</code></pre>
+<h4 id="2_1">示例 2：优化分页</h4>
+<pre><code class="language-sql">-- ❌ 深分页慢
+SELECT * FROM products ORDER BY id LIMIT 100000, 10;
+
+-- ✅ 覆盖索引 + 回表
+SELECT p.* FROM products p
+INNER JOIN (
+    SELECT id FROM products ORDER BY id LIMIT 100000, 10
+) AS tmp ON p.id = tmp.id;
+
+-- ✅ 记录上次 ID
+SELECT * FROM products WHERE id &gt; 100000 ORDER BY id LIMIT 10;
+</code></pre>
+<h4 id="3-join">示例 3：优化 JOIN</h4>
+<pre><code class="language-sql">-- ❌ 小表驱动大表
+SELECT * FROM large_table l
+JOIN small_table s ON l.id = s.large_id;
+
+-- ✅ 大表驱动小表（使用 STRAIGHT_JOIN）
+SELECT STRAIGHT_JOIN * FROM small_table s
+JOIN large_table l ON s.large_id = l.id;
+
+-- ✅ 确保连接列有索引
+CREATE INDEX idx_large_id ON large_table(id);
+CREATE INDEX idx_large_id ON small_table(large_id);
+</code></pre>
+<h4 id="4">示例 4：优化子查询</h4>
+<pre><code class="language-sql">-- ❌ 相关子查询慢
+SELECT * FROM products p
+WHERE price &gt; (
+    SELECT AVG(price) FROM products WHERE category_id = p.category_id
+);
+
+-- ✅ 改为 JOIN
+SELECT p.* FROM products p
+JOIN (
+    SELECT category_id, AVG(price) AS avg_price
+    FROM products
+    GROUP BY category_id
+) AS stats ON p.category_id = stats.category_id
+WHERE p.price &gt; stats.avg_price;
+</code></pre>
+<h4 id="5-or">示例 5：优化 OR 条件</h4>
+<pre><code class="language-sql">-- ❌ OR 可能导致索引失效
+SELECT * FROM users WHERE username = 'zhangsan' OR email = 'zhang@example.com';
+
+-- ✅ 改为 UNION
+SELECT * FROM users WHERE username = 'zhangsan'
+UNION
+SELECT * FROM users WHERE email = 'zhang@example.com';
+</code></pre>
+<hr />
+<h2 id="4_1">4. 索引优化</h2>
+<h3 id="41">4.1 创建合适索引</h3>
+<pre><code class="language-sql">-- 高频查询列
+CREATE INDEX idx_username ON users(username);
+
+-- 复合索引（高选择性列在前）
+CREATE INDEX idx_status_created ON orders(status, created_at);
+
+-- 覆盖索引
+CREATE INDEX idx_status_user_amount ON orders(status, user_id, total_amount);
+</code></pre>
+<h3 id="42">4.2 避免索引失效</h3>
+<pre><code class="language-sql">-- ❌ 函数导致索引失效
+SELECT * FROM users WHERE DATE(created_at) = '2024-03-25';
+
+-- ✅ 改为范围查询
+SELECT * FROM users 
+WHERE created_at &gt;= '2024-03-25' AND created_at &lt; '2024-03-26';
+
+-- ❌ 隐式转换
+SELECT * FROM users WHERE phone = 13800138000;
+
+-- ✅ 类型匹配
+SELECT * FROM users WHERE phone = '13800138000';
+
+-- ❌ LIKE 通配符开头
+SELECT * FROM users WHERE username LIKE '%san';
+
+-- ✅ LIKE 不以通配符开头
+SELECT * FROM users WHERE username LIKE 'zhang%';
+</code></pre>
+<h3 id="43">4.3 索引维护</h3>
+<pre><code class="language-sql">-- 分析表（更新统计信息）
+ANALYZE TABLE users;
+
+-- 检查表
+CHECK TABLE users;
+
+-- 优化表（重建索引）
+OPTIMIZE TABLE users;
+
+-- 删除未使用索引
+ALTER TABLE users DROP INDEX idx_unused;
+</code></pre>
+<hr />
+<h2 id="5">5. 表结构优化</h2>
+<h3 id="51">5.1 选择合适数据类型</h3>
+<pre><code class="language-sql">-- ❌ 浪费空间
+CREATE TABLE users (
+    id BIGINT,           -- 用不到那么大
+    status INT,          -- 只有几个状态
+    created_at DATETIME  -- 不需要时间部分
+);
+
+-- ✅ 节省空间
+CREATE TABLE users (
+    id INT AUTO_INCREMENT,
+    status TINYINT,
+    created_at DATE
+);
+</code></pre>
+<h3 id="52">5.2 范式与反范式</h3>
+<pre><code>第三范式（3NF）：
+- 每列与主键直接相关
+- 消除传递依赖
+
+反范式（空间换时间）：
+- 适当冗余，减少 JOIN
+- 提高查询性能
+
+示例：
+-- 范式化
+orders(user_id, product_id, quantity)
+users(id, username)
+products(id, name, price)
+
+-- 反范式化（订单表冗余）
+orders(user_id, username, product_id, product_name, price, quantity)
+</code></pre>
+<h3 id="53">5.3 表分区</h3>
+<pre><code class="language-sql">-- 按范围分区
+CREATE TABLE logs (
+    id INT,
+    created_at DATE,
+    content TEXT
+) PARTITION BY RANGE (YEAR(created_at)) (
+    PARTITION p2022 VALUES LESS THAN (2023),
+    PARTITION p2023 VALUES LESS THAN (2024),
+    PARTITION p2024 VALUES LESS THAN (2025),
+    PARTITION pmax VALUES LESS THAN MAXVALUE
+);
+
+-- 按列表分区
+CREATE TABLE users (
+    id INT,
+    city VARCHAR(50)
+) PARTITION BY LIST COLUMNS(city) (
+    PARTITION p_beijing VALUES IN ('北京'),
+    PARTITION p_shanghai VALUES IN ('上海'),
+    PARTITION p_other VALUES IN ('其他')
+);
+
+-- 按哈希分区
+CREATE TABLE sessions (
+    session_id VARCHAR(64),
+    data TEXT
+) PARTITION BY HASH(CRC32(session_id)) PARTITIONS 8;
+</code></pre>
+<hr />
+<h2 id="6">6. 配置优化</h2>
+<h3 id="61">6.1 内存配置</h3>
+<pre><code class="language-ini">[mysqld]
+# 缓冲池（最重要）
+innodb_buffer_pool_size = 4G  # 物理内存的 50-80%
+
+# 缓冲池实例
+innodb_buffer_pool_instances = 8
+
+# 日志缓冲
+innodb_log_buffer_size = 64M
+
+# 查询缓存（8.0 已移除）
+# query_cache_size = 64M
+
+# 键缓冲（MyISAM）
+key_buffer_size = 256M
+
+# 排序缓冲
+sort_buffer_size = 4M
+read_buffer_size = 2M
+read_rnd_buffer_size = 4M
+
+# 连接缓冲
+join_buffer_size = 4M
+</code></pre>
+<h3 id="62">6.2 连接配置</h3>
+<pre><code class="language-ini">[mysqld]
+# 最大连接数
+max_connections = 500
+
+# 连接超时
+connect_timeout = 10
+
+# 等待超时
+wait_timeout = 28800
+interactive_timeout = 28800
+
+# 线程缓存
+thread_cache_size = 64
+</code></pre>
+<h3 id="63">6.3 日志配置</h3>
+<pre><code class="language-ini">[mysqld]
+# 慢查询日志
+slow_query_log = 1
+long_query_time = 2
+
+# Binlog
+log_bin = mysql-bin
+binlog_format = ROW
+sync_binlog = 1
+
+# 错误日志
+log_error = /var/log/mysql/error.log
+</code></pre>
+<h3 id="64-innodb">6.4 InnoDB 配置</h3>
+<pre><code class="language-ini">[mysqld]
+# 刷新方式
+innodb_flush_log_at_trx_commit = 1
+
+# 每表表空间
+innodb_file_per_table = 1
+
+# IO 能力
+innodb_io_capacity = 200
+innodb_io_capacity_max = 400
+
+# 页大小
+innodb_page_size = 16K
+
+# 线程并发
+innodb_thread_concurrency = 0
+</code></pre>
+<hr />
+<h2 id="7">7. 硬件优化</h2>
+<h3 id="71-cpu">7.1 CPU</h3>
+<ul>
+<li>多核 CPU 有利于并发</li>
+<li>高主频有利于单查询性能</li>
+<li>NUMA 架构需要特殊配置</li>
+</ul>
+<h3 id="72">7.2 内存</h3>
+<ul>
+<li>越大越好（缓冲池）</li>
+<li>ECC 内存提高可靠性</li>
+<li>内存频率影响性能</li>
+</ul>
+<h3 id="73">7.3 磁盘</h3>
+<table>
+<thead>
+<tr>
+<th>类型</th>
+<th>IOPS</th>
+<th>适用场景</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>HDD</td>
+<td>100-200</td>
+<td>归档、备份</td>
+</tr>
+<tr>
+<td>SATA SSD</td>
+<td>10K-50K</td>
+<td>一般应用</td>
+</tr>
+<tr>
+<td>NVMe SSD</td>
+<td>100K+</td>
+<td>高性能应用</td>
+</tr>
+</tbody>
+</table>
+<h3 id="74">7.4 网络</h3>
+<ul>
+<li>万兆网络减少瓶颈</li>
+<li>低延迟网络有利复制</li>
+<li>绑定网卡提高带宽</li>
+</ul>
+<hr />
+<h2 id="8">8. 架构优化</h2>
+<h3 id="81">8.1 读写分离</h3>
+<pre><code>Master（写） → Slave1（读）
+           → Slave2（读）
+           → Slave3（读）
+</code></pre>
+<h3 id="82">8.2 分库分表</h3>
+<pre><code>垂直分库：
+用户库 → 用户服务
+订单库 → 订单服务
+商品库 → 商品服务
+
+水平分表：
+orders_0000, orders_0001, ..., orders_9999
+（按 user_id % 10000 分表）
+</code></pre>
+<h3 id="83">8.3 缓存层</h3>
+<pre><code>应用 → Redis 缓存 → MySQL
+          ↓
+      缓存命中直接返回
+</code></pre>
+<hr />
+<h2 id="9">9. 本章小结</h2>
+<h3 id="_1">核心知识点</h3>
+<p>✅ 慢查询分析<br />
+✅ EXPLAIN 执行计划<br />
+✅ 索引优化原则<br />
+✅ 表结构优化<br />
+✅ 配置参数调优<br />
+✅ 硬件与架构优化  </p>
+<h3 id="_2">最佳实践</h3>
+<ol>
+<li><strong>开启慢查询日志</strong>：持续监控</li>
+<li><strong>使用 EXPLAIN</strong>：分析每条 SQL</li>
+<li><strong>合理创建索引</strong>：覆盖常用查询</li>
+<li><strong>优化表结构</strong>：选择合适数据类型</li>
+<li><strong>配置缓冲池</strong>：充分利用内存</li>
+<li><strong>使用缓存</strong>：减少数据库压力</li>
+<li><strong>读写分离</strong>：分散负载</li>
+</ol>
+<hr />
+<p>🎉 <strong>恭喜完成第九章！继续学习 <a href="../10_%E5%BA%94%E7%94%A8%E5%9C%BA%E6%99%AF/">10_应用场景.md</a></strong></p></div>
+            </div>
+        </div>
+
+        <footer class="col-md-12">
+            <hr>
+            <p>Documentation built with <a href="https://www.mkdocs.org/">MkDocs</a>.</p>
+        </footer>
+        <script src="../../../../js/bootstrap.bundle.min.js"></script>
+        <script>
+            var base_url = "../../../..",
+                shortcuts = {"help": 191, "next": 78, "previous": 80, "search": 83};
+        </script>
+        <script src="../../../../js/base.js"></script>
+        <script src="../../../../search/main.js"></script>
+
+        <div class="modal" id="mkdocs_search_modal" tabindex="-1" role="dialog" aria-labelledby="searchModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="searchModalLabel">Search</h4>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>From here you can search these documents. Enter your search terms below.</p>
+                <form>
+                    <div class="form-group">
+                        <input type="search" class="form-control" placeholder="Search..." id="mkdocs-search-query" title="Type search term here">
+                    </div>
+                </form>
+                <div id="mkdocs-search-results" data-no-results-text="No results found"></div>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div><div class="modal" id="mkdocs_keyboard_modal" tabindex="-1" role="dialog" aria-labelledby="keyboardModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="keyboardModalLabel">Keyboard Shortcuts</h4>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th style="width: 20%;">Keys</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td class="help shortcut"><kbd>?</kbd></td>
+                    <td>Open this help</td>
+                  </tr>
+                  <tr>
+                    <td class="next shortcut"><kbd>n</kbd></td>
+                    <td>Next page</td>
+                  </tr>
+                  <tr>
+                    <td class="prev shortcut"><kbd>p</kbd></td>
+                    <td>Previous page</td>
+                  </tr>
+                  <tr>
+                    <td class="search shortcut"><kbd>s</kbd></td>
+                    <td>Search</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div>
+
+    </body>
+</html>
