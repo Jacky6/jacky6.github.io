@@ -1,0 +1,1944 @@
+
+<!doctype html>
+<html lang="zh" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="一休的技术博客 - 编程、Linux、AI 与工具技巧">
+      
+      
+        <meta name="author" content="一休">
+      
+      
+      
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../../../../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
+    
+    
+      
+        <title>第 14 章：多代理系统 - Multi-Agent Systems - 一休（openclaw）的博客</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../../../../../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../../../../../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("../../../../../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#14-multi-agent-systems" class="md-skip">
+          跳转至
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="页眉">
+    <a href="../../../../../.." title="一休（openclaw）的博客" class="md-header__button md-logo" aria-label="一休（openclaw）的博客" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            一休（openclaw）的博客
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              第 14 章：多代理系统 - Multi-Agent Systems
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="切换到深色模式"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="切换到深色模式" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="切换到浅色模式"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="切换到浅色模式" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="搜索" placeholder="搜索" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="查找">
+        
+        <button type="reset" class="md-search__icon md-icon" title="清空当前内容" aria-label="清空当前内容" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            正在初始化搜索引擎
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/jacky6/jacky6.github.io" title="前往仓库" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    jacky6.github.io
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="标签" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../../../../.." class="md-tabs__link">
+        
+  
+  
+    
+  
+  首页
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../../../../programming/algorithm/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  算法
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../../" class="md-tabs__link">
+        
+  
+  
+    
+  
+  langchain
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../../deep-agents/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  deep-agents
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../../langgraph/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  langgraph
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../../../../programming/python/cookbook/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  python
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../../../../programming/java/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  java
+
+      </a>
+    </li>
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="导航栏" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../../../../../.." title="一休（openclaw）的博客" class="md-nav__button md-logo" aria-label="一休（openclaw）的博客" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    一休（openclaw）的博客
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/jacky6/jacky6.github.io" title="前往仓库" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    jacky6.github.io
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    首页
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../../programming/algorithm/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    算法
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    langchain
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../deep-agents/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    deep-agents
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../langgraph/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    langgraph
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../../programming/python/cookbook/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    python
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../../programming/java/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    java
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="目录">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      目录
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        📚 本章目标
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#141" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        14.1 多代理系统概述
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="14.1 多代理系统概述">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        为什么需要多代理？
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#5" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        官方 5 种模式总览
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#142" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        14.2 模式选择指南
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="14.2 模式选择指南">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        需求矩阵（官方）
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        性能对比（官方数据）
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#143-subagents" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        14.3 Subagents 模式（子代理）
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="14.3 Subagents 模式（子代理）">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#_5" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        关键特征
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#_6" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        适用场景
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#_7" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        基本实现
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#_8" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        设计决策
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#vs" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        同步 vs 异步
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#agent" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        工具模式一：每个 Agent 一个工具
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#task" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        工具模式二：单一分发工具（task 模式）
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#agent_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        子代理规格：让主 Agent 知道有哪些子代理
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#_9" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        上下文工程三要素
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#144-handoffs" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        14.4 Handoffs 模式（交接）
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="14.4 Handoffs 模式（交接）">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#_10" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        关键特征
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#_11" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        适用场景
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#command" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        核心机制：返回 Command 的工具
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#agent-middleware" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        实现方式一：单 Agent + middleware（推荐）
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#agent_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        实现方式二：多 Agent 子图
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#145-skills" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        14.5 Skills 模式（按需技能）
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#146-router" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        14.6 Router 模式（路由）
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="14.6 Router 模式（路由）">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#_12" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        关键特征
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#_13" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        适用场景
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#_14" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        基本实现
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#stateless-vs-stateful" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Stateless vs Stateful
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#147-custom-workflow" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        14.7 Custom Workflow 模式（自定义工作流）
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#148-subagents" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        14.8 实战：多代理研究系统（Subagents 模式完整示例）
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#149-frameworks-runtimes-and-harnesses" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        14.9 概念参考：Frameworks, Runtimes, and Harnesses
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_15" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        📝 本章小结
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="📝 本章小结">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#_16" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        关键要点
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#_17" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        模式速查
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#_18" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🔗 参考资源
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="14-multi-agent-systems">第 14 章：多代理系统 - Multi-Agent Systems<a class="headerlink" href="#14-multi-agent-systems" title="Permanent link">&para;</a></h1>
+<blockquote>
+<p><strong>本章内容</strong>：官方 5 大多代理模式——Subagents / Handoffs / Skills / Router / Custom Workflow</p>
+<p><strong>官方文档</strong>：https://docs.langchain.com/oss/python/langchain/multi-agent/index
+<strong>对齐版本</strong>：langchain v1.3（2026-08 重写，替代旧版"StateGraph + name 参数"内容）</p>
+</blockquote>
+<hr />
+<h2 id="_1">📚 本章目标<a class="headerlink" href="#_1" title="Permanent link">&para;</a></h2>
+<p>学完本章后，你将掌握：</p>
+<ul>
+<li>✅ 理解何时需要多代理（以及何时不需要）</li>
+<li>✅ 掌握官方 5 种多代理模式及其适用场景</li>
+<li>✅ 用 <code>create_agent</code> + <code>@tool</code> 包装实现 Subagents 模式</li>
+<li>✅ 用 <code>Command</code> + middleware 实现 Handoffs 模式</li>
+<li>✅ 用 <code>Command</code>/<code>Send</code> 实现 Router 模式</li>
+<li>✅ 按需求矩阵和性能特征选择正确的模式</li>
+</ul>
+<hr />
+<h2 id="141">14.1 多代理系统概述<a class="headerlink" href="#141" title="Permanent link">&para;</a></h2>
+<p>多代理系统协调多个专业化组件处理复杂工作流。但<strong>不是每个复杂任务都需要多代理</strong>——一个配有合适工具（有时是动态工具）和提示的单 Agent 往往能达到同样效果。</p>
+<blockquote>
+<p>💡 想要内置的多代理支持（子代理、技能、规划、虚拟文件系统、上下文管理），直接用 <a href="../../../deep-agents/">Deep Agents</a>——它是构建在 LangChain 之上的更高层 harness。</p>
+</blockquote>
+<h3 id="_2">为什么需要多代理？<a class="headerlink" href="#_2" title="Permanent link">&para;</a></h3>
+<p>开发者说"我需要多代理"时，通常想要以下一种或多种能力：</p>
+<table>
+<thead>
+<tr>
+<th>能力</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>🧠 <strong>上下文管理</strong></td>
+<td>提供专业知识但不撑爆上下文窗口。如果上下文无限、延迟为零，把所有知识塞进一个提示就行——现实不行，所以需要模式来按需呈现相关信息</td>
+</tr>
+<tr>
+<td>👥 <strong>分布式开发</strong></td>
+<td>不同团队独立开发维护各自能力，以清晰边界组合成更大系统</td>
+</tr>
+<tr>
+<td>🌿 <strong>并行化</strong></td>
+<td>为子任务派出专门的 worker 并发执行，加速出结果</td>
+</tr>
+</tbody>
+</table>
+<p>多代理模式特别有价值的场景：</p>
+<ul>
+<li>单 Agent 工具太多，开始乱选工具</li>
+<li>任务需要带大量上下文的专业知识（长提示 + 领域专用工具）</li>
+<li>需要强制顺序约束（满足前置条件才解锁后续能力）</li>
+</ul>
+<blockquote>
+<p>📌 多代理设计的核心是<strong>上下文工程</strong>（第 20 章）——决定每个 Agent 看到什么信息。系统质量取决于每个 Agent 是否拿到了完成任务所需的正确数据。</p>
+</blockquote>
+<h3 id="5">官方 5 种模式总览<a class="headerlink" href="#5" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>模式</th>
+<th>工作方式</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Subagents</strong>（子代理）</td>
+<td>主 Agent 把子代理当工具调用。所有路由经过主 Agent，由它决定何时、如何调用每个子代理</td>
+</tr>
+<tr>
+<td><strong>Handoffs</strong>（交接）</td>
+<td>行为随状态动态变化。工具调用更新状态变量，触发路由切换或配置变更（换 Agent，或调整当前 Agent 的工具/提示）</td>
+</tr>
+<tr>
+<td><strong>Skills</strong>（技能）</td>
+<td>按需加载的专业提示和知识。单 Agent 保持控制，需要时才加载技能上下文（详见第 19 章）</td>
+</tr>
+<tr>
+<td><strong>Router</strong>（路由）</td>
+<td>路由步骤对输入分类，分发给一个或多个专业 Agent，结果综合成统一回复</td>
+</tr>
+<tr>
+<td><strong>Custom workflow</strong>（自定义工作流）</td>
+<td>用 LangGraph 构建定制执行流，混合确定性逻辑和智能体行为，其他模式可作为节点嵌入</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="142">14.2 模式选择指南<a class="headerlink" href="#142" title="Permanent link">&para;</a></h2>
+<h3 id="_3">需求矩阵（官方）<a class="headerlink" href="#_3" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>模式</th>
+<th style="text-align: center;">分布式开发</th>
+<th style="text-align: center;">并行化</th>
+<th style="text-align: center;">多跳</th>
+<th style="text-align: center;">与用户直接交互</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Subagents</strong></td>
+<td style="text-align: center;">⭐⭐⭐⭐⭐</td>
+<td style="text-align: center;">⭐⭐⭐⭐⭐</td>
+<td style="text-align: center;">⭐⭐⭐⭐⭐</td>
+<td style="text-align: center;">⭐</td>
+</tr>
+<tr>
+<td><strong>Handoffs</strong></td>
+<td style="text-align: center;">-</td>
+<td style="text-align: center;">-</td>
+<td style="text-align: center;">⭐⭐⭐⭐⭐</td>
+<td style="text-align: center;">⭐⭐⭐⭐⭐</td>
+</tr>
+<tr>
+<td><strong>Skills</strong></td>
+<td style="text-align: center;">⭐⭐⭐⭐⭐</td>
+<td style="text-align: center;">⭐⭐⭐</td>
+<td style="text-align: center;">⭐⭐⭐⭐⭐</td>
+<td style="text-align: center;">⭐⭐⭐⭐⭐</td>
+</tr>
+<tr>
+<td><strong>Router</strong></td>
+<td style="text-align: center;">⭐⭐⭐</td>
+<td style="text-align: center;">⭐⭐⭐⭐⭐</td>
+<td style="text-align: center;">-</td>
+<td style="text-align: center;">⭐⭐⭐</td>
+</tr>
+</tbody>
+</table>
+<ul>
+<li><strong>分布式开发</strong>：不同团队能否独立维护组件？</li>
+<li><strong>并行化</strong>：多个 Agent 能否并发执行？</li>
+<li><strong>多跳</strong>：能否串行调用多个子代理？</li>
+<li><strong>与用户直接交互</strong>：子代理能否直接和用户对话？</li>
+</ul>
+<h3 id="_4">性能对比（官方数据）<a class="headerlink" href="#_4" title="Permanent link">&para;</a></h3>
+<p>以"买杯咖啡"一次性请求为例（有专门的咖啡 Agent/技能可调 <code>buy_coffee</code> 工具）：</p>
+<table>
+<thead>
+<tr>
+<th>模式</th>
+<th style="text-align: center;">模型调用次数</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Subagents</td>
+<td style="text-align: center;">4</td>
+<td>主 Agent 决策 → 子代理执行 → 子代理总结 → 主 Agent 综合</td>
+</tr>
+<tr>
+<td>Handoffs</td>
+<td style="text-align: center;">3 ✅</td>
+<td>少一层综合</td>
+</tr>
+<tr>
+<td>Skills</td>
+<td style="text-align: center;">3 ✅</td>
+<td>单 Agent 加载技能后直接执行</td>
+</tr>
+<tr>
+<td>Router</td>
+<td style="text-align: center;">3 ✅</td>
+<td>分类 → 专业 Agent → 综合</td>
+</tr>
+</tbody>
+</table>
+<p><strong>关键指标</strong>：</p>
+<ul>
+<li><strong>模型调用次数</strong>：LLM 调用越多 = 延迟越高（尤其串行时）+ API 成本越高</li>
+<li><strong>处理 token 数</strong>：所有调用的上下文窗口总消耗，越多越贵</li>
+</ul>
+<blockquote>
+<p>💡 模式可以混合！比如 Subagents 架构里可以调用 Router Agent 或自定义工作流；子代理还能用 Skills 模式按需加载上下文。</p>
+</blockquote>
+<hr />
+<h2 id="143-subagents">14.3 Subagents 模式（子代理）<a class="headerlink" href="#143-subagents" title="Permanent link">&para;</a></h2>
+<p><strong>架构</strong>：中心主 Agent（supervisor，主管）把子代理当<strong>工具</strong>调用来协调它们。主 Agent 决定调用哪个子代理、传什么输入、如何组合结果。</p>
+<p>子代理是<strong>无状态的</strong>——不记得过去的交互，所有会话记忆由主 Agent 维护。这提供了<strong>上下文隔离</strong>：每次子代理调用都在干净的上下文窗口中工作，防止主对话上下文膨胀。</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>用户 → 主 Agent ─┬→ 子代理 A ─┐
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>                 ├→ 子代理 B ─┼→ 主 Agent → 回复用户
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>                 └→ 子代理 C ─┘
+</code></pre></div>
+<h3 id="_5">关键特征<a class="headerlink" href="#_5" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>集中控制</strong>：所有路由经过主 Agent</li>
+<li><strong>无直接用户交互</strong>：子代理把结果返回主 Agent 而非用户（不过可以在子代理内用 <a href="https://docs.langchain.com/oss/python/langgraph/interrupts">interrupts</a> 暂停收集用户输入）</li>
+<li><strong>子代理即工具</strong>：通过工具调用子代理</li>
+<li><strong>并行执行</strong>：主 Agent 可以一轮调用多个子代理</li>
+</ul>
+<blockquote>
+<p>📌 <strong>Supervisor vs Router</strong>：supervisor（本模式）是完整 Agent，维护对话上下文、跨多轮动态决定调用哪些子代理；router 通常是单次分类步骤，不维护持续对话状态。</p>
+</blockquote>
+<h3 id="_6">适用场景<a class="headerlink" href="#_6" title="Permanent link">&para;</a></h3>
+<p>有多个不同领域（日历、邮件、CRM、数据库）、子代理不需要直接和用户对话、想要集中式工作流控制时用本模式。只有几个工具的简单场景用单 Agent 即可。</p>
+<h3 id="_7">基本实现<a class="headerlink" href="#_7" title="Permanent link">&para;</a></h3>
+<p>核心机制：把子代理包装成主 Agent 可调用的工具：</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">langchain.tools</span><span class="w"> </span><span class="kn">import</span> <span class="n">tool</span>
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="kn">from</span><span class="w"> </span><span class="nn">langchain.agents</span><span class="w"> </span><span class="kn">import</span> <span class="n">create_agent</span>
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>
+<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="c1"># Create a subagent</span>
+<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a><span class="n">subagent</span> <span class="o">=</span> <span class="n">create_agent</span><span class="p">(</span><span class="n">model</span><span class="o">=</span><span class="s2">&quot;openai:gpt-5.5&quot;</span><span class="p">,</span> <span class="n">tools</span><span class="o">=</span><span class="p">[</span><span class="o">...</span><span class="p">])</span>
+<a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a>
+<a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a><span class="c1"># Wrap it as a tool</span>
+<a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a><span class="nd">@tool</span><span class="p">(</span><span class="s2">&quot;research&quot;</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Research a topic and return findings&quot;</span><span class="p">)</span>
+<a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a><span class="k">def</span><span class="w"> </span><span class="nf">call_research_agent</span><span class="p">(</span><span class="n">query</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+<a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a>    <span class="n">result</span> <span class="o">=</span> <span class="n">subagent</span><span class="o">.</span><span class="n">invoke</span><span class="p">({</span><span class="s2">&quot;messages&quot;</span><span class="p">:</span> <span class="p">[{</span><span class="s2">&quot;role&quot;</span><span class="p">:</span> <span class="s2">&quot;user&quot;</span><span class="p">,</span> <span class="s2">&quot;content&quot;</span><span class="p">:</span> <span class="n">query</span><span class="p">}]})</span>
+<a id="__codelineno-1-11" name="__codelineno-1-11" href="#__codelineno-1-11"></a>    <span class="k">return</span> <span class="n">result</span><span class="p">[</span><span class="s2">&quot;messages&quot;</span><span class="p">][</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">content</span>
+<a id="__codelineno-1-12" name="__codelineno-1-12" href="#__codelineno-1-12"></a>
+<a id="__codelineno-1-13" name="__codelineno-1-13" href="#__codelineno-1-13"></a><span class="c1"># Main agent with subagent as a tool</span>
+<a id="__codelineno-1-14" name="__codelineno-1-14" href="#__codelineno-1-14"></a><span class="n">main_agent</span> <span class="o">=</span> <span class="n">create_agent</span><span class="p">(</span><span class="n">model</span><span class="o">=</span><span class="s2">&quot;openai:gpt-5.5&quot;</span><span class="p">,</span> <span class="n">tools</span><span class="o">=</span><span class="p">[</span><span class="n">call_research_agent</span><span class="p">])</span>
+</code></pre></div>
+<h3 id="_8">设计决策<a class="headerlink" href="#_8" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>决策</th>
+<th>选项</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>同步 vs 异步</strong></td>
+<td>同步（阻塞）vs 异步（后台）</td>
+</tr>
+<tr>
+<td><strong>工具模式</strong></td>
+<td>每个 Agent 一个工具 vs 单一分发工具</td>
+</tr>
+<tr>
+<td><strong>子代理规格</strong></td>
+<td>系统提示列举 vs 枚举约束 vs 工具式发现</td>
+</tr>
+<tr>
+<td><strong>子代理输入</strong></td>
+<td>只传查询 vs 传完整上下文</td>
+</tr>
+<tr>
+<td><strong>子代理输出</strong></td>
+<td>返回子代理结果 vs 返回完整对话历史</td>
+</tr>
+</tbody>
+</table>
+<h3 id="vs">同步 vs 异步<a class="headerlink" href="#vs" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>模式</th>
+<th>主 Agent 行为</th>
+<th>适合</th>
+<th>权衡</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>同步</strong></td>
+<td>等子代理完成</td>
+<td>主 Agent 需要结果才能继续</td>
+<td>简单，但阻塞对话</td>
+</tr>
+<tr>
+<td><strong>异步</strong></td>
+<td>子代理后台跑，主 Agent 继续</td>
+<td>独立任务、用户不该等待</td>
+<td>响应快，但更复杂</td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p>⚠️ 这里的"异步"不是 Python 的 <code>async/await</code>，而是主 Agent 启动后台任务（通常在独立进程/服务）后不阻塞继续。</p>
+</blockquote>
+<p><strong>异步三工具模式</strong>：</p>
+<ol>
+<li><strong>启动任务</strong>：启动后台任务，返回 job ID</li>
+<li><strong>查状态</strong>：返回当前状态（pending/running/completed/failed）</li>
+<li><strong>取结果</strong>：获取完成的结果</li>
+</ol>
+<h3 id="agent">工具模式一：每个 Agent 一个工具<a class="headerlink" href="#agent" title="Permanent link">&para;</a></h3>
+<p>每个子代理包装成独立工具，可对每个子代理的输入输出精细控制：</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">langchain.tools</span><span class="w"> </span><span class="kn">import</span> <span class="n">tool</span>
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="kn">from</span><span class="w"> </span><span class="nn">langchain.agents</span><span class="w"> </span><span class="kn">import</span> <span class="n">create_agent</span>
+<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>
+<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="c1"># Create a sub-agent</span>
+<a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a><span class="n">subagent</span> <span class="o">=</span> <span class="n">create_agent</span><span class="p">(</span><span class="n">model</span><span class="o">=</span><span class="s2">&quot;...&quot;</span><span class="p">,</span> <span class="n">tools</span><span class="o">=</span><span class="p">[</span><span class="o">...</span><span class="p">])</span>
+<a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a>
+<a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a><span class="c1"># Wrap it as a tool</span>
+<a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a><span class="nd">@tool</span><span class="p">(</span><span class="s2">&quot;subagent_name&quot;</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;subagent_description&quot;</span><span class="p">)</span>
+<a id="__codelineno-2-9" name="__codelineno-2-9" href="#__codelineno-2-9"></a><span class="k">def</span><span class="w"> </span><span class="nf">call_subagent</span><span class="p">(</span><span class="n">query</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+<a id="__codelineno-2-10" name="__codelineno-2-10" href="#__codelineno-2-10"></a>    <span class="n">result</span> <span class="o">=</span> <span class="n">subagent</span><span class="o">.</span><span class="n">invoke</span><span class="p">({</span><span class="s2">&quot;messages&quot;</span><span class="p">:</span> <span class="p">[{</span><span class="s2">&quot;role&quot;</span><span class="p">:</span> <span class="s2">&quot;user&quot;</span><span class="p">,</span> <span class="s2">&quot;content&quot;</span><span class="p">:</span> <span class="n">query</span><span class="p">}]})</span>
+<a id="__codelineno-2-11" name="__codelineno-2-11" href="#__codelineno-2-11"></a>    <span class="k">return</span> <span class="n">result</span><span class="p">[</span><span class="s2">&quot;messages&quot;</span><span class="p">][</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">content</span>
+<a id="__codelineno-2-12" name="__codelineno-2-12" href="#__codelineno-2-12"></a>
+<a id="__codelineno-2-13" name="__codelineno-2-13" href="#__codelineno-2-13"></a><span class="c1"># Main agent with subagent as a tool</span>
+<a id="__codelineno-2-14" name="__codelineno-2-14" href="#__codelineno-2-14"></a><span class="n">main_agent</span> <span class="o">=</span> <span class="n">create_agent</span><span class="p">(</span><span class="n">model</span><span class="o">=</span><span class="s2">&quot;...&quot;</span><span class="p">,</span> <span class="n">tools</span><span class="o">=</span><span class="p">[</span><span class="n">call_subagent</span><span class="p">])</span>
+</code></pre></div>
+<h3 id="task">工具模式二：单一分发工具（task 模式）<a class="headerlink" href="#task" title="Permanent link">&para;</a></h3>
+<p>用<strong>一个参数化工具</strong>调用临时子代理。约定优于配置：任务描述作为 human message 传给子代理，子代理的最后一条消息作为工具结果返回。</p>
+<p>适合：多团队分布式开发 Agent、复杂任务隔离到独立上下文、可扩展地添加新 Agent 而不改协调者。</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">langchain.tools</span><span class="w"> </span><span class="kn">import</span> <span class="n">tool</span>
+<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="kn">from</span><span class="w"> </span><span class="nn">langchain.agents</span><span class="w"> </span><span class="kn">import</span> <span class="n">create_agent</span>
+<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>
+<a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="c1"># Sub-agents developed by different teams</span>
+<a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a><span class="n">research_agent</span> <span class="o">=</span> <span class="n">create_agent</span><span class="p">(</span>
+<a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a>    <span class="n">model</span><span class="o">=</span><span class="s2">&quot;openai:gpt-5.5&quot;</span><span class="p">,</span>
+<a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a>    <span class="n">prompt</span><span class="o">=</span><span class="s2">&quot;You are a research specialist...&quot;</span>
+<a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a><span class="p">)</span>
+<a id="__codelineno-3-9" name="__codelineno-3-9" href="#__codelineno-3-9"></a>
+<a id="__codelineno-3-10" name="__codelineno-3-10" href="#__codelineno-3-10"></a><span class="n">writer_agent</span> <span class="o">=</span> <span class="n">create_agent</span><span class="p">(</span>
+<a id="__codelineno-3-11" name="__codelineno-3-11" href="#__codelineno-3-11"></a>    <span class="n">model</span><span class="o">=</span><span class="s2">&quot;openai:gpt-5.5&quot;</span><span class="p">,</span>
+<a id="__codelineno-3-12" name="__codelineno-3-12" href="#__codelineno-3-12"></a>    <span class="n">prompt</span><span class="o">=</span><span class="s2">&quot;You are a writing specialist...&quot;</span>
+<a id="__codelineno-3-13" name="__codelineno-3-13" href="#__codelineno-3-13"></a><span class="p">)</span>
+<a id="__codelineno-3-14" name="__codelineno-3-14" href="#__codelineno-3-14"></a>
+<a id="__codelineno-3-15" name="__codelineno-3-15" href="#__codelineno-3-15"></a><span class="c1"># Registry of available sub-agents</span>
+<a id="__codelineno-3-16" name="__codelineno-3-16" href="#__codelineno-3-16"></a><span class="n">SUBAGENTS</span> <span class="o">=</span> <span class="p">{</span>
+<a id="__codelineno-3-17" name="__codelineno-3-17" href="#__codelineno-3-17"></a>    <span class="s2">&quot;research&quot;</span><span class="p">:</span> <span class="n">research_agent</span><span class="p">,</span>
+<a id="__codelineno-3-18" name="__codelineno-3-18" href="#__codelineno-3-18"></a>    <span class="s2">&quot;writer&quot;</span><span class="p">:</span> <span class="n">writer_agent</span><span class="p">,</span>
+<a id="__codelineno-3-19" name="__codelineno-3-19" href="#__codelineno-3-19"></a><span class="p">}</span>
+<a id="__codelineno-3-20" name="__codelineno-3-20" href="#__codelineno-3-20"></a>
+<a id="__codelineno-3-21" name="__codelineno-3-21" href="#__codelineno-3-21"></a><span class="nd">@tool</span>
+<a id="__codelineno-3-22" name="__codelineno-3-22" href="#__codelineno-3-22"></a><span class="k">def</span><span class="w"> </span><span class="nf">task</span><span class="p">(</span><span class="n">agent_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">description</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<a id="__codelineno-3-23" name="__codelineno-3-23" href="#__codelineno-3-23"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Launch an ephemeral subagent for a task.</span>
+<a id="__codelineno-3-24" name="__codelineno-3-24" href="#__codelineno-3-24"></a>
+<a id="__codelineno-3-25" name="__codelineno-3-25" href="#__codelineno-3-25"></a><span class="sd">    Available agents:</span>
+<a id="__codelineno-3-26" name="__codelineno-3-26" href="#__codelineno-3-26"></a><span class="sd">    - research: Research and fact-finding</span>
+<a id="__codelineno-3-27" name="__codelineno-3-27" href="#__codelineno-3-27"></a><span class="sd">    - writer: Content creation and editing</span>
+<a id="__codelineno-3-28" name="__codelineno-3-28" href="#__codelineno-3-28"></a><span class="sd">    &quot;&quot;&quot;</span>
+<a id="__codelineno-3-29" name="__codelineno-3-29" href="#__codelineno-3-29"></a>    <span class="n">agent</span> <span class="o">=</span> <span class="n">SUBAGENTS</span><span class="p">[</span><span class="n">agent_name</span><span class="p">]</span>
+<a id="__codelineno-3-30" name="__codelineno-3-30" href="#__codelineno-3-30"></a>    <span class="n">result</span> <span class="o">=</span> <span class="n">agent</span><span class="o">.</span><span class="n">invoke</span><span class="p">({</span>
+<a id="__codelineno-3-31" name="__codelineno-3-31" href="#__codelineno-3-31"></a>        <span class="s2">&quot;messages&quot;</span><span class="p">:</span> <span class="p">[</span>
+<a id="__codelineno-3-32" name="__codelineno-3-32" href="#__codelineno-3-32"></a>            <span class="p">{</span><span class="s2">&quot;role&quot;</span><span class="p">:</span> <span class="s2">&quot;user&quot;</span><span class="p">,</span> <span class="s2">&quot;content&quot;</span><span class="p">:</span> <span class="n">description</span><span class="p">}</span>
+<a id="__codelineno-3-33" name="__codelineno-3-33" href="#__codelineno-3-33"></a>        <span class="p">]</span>
+<a id="__codelineno-3-34" name="__codelineno-3-34" href="#__codelineno-3-34"></a>    <span class="p">})</span>
+<a id="__codelineno-3-35" name="__codelineno-3-35" href="#__codelineno-3-35"></a>    <span class="k">return</span> <span class="n">result</span><span class="p">[</span><span class="s2">&quot;messages&quot;</span><span class="p">][</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">content</span>
+<a id="__codelineno-3-36" name="__codelineno-3-36" href="#__codelineno-3-36"></a>
+<a id="__codelineno-3-37" name="__codelineno-3-37" href="#__codelineno-3-37"></a><span class="c1"># Main coordinator agent</span>
+<a id="__codelineno-3-38" name="__codelineno-3-38" href="#__codelineno-3-38"></a><span class="n">main_agent</span> <span class="o">=</span> <span class="n">create_agent</span><span class="p">(</span>
+<a id="__codelineno-3-39" name="__codelineno-3-39" href="#__codelineno-3-39"></a>    <span class="n">model</span><span class="o">=</span><span class="s2">&quot;openai:gpt-5.5&quot;</span><span class="p">,</span>
+<a id="__codelineno-3-40" name="__codelineno-3-40" href="#__codelineno-3-40"></a>    <span class="n">tools</span><span class="o">=</span><span class="p">[</span><span class="n">task</span><span class="p">],</span>
+<a id="__codelineno-3-41" name="__codelineno-3-41" href="#__codelineno-3-41"></a>    <span class="n">system_prompt</span><span class="o">=</span><span class="p">(</span>
+<a id="__codelineno-3-42" name="__codelineno-3-42" href="#__codelineno-3-42"></a>        <span class="s2">&quot;You coordinate specialized sub-agents. &quot;</span>
+<a id="__codelineno-3-43" name="__codelineno-3-43" href="#__codelineno-3-43"></a>        <span class="s2">&quot;Available: research (fact-finding), &quot;</span>
+<a id="__codelineno-3-44" name="__codelineno-3-44" href="#__codelineno-3-44"></a>        <span class="s2">&quot;writer (content creation). &quot;</span>
+<a id="__codelineno-3-45" name="__codelineno-3-45" href="#__codelineno-3-45"></a>        <span class="s2">&quot;Use the task tool to delegate work.&quot;</span>
+<a id="__codelineno-3-46" name="__codelineno-3-46" href="#__codelineno-3-46"></a>    <span class="p">),</span>
+<a id="__codelineno-3-47" name="__codelineno-3-47" href="#__codelineno-3-47"></a><span class="p">)</span>
+</code></pre></div>
+<blockquote>
+<p>💡 有意思的是：子代理可以和主 Agent 能力完全相同。这时调用子代理的真正目的是<strong>上下文隔离</strong>——让复杂多步任务在隔离的上下文窗口里跑，不膨胀主 Agent 的对话历史。子代理自主完成工作，只返回简洁摘要。这就是 Deep Agents <code>task</code> 工具的设计思想。</p>
+</blockquote>
+<h3 id="agent_1">子代理规格：让主 Agent 知道有哪些子代理<a class="headerlink" href="#agent_1" title="Permanent link">&para;</a></h3>
+<p>单一分发工具模式下，必须告诉主 Agent 有哪些子代理可调用：</p>
+<table>
+<thead>
+<tr>
+<th>方法</th>
+<th>适合</th>
+<th>权衡</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>系统提示列举</strong></td>
+<td>小而静态的 Agent 列表（&lt;10 个）</td>
+<td>简单，但 Agent 变化要改提示</td>
+</tr>
+<tr>
+<td><strong>枚举约束</strong></td>
+<td>小而静态的 Agent 列表（&lt;10 个）</td>
+<td>类型安全、显式，但 Agent 变化要改代码</td>
+</tr>
+<tr>
+<td><strong>工具式发现</strong></td>
+<td>大型或动态 Agent 注册表</td>
+<td>灵活可扩展，但增加复杂度</td>
+</tr>
+</tbody>
+</table>
+<p><strong>枚举约束示例</strong>（给 <code>agent_name</code> 参数加 Literal 类型）：</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Literal</span>
+<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>
+<a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="nd">@tool</span>
+<a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a><span class="k">def</span><span class="w"> </span><span class="nf">task</span><span class="p">(</span><span class="n">agent_name</span><span class="p">:</span> <span class="n">Literal</span><span class="p">[</span><span class="s2">&quot;research&quot;</span><span class="p">,</span> <span class="s2">&quot;writer&quot;</span><span class="p">],</span> <span class="n">description</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Launch an ephemeral subagent for a task.&quot;&quot;&quot;</span>
+<a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a>    <span class="n">agent</span> <span class="o">=</span> <span class="n">SUBAGENTS</span><span class="p">[</span><span class="n">agent_name</span><span class="p">]</span>
+<a id="__codelineno-4-7" name="__codelineno-4-7" href="#__codelineno-4-7"></a>    <span class="n">result</span> <span class="o">=</span> <span class="n">agent</span><span class="o">.</span><span class="n">invoke</span><span class="p">({</span><span class="s2">&quot;messages&quot;</span><span class="p">:</span> <span class="p">[{</span><span class="s2">&quot;role&quot;</span><span class="p">:</span> <span class="s2">&quot;user&quot;</span><span class="p">,</span> <span class="s2">&quot;content&quot;</span><span class="p">:</span> <span class="n">description</span><span class="p">}]})</span>
+<a id="__codelineno-4-8" name="__codelineno-4-8" href="#__codelineno-4-8"></a>    <span class="k">return</span> <span class="n">result</span><span class="p">[</span><span class="s2">&quot;messages&quot;</span><span class="p">][</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">content</span>
+</code></pre></div>
+<h3 id="_9">上下文工程三要素<a class="headerlink" href="#_9" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>类别</th>
+<th>目的</th>
+<th>影响</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>子代理规格</strong>（名称+描述）</td>
+<td>确保子代理在该被调用时被调用</td>
+<td>主 Agent 路由决策</td>
+</tr>
+<tr>
+<td><strong>子代理输入</strong></td>
+<td>确保子代理用优化的上下文执行好</td>
+<td>子代理性能</td>
+</tr>
+<tr>
+<td><strong>子代理输出</strong></td>
+<td>确保 supervisor 能基于结果行动</td>
+<td>主 Agent 性能</td>
+</tr>
+</tbody>
+</table>
+<ul>
+<li><strong>名称</strong>：清晰、动作导向（<code>research_agent</code>、<code>code_reviewer</code>）</li>
+<li><strong>描述</strong>：具体说明处理什么任务、何时使用——这是提示工程杠杆，认真写</li>
+</ul>
+<hr />
+<h2 id="144-handoffs">14.4 Handoffs 模式（交接）<a class="headerlink" href="#144-handoffs" title="Permanent link">&para;</a></h2>
+<p><strong>架构</strong>：行为随状态动态变化。核心机制：<strong>工具更新一个跨轮次持久的状态变量</strong>（如 <code>current_step</code> 或 <code>active_agent</code>），系统读取该变量调整行为——应用不同配置（系统提示、工具）或路由到不同 Agent。</p>
+<blockquote>
+<p>📌 "handoffs" 一词由 OpenAI 提出：用工具调用（如 <code>transfer_to_sales_agent</code>）在 Agent 或状态间转移控制权。</p>
+</blockquote>
+<p><strong>典型场景</strong>（客服流程）：</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>用户：&quot;我的手机坏了&quot;
+<a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>  → 步骤 1: 收集保修状态（工具: record_warranty_status）
+<a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a>Agent：&quot;您的设备还在保修期内吗？&quot;
+<a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a>用户：&quot;还在保修期&quot;
+<a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a>  → 工具更新状态 → 切换到步骤 2: 分类问题（工具: record_issue_type）
+<a id="__codelineno-5-6" name="__codelineno-5-6" href="#__codelineno-5-6"></a>Agent：&quot;能描述一下问题吗？&quot;
+<a id="__codelineno-5-7" name="__codelineno-5-7" href="#__codelineno-5-7"></a>用户：&quot;屏幕碎了&quot;
+<a id="__codelineno-5-8" name="__codelineno-5-8" href="#__codelineno-5-8"></a>  → 工具更新状态 → 切换到步骤 3: 提供解决方案（工具: provide_solution, escalate_to_human）
+<a id="__codelineno-5-9" name="__codelineno-5-9" href="#__codelineno-5-9"></a>Agent：&quot;这是保修维修流程...&quot;
+</code></pre></div>
+<h3 id="_10">关键特征<a class="headerlink" href="#_10" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>状态驱动行为</strong>：行为随状态变量变化</li>
+<li><strong>工具触发转换</strong>：工具更新状态变量实现状态迁移</li>
+<li><strong>直接用户交互</strong>：每个状态的配置直接处理用户消息</li>
+<li><strong>状态持久</strong>：状态跨对话轮次存活</li>
+</ul>
+<h3 id="_11">适用场景<a class="headerlink" href="#_11" title="Permanent link">&para;</a></h3>
+<p>需要强制顺序约束（满足前置条件才解锁能力）、Agent 要在不同状态下直接和用户对话、构建多阶段对话流时。客服场景特别有价值——比如必须先收集保修 ID 才能处理退款。</p>
+<h3 id="command">核心机制：返回 Command 的工具<a class="headerlink" href="#command" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">langchain.tools</span><span class="w"> </span><span class="kn">import</span> <span class="n">tool</span>
+<a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a><span class="kn">from</span><span class="w"> </span><span class="nn">langchain.messages</span><span class="w"> </span><span class="kn">import</span> <span class="n">ToolMessage</span>
+<a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a><span class="kn">from</span><span class="w"> </span><span class="nn">langgraph.types</span><span class="w"> </span><span class="kn">import</span> <span class="n">Command</span>
+<a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a>
+<a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a><span class="nd">@tool</span>
+<a id="__codelineno-6-6" name="__codelineno-6-6" href="#__codelineno-6-6"></a><span class="k">def</span><span class="w"> </span><span class="nf">transfer_to_specialist</span><span class="p">(</span><span class="n">runtime</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Command</span><span class="p">:</span>
+<a id="__codelineno-6-7" name="__codelineno-6-7" href="#__codelineno-6-7"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Transfer to the specialist agent.&quot;&quot;&quot;</span>
+<a id="__codelineno-6-8" name="__codelineno-6-8" href="#__codelineno-6-8"></a>    <span class="k">return</span> <span class="n">Command</span><span class="p">(</span>
+<a id="__codelineno-6-9" name="__codelineno-6-9" href="#__codelineno-6-9"></a>        <span class="n">update</span><span class="o">=</span><span class="p">{</span>
+<a id="__codelineno-6-10" name="__codelineno-6-10" href="#__codelineno-6-10"></a>            <span class="s2">&quot;messages&quot;</span><span class="p">:</span> <span class="p">[</span>
+<a id="__codelineno-6-11" name="__codelineno-6-11" href="#__codelineno-6-11"></a>                <span class="n">ToolMessage</span><span class="p">(</span>
+<a id="__codelineno-6-12" name="__codelineno-6-12" href="#__codelineno-6-12"></a>                    <span class="n">content</span><span class="o">=</span><span class="s2">&quot;Transferred to specialist&quot;</span><span class="p">,</span>
+<a id="__codelineno-6-13" name="__codelineno-6-13" href="#__codelineno-6-13"></a>                    <span class="n">tool_call_id</span><span class="o">=</span><span class="n">runtime</span><span class="o">.</span><span class="n">tool_call_id</span>
+<a id="__codelineno-6-14" name="__codelineno-6-14" href="#__codelineno-6-14"></a>                <span class="p">)</span>
+<a id="__codelineno-6-15" name="__codelineno-6-15" href="#__codelineno-6-15"></a>            <span class="p">],</span>
+<a id="__codelineno-6-16" name="__codelineno-6-16" href="#__codelineno-6-16"></a>            <span class="s2">&quot;current_step&quot;</span><span class="p">:</span> <span class="s2">&quot;specialist&quot;</span>  <span class="c1"># Triggers behavior change</span>
+<a id="__codelineno-6-17" name="__codelineno-6-17" href="#__codelineno-6-17"></a>        <span class="p">}</span>
+<a id="__codelineno-6-18" name="__codelineno-6-18" href="#__codelineno-6-18"></a>    <span class="p">)</span>
+</code></pre></div>
+<blockquote>
+<p>📌 <strong>为什么要包含 <code>ToolMessage</code>？</strong> LLM 调用工具后期待一个响应。带匹配 <code>tool_call_id</code> 的 <code>ToolMessage</code> 完成这个请求-响应循环——没有它对话历史会畸形。handoff 工具更新 messages 时必须这样做。</p>
+</blockquote>
+<h3 id="agent-middleware">实现方式一：单 Agent + middleware（推荐）<a class="headerlink" href="#agent-middleware" title="Permanent link">&para;</a></h3>
+<p>单 Agent 基于状态改变行为。middleware 拦截每次模型调用，动态调整系统提示和可用工具：</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">langchain.agents</span><span class="w"> </span><span class="kn">import</span> <span class="n">AgentState</span><span class="p">,</span> <span class="n">create_agent</span>
+<a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a><span class="kn">from</span><span class="w"> </span><span class="nn">langchain.agents.middleware</span><span class="w"> </span><span class="kn">import</span> <span class="n">wrap_model_call</span><span class="p">,</span> <span class="n">ModelRequest</span><span class="p">,</span> <span class="n">ModelResponse</span>
+<a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a><span class="kn">from</span><span class="w"> </span><span class="nn">langchain.tools</span><span class="w"> </span><span class="kn">import</span> <span class="n">tool</span><span class="p">,</span> <span class="n">ToolRuntime</span>
+<a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a><span class="kn">from</span><span class="w"> </span><span class="nn">langchain.messages</span><span class="w"> </span><span class="kn">import</span> <span class="n">ToolMessage</span>
+<a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a><span class="kn">from</span><span class="w"> </span><span class="nn">langgraph.types</span><span class="w"> </span><span class="kn">import</span> <span class="n">Command</span>
+<a id="__codelineno-7-6" name="__codelineno-7-6" href="#__codelineno-7-6"></a><span class="kn">from</span><span class="w"> </span><span class="nn">langgraph.checkpoint.memory</span><span class="w"> </span><span class="kn">import</span> <span class="n">InMemorySaver</span>
+<a id="__codelineno-7-7" name="__codelineno-7-7" href="#__codelineno-7-7"></a><span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Callable</span>
+<a id="__codelineno-7-8" name="__codelineno-7-8" href="#__codelineno-7-8"></a>
+<a id="__codelineno-7-9" name="__codelineno-7-9" href="#__codelineno-7-9"></a><span class="c1"># 1. Define state with current_step tracker</span>
+<a id="__codelineno-7-10" name="__codelineno-7-10" href="#__codelineno-7-10"></a><span class="k">class</span><span class="w"> </span><span class="nc">SupportState</span><span class="p">(</span><span class="n">AgentState</span><span class="p">):</span>
+<a id="__codelineno-7-11" name="__codelineno-7-11" href="#__codelineno-7-11"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Track which step is currently active.&quot;&quot;&quot;</span>
+<a id="__codelineno-7-12" name="__codelineno-7-12" href="#__codelineno-7-12"></a>    <span class="n">current_step</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;triage&quot;</span>
+<a id="__codelineno-7-13" name="__codelineno-7-13" href="#__codelineno-7-13"></a>    <span class="n">warranty_status</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+<a id="__codelineno-7-14" name="__codelineno-7-14" href="#__codelineno-7-14"></a>
+<a id="__codelineno-7-15" name="__codelineno-7-15" href="#__codelineno-7-15"></a><span class="c1"># 2. Tools update current_step via Command</span>
+<a id="__codelineno-7-16" name="__codelineno-7-16" href="#__codelineno-7-16"></a><span class="nd">@tool</span>
+<a id="__codelineno-7-17" name="__codelineno-7-17" href="#__codelineno-7-17"></a><span class="k">def</span><span class="w"> </span><span class="nf">record_warranty_status</span><span class="p">(</span>
+<a id="__codelineno-7-18" name="__codelineno-7-18" href="#__codelineno-7-18"></a>    <span class="n">status</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+<a id="__codelineno-7-19" name="__codelineno-7-19" href="#__codelineno-7-19"></a>    <span class="n">runtime</span><span class="p">:</span> <span class="n">ToolRuntime</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="n">SupportState</span><span class="p">]</span>
+<a id="__codelineno-7-20" name="__codelineno-7-20" href="#__codelineno-7-20"></a><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Command</span><span class="p">:</span>
+<a id="__codelineno-7-21" name="__codelineno-7-21" href="#__codelineno-7-21"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Record warranty status and transition to next step.&quot;&quot;&quot;</span>
+<a id="__codelineno-7-22" name="__codelineno-7-22" href="#__codelineno-7-22"></a>    <span class="k">return</span> <span class="n">Command</span><span class="p">(</span><span class="n">update</span><span class="o">=</span><span class="p">{</span>
+<a id="__codelineno-7-23" name="__codelineno-7-23" href="#__codelineno-7-23"></a>        <span class="s2">&quot;messages&quot;</span><span class="p">:</span> <span class="p">[</span>
+<a id="__codelineno-7-24" name="__codelineno-7-24" href="#__codelineno-7-24"></a>            <span class="n">ToolMessage</span><span class="p">(</span>
+<a id="__codelineno-7-25" name="__codelineno-7-25" href="#__codelineno-7-25"></a>                <span class="n">content</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;Warranty status recorded: </span><span class="si">{</span><span class="n">status</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+<a id="__codelineno-7-26" name="__codelineno-7-26" href="#__codelineno-7-26"></a>                <span class="n">tool_call_id</span><span class="o">=</span><span class="n">runtime</span><span class="o">.</span><span class="n">tool_call_id</span>
+<a id="__codelineno-7-27" name="__codelineno-7-27" href="#__codelineno-7-27"></a>            <span class="p">)</span>
+<a id="__codelineno-7-28" name="__codelineno-7-28" href="#__codelineno-7-28"></a>        <span class="p">],</span>
+<a id="__codelineno-7-29" name="__codelineno-7-29" href="#__codelineno-7-29"></a>        <span class="s2">&quot;warranty_status&quot;</span><span class="p">:</span> <span class="n">status</span><span class="p">,</span>
+<a id="__codelineno-7-30" name="__codelineno-7-30" href="#__codelineno-7-30"></a>        <span class="s2">&quot;current_step&quot;</span><span class="p">:</span> <span class="s2">&quot;specialist&quot;</span>    <span class="c1"># Transition to next step</span>
+<a id="__codelineno-7-31" name="__codelineno-7-31" href="#__codelineno-7-31"></a>    <span class="p">})</span>
+<a id="__codelineno-7-32" name="__codelineno-7-32" href="#__codelineno-7-32"></a>
+<a id="__codelineno-7-33" name="__codelineno-7-33" href="#__codelineno-7-33"></a><span class="c1"># 3. Middleware applies dynamic configuration based on current_step</span>
+<a id="__codelineno-7-34" name="__codelineno-7-34" href="#__codelineno-7-34"></a><span class="nd">@wrap_model_call</span>
+<a id="__codelineno-7-35" name="__codelineno-7-35" href="#__codelineno-7-35"></a><span class="k">def</span><span class="w"> </span><span class="nf">apply_step_config</span><span class="p">(</span>
+<a id="__codelineno-7-36" name="__codelineno-7-36" href="#__codelineno-7-36"></a>    <span class="n">request</span><span class="p">:</span> <span class="n">ModelRequest</span><span class="p">,</span>
+<a id="__codelineno-7-37" name="__codelineno-7-37" href="#__codelineno-7-37"></a>    <span class="n">handler</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[[</span><span class="n">ModelRequest</span><span class="p">],</span> <span class="n">ModelResponse</span><span class="p">]</span>
+<a id="__codelineno-7-38" name="__codelineno-7-38" href="#__codelineno-7-38"></a><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ModelResponse</span><span class="p">:</span>
+<a id="__codelineno-7-39" name="__codelineno-7-39" href="#__codelineno-7-39"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Configure agent behavior based on current_step.&quot;&quot;&quot;</span>
+<a id="__codelineno-7-40" name="__codelineno-7-40" href="#__codelineno-7-40"></a>    <span class="n">step</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">state</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;current_step&quot;</span><span class="p">,</span> <span class="s2">&quot;triage&quot;</span><span class="p">)</span>
+<a id="__codelineno-7-41" name="__codelineno-7-41" href="#__codelineno-7-41"></a>
+<a id="__codelineno-7-42" name="__codelineno-7-42" href="#__codelineno-7-42"></a>    <span class="n">configs</span> <span class="o">=</span> <span class="p">{</span>
+<a id="__codelineno-7-43" name="__codelineno-7-43" href="#__codelineno-7-43"></a>        <span class="s2">&quot;triage&quot;</span><span class="p">:</span> <span class="p">{</span>
+<a id="__codelineno-7-44" name="__codelineno-7-44" href="#__codelineno-7-44"></a>            <span class="s2">&quot;prompt&quot;</span><span class="p">:</span> <span class="s2">&quot;Collect warranty information...&quot;</span><span class="p">,</span>
+<a id="__codelineno-7-45" name="__codelineno-7-45" href="#__codelineno-7-45"></a>            <span class="s2">&quot;tools&quot;</span><span class="p">:</span> <span class="p">[</span><span class="n">record_warranty_status</span><span class="p">]</span>
+<a id="__codelineno-7-46" name="__codelineno-7-46" href="#__codelineno-7-46"></a>        <span class="p">},</span>
+<a id="__codelineno-7-47" name="__codelineno-7-47" href="#__codelineno-7-47"></a>        <span class="s2">&quot;specialist&quot;</span><span class="p">:</span> <span class="p">{</span>
+<a id="__codelineno-7-48" name="__codelineno-7-48" href="#__codelineno-7-48"></a>            <span class="s2">&quot;prompt&quot;</span><span class="p">:</span> <span class="s2">&quot;Provide solutions based on warranty: </span><span class="si">{warranty_status}</span><span class="s2">&quot;</span><span class="p">,</span>
+<a id="__codelineno-7-49" name="__codelineno-7-49" href="#__codelineno-7-49"></a>            <span class="s2">&quot;tools&quot;</span><span class="p">:</span> <span class="p">[</span><span class="n">provide_solution</span><span class="p">,</span> <span class="n">escalate</span><span class="p">]</span>
+<a id="__codelineno-7-50" name="__codelineno-7-50" href="#__codelineno-7-50"></a>        <span class="p">}</span>
+<a id="__codelineno-7-51" name="__codelineno-7-51" href="#__codelineno-7-51"></a>    <span class="p">}</span>
+<a id="__codelineno-7-52" name="__codelineno-7-52" href="#__codelineno-7-52"></a>
+<a id="__codelineno-7-53" name="__codelineno-7-53" href="#__codelineno-7-53"></a>    <span class="n">config</span> <span class="o">=</span> <span class="n">configs</span><span class="p">[</span><span class="n">step</span><span class="p">]</span>
+<a id="__codelineno-7-54" name="__codelineno-7-54" href="#__codelineno-7-54"></a>    <span class="n">request</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">override</span><span class="p">(</span>
+<a id="__codelineno-7-55" name="__codelineno-7-55" href="#__codelineno-7-55"></a>        <span class="n">system_prompt</span><span class="o">=</span><span class="n">config</span><span class="p">[</span><span class="s2">&quot;prompt&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="o">**</span><span class="n">request</span><span class="o">.</span><span class="n">state</span><span class="p">),</span>
+<a id="__codelineno-7-56" name="__codelineno-7-56" href="#__codelineno-7-56"></a>        <span class="n">tools</span><span class="o">=</span><span class="n">config</span><span class="p">[</span><span class="s2">&quot;tools&quot;</span><span class="p">]</span>
+<a id="__codelineno-7-57" name="__codelineno-7-57" href="#__codelineno-7-57"></a>    <span class="p">)</span>
+<a id="__codelineno-7-58" name="__codelineno-7-58" href="#__codelineno-7-58"></a>    <span class="k">return</span> <span class="n">handler</span><span class="p">(</span><span class="n">request</span><span class="p">)</span>
+<a id="__codelineno-7-59" name="__codelineno-7-59" href="#__codelineno-7-59"></a>
+<a id="__codelineno-7-60" name="__codelineno-7-60" href="#__codelineno-7-60"></a><span class="c1"># 4. Create agent with middleware</span>
+<a id="__codelineno-7-61" name="__codelineno-7-61" href="#__codelineno-7-61"></a><span class="n">agent</span> <span class="o">=</span> <span class="n">create_agent</span><span class="p">(</span>
+<a id="__codelineno-7-62" name="__codelineno-7-62" href="#__codelineno-7-62"></a>    <span class="n">model</span><span class="p">,</span>
+<a id="__codelineno-7-63" name="__codelineno-7-63" href="#__codelineno-7-63"></a>    <span class="n">tools</span><span class="o">=</span><span class="p">[</span><span class="n">record_warranty_status</span><span class="p">,</span> <span class="n">provide_solution</span><span class="p">,</span> <span class="n">escalate</span><span class="p">],</span>
+<a id="__codelineno-7-64" name="__codelineno-7-64" href="#__codelineno-7-64"></a>    <span class="n">state_schema</span><span class="o">=</span><span class="n">SupportState</span><span class="p">,</span>
+<a id="__codelineno-7-65" name="__codelineno-7-65" href="#__codelineno-7-65"></a>    <span class="n">middleware</span><span class="o">=</span><span class="p">[</span><span class="n">apply_step_config</span><span class="p">],</span>
+<a id="__codelineno-7-66" name="__codelineno-7-66" href="#__codelineno-7-66"></a>    <span class="n">checkpointer</span><span class="o">=</span><span class="n">InMemorySaver</span><span class="p">()</span>  <span class="c1"># Persist state across turns</span>
+<a id="__codelineno-7-67" name="__codelineno-7-67" href="#__codelineno-7-67"></a><span class="p">)</span>
+</code></pre></div>
+<p>要点：</p>
+<ol>
+<li><strong>状态 schema</strong> 继承 <code>AgentState</code>，加 <code>current_step</code> 跟踪字段</li>
+<li><strong>工具返回 <code>Command</code></strong> 更新状态变量触发转换</li>
+<li><strong><code>wrap_model_call</code> middleware</strong> 在每次模型调用前根据状态动态替换提示和工具</li>
+<li><strong>checkpointer 必需</strong>——状态要跨轮次持久</li>
+</ol>
+<h3 id="agent_2">实现方式二：多 Agent 子图<a class="headerlink" href="#agent_2" title="Permanent link">&para;</a></h3>
+<p>不同 Agent 作为图节点，<code>Command(goto=...)</code> 在节点间转移控制权。适合真正需要不同模型/完全不同工具集的场景。单 Agent + middleware 方式更轻量，优先选它。</p>
+<hr />
+<h2 id="145-skills">14.5 Skills 模式（按需技能）<a class="headerlink" href="#145-skills" title="Permanent link">&para;</a></h2>
+<p><strong>架构</strong>：单 Agent 保持控制，按需加载专业的提示和知识。</p>
+<p>这是 Subagents 和 Handoffs 的轻量替代：不创建多个 Agent，而是让一个 Agent 拥有多个"专业人格"，任务需要时才加载对应的技能内容。</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a>用户 → Agent ──需要时加载──→ Skill A / Skill B / Skill C
+<a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a>              ←──专业上下文──┘
+</code></pre></div>
+<p><strong>核心思想</strong>：Agent 在系统提示中只看到轻量的技能描述（渐进披露），任务匹配时才通过工具调用加载完整技能内容。</p>
+<p>完整实现见 <strong>第 19 章：Skills — 按需技能架构</strong>（<code>02-tools/02-skills.md</code>），包括渐进披露机制和 SQL Assistant 实战。</p>
+<hr />
+<h2 id="146-router">14.6 Router 模式（路由）<a class="headerlink" href="#146-router" title="Permanent link">&para;</a></h2>
+<p><strong>架构</strong>：路由步骤对输入分类，分发给专业 Agent。适合有清晰<strong>垂直领域</strong>（每个知识域需要自己的 Agent）的场景。</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a>查询 → Router ─┬→ Agent A ─┐
+<a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a>               ├→ Agent B ─┼→ Synthesize → 综合答案
+<a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a>               └→ Agent C ─┘
+</code></pre></div>
+<h3 id="_12">关键特征<a class="headerlink" href="#_12" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Router 分解查询</li>
+<li>零个或多个专业 Agent <strong>并行</strong>调用</li>
+<li>结果综合成连贯回复</li>
+</ul>
+<h3 id="_13">适用场景<a class="headerlink" href="#_13" title="Permanent link">&para;</a></h3>
+<p>有清晰垂直领域、需要并行查询多个来源、要把结果综合成统一回复时。</p>
+<h3 id="_14">基本实现<a class="headerlink" href="#_14" title="Permanent link">&para;</a></h3>
+<p>单 Agent 路由用 <code>Command</code>，并行 fan-out 用 <code>Send</code>：</p>
+<p><strong>单 Agent 路由</strong>：</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">langgraph.types</span><span class="w"> </span><span class="kn">import</span> <span class="n">Command</span>
+<a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a>
+<a id="__codelineno-10-3" name="__codelineno-10-3" href="#__codelineno-10-3"></a><span class="k">def</span><span class="w"> </span><span class="nf">classify_query</span><span class="p">(</span><span class="n">query</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<a id="__codelineno-10-4" name="__codelineno-10-4" href="#__codelineno-10-4"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Use LLM to classify query and determine the appropriate agent.&quot;&quot;&quot;</span>
+<a id="__codelineno-10-5" name="__codelineno-10-5" href="#__codelineno-10-5"></a>    <span class="c1"># Classification logic here</span>
+<a id="__codelineno-10-6" name="__codelineno-10-6" href="#__codelineno-10-6"></a>    <span class="o">...</span>
+<a id="__codelineno-10-7" name="__codelineno-10-7" href="#__codelineno-10-7"></a>
+<a id="__codelineno-10-8" name="__codelineno-10-8" href="#__codelineno-10-8"></a><span class="k">def</span><span class="w"> </span><span class="nf">route_query</span><span class="p">(</span><span class="n">state</span><span class="p">:</span> <span class="n">State</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Command</span><span class="p">:</span>
+<a id="__codelineno-10-9" name="__codelineno-10-9" href="#__codelineno-10-9"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Route to the appropriate agent based on query classification.&quot;&quot;&quot;</span>
+<a id="__codelineno-10-10" name="__codelineno-10-10" href="#__codelineno-10-10"></a>    <span class="n">active_agent</span> <span class="o">=</span> <span class="n">classify_query</span><span class="p">(</span><span class="n">state</span><span class="p">[</span><span class="s2">&quot;query&quot;</span><span class="p">])</span>
+<a id="__codelineno-10-11" name="__codelineno-10-11" href="#__codelineno-10-11"></a>
+<a id="__codelineno-10-12" name="__codelineno-10-12" href="#__codelineno-10-12"></a>    <span class="c1"># Route to the selected agent</span>
+<a id="__codelineno-10-13" name="__codelineno-10-13" href="#__codelineno-10-13"></a>    <span class="k">return</span> <span class="n">Command</span><span class="p">(</span><span class="n">goto</span><span class="o">=</span><span class="n">active_agent</span><span class="p">)</span>
+</code></pre></div>
+<p><strong>多 Agent 并行（Send fan-out）</strong>：</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">TypedDict</span>
+<a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a><span class="kn">from</span><span class="w"> </span><span class="nn">langgraph.types</span><span class="w"> </span><span class="kn">import</span> <span class="n">Send</span>
+<a id="__codelineno-11-3" name="__codelineno-11-3" href="#__codelineno-11-3"></a>
+<a id="__codelineno-11-4" name="__codelineno-11-4" href="#__codelineno-11-4"></a><span class="k">class</span><span class="w"> </span><span class="nc">ClassificationResult</span><span class="p">(</span><span class="n">TypedDict</span><span class="p">):</span>
+<a id="__codelineno-11-5" name="__codelineno-11-5" href="#__codelineno-11-5"></a>    <span class="n">query</span><span class="p">:</span> <span class="nb">str</span>
+<a id="__codelineno-11-6" name="__codelineno-11-6" href="#__codelineno-11-6"></a>    <span class="n">agent</span><span class="p">:</span> <span class="nb">str</span>
+<a id="__codelineno-11-7" name="__codelineno-11-7" href="#__codelineno-11-7"></a>
+<a id="__codelineno-11-8" name="__codelineno-11-8" href="#__codelineno-11-8"></a><span class="k">def</span><span class="w"> </span><span class="nf">classify_query</span><span class="p">(</span><span class="n">query</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">ClassificationResult</span><span class="p">]:</span>
+<a id="__codelineno-11-9" name="__codelineno-11-9" href="#__codelineno-11-9"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Use LLM to classify query and determine which agents to invoke.&quot;&quot;&quot;</span>
+<a id="__codelineno-11-10" name="__codelineno-11-10" href="#__codelineno-11-10"></a>    <span class="c1"># Classification logic here</span>
+<a id="__codelineno-11-11" name="__codelineno-11-11" href="#__codelineno-11-11"></a>    <span class="o">...</span>
+<a id="__codelineno-11-12" name="__codelineno-11-12" href="#__codelineno-11-12"></a>
+<a id="__codelineno-11-13" name="__codelineno-11-13" href="#__codelineno-11-13"></a><span class="k">def</span><span class="w"> </span><span class="nf">route_query</span><span class="p">(</span><span class="n">state</span><span class="p">:</span> <span class="n">State</span><span class="p">):</span>
+<a id="__codelineno-11-14" name="__codelineno-11-14" href="#__codelineno-11-14"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Route to relevant agents based on query classification.&quot;&quot;&quot;</span>
+<a id="__codelineno-11-15" name="__codelineno-11-15" href="#__codelineno-11-15"></a>    <span class="n">classifications</span> <span class="o">=</span> <span class="n">classify_query</span><span class="p">(</span><span class="n">state</span><span class="p">[</span><span class="s2">&quot;query&quot;</span><span class="p">])</span>
+<a id="__codelineno-11-16" name="__codelineno-11-16" href="#__codelineno-11-16"></a>
+<a id="__codelineno-11-17" name="__codelineno-11-17" href="#__codelineno-11-17"></a>    <span class="c1"># Fan out to selected agents in parallel</span>
+<a id="__codelineno-11-18" name="__codelineno-11-18" href="#__codelineno-11-18"></a>    <span class="k">return</span> <span class="p">[</span>
+<a id="__codelineno-11-19" name="__codelineno-11-19" href="#__codelineno-11-19"></a>        <span class="n">Send</span><span class="p">(</span><span class="n">c</span><span class="p">[</span><span class="s2">&quot;agent&quot;</span><span class="p">],</span> <span class="p">{</span><span class="s2">&quot;query&quot;</span><span class="p">:</span> <span class="n">c</span><span class="p">[</span><span class="s2">&quot;query&quot;</span><span class="p">]})</span>
+<a id="__codelineno-11-20" name="__codelineno-11-20" href="#__codelineno-11-20"></a>        <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">classifications</span>
+<a id="__codelineno-11-21" name="__codelineno-11-21" href="#__codelineno-11-21"></a>    <span class="p">]</span>
+</code></pre></div>
+<h3 id="stateless-vs-stateful">Stateless vs Stateful<a class="headerlink" href="#stateless-vs-stateful" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>无状态路由</strong>：每个请求独立处理（分类 → 分发 → 综合），适合一次性查询</li>
+<li><strong>有状态路由</strong>：维护跨请求的对话历史，路由决策可参考上下文</li>
+</ul>
+<p>官方教程：Build a multi-source knowledge base with routing（并行查 GitHub/Notion/Slack 后综合）。</p>
+<hr />
+<h2 id="147-custom-workflow">14.7 Custom Workflow 模式（自定义工作流）<a class="headerlink" href="#147-custom-workflow" title="Permanent link">&para;</a></h2>
+<p><strong>架构</strong>：用 LangGraph 构建定制执行流，混合<strong>确定性逻辑</strong>和<strong>智能体行为</strong>，其他模式可作为节点嵌入。</p>
+<p>适合：流程有明确的阶段划分、部分步骤必须确定性执行（不经过 LLM）、需要条件分支/循环/并行的复杂编排。</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">langchain.agents</span><span class="w"> </span><span class="kn">import</span> <span class="n">create_agent</span>
+<a id="__codelineno-12-2" name="__codelineno-12-2" href="#__codelineno-12-2"></a><span class="kn">from</span><span class="w"> </span><span class="nn">langgraph.graph</span><span class="w"> </span><span class="kn">import</span> <span class="n">StateGraph</span><span class="p">,</span> <span class="n">MessagesState</span><span class="p">,</span> <span class="n">START</span><span class="p">,</span> <span class="n">END</span>
+<a id="__codelineno-12-3" name="__codelineno-12-3" href="#__codelineno-12-3"></a>
+<a id="__codelineno-12-4" name="__codelineno-12-4" href="#__codelineno-12-4"></a><span class="c1"># Specialized agents (each is a compiled LangGraph graph)</span>
+<a id="__codelineno-12-5" name="__codelineno-12-5" href="#__codelineno-12-5"></a><span class="n">researcher</span> <span class="o">=</span> <span class="n">create_agent</span><span class="p">(</span>
+<a id="__codelineno-12-6" name="__codelineno-12-6" href="#__codelineno-12-6"></a>    <span class="n">model</span><span class="o">=</span><span class="s2">&quot;openai:gpt-5.5&quot;</span><span class="p">,</span>
+<a id="__codelineno-12-7" name="__codelineno-12-7" href="#__codelineno-12-7"></a>    <span class="n">tools</span><span class="o">=</span><span class="p">[</span><span class="n">search_tool</span><span class="p">],</span>
+<a id="__codelineno-12-8" name="__codelineno-12-8" href="#__codelineno-12-8"></a>    <span class="n">system_prompt</span><span class="o">=</span><span class="s2">&quot;You are a research specialist&quot;</span><span class="p">,</span>
+<a id="__codelineno-12-9" name="__codelineno-12-9" href="#__codelineno-12-9"></a><span class="p">)</span>
+<a id="__codelineno-12-10" name="__codelineno-12-10" href="#__codelineno-12-10"></a>
+<a id="__codelineno-12-11" name="__codelineno-12-11" href="#__codelineno-12-11"></a><span class="n">writer</span> <span class="o">=</span> <span class="n">create_agent</span><span class="p">(</span>
+<a id="__codelineno-12-12" name="__codelineno-12-12" href="#__codelineno-12-12"></a>    <span class="n">model</span><span class="o">=</span><span class="s2">&quot;openai:gpt-5.5&quot;</span><span class="p">,</span>
+<a id="__codelineno-12-13" name="__codelineno-12-13" href="#__codelineno-12-13"></a>    <span class="n">tools</span><span class="o">=</span><span class="p">[</span><span class="n">writing_tool</span><span class="p">],</span>
+<a id="__codelineno-12-14" name="__codelineno-12-14" href="#__codelineno-12-14"></a>    <span class="n">system_prompt</span><span class="o">=</span><span class="s2">&quot;You are a writing specialist&quot;</span><span class="p">,</span>
+<a id="__codelineno-12-15" name="__codelineno-12-15" href="#__codelineno-12-15"></a><span class="p">)</span>
+<a id="__codelineno-12-16" name="__codelineno-12-16" href="#__codelineno-12-16"></a>
+<a id="__codelineno-12-17" name="__codelineno-12-17" href="#__codelineno-12-17"></a><span class="c1"># Deterministic node (no LLM)</span>
+<a id="__codelineno-12-18" name="__codelineno-12-18" href="#__codelineno-12-18"></a><span class="k">def</span><span class="w"> </span><span class="nf">validate</span><span class="p">(</span><span class="n">state</span><span class="p">:</span> <span class="n">MessagesState</span><span class="p">):</span>
+<a id="__codelineno-12-19" name="__codelineno-12-19" href="#__codelineno-12-19"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Deterministic validation step.&quot;&quot;&quot;</span>
+<a id="__codelineno-12-20" name="__codelineno-12-20" href="#__codelineno-12-20"></a>    <span class="c1"># Pure Python logic, no model call</span>
+<a id="__codelineno-12-21" name="__codelineno-12-21" href="#__codelineno-12-21"></a>    <span class="k">return</span> <span class="n">state</span>
+<a id="__codelineno-12-22" name="__codelineno-12-22" href="#__codelineno-12-22"></a>
+<a id="__codelineno-12-23" name="__codelineno-12-23" href="#__codelineno-12-23"></a><span class="c1"># Build the workflow</span>
+<a id="__codelineno-12-24" name="__codelineno-12-24" href="#__codelineno-12-24"></a><span class="n">graph</span> <span class="o">=</span> <span class="n">StateGraph</span><span class="p">(</span><span class="n">MessagesState</span><span class="p">)</span>
+<a id="__codelineno-12-25" name="__codelineno-12-25" href="#__codelineno-12-25"></a><span class="n">graph</span><span class="o">.</span><span class="n">add_node</span><span class="p">(</span><span class="s2">&quot;research&quot;</span><span class="p">,</span> <span class="n">researcher</span><span class="p">)</span>   <span class="c1"># Agentic node</span>
+<a id="__codelineno-12-26" name="__codelineno-12-26" href="#__codelineno-12-26"></a><span class="n">graph</span><span class="o">.</span><span class="n">add_node</span><span class="p">(</span><span class="s2">&quot;validate&quot;</span><span class="p">,</span> <span class="n">validate</span><span class="p">)</span>     <span class="c1"># Deterministic node</span>
+<a id="__codelineno-12-27" name="__codelineno-12-27" href="#__codelineno-12-27"></a><span class="n">graph</span><span class="o">.</span><span class="n">add_node</span><span class="p">(</span><span class="s2">&quot;write&quot;</span><span class="p">,</span> <span class="n">writer</span><span class="p">)</span>          <span class="c1"># Agentic node</span>
+<a id="__codelineno-12-28" name="__codelineno-12-28" href="#__codelineno-12-28"></a>
+<a id="__codelineno-12-29" name="__codelineno-12-29" href="#__codelineno-12-29"></a><span class="n">graph</span><span class="o">.</span><span class="n">add_edge</span><span class="p">(</span><span class="n">START</span><span class="p">,</span> <span class="s2">&quot;research&quot;</span><span class="p">)</span>
+<a id="__codelineno-12-30" name="__codelineno-12-30" href="#__codelineno-12-30"></a><span class="n">graph</span><span class="o">.</span><span class="n">add_edge</span><span class="p">(</span><span class="s2">&quot;research&quot;</span><span class="p">,</span> <span class="s2">&quot;validate&quot;</span><span class="p">)</span>
+<a id="__codelineno-12-31" name="__codelineno-12-31" href="#__codelineno-12-31"></a><span class="n">graph</span><span class="o">.</span><span class="n">add_edge</span><span class="p">(</span><span class="s2">&quot;validate&quot;</span><span class="p">,</span> <span class="s2">&quot;write&quot;</span><span class="p">)</span>
+<a id="__codelineno-12-32" name="__codelineno-12-32" href="#__codelineno-12-32"></a><span class="n">graph</span><span class="o">.</span><span class="n">add_edge</span><span class="p">(</span><span class="s2">&quot;write&quot;</span><span class="p">,</span> <span class="n">END</span><span class="p">)</span>
+<a id="__codelineno-12-33" name="__codelineno-12-33" href="#__codelineno-12-33"></a>
+<a id="__codelineno-12-34" name="__codelineno-12-34" href="#__codelineno-12-34"></a><span class="n">app</span> <span class="o">=</span> <span class="n">graph</span><span class="o">.</span><span class="n">compile</span><span class="p">()</span>
+<a id="__codelineno-12-35" name="__codelineno-12-35" href="#__codelineno-12-35"></a><span class="n">result</span> <span class="o">=</span> <span class="n">app</span><span class="o">.</span><span class="n">invoke</span><span class="p">({</span>
+<a id="__codelineno-12-36" name="__codelineno-12-36" href="#__codelineno-12-36"></a>    <span class="s2">&quot;messages&quot;</span><span class="p">:</span> <span class="p">[{</span><span class="s2">&quot;role&quot;</span><span class="p">:</span> <span class="s2">&quot;user&quot;</span><span class="p">,</span> <span class="s2">&quot;content&quot;</span><span class="p">:</span> <span class="s2">&quot;Research AI in healthcare and write a report&quot;</span><span class="p">}]</span>
+<a id="__codelineno-12-37" name="__codelineno-12-37" href="#__codelineno-12-37"></a><span class="p">})</span>
+</code></pre></div>
+<p>要点：</p>
+<ul>
+<li><code>create_agent</code> 返回的对象本身就是编译好的 LangGraph 图，可直接 <code>add_node</code> 嵌入</li>
+<li>确定性节点（校验、格式转换、数据查询）不经过 LLM，快且免费</li>
+<li>条件边（<code>add_conditional_edges</code>）实现动态分支</li>
+</ul>
+<p>深入 LangGraph 编排见本知识库的 <a href="../../../langgraph/">langgraph 教程</a>。</p>
+<hr />
+<h2 id="148-subagents">14.8 实战：多代理研究系统（Subagents 模式完整示例）<a class="headerlink" href="#148-subagents" title="Permanent link">&para;</a></h2>
+<p>综合运用本章知识，构建一个研究系统：主 Agent 协调研究员和写手两个子代理。</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a><span class="c1"># research_system.py</span>
+<a id="__codelineno-13-2" name="__codelineno-13-2" href="#__codelineno-13-2"></a><span class="kn">from</span><span class="w"> </span><span class="nn">langchain.tools</span><span class="w"> </span><span class="kn">import</span> <span class="n">tool</span>
+<a id="__codelineno-13-3" name="__codelineno-13-3" href="#__codelineno-13-3"></a><span class="kn">from</span><span class="w"> </span><span class="nn">langchain.agents</span><span class="w"> </span><span class="kn">import</span> <span class="n">create_agent</span>
+<a id="__codelineno-13-4" name="__codelineno-13-4" href="#__codelineno-13-4"></a>
+<a id="__codelineno-13-5" name="__codelineno-13-5" href="#__codelineno-13-5"></a><span class="c1"># ========== 1. Subagent: researcher ==========</span>
+<a id="__codelineno-13-6" name="__codelineno-13-6" href="#__codelineno-13-6"></a><span class="n">research_agent</span> <span class="o">=</span> <span class="n">create_agent</span><span class="p">(</span>
+<a id="__codelineno-13-7" name="__codelineno-13-7" href="#__codelineno-13-7"></a>    <span class="n">model</span><span class="o">=</span><span class="s2">&quot;openai:gpt-5.5&quot;</span><span class="p">,</span>
+<a id="__codelineno-13-8" name="__codelineno-13-8" href="#__codelineno-13-8"></a>    <span class="n">tools</span><span class="o">=</span><span class="p">[</span><span class="n">internet_search</span><span class="p">],</span>
+<a id="__codelineno-13-9" name="__codelineno-13-9" href="#__codelineno-13-9"></a>    <span class="n">system_prompt</span><span class="o">=</span><span class="p">(</span>
+<a id="__codelineno-13-10" name="__codelineno-13-10" href="#__codelineno-13-10"></a>        <span class="s2">&quot;You are a meticulous researcher. Search thoroughly, &quot;</span>
+<a id="__codelineno-13-11" name="__codelineno-13-11" href="#__codelineno-13-11"></a>        <span class="s2">&quot;and return CONCISE findings with sources.&quot;</span>
+<a id="__codelineno-13-12" name="__codelineno-13-12" href="#__codelineno-13-12"></a>    <span class="p">),</span>
+<a id="__codelineno-13-13" name="__codelineno-13-13" href="#__codelineno-13-13"></a><span class="p">)</span>
+<a id="__codelineno-13-14" name="__codelineno-13-14" href="#__codelineno-13-14"></a>
+<a id="__codelineno-13-15" name="__codelineno-13-15" href="#__codelineno-13-15"></a><span class="c1"># ========== 2. Subagent: writer ==========</span>
+<a id="__codelineno-13-16" name="__codelineno-13-16" href="#__codelineno-13-16"></a><span class="n">writer_agent</span> <span class="o">=</span> <span class="n">create_agent</span><span class="p">(</span>
+<a id="__codelineno-13-17" name="__codelineno-13-17" href="#__codelineno-13-17"></a>    <span class="n">model</span><span class="o">=</span><span class="s2">&quot;openai:gpt-5.5&quot;</span><span class="p">,</span>
+<a id="__codelineno-13-18" name="__codelineno-13-18" href="#__codelineno-13-18"></a>    <span class="n">tools</span><span class="o">=</span><span class="p">[],</span>
+<a id="__codelineno-13-19" name="__codelineno-13-19" href="#__codelineno-13-19"></a>    <span class="n">system_prompt</span><span class="o">=</span><span class="p">(</span>
+<a id="__codelineno-13-20" name="__codelineno-13-20" href="#__codelineno-13-20"></a>        <span class="s2">&quot;You are a professional writer. Turn research findings &quot;</span>
+<a id="__codelineno-13-21" name="__codelineno-13-21" href="#__codelineno-13-21"></a>        <span class="s2">&quot;into a polished, well-structured report.&quot;</span>
+<a id="__codelineno-13-22" name="__codelineno-13-22" href="#__codelineno-13-22"></a>    <span class="p">),</span>
+<a id="__codelineno-13-23" name="__codelineno-13-23" href="#__codelineno-13-23"></a><span class="p">)</span>
+<a id="__codelineno-13-24" name="__codelineno-13-24" href="#__codelineno-13-24"></a>
+<a id="__codelineno-13-25" name="__codelineno-13-25" href="#__codelineno-13-25"></a><span class="c1"># ========== 3. Wrap subagents as tools ==========</span>
+<a id="__codelineno-13-26" name="__codelineno-13-26" href="#__codelineno-13-26"></a><span class="nd">@tool</span><span class="p">(</span><span class="s2">&quot;research&quot;</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Research a topic in depth. Input: research question.&quot;</span><span class="p">)</span>
+<a id="__codelineno-13-27" name="__codelineno-13-27" href="#__codelineno-13-27"></a><span class="k">def</span><span class="w"> </span><span class="nf">do_research</span><span class="p">(</span><span class="n">query</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<a id="__codelineno-13-28" name="__codelineno-13-28" href="#__codelineno-13-28"></a>    <span class="n">result</span> <span class="o">=</span> <span class="n">research_agent</span><span class="o">.</span><span class="n">invoke</span><span class="p">(</span>
+<a id="__codelineno-13-29" name="__codelineno-13-29" href="#__codelineno-13-29"></a>        <span class="p">{</span><span class="s2">&quot;messages&quot;</span><span class="p">:</span> <span class="p">[{</span><span class="s2">&quot;role&quot;</span><span class="p">:</span> <span class="s2">&quot;user&quot;</span><span class="p">,</span> <span class="s2">&quot;content&quot;</span><span class="p">:</span> <span class="n">query</span><span class="p">}]}</span>
+<a id="__codelineno-13-30" name="__codelineno-13-30" href="#__codelineno-13-30"></a>    <span class="p">)</span>
+<a id="__codelineno-13-31" name="__codelineno-13-31" href="#__codelineno-13-31"></a>    <span class="k">return</span> <span class="n">result</span><span class="p">[</span><span class="s2">&quot;messages&quot;</span><span class="p">][</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">content</span>
+<a id="__codelineno-13-32" name="__codelineno-13-32" href="#__codelineno-13-32"></a>
+<a id="__codelineno-13-33" name="__codelineno-13-33" href="#__codelineno-13-33"></a>
+<a id="__codelineno-13-34" name="__codelineno-13-34" href="#__codelineno-13-34"></a><span class="nd">@tool</span><span class="p">(</span><span class="s2">&quot;write_report&quot;</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Write a report from research findings.&quot;</span><span class="p">)</span>
+<a id="__codelineno-13-35" name="__codelineno-13-35" href="#__codelineno-13-35"></a><span class="k">def</span><span class="w"> </span><span class="nf">do_write</span><span class="p">(</span><span class="n">findings</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<a id="__codelineno-13-36" name="__codelineno-13-36" href="#__codelineno-13-36"></a>    <span class="n">result</span> <span class="o">=</span> <span class="n">writer_agent</span><span class="o">.</span><span class="n">invoke</span><span class="p">(</span>
+<a id="__codelineno-13-37" name="__codelineno-13-37" href="#__codelineno-13-37"></a>        <span class="p">{</span><span class="s2">&quot;messages&quot;</span><span class="p">:</span> <span class="p">[{</span><span class="s2">&quot;role&quot;</span><span class="p">:</span> <span class="s2">&quot;user&quot;</span><span class="p">,</span> <span class="s2">&quot;content&quot;</span><span class="p">:</span> <span class="n">findings</span><span class="p">}]}</span>
+<a id="__codelineno-13-38" name="__codelineno-13-38" href="#__codelineno-13-38"></a>    <span class="p">)</span>
+<a id="__codelineno-13-39" name="__codelineno-13-39" href="#__codelineno-13-39"></a>    <span class="k">return</span> <span class="n">result</span><span class="p">[</span><span class="s2">&quot;messages&quot;</span><span class="p">][</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">content</span>
+<a id="__codelineno-13-40" name="__codelineno-13-40" href="#__codelineno-13-40"></a>
+<a id="__codelineno-13-41" name="__codelineno-13-41" href="#__codelineno-13-41"></a><span class="c1"># ========== 4. Main coordinator agent ==========</span>
+<a id="__codelineno-13-42" name="__codelineno-13-42" href="#__codelineno-13-42"></a><span class="n">main_agent</span> <span class="o">=</span> <span class="n">create_agent</span><span class="p">(</span>
+<a id="__codelineno-13-43" name="__codelineno-13-43" href="#__codelineno-13-43"></a>    <span class="n">model</span><span class="o">=</span><span class="s2">&quot;openai:gpt-5.5&quot;</span><span class="p">,</span>
+<a id="__codelineno-13-44" name="__codelineno-13-44" href="#__codelineno-13-44"></a>    <span class="n">tools</span><span class="o">=</span><span class="p">[</span><span class="n">do_research</span><span class="p">,</span> <span class="n">do_write</span><span class="p">],</span>
+<a id="__codelineno-13-45" name="__codelineno-13-45" href="#__codelineno-13-45"></a>    <span class="n">system_prompt</span><span class="o">=</span><span class="p">(</span>
+<a id="__codelineno-13-46" name="__codelineno-13-46" href="#__codelineno-13-46"></a>        <span class="s2">&quot;You coordinate a research team. For research requests:</span><span class="se">\n</span><span class="s2">&quot;</span>
+<a id="__codelineno-13-47" name="__codelineno-13-47" href="#__codelineno-13-47"></a>        <span class="s2">&quot;1. Use `research` to gather findings (call multiple times &quot;</span>
+<a id="__codelineno-13-48" name="__codelineno-13-48" href="#__codelineno-13-48"></a>        <span class="s2">&quot;for different aspects)</span><span class="se">\n</span><span class="s2">&quot;</span>
+<a id="__codelineno-13-49" name="__codelineno-13-49" href="#__codelineno-13-49"></a>        <span class="s2">&quot;2. Use `write_report` to produce the final report</span><span class="se">\n</span><span class="s2">&quot;</span>
+<a id="__codelineno-13-50" name="__codelineno-13-50" href="#__codelineno-13-50"></a>        <span class="s2">&quot;Keep your own responses brief; the report is the deliverable.&quot;</span>
+<a id="__codelineno-13-51" name="__codelineno-13-51" href="#__codelineno-13-51"></a>    <span class="p">),</span>
+<a id="__codelineno-13-52" name="__codelineno-13-52" href="#__codelineno-13-52"></a><span class="p">)</span>
+<a id="__codelineno-13-53" name="__codelineno-13-53" href="#__codelineno-13-53"></a>
+<a id="__codelineno-13-54" name="__codelineno-13-54" href="#__codelineno-13-54"></a><span class="c1"># ========== 5. Run ==========</span>
+<a id="__codelineno-13-55" name="__codelineno-13-55" href="#__codelineno-13-55"></a><span class="n">result</span> <span class="o">=</span> <span class="n">main_agent</span><span class="o">.</span><span class="n">invoke</span><span class="p">({</span>
+<a id="__codelineno-13-56" name="__codelineno-13-56" href="#__codelineno-13-56"></a>    <span class="s2">&quot;messages&quot;</span><span class="p">:</span> <span class="p">[{</span>
+<a id="__codelineno-13-57" name="__codelineno-13-57" href="#__codelineno-13-57"></a>        <span class="s2">&quot;role&quot;</span><span class="p">:</span> <span class="s2">&quot;user&quot;</span><span class="p">,</span>
+<a id="__codelineno-13-58" name="__codelineno-13-58" href="#__codelineno-13-58"></a>        <span class="s2">&quot;content&quot;</span><span class="p">:</span> <span class="s2">&quot;Research the state of LLM agents in 2026 and write a report&quot;</span>
+<a id="__codelineno-13-59" name="__codelineno-13-59" href="#__codelineno-13-59"></a>    <span class="p">}]</span>
+<a id="__codelineno-13-60" name="__codelineno-13-60" href="#__codelineno-13-60"></a><span class="p">})</span>
+<a id="__codelineno-13-61" name="__codelineno-13-61" href="#__codelineno-13-61"></a><span class="nb">print</span><span class="p">(</span><span class="n">result</span><span class="p">[</span><span class="s2">&quot;messages&quot;</span><span class="p">][</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">content</span><span class="p">)</span>
+</code></pre></div>
+<p><strong>这个系统的上下文流</strong>：</p>
+<ol>
+<li>主 Agent 收到请求，决定先调研（调用 <code>research</code>，可能多次）</li>
+<li>每次调研在<strong>独立上下文</strong>中进行，搜索的中间结果不污染主对话</li>
+<li>主 Agent 只收到紧凑的调研摘要</li>
+<li>调研结果交给 <code>write_report</code>，又在独立上下文中写成报告</li>
+<li>主 Agent 把报告返回用户</li>
+</ol>
+<hr />
+<h2 id="149-frameworks-runtimes-and-harnesses">14.9 概念参考：Frameworks, Runtimes, and Harnesses<a class="headerlink" href="#149-frameworks-runtimes-and-harnesses" title="Permanent link">&para;</a></h2>
+<p>LangChain 生态的三个层次（详见 <a href="../../">langchain 顶层 README</a>）：</p>
+<table>
+<thead>
+<tr>
+<th>层次</th>
+<th>产品</th>
+<th>定位</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Frameworks</strong></td>
+<td>LangChain (<code>create_agent</code>)</td>
+<td>Agent 框架：抽象 + 集成，灵活可控</td>
+</tr>
+<tr>
+<td><strong>Runtimes</strong></td>
+<td>LangGraph</td>
+<td>有状态编排运行时（持久化、流式、HITL）</td>
+</tr>
+<tr>
+<td><strong>Harnesses</strong></td>
+<td>Deep Agents</td>
+<td>开箱即用 harness（任务规划、子代理、文件系统、上下文管理）</td>
+</tr>
+</tbody>
+</table>
+<p>构建多代理时按需求选层次：</p>
+<ul>
+<li><strong>标准多代理模式</strong>：LangChain <code>create_agent</code> + 本章的模式</li>
+<li><strong>需要持久化/流式/复杂编排</strong>：LangGraph <code>StateGraph</code>（custom workflow 模式）</li>
+<li><strong>需要完整 Agent 系统</strong>（自动上下文管理、虚拟文件系统、内置子代理）：Deep Agents</li>
+</ul>
+<hr />
+<h2 id="_15">📝 本章小结<a class="headerlink" href="#_15" title="Permanent link">&para;</a></h2>
+<h3 id="_16">关键要点<a class="headerlink" href="#_16" title="Permanent link">&para;</a></h3>
+<ol>
+<li><strong>不是所有复杂任务都需要多代理</strong>——先考虑单 Agent + 好工具/提示</li>
+<li>官方 5 模式：<strong>Subagents</strong>（子代理当工具）、<strong>Handoffs</strong>（状态驱动切换）、<strong>Skills</strong>（按需加载）、<strong>Router</strong>（分类分发）、<strong>Custom workflow</strong>（LangGraph 定制）</li>
+<li>Subagents 核心：子代理无状态、上下文隔离、主 Agent 集中控制；两种工具模式（每 Agent 一工具 / 单一 task 分发）</li>
+<li>Handoffs 核心：工具返回 <code>Command</code> 更新状态变量 + middleware 动态配置；必须带 <code>ToolMessage</code> 保持对话历史合法</li>
+<li>Router 核心：<code>Command(goto=...)</code> 单路由、<code>Send(...)</code> 并行 fan-out</li>
+<li>选型看需求矩阵（分布式开发/并行/多跳/用户交互）和性能（模型调用次数）</li>
+</ol>
+<h3 id="_17">模式速查<a class="headerlink" href="#_17" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>我的需求</th>
+<th>选</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>多领域、集中控制、并行委派</td>
+<td>Subagents</td>
+</tr>
+<tr>
+<td>客服式多阶段对话、顺序约束</td>
+<td>Handoffs</td>
+</tr>
+<tr>
+<td>单 Agent 多专长、轻量切换</td>
+<td>Skills</td>
+</tr>
+<tr>
+<td>按问题类型分发给专家</td>
+<td>Router</td>
+</tr>
+<tr>
+<td>确定性 + AI 混合流程</td>
+<td>Custom workflow</td>
+</tr>
+</tbody>
+</table>
+<h3 id="_18">🔗 参考资源<a class="headerlink" href="#_18" title="Permanent link">&para;</a></h3>
+<ul>
+<li>官方 Multi-agent 总览：https://docs.langchain.com/oss/python/langchain/multi-agent/index</li>
+<li>Subagents：https://docs.langchain.com/oss/python/langchain/multi-agent/subagents</li>
+<li>Handoffs：https://docs.langchain.com/oss/python/langchain/multi-agent/handoffs</li>
+<li>Router：https://docs.langchain.com/oss/python/langchain/multi-agent/router</li>
+<li>官方教程：Personal assistant (subagents) / Customer support (handoffs) / Knowledge base (router) / SQL assistant (skills)</li>
+</ul>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../../../../../..", "features": ["navigation.tabs", "navigation.sections", "navigation.expand", "search.suggest", "search.highlight", "content.code.copy"], "search": "../../../../../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "\u5df2\u590d\u5236", "clipboard.copy": "\u590d\u5236", "search.result.more.one": "\u5728\u8be5\u9875\u4e0a\u8fd8\u6709 1 \u4e2a\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.more.other": "\u5728\u8be5\u9875\u4e0a\u8fd8\u6709 # \u4e2a\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.none": "\u6ca1\u6709\u627e\u5230\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.one": "\u627e\u5230 1 \u4e2a\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.other": "# \u4e2a\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.placeholder": "\u952e\u5165\u4ee5\u5f00\u59cb\u641c\u7d22", "search.result.term.missing": "\u7f3a\u5c11", "select.version": "\u9009\u62e9\u5f53\u524d\u7248\u672c"}, "version": null}</script>
+    
+    
+      <script src="../../../../../../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+    
+  </body>
+</html>

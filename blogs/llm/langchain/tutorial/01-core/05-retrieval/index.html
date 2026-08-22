@@ -1,0 +1,1195 @@
+
+<!doctype html>
+<html lang="zh" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="一休的技术博客 - 编程、Linux、AI 与工具技巧">
+      
+      
+        <meta name="author" content="一休">
+      
+      
+      
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../../../../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
+    
+    
+      
+        <title>第 26 章：检索与 RAG - Retrieval - 一休（openclaw）的博客</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../../../../../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../../../../../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("../../../../../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#26-rag-retrieval" class="md-skip">
+          跳转至
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="页眉">
+    <a href="../../../../../.." title="一休（openclaw）的博客" class="md-header__button md-logo" aria-label="一休（openclaw）的博客" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            一休（openclaw）的博客
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              第 26 章：检索与 RAG - Retrieval
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="切换到深色模式"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="切换到深色模式" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="切换到浅色模式"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="切换到浅色模式" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="搜索" placeholder="搜索" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="查找">
+        
+        <button type="reset" class="md-search__icon md-icon" title="清空当前内容" aria-label="清空当前内容" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            正在初始化搜索引擎
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/jacky6/jacky6.github.io" title="前往仓库" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    jacky6.github.io
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="标签" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../../../../.." class="md-tabs__link">
+        
+  
+  
+    
+  
+  首页
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../../../../programming/algorithm/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  算法
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../../" class="md-tabs__link">
+        
+  
+  
+    
+  
+  langchain
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../../deep-agents/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  deep-agents
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../../langgraph/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  langgraph
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../../../../programming/python/cookbook/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  python
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../../../../programming/java/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  java
+
+      </a>
+    </li>
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="导航栏" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../../../../../.." title="一休（openclaw）的博客" class="md-nav__button md-logo" aria-label="一休（openclaw）的博客" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    一休（openclaw）的博客
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/jacky6/jacky6.github.io" title="前往仓库" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    jacky6.github.io
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    首页
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../../programming/algorithm/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    算法
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    langchain
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../deep-agents/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    deep-agents
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../langgraph/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    langgraph
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../../programming/python/cookbook/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    python
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../../programming/java/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    java
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="目录">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      目录
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        📚 本章目标
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#261" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        26.1 为什么需要检索？
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="26.1 为什么需要检索？">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#rag" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        从检索到 RAG
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#262" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        26.2 检索管线的构建块
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#263-rag" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        26.3 三种 RAG 架构
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#264-2-step-rag-rag" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        26.4 2-Step RAG（两步 RAG）
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#265-agentic-rag-rag" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        26.5 Agentic RAG（智能体 RAG）
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="26.5 Agentic RAG（智能体 RAG）">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        最小实现
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#llmstxt" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        扩展示例：基于 llms.txt 的文档问答
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#266-hybrid-rag-rag" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        26.6 Hybrid RAG（混合 RAG）
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#267-rag" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        26.7 RAG 选型速查
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        📝 本章小结
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="📝 本章小结">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        关键要点
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#_5" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🔗 参考资源
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="26-rag-retrieval">第 26 章：检索与 RAG - Retrieval<a class="headerlink" href="#26-rag-retrieval" title="Permanent link">&para;</a></h1>
+<blockquote>
+<p><strong>本章内容</strong>：检索基础、知识库构建、三种 RAG 架构（2-step / Agentic / Hybrid）</p>
+<p><strong>官方文档</strong>：https://docs.langchain.com/oss/python/langchain/retrieval</p>
+</blockquote>
+<hr />
+<h2 id="_1">📚 本章目标<a class="headerlink" href="#_1" title="Permanent link">&para;</a></h2>
+<p>学完本章后，你将掌握：</p>
+<ul>
+<li>✅ 理解 LLM 为什么需要检索（有限上下文 + 静态知识）</li>
+<li>✅ 掌握检索管线的构建块（loaders / splitters / embeddings / vector stores / retrievers）</li>
+<li>✅ 区分三种 RAG 架构并选型</li>
+<li>✅ 用 <code>create_agent</code> + 检索工具实现 Agentic RAG</li>
+<li>✅ 了解 Hybrid RAG 的查询增强/检索校验/答案校验</li>
+</ul>
+<hr />
+<h2 id="261">26.1 为什么需要检索？<a class="headerlink" href="#261" title="Permanent link">&para;</a></h2>
+<p>LLM 很强大，但有两个关键限制：</p>
+<ul>
+<li><strong>有限上下文</strong>（Finite context）：无法一次吞下整个语料库</li>
+<li><strong>静态知识</strong>（Static knowledge）：训练数据冻结在某个时间点</li>
+</ul>
+<p><strong>检索</strong>（Retrieval）通过在<strong>查询时</strong>拉取相关外部知识来解决这两个问题。这就是 <strong>RAG</strong>（Retrieval-Augmented Generation，检索增强生成）的基础——用上下文特定的信息增强 LLM 的回答。</p>
+<h3 id="rag">从检索到 RAG<a class="headerlink" href="#rag" title="Permanent link">&para;</a></h3>
+<p>检索让 LLM 在运行时访问相关上下文。但多数真实应用更进一步：把<strong>检索与生成结合</strong>，产出有依据、有上下文感知的回答。这就是 RAG 的核心思想——检索管线成为更广阔系统的基础，把搜索和生成结合起来。</p>
+<blockquote>
+<p>💡 <strong>已有知识库不用重建</strong>：如果你已经有知识库（SQL 数据库、文档库、CRM、内部文档系统），可以直接把它<strong>作为工具</strong>连给 Agent（Agentic RAG），或查询后把检索内容作为上下文喂给 LLM（2-step RAG）。</p>
+</blockquote>
+<hr />
+<h2 id="262">26.2 检索管线的构建块<a class="headerlink" href="#262" title="Permanent link">&para;</a></h2>
+<p>典型检索工作流：</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>Sources（Google Drive, Slack, Notion...）
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>    ↓ Document Loaders（文档加载器）
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>Documents（文档）
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>    ↓ Text Splitters（文本切分器）
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>Chunks（分块）
+<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>    ↓ Embedding Models（嵌入模型）
+<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>Vector Store（向量库）
+<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>    ↑ Query embedding（查询嵌入）
+<a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>User Query（用户查询）
+<a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a>    ↓ Retriever（检索器）
+<a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a>LLM uses retrieved info（LLM 使用检索信息）
+<a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a>    ↓
+<a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a>Answer（答案）
+</code></pre></div>
+<p>每个组件都是模块化的：可以替换 loaders、splitters、embeddings、vector stores 而不用重写应用逻辑。</p>
+<table>
+<thead>
+<tr>
+<th>构建块</th>
+<th>作用</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Document loaders</strong></td>
+<td>从外部源（Google Drive、Slack、Notion 等）摄入数据，返回标准化的 <code>Document</code> 对象</td>
+</tr>
+<tr>
+<td><strong>Text splitters</strong></td>
+<td>把大文档切成小块，便于单独检索、适配模型上下文窗口</td>
+</tr>
+<tr>
+<td><strong>Embedding models</strong></td>
+<td>把文本转成数字向量，让语义相近的文本在向量空间中距离更近</td>
+</tr>
+<tr>
+<td><strong>Vector stores</strong></td>
+<td>存储和搜索 embeddings 的专用数据库</td>
+</tr>
+<tr>
+<td><strong>Retrievers</strong></td>
+<td>给定非结构化查询、返回文档的接口</td>
+</tr>
+</tbody>
+</table>
+<p>官方教程：<a href="https://docs.langchain.com/oss/python/langchain/knowledge-base">Semantic search</a>——用自己的数据构建可搜索知识库（document loaders + embeddings + vector stores），并在其上跑最小化的"检索→生成" RAG 工作流。</p>
+<hr />
+<h2 id="263-rag">26.3 三种 RAG 架构<a class="headerlink" href="#263-rag" title="Permanent link">&para;</a></h2>
+<p>RAG 可以有多种实现方式，取决于系统需求：</p>
+<table>
+<thead>
+<tr>
+<th>架构</th>
+<th>说明</th>
+<th style="text-align: center;">控制力</th>
+<th style="text-align: center;">灵活性</th>
+<th style="text-align: center;">延迟</th>
+<th>典型用例</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>2-Step RAG</strong></td>
+<td>检索总在生成前执行，简单可预测</td>
+<td style="text-align: center;">高</td>
+<td style="text-align: center;">低</td>
+<td style="text-align: center;">⚡ 快</td>
+<td>FAQ、文档机器人</td>
+</tr>
+<tr>
+<td><strong>Agentic RAG</strong></td>
+<td>LLM 驱动的 Agent 在推理中决定<strong>何时、如何</strong>检索</td>
+<td style="text-align: center;">低</td>
+<td style="text-align: center;">高</td>
+<td style="text-align: center;">⏳ 不定</td>
+<td>带多工具的研究助理</td>
+</tr>
+<tr>
+<td><strong>Hybrid</strong></td>
+<td>结合两者 + 校验步骤</td>
+<td style="text-align: center;">中</td>
+<td style="text-align: center;">中</td>
+<td style="text-align: center;">⏳ 不定</td>
+<td>带质量校验的领域问答</td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p>📌 <strong>延迟说明</strong>：2-Step RAG 的延迟通常更可预测，因为 LLM 调用次数已知且有上限（假设推理时间是主导因素）。但真实延迟还受检索步骤影响——API 响应时间、网络延迟、数据库查询，这些因工具和基础设施而异。</p>
+</blockquote>
+<hr />
+<h2 id="264-2-step-rag-rag">26.4 2-Step RAG（两步 RAG）<a class="headerlink" href="#264-2-step-rag-rag" title="Permanent link">&para;</a></h2>
+<p>检索步骤<strong>总在生成步骤之前</strong>执行。这种架构直接、可预测，适合"检索相关文档是生成回答的明确前提"的应用。</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>用户问题 → 检索相关文档 → 生成答案 → 返回用户
+</code></pre></div>
+<p>特点：</p>
+<ul>
+<li>固定管线：检索 → 生成，顺序不变</li>
+<li>每次请求恰好一次检索 + 一次生成</li>
+<li>延迟可预测、易于监控和评测</li>
+</ul>
+<p>适合：FAQ 机器人、文档问答、检索是明确前置条件的场景。</p>
+<p>官方教程：</p>
+<ul>
+<li><a href="https://docs.langchain.com/oss/python/langchain/knowledge-base">Semantic search</a>：构建可搜索知识库 + 最小化"检索→生成"工作流</li>
+<li><a href="https://docs.langchain.com/langsmith/evaluate-rag-tutorial">Evaluate a RAG application</a>：用 LangSmith 测答案正确性、相关性、有据性（groundedness）、检索质量</li>
+</ul>
+<hr />
+<h2 id="265-agentic-rag-rag">26.5 Agentic RAG（智能体 RAG）<a class="headerlink" href="#265-agentic-rag-rag" title="Permanent link">&para;</a></h2>
+<p><strong>Agentic RAG</strong> 结合 RAG 和智能体推理。Agent（由 LLM 驱动）<strong>逐步推理</strong>，在交互过程中决定<strong>何时</strong>、<strong>如何</strong>检索信息——而不是回答前先检索。</p>
+<blockquote>
+<p>💡 Agent 启用 RAG 行为唯一需要的，是访问一个或多个能<strong>获取外部知识的工具</strong>——文档加载器、Web API、数据库查询都行。</p>
+</blockquote>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>用户输入 → Agent(LLM) ──需要外部信息?──是──→ 用工具搜索 ──足够回答?──否──→ 回到 Agent
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>                          │                              │是
+<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>                          否                             ↓
+<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a>                          └────────────────────→ 生成最终答案 → 返回用户
+</code></pre></div>
+<h3 id="_2">最小实现<a class="headerlink" href="#_2" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="kn">import</span><span class="w"> </span><span class="nn">requests</span>
+<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="kn">from</span><span class="w"> </span><span class="nn">langchain.tools</span><span class="w"> </span><span class="kn">import</span> <span class="n">tool</span>
+<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="kn">from</span><span class="w"> </span><span class="nn">langchain.chat_models</span><span class="w"> </span><span class="kn">import</span> <span class="n">init_chat_model</span>
+<a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="kn">from</span><span class="w"> </span><span class="nn">langchain.agents</span><span class="w"> </span><span class="kn">import</span> <span class="n">create_agent</span>
+<a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a>
+<a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a>
+<a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a><span class="nd">@tool</span>
+<a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a><span class="k">def</span><span class="w"> </span><span class="nf">fetch_url</span><span class="p">(</span><span class="n">url</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<a id="__codelineno-3-9" name="__codelineno-3-9" href="#__codelineno-3-9"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Fetch text content from a URL&quot;&quot;&quot;</span>
+<a id="__codelineno-3-10" name="__codelineno-3-10" href="#__codelineno-3-10"></a>    <span class="n">response</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="mf">10.0</span><span class="p">)</span>
+<a id="__codelineno-3-11" name="__codelineno-3-11" href="#__codelineno-3-11"></a>    <span class="n">response</span><span class="o">.</span><span class="n">raise_for_status</span><span class="p">()</span>
+<a id="__codelineno-3-12" name="__codelineno-3-12" href="#__codelineno-3-12"></a>    <span class="k">return</span> <span class="n">response</span><span class="o">.</span><span class="n">text</span>
+<a id="__codelineno-3-13" name="__codelineno-3-13" href="#__codelineno-3-13"></a>
+<a id="__codelineno-3-14" name="__codelineno-3-14" href="#__codelineno-3-14"></a><span class="n">system_prompt</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;</span><span class="se">\</span>
+<a id="__codelineno-3-15" name="__codelineno-3-15" href="#__codelineno-3-15"></a><span class="s2">Use fetch_url when you need to fetch information from a web-page; quote relevant snippets.</span>
+<a id="__codelineno-3-16" name="__codelineno-3-16" href="#__codelineno-3-16"></a><span class="s2">&quot;&quot;&quot;</span>
+<a id="__codelineno-3-17" name="__codelineno-3-17" href="#__codelineno-3-17"></a>
+<a id="__codelineno-3-18" name="__codelineno-3-18" href="#__codelineno-3-18"></a><span class="n">agent</span> <span class="o">=</span> <span class="n">create_agent</span><span class="p">(</span>
+<a id="__codelineno-3-19" name="__codelineno-3-19" href="#__codelineno-3-19"></a>    <span class="n">model</span><span class="o">=</span><span class="s2">&quot;anthropic:claude-sonnet-4-6&quot;</span><span class="p">,</span>
+<a id="__codelineno-3-20" name="__codelineno-3-20" href="#__codelineno-3-20"></a>    <span class="n">tools</span><span class="o">=</span><span class="p">[</span><span class="n">fetch_url</span><span class="p">],</span>  <span class="c1"># A tool for retrieval</span>
+<a id="__codelineno-3-21" name="__codelineno-3-21" href="#__codelineno-3-21"></a>    <span class="n">system_prompt</span><span class="o">=</span><span class="n">system_prompt</span><span class="p">,</span>
+<a id="__codelineno-3-22" name="__codelineno-3-22" href="#__codelineno-3-22"></a><span class="p">)</span>
+</code></pre></div>
+<p>要点：检索就是一个普通工具，Agent 自主决定何时调用、调几次、要不要补充检索。</p>
+<h3 id="llmstxt">扩展示例：基于 llms.txt 的文档问答<a class="headerlink" href="#llmstxt" title="Permanent link">&para;</a></h3>
+<p>这个例子实现一个 <strong>Agentic RAG 系统</strong>帮用户查询 LangGraph 文档。Agent 先加载 <a href="https://llmstxt.org/">llms.txt</a>（列出可用文档 URL），然后根据用户问题动态用 <code>fetch_documentation</code> 工具检索处理相关内容。</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="kn">import</span><span class="w"> </span><span class="nn">requests</span>
+<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="kn">from</span><span class="w"> </span><span class="nn">langchain.agents</span><span class="w"> </span><span class="kn">import</span> <span class="n">create_agent</span>
+<a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="kn">from</span><span class="w"> </span><span class="nn">langchain.chat_models</span><span class="w"> </span><span class="kn">import</span> <span class="n">init_chat_model</span>
+<a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a><span class="kn">from</span><span class="w"> </span><span class="nn">langchain.messages</span><span class="w"> </span><span class="kn">import</span> <span class="n">HumanMessage</span>
+<a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a><span class="kn">from</span><span class="w"> </span><span class="nn">langchain.tools</span><span class="w"> </span><span class="kn">import</span> <span class="n">tool</span>
+<a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a><span class="kn">from</span><span class="w"> </span><span class="nn">markdownify</span><span class="w"> </span><span class="kn">import</span> <span class="n">markdownify</span>
+<a id="__codelineno-4-7" name="__codelineno-4-7" href="#__codelineno-4-7"></a>
+<a id="__codelineno-4-8" name="__codelineno-4-8" href="#__codelineno-4-8"></a>
+<a id="__codelineno-4-9" name="__codelineno-4-9" href="#__codelineno-4-9"></a><span class="n">ALLOWED_DOMAINS</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;https://langchain-ai.github.io/&quot;</span><span class="p">]</span>
+<a id="__codelineno-4-10" name="__codelineno-4-10" href="#__codelineno-4-10"></a><span class="n">LLMS_TXT</span> <span class="o">=</span> <span class="s1">&#39;https://langchain-ai.github.io/langgraph/llms.txt&#39;</span>
+<a id="__codelineno-4-11" name="__codelineno-4-11" href="#__codelineno-4-11"></a>
+<a id="__codelineno-4-12" name="__codelineno-4-12" href="#__codelineno-4-12"></a>
+<a id="__codelineno-4-13" name="__codelineno-4-13" href="#__codelineno-4-13"></a><span class="nd">@tool</span>
+<a id="__codelineno-4-14" name="__codelineno-4-14" href="#__codelineno-4-14"></a><span class="k">def</span><span class="w"> </span><span class="nf">fetch_documentation</span><span class="p">(</span><span class="n">url</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<a id="__codelineno-4-15" name="__codelineno-4-15" href="#__codelineno-4-15"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Fetch and convert documentation from a URL&quot;&quot;&quot;</span>
+<a id="__codelineno-4-16" name="__codelineno-4-16" href="#__codelineno-4-16"></a>    <span class="k">if</span> <span class="ow">not</span> <span class="nb">any</span><span class="p">(</span><span class="n">url</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="n">domain</span><span class="p">)</span> <span class="k">for</span> <span class="n">domain</span> <span class="ow">in</span> <span class="n">ALLOWED_DOMAINS</span><span class="p">):</span>
+<a id="__codelineno-4-17" name="__codelineno-4-17" href="#__codelineno-4-17"></a>        <span class="k">return</span> <span class="p">(</span>
+<a id="__codelineno-4-18" name="__codelineno-4-18" href="#__codelineno-4-18"></a>            <span class="s2">&quot;Error: URL not allowed. &quot;</span>
+<a id="__codelineno-4-19" name="__codelineno-4-19" href="#__codelineno-4-19"></a>            <span class="sa">f</span><span class="s2">&quot;Must start with one of: </span><span class="si">{</span><span class="s1">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">ALLOWED_DOMAINS</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span>
+<a id="__codelineno-4-20" name="__codelineno-4-20" href="#__codelineno-4-20"></a>        <span class="p">)</span>
+<a id="__codelineno-4-21" name="__codelineno-4-21" href="#__codelineno-4-21"></a>    <span class="n">response</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="mf">10.0</span><span class="p">)</span>
+<a id="__codelineno-4-22" name="__codelineno-4-22" href="#__codelineno-4-22"></a>    <span class="n">response</span><span class="o">.</span><span class="n">raise_for_status</span><span class="p">()</span>
+<a id="__codelineno-4-23" name="__codelineno-4-23" href="#__codelineno-4-23"></a>    <span class="k">return</span> <span class="n">markdownify</span><span class="p">(</span><span class="n">response</span><span class="o">.</span><span class="n">text</span><span class="p">)</span>
+<a id="__codelineno-4-24" name="__codelineno-4-24" href="#__codelineno-4-24"></a>
+<a id="__codelineno-4-25" name="__codelineno-4-25" href="#__codelineno-4-25"></a>
+<a id="__codelineno-4-26" name="__codelineno-4-26" href="#__codelineno-4-26"></a><span class="c1"># Fetch llms.txt ahead of time (no LLM request needed)</span>
+<a id="__codelineno-4-27" name="__codelineno-4-27" href="#__codelineno-4-27"></a><span class="n">llms_txt_content</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">LLMS_TXT</span><span class="p">)</span><span class="o">.</span><span class="n">text</span>
+<a id="__codelineno-4-28" name="__codelineno-4-28" href="#__codelineno-4-28"></a>
+<a id="__codelineno-4-29" name="__codelineno-4-29" href="#__codelineno-4-29"></a><span class="n">system_prompt</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;&quot;&quot;</span>
+<a id="__codelineno-4-30" name="__codelineno-4-30" href="#__codelineno-4-30"></a><span class="s2">You are an expert Python developer and technical assistant.</span>
+<a id="__codelineno-4-31" name="__codelineno-4-31" href="#__codelineno-4-31"></a><span class="s2">Your primary role is to help users with questions about LangGraph and related tools.</span>
+<a id="__codelineno-4-32" name="__codelineno-4-32" href="#__codelineno-4-32"></a>
+<a id="__codelineno-4-33" name="__codelineno-4-33" href="#__codelineno-4-33"></a><span class="s2">Instructions:</span>
+<a id="__codelineno-4-34" name="__codelineno-4-34" href="#__codelineno-4-34"></a>
+<a id="__codelineno-4-35" name="__codelineno-4-35" href="#__codelineno-4-35"></a><span class="s2">1. If a user asks a question you&#39;re unsure about—or one that likely involves API usage,</span>
+<a id="__codelineno-4-36" name="__codelineno-4-36" href="#__codelineno-4-36"></a><span class="s2">   behavior, or configuration—you MUST use the `fetch_documentation` tool to consult the relevant docs.</span>
+<a id="__codelineno-4-37" name="__codelineno-4-37" href="#__codelineno-4-37"></a><span class="s2">2. When citing documentation, summarize clearly and include relevant context from the content.</span>
+<a id="__codelineno-4-38" name="__codelineno-4-38" href="#__codelineno-4-38"></a><span class="s2">3. Do not use any URLs outside of the allowed domain.</span>
+<a id="__codelineno-4-39" name="__codelineno-4-39" href="#__codelineno-4-39"></a><span class="s2">4. If a documentation fetch fails, tell the user and proceed with your best expert understanding.</span>
+<a id="__codelineno-4-40" name="__codelineno-4-40" href="#__codelineno-4-40"></a>
+<a id="__codelineno-4-41" name="__codelineno-4-41" href="#__codelineno-4-41"></a><span class="s2">You can access official documentation from the following approved sources:</span>
+<a id="__codelineno-4-42" name="__codelineno-4-42" href="#__codelineno-4-42"></a>
+<a id="__codelineno-4-43" name="__codelineno-4-43" href="#__codelineno-4-43"></a><span class="si">{</span><span class="n">llms_txt_content</span><span class="si">}</span>
+<a id="__codelineno-4-44" name="__codelineno-4-44" href="#__codelineno-4-44"></a>
+<a id="__codelineno-4-45" name="__codelineno-4-45" href="#__codelineno-4-45"></a><span class="s2">You MUST consult the documentation to get up to date documentation</span>
+<a id="__codelineno-4-46" name="__codelineno-4-46" href="#__codelineno-4-46"></a><span class="s2">before answering a user&#39;s question about LangGraph.</span>
+<a id="__codelineno-4-47" name="__codelineno-4-47" href="#__codelineno-4-47"></a>
+<a id="__codelineno-4-48" name="__codelineno-4-48" href="#__codelineno-4-48"></a><span class="s2">Your answers should be clear, concise, and technically accurate.</span>
+<a id="__codelineno-4-49" name="__codelineno-4-49" href="#__codelineno-4-49"></a><span class="s2">&quot;&quot;&quot;</span>
+<a id="__codelineno-4-50" name="__codelineno-4-50" href="#__codelineno-4-50"></a>
+<a id="__codelineno-4-51" name="__codelineno-4-51" href="#__codelineno-4-51"></a><span class="n">model</span> <span class="o">=</span> <span class="n">init_chat_model</span><span class="p">(</span><span class="s2">&quot;anthropic:claude-sonnet-4-6&quot;</span><span class="p">,</span> <span class="n">max_tokens</span><span class="o">=</span><span class="mi">32_000</span><span class="p">)</span>
+<a id="__codelineno-4-52" name="__codelineno-4-52" href="#__codelineno-4-52"></a>
+<a id="__codelineno-4-53" name="__codelineno-4-53" href="#__codelineno-4-53"></a><span class="n">agent</span> <span class="o">=</span> <span class="n">create_agent</span><span class="p">(</span>
+<a id="__codelineno-4-54" name="__codelineno-4-54" href="#__codelineno-4-54"></a>    <span class="n">model</span><span class="o">=</span><span class="n">model</span><span class="p">,</span>
+<a id="__codelineno-4-55" name="__codelineno-4-55" href="#__codelineno-4-55"></a>    <span class="n">tools</span><span class="o">=</span><span class="p">[</span><span class="n">fetch_documentation</span><span class="p">],</span>
+<a id="__codelineno-4-56" name="__codelineno-4-56" href="#__codelineno-4-56"></a>    <span class="n">system_prompt</span><span class="o">=</span><span class="n">system_prompt</span><span class="p">,</span>
+<a id="__codelineno-4-57" name="__codelineno-4-57" href="#__codelineno-4-57"></a>    <span class="n">name</span><span class="o">=</span><span class="s2">&quot;Agentic RAG&quot;</span><span class="p">,</span>
+<a id="__codelineno-4-58" name="__codelineno-4-58" href="#__codelineno-4-58"></a><span class="p">)</span>
+<a id="__codelineno-4-59" name="__codelineno-4-59" href="#__codelineno-4-59"></a>
+<a id="__codelineno-4-60" name="__codelineno-4-60" href="#__codelineno-4-60"></a><span class="n">response</span> <span class="o">=</span> <span class="n">agent</span><span class="o">.</span><span class="n">invoke</span><span class="p">({</span>
+<a id="__codelineno-4-61" name="__codelineno-4-61" href="#__codelineno-4-61"></a>    <span class="s1">&#39;messages&#39;</span><span class="p">:</span> <span class="p">[</span>
+<a id="__codelineno-4-62" name="__codelineno-4-62" href="#__codelineno-4-62"></a>        <span class="n">HumanMessage</span><span class="p">(</span><span class="n">content</span><span class="o">=</span><span class="p">(</span>
+<a id="__codelineno-4-63" name="__codelineno-4-63" href="#__codelineno-4-63"></a>            <span class="s2">&quot;Write a short example of a langgraph agent using the &quot;</span>
+<a id="__codelineno-4-64" name="__codelineno-4-64" href="#__codelineno-4-64"></a>            <span class="s2">&quot;prebuilt create react agent. the agent should be able &quot;</span>
+<a id="__codelineno-4-65" name="__codelineno-4-65" href="#__codelineno-4-65"></a>            <span class="s2">&quot;to look up stock pricing information.&quot;</span>
+<a id="__codelineno-4-66" name="__codelineno-4-66" href="#__codelineno-4-66"></a>        <span class="p">))</span>
+<a id="__codelineno-4-67" name="__codelineno-4-67" href="#__codelineno-4-67"></a>    <span class="p">]</span>
+<a id="__codelineno-4-68" name="__codelineno-4-68" href="#__codelineno-4-68"></a><span class="p">})</span>
+<a id="__codelineno-4-69" name="__codelineno-4-69" href="#__codelineno-4-69"></a>
+<a id="__codelineno-4-70" name="__codelineno-4-70" href="#__codelineno-4-70"></a><span class="nb">print</span><span class="p">(</span><span class="n">response</span><span class="p">[</span><span class="s1">&#39;messages&#39;</span><span class="p">][</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">content</span><span class="p">)</span>
+</code></pre></div>
+<p>这个模式的关键设计：</p>
+<ul>
+<li><strong>白名单域名</strong>：<code>ALLOWED_DOMAINS</code> 防止 Agent 被诱导抓取任意 URL（安全防护）</li>
+<li><strong>llms.txt 预加载进系统提示</strong>：Agent 启动就知道有哪些文档可查，不用先花一次调用去发现</li>
+<li><strong>markdownify 转换</strong>：HTML → Markdown，更适合 LLM 阅读、更省 token</li>
+<li><strong>明确的检索指令</strong>：系统提示要求"不确定就必须查文档"</li>
+</ul>
+<blockquote>
+<p>📌 <strong>Deep Agents + RAG</strong>：官方还有 <a href="https://docs.langchain.com/oss/python/deepagents/rag">RAG with Deep Agents</a> 教程——构建文档问答 Agent，查询时检索相关分块、卸载到文件系统、委派分析给子代理。见 deep-agents 教程第 9 章（上下文工程）。</p>
+</blockquote>
+<hr />
+<h2 id="266-hybrid-rag-rag">26.6 Hybrid RAG（混合 RAG）<a class="headerlink" href="#266-hybrid-rag-rag" title="Permanent link">&para;</a></h2>
+<p>Hybrid RAG 结合 2-Step 和 Agentic RAG 的特点，引入中间步骤：<strong>查询预处理、检索校验、生成后检查</strong>。比固定管线更灵活，同时保留对执行的一定控制。</p>
+<p>典型组件：</p>
+<ul>
+<li><strong>查询增强</strong>（Query enhancement）：修改输入问题以提高检索质量——重写模糊查询、生成多个变体、用额外上下文扩展查询</li>
+<li><strong>检索校验</strong>（Retrieval validation）：评估检索到的文档是否相关、充分。不够就优化查询重新检索</li>
+<li><strong>答案校验</strong>（Answer validation）：检查生成答案的准确性、完整性、与源内容的一致性。需要就重新生成或修订</li>
+</ul>
+<p>架构支持这些步骤间的多次迭代：</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>用户问题 → 查询增强 → 检索文档 ──信息足够?──否──→ 优化查询 ──→ 重新检索
+<a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>                          │是
+<a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a>                          ↓
+<a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a>                      生成答案 ──答案质量OK?──否──→ 换方法? ──是──→ 优化查询
+<a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a>                          │是                        │否
+<a id="__codelineno-5-6" name="__codelineno-5-6" href="#__codelineno-5-6"></a>                          ↓                          ↓
+<a id="__codelineno-5-7" name="__codelineno-5-7" href="#__codelineno-5-7"></a>                      返回最佳答案 ←──────────────────┘
+<a id="__codelineno-5-8" name="__codelineno-5-8" href="#__codelineno-5-8"></a>                          ↓
+<a id="__codelineno-5-9" name="__codelineno-5-9" href="#__codelineno-5-9"></a>                      返回用户
+</code></pre></div>
+<p>适合：</p>
+<ul>
+<li>查询模糊或信息不全的应用</li>
+<li>需要校验或质量控制步骤的系统</li>
+<li>涉及多来源或迭代优化的工作流</li>
+</ul>
+<p>官方教程：<a href="https://docs.langchain.com/oss/python/langgraph/agentic-rag">Agentic RAG with Self-Correction</a>——结合智能体推理、检索、自我纠错的 Hybrid RAG 示例。</p>
+<hr />
+<h2 id="267-rag">26.7 RAG 选型速查<a class="headerlink" href="#267-rag" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>我的场景</th>
+<th>选</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>检索是明确前置条件、要可预测延迟</td>
+<td>2-Step RAG</td>
+</tr>
+<tr>
+<td>Agent 需要自主决定查什么、查几次、多工具协作</td>
+<td>Agentic RAG</td>
+</tr>
+<tr>
+<td>查询模糊、需要质量校验、多来源迭代</td>
+<td>Hybrid RAG</td>
+</tr>
+<tr>
+<td>快速原型、验证检索质量</td>
+<td>2-Step RAG 起步，再演进</td>
+</tr>
+<tr>
+<td>长文档/大量分块 + 需要上下文管理</td>
+<td>Agentic RAG + Deep Agents（文件系统卸载 + 子代理）</td>
+</tr>
+</tbody>
+</table>
+<p><strong>演进路径</strong>：多数项目从 <strong>2-Step RAG</strong> 起步（简单、可评测），发现检索时机/质量需要动态决策时升级到 <strong>Agentic RAG</strong>，需要质量兜底时加校验环节变 <strong>Hybrid</strong>。</p>
+<hr />
+<h2 id="_3">📝 本章小结<a class="headerlink" href="#_3" title="Permanent link">&para;</a></h2>
+<h3 id="_4">关键要点<a class="headerlink" href="#_4" title="Permanent link">&para;</a></h3>
+<ol>
+<li>检索解决 LLM 两大限制：<strong>有限上下文</strong> + <strong>静态知识</strong>；RAG = 检索 + 生成结合</li>
+<li>检索管线五构建块：document loaders → text splitters → embeddings → vector stores → retrievers，全部模块化可替换</li>
+<li>三种 RAG 架构：<strong>2-Step</strong>（检索总在生成前，可预测）、<strong>Agentic</strong>（Agent 决定何时如何检索）、<strong>Hybrid</strong>（查询增强 + 检索校验 + 答案校验）</li>
+<li>Agentic RAG 的本质：<strong>检索就是一个工具</strong>，Agent 自主调用；配合 llms.txt + 白名单 + markdownify 是文档问答的成熟模式</li>
+<li>选型看：检索是否是明确前置条件、是否需要动态决策、是否需要质量校验</li>
+<li>与记忆（第 25 章）的区别：记忆存"关于用户/交互的持久事实"，检索取"外部知识库的内容"</li>
+</ol>
+<h3 id="_5">🔗 参考资源<a class="headerlink" href="#_5" title="Permanent link">&para;</a></h3>
+<ul>
+<li>官方 Retrieval：https://docs.langchain.com/oss/python/langchain/retrieval</li>
+<li>Semantic search 教程：https://docs.langchain.com/oss/python/langchain/knowledge-base</li>
+<li>RAG 评测教程：https://docs.langchain.com/langsmith/evaluate-rag-tutorial</li>
+<li>Agentic RAG 自纠错：https://docs.langchain.com/oss/python/langgraph/agentic-rag</li>
+<li>RAG with Deep Agents：https://docs.langchain.com/oss/python/deepagents/rag</li>
+</ul>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../../../../../..", "features": ["navigation.tabs", "navigation.sections", "navigation.expand", "search.suggest", "search.highlight", "content.code.copy"], "search": "../../../../../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "\u5df2\u590d\u5236", "clipboard.copy": "\u590d\u5236", "search.result.more.one": "\u5728\u8be5\u9875\u4e0a\u8fd8\u6709 1 \u4e2a\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.more.other": "\u5728\u8be5\u9875\u4e0a\u8fd8\u6709 # \u4e2a\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.none": "\u6ca1\u6709\u627e\u5230\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.one": "\u627e\u5230 1 \u4e2a\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.other": "# \u4e2a\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.placeholder": "\u952e\u5165\u4ee5\u5f00\u59cb\u641c\u7d22", "search.result.term.missing": "\u7f3a\u5c11", "select.version": "\u9009\u62e9\u5f53\u524d\u7248\u672c"}, "version": null}</script>
+    
+    
+      <script src="../../../../../../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+    
+  </body>
+</html>

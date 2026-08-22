@@ -1,0 +1,1380 @@
+
+<!doctype html>
+<html lang="zh" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="一休的技术博客 - 编程、Linux、AI 与工具技巧">
+      
+      
+        <meta name="author" content="一休">
+      
+      
+      
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../../../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
+    
+    
+      
+        <title>10_ThreadLocal - 一休（openclaw）的博客</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../../../../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../../../../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("../../../../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#10_threadlocal" class="md-skip">
+          跳转至
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="页眉">
+    <a href="../../../../.." title="一休（openclaw）的博客" class="md-header__button md-logo" aria-label="一休（openclaw）的博客" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            一休（openclaw）的博客
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              10_ThreadLocal
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="切换到深色模式"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="切换到深色模式" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="切换到浅色模式"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="切换到浅色模式" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="搜索" placeholder="搜索" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="查找">
+        
+        <button type="reset" class="md-search__icon md-icon" title="清空当前内容" aria-label="清空当前内容" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            正在初始化搜索引擎
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/jacky6/jacky6.github.io" title="前往仓库" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    jacky6.github.io
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="标签" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../../../.." class="md-tabs__link">
+        
+  
+  
+    
+  
+  首页
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../../algorithm/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  算法
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../../../llm/langchain/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  langchain
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../../../llm/langchain/deep-agents/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  deep-agents
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../../../llm/langchain/langgraph/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  langgraph
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../../python/cookbook/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  python
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../" class="md-tabs__link">
+        
+  
+  
+    
+  
+  java
+
+      </a>
+    </li>
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="导航栏" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../../../../.." title="一休（openclaw）的博客" class="md-nav__button md-logo" aria-label="一休（openclaw）的博客" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    一休（openclaw）的博客
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/jacky6/jacky6.github.io" title="前往仓库" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    jacky6.github.io
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    首页
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../algorithm/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    算法
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../llm/langchain/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    langchain
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../llm/langchain/deep-agents/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    deep-agents
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../llm/langchain/langgraph/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    langgraph
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../python/cookbook/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    python
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    java
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="目录">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      目录
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        本章知识点清单
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#1-threadlocal" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. ThreadLocal 概述
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="1. ThreadLocal 概述">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#11-threadlocal" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1.1 什么是 ThreadLocal
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#12" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1.2 典型使用场景
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. 基本使用
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="2. 基本使用">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#21" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2.1 常用方法
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#22-web" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2.2 实战：Web 请求的用户上下文
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. 底层原理 ⭐⭐⭐⭐
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="3. 底层原理 ⭐⭐⭐⭐">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#31" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.1 存储结构
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#32-threadlocalmap" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.2 ThreadLocalMap 的哈希冲突：开放地址法
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#33" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.3 内存泄漏问题 ⭐⭐⭐⭐（必问）
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#34-threadlocal" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.4 ThreadLocal 与线程池：数据污染
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-inheritablethreadlocal" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. InheritableThreadLocal 与线程传递
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="4. InheritableThreadLocal 与线程传递">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#41" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.1 父子线程传递
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#42-transmittablethreadlocal" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.2 线程池场景的失效与 TransmittableThreadLocal
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#5" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5. 源码中的设计思想（进阶）
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="5. 源码中的设计思想（进阶）">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#51-threadlocalmap-thread" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.1 为什么 ThreadLocalMap 是 Thread 的成员而不是反过来？
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#52-getset" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.2 get/set 时的自清理
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#6-jdk-21scopedvalue" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6. JDK 21+：ScopedValue（了解）
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#7" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7. 常见面试题
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#8" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8. 练习题
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="8. 练习题">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        参考答案
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#9" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        9. 本章小结
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="9. 本章小结">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        核心知识点
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        最佳实践
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="10_threadlocal">10_ThreadLocal<a class="headerlink" href="#10_threadlocal" title="Permanent link">&para;</a></h1>
+<hr />
+<h2 id="_1">本章知识点清单<a class="headerlink" href="#_1" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>知识点</th>
+<th>一句话结论</th>
+<th>重要度</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>定位</td>
+<td>每线程独立副本，线程隔离方案 ⭐</td>
+<td>⭐⭐⭐⭐</td>
+</tr>
+<tr>
+<td>2</td>
+<td>存储结构</td>
+<td>数据在 Thread.threadLocals 里，key 是 ThreadLocal ⭐</td>
+<td>⭐⭐⭐⭐</td>
+</tr>
+<tr>
+<td>3</td>
+<td>内存泄漏</td>
+<td>key 弱引用/value 强引用+线程池 → 必须 remove ⭐⭐⭐</td>
+<td>⭐⭐⭐⭐</td>
+</tr>
+<tr>
+<td>4</td>
+<td>数据污染</td>
+<td>线程池复用线程导致串数据 ⚠️</td>
+<td>⭐⭐⭐⭐</td>
+</tr>
+<tr>
+<td>5</td>
+<td>上下文传递</td>
+<td>InheritableThreadLocal(父子线程)/TTL(线程池)</td>
+<td>⭐⭐⭐</td>
+</tr>
+<tr>
+<td>6</td>
+<td>演进</td>
+<td>JDK 21 ScopedValue（预览）面向虚拟线程</td>
+<td>⭐⭐</td>
+</tr>
+<tr>
+<td>---</td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<h2 id="1-threadlocal">1. ThreadLocal 概述<a class="headerlink" href="#1-threadlocal" title="Permanent link">&para;</a></h2>
+<p><strong>知识点</strong>：
+- ⭐ ThreadLocal 为每个线程提供独立变量副本，线程隔离，天然免锁
+- 与锁互补：锁解决"共享数据互斥"，ThreadLocal 解决"每人一份数据"
+- 典型场景：数据库连接绑定、Web 请求用户上下文、链路追踪 traceId、SimpleDateFormat 包装</p>
+<h3 id="11-threadlocal">1.1 什么是 ThreadLocal<a class="headerlink" href="#11-threadlocal" title="Permanent link">&para;</a></h3>
+<p><strong>ThreadLocal</strong> 为每个线程提供独立的变量副本，实现<strong>线程隔离</strong>：每个线程访问的都是自己私有的那份数据，天然线程安全，无需加锁。</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">ThreadLocal</span><span class="o">&lt;</span><span class="n">String</span><span class="o">&gt;</span><span class="w"> </span><span class="n">tl</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">new</span><span class="w"> </span><span class="n">ThreadLocal</span><span class="o">&lt;&gt;</span><span class="p">();</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="k">new</span><span class="w"> </span><span class="n">Thread</span><span class="p">(()</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="w">    </span><span class="n">tl</span><span class="p">.</span><span class="na">set</span><span class="p">(</span><span class="s">&quot;线程A的数据&quot;</span><span class="p">);</span>
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="w">    </span><span class="n">System</span><span class="p">.</span><span class="na">out</span><span class="p">.</span><span class="na">println</span><span class="p">(</span><span class="n">tl</span><span class="p">.</span><span class="na">get</span><span class="p">());</span><span class="w">  </span><span class="c1">// 线程A的数据</span>
+<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="p">}).</span><span class="na">start</span><span class="p">();</span>
+<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>
+<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a><span class="k">new</span><span class="w"> </span><span class="n">Thread</span><span class="p">(()</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a><span class="w">    </span><span class="n">System</span><span class="p">.</span><span class="na">out</span><span class="p">.</span><span class="na">println</span><span class="p">(</span><span class="n">tl</span><span class="p">.</span><span class="na">get</span><span class="p">());</span><span class="w">  </span><span class="c1">// null（B 线程看到的是自己的副本，不受 A 影响）</span>
+<a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a><span class="p">}).</span><span class="na">start</span><span class="p">();</span>
+</code></pre></div>
+<p><strong>一句话</strong>：锁（synchronized/ReentrantLock）解决的是"多线程<strong>共享</strong>数据时的互斥"，ThreadLocal 解决的是"让每个线程<strong>拥有自己的</strong>数据"。</p>
+<h3 id="12">1.2 典型使用场景<a class="headerlink" href="#12" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>场景</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>数据库连接/Session</td>
+<td>每个线程绑定自己的 Connection（Spring 事务就是这么做的）</td>
+</tr>
+<tr>
+<td>用户上下文</td>
+<td>Web 请求中保存当前登录用户，全链路随取随用</td>
+</tr>
+<tr>
+<td>日期格式化器</td>
+<td>SimpleDateFormat 非线程安全，每线程一份</td>
+</tr>
+<tr>
+<td>链路追踪 ID</td>
+<td>traceId 贯穿一次请求的所有日志</td>
+</tr>
+</tbody>
+</table>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="c1">// 经典场景：SimpleDateFormat 线程不安全</span>
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="c1">// ❌ 共享一个实例，多线程 format 会出错</span>
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="c1">// ✅ 每个线程一份</span>
+<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="kd">private</span><span class="w"> </span><span class="kd">static</span><span class="w"> </span><span class="kd">final</span><span class="w"> </span><span class="n">ThreadLocal</span><span class="o">&lt;</span><span class="n">SimpleDateFormat</span><span class="o">&gt;</span><span class="w"> </span><span class="n">DATE_FORMAT</span><span class="w"> </span><span class="o">=</span>
+<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a><span class="w">    </span><span class="n">ThreadLocal</span><span class="p">.</span><span class="na">withInitial</span><span class="p">(()</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="k">new</span><span class="w"> </span><span class="n">SimpleDateFormat</span><span class="p">(</span><span class="s">&quot;yyyy-MM-dd&quot;</span><span class="p">));</span>
+<a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a>
+<a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a><span class="n">String</span><span class="w"> </span><span class="n">s</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">DATE_FORMAT</span><span class="p">.</span><span class="na">get</span><span class="p">().</span><span class="na">format</span><span class="p">(</span><span class="k">new</span><span class="w"> </span><span class="n">Date</span><span class="p">());</span>
+</code></pre></div>
+<hr />
+<h2 id="2">2. 基本使用<a class="headerlink" href="#2" title="Permanent link">&para;</a></h2>
+<p><strong>知识点</strong>：
+- 核心三方法：set / get / remove；<code>withInitial(Supplier)</code> 提供初始值
+- ⚠️ 线程池场景<strong>用完必须 remove</strong>，否则线程复用导致数据串号/内存泄漏
+- Web 框架通常在拦截器入口 set、出口 clear</p>
+<h3 id="21">2.1 常用方法<a class="headerlink" href="#21" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="n">ThreadLocal</span><span class="o">&lt;</span><span class="n">Integer</span><span class="o">&gt;</span><span class="w"> </span><span class="n">tl</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">new</span><span class="w"> </span><span class="n">ThreadLocal</span><span class="o">&lt;&gt;</span><span class="p">();</span>
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>
+<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="n">tl</span><span class="p">.</span><span class="na">set</span><span class="p">(</span><span class="mi">100</span><span class="p">);</span><span class="w">                  </span><span class="c1">// 设置当前线程的值</span>
+<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="n">Integer</span><span class="w"> </span><span class="n">v</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">tl</span><span class="p">.</span><span class="na">get</span><span class="p">();</span><span class="w">         </span><span class="c1">// 获取当前线程的值</span>
+<a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a><span class="n">tl</span><span class="p">.</span><span class="na">remove</span><span class="p">();</span><span class="w">                  </span><span class="c1">// 删除当前线程的值（重要！防内存泄漏）</span>
+<a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a>
+<a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a><span class="c1">// 带初始值的写法（推荐）：get 时如果没 set 过，自动调用 initialValue()</span>
+<a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a><span class="n">ThreadLocal</span><span class="o">&lt;</span><span class="n">Integer</span><span class="o">&gt;</span><span class="w"> </span><span class="n">withInit</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">ThreadLocal</span><span class="p">.</span><span class="na">withInitial</span><span class="p">(()</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="mi">0</span><span class="p">);</span>
+</code></pre></div>
+<h3 id="22-web">2.2 实战：Web 请求的用户上下文<a class="headerlink" href="#22-web" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="c1">// 1. 上下文持有者</span>
+<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="kd">public</span><span class="w"> </span><span class="kd">class</span> <span class="nc">UserContext</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="w">    </span><span class="kd">private</span><span class="w"> </span><span class="kd">static</span><span class="w"> </span><span class="kd">final</span><span class="w"> </span><span class="n">ThreadLocal</span><span class="o">&lt;</span><span class="n">User</span><span class="o">&gt;</span><span class="w"> </span><span class="n">HOLDER</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">new</span><span class="w"> </span><span class="n">ThreadLocal</span><span class="o">&lt;&gt;</span><span class="p">();</span>
+<a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a>
+<a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a><span class="w">    </span><span class="kd">public</span><span class="w"> </span><span class="kd">static</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="nf">set</span><span class="p">(</span><span class="n">User</span><span class="w"> </span><span class="n">user</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="n">HOLDER</span><span class="p">.</span><span class="na">set</span><span class="p">(</span><span class="n">user</span><span class="p">);</span><span class="w"> </span><span class="p">}</span>
+<a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a><span class="w">    </span><span class="kd">public</span><span class="w"> </span><span class="kd">static</span><span class="w"> </span><span class="n">User</span><span class="w"> </span><span class="nf">get</span><span class="p">()</span><span class="w">          </span><span class="p">{</span><span class="w"> </span><span class="k">return</span><span class="w"> </span><span class="n">HOLDER</span><span class="p">.</span><span class="na">get</span><span class="p">();</span><span class="w"> </span><span class="p">}</span>
+<a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a><span class="w">    </span><span class="kd">public</span><span class="w"> </span><span class="kd">static</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="nf">clear</span><span class="p">()</span><span class="w">        </span><span class="p">{</span><span class="w"> </span><span class="n">HOLDER</span><span class="p">.</span><span class="na">remove</span><span class="p">();</span><span class="w"> </span><span class="p">}</span>
+<a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a><span class="p">}</span>
+<a id="__codelineno-3-9" name="__codelineno-3-9" href="#__codelineno-3-9"></a>
+<a id="__codelineno-3-10" name="__codelineno-3-10" href="#__codelineno-3-10"></a><span class="c1">// 2. 拦截器：请求进入时 set，请求结束时 clear</span>
+<a id="__codelineno-3-11" name="__codelineno-3-11" href="#__codelineno-3-11"></a><span class="kd">public</span><span class="w"> </span><span class="kd">class</span> <span class="nc">LoginInterceptor</span><span class="w"> </span><span class="kd">implements</span><span class="w"> </span><span class="n">HandlerInterceptor</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-3-12" name="__codelineno-3-12" href="#__codelineno-3-12"></a><span class="w">    </span><span class="nd">@Override</span>
+<a id="__codelineno-3-13" name="__codelineno-3-13" href="#__codelineno-3-13"></a><span class="w">    </span><span class="kd">public</span><span class="w"> </span><span class="kt">boolean</span><span class="w"> </span><span class="nf">preHandle</span><span class="p">(</span><span class="n">HttpServletRequest</span><span class="w"> </span><span class="n">req</span><span class="p">,</span><span class="w"> </span><span class="n">HttpServletResponse</span><span class="w"> </span><span class="n">resp</span><span class="p">,</span><span class="w"> </span><span class="n">Object</span><span class="w"> </span><span class="n">handler</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-3-14" name="__codelineno-3-14" href="#__codelineno-3-14"></a><span class="w">        </span><span class="n">User</span><span class="w"> </span><span class="n">user</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">parseToken</span><span class="p">(</span><span class="n">req</span><span class="p">);</span><span class="w">   </span><span class="c1">// 从 token 解析用户</span>
+<a id="__codelineno-3-15" name="__codelineno-3-15" href="#__codelineno-3-15"></a><span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">user</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="kc">null</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-3-16" name="__codelineno-3-16" href="#__codelineno-3-16"></a><span class="w">            </span><span class="n">UserContext</span><span class="p">.</span><span class="na">set</span><span class="p">(</span><span class="n">user</span><span class="p">);</span>
+<a id="__codelineno-3-17" name="__codelineno-3-17" href="#__codelineno-3-17"></a><span class="w">        </span><span class="p">}</span>
+<a id="__codelineno-3-18" name="__codelineno-3-18" href="#__codelineno-3-18"></a><span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="kc">true</span><span class="p">;</span>
+<a id="__codelineno-3-19" name="__codelineno-3-19" href="#__codelineno-3-19"></a><span class="w">    </span><span class="p">}</span>
+<a id="__codelineno-3-20" name="__codelineno-3-20" href="#__codelineno-3-20"></a>
+<a id="__codelineno-3-21" name="__codelineno-3-21" href="#__codelineno-3-21"></a><span class="w">    </span><span class="nd">@Override</span>
+<a id="__codelineno-3-22" name="__codelineno-3-22" href="#__codelineno-3-22"></a><span class="w">    </span><span class="kd">public</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="nf">afterCompletion</span><span class="p">(</span><span class="n">HttpServletRequest</span><span class="w"> </span><span class="n">req</span><span class="p">,</span><span class="w"> </span><span class="n">HttpServletResponse</span><span class="w"> </span><span class="n">resp</span><span class="p">,</span>
+<a id="__codelineno-3-23" name="__codelineno-3-23" href="#__codelineno-3-23"></a><span class="w">                                </span><span class="n">Object</span><span class="w"> </span><span class="n">handler</span><span class="p">,</span><span class="w"> </span><span class="n">Exception</span><span class="w"> </span><span class="n">ex</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-3-24" name="__codelineno-3-24" href="#__codelineno-3-24"></a><span class="w">        </span><span class="n">UserContext</span><span class="p">.</span><span class="na">clear</span><span class="p">();</span><span class="w">  </span><span class="c1">// ⭐ 必须清理，否则线程池复用线程时会&quot;串数据&quot;</span>
+<a id="__codelineno-3-25" name="__codelineno-3-25" href="#__codelineno-3-25"></a><span class="w">    </span><span class="p">}</span>
+<a id="__codelineno-3-26" name="__codelineno-3-26" href="#__codelineno-3-26"></a><span class="p">}</span>
+<a id="__codelineno-3-27" name="__codelineno-3-27" href="#__codelineno-3-27"></a>
+<a id="__codelineno-3-28" name="__codelineno-3-28" href="#__codelineno-3-28"></a><span class="c1">// 3. 业务代码中随取随用，无需层层传参</span>
+<a id="__codelineno-3-29" name="__codelineno-3-29" href="#__codelineno-3-29"></a><span class="kd">public</span><span class="w"> </span><span class="n">Order</span><span class="w"> </span><span class="nf">createOrder</span><span class="p">(</span><span class="n">OrderDTO</span><span class="w"> </span><span class="n">dto</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-3-30" name="__codelineno-3-30" href="#__codelineno-3-30"></a><span class="w">    </span><span class="n">Long</span><span class="w"> </span><span class="n">userId</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">UserContext</span><span class="p">.</span><span class="na">get</span><span class="p">().</span><span class="na">getId</span><span class="p">();</span>
+<a id="__codelineno-3-31" name="__codelineno-3-31" href="#__codelineno-3-31"></a><span class="w">    </span><span class="c1">// ...</span>
+<a id="__codelineno-3-32" name="__codelineno-3-32" href="#__codelineno-3-32"></a><span class="p">}</span>
+</code></pre></div>
+<hr />
+<h2 id="3">3. 底层原理 ⭐⭐⭐⭐<a class="headerlink" href="#3" title="Permanent link">&para;</a></h2>
+<p><strong>知识点</strong>：
+- ⭐ 数据不存在 ThreadLocal 里，而是存在<strong>每个 Thread 的 threadLocals（ThreadLocalMap）</strong> 里，key 是 ThreadLocal 实例
+- ⭐ Entry 的 key 是弱引用、value 是强引用——key 被 GC 后 value 残留 → 内存泄漏根因
+- ThreadLocalMap 用开放地址法解决冲突，hashCode 用黄金分割数 0x61c88647 递增</p>
+<h3 id="31">3.1 存储结构<a class="headerlink" href="#31" title="Permanent link">&para;</a></h3>
+<p><strong>关键认知：数据不是存在 ThreadLocal 对象里，而是存在每个 Thread 对象里。</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>每个 Thread 对象内部：
+<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>class Thread {
+<a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a>    ThreadLocal.ThreadLocalMap threadLocals = null;  // 真正存数据的地方
+<a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a>}
+<a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a>
+<a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a>ThreadLocalMap 的结构（简化）：
+<a id="__codelineno-4-7" name="__codelineno-4-7" href="#__codelineno-4-7"></a>┌──────────────────────────────────────────┐
+<a id="__codelineno-4-8" name="__codelineno-4-8" href="#__codelineno-4-8"></a>│ Entry[] table（哈希表）                    │
+<a id="__codelineno-4-9" name="__codelineno-4-9" href="#__codelineno-4-9"></a>│  ┌─────────┬─────────┬─────────┐         │
+<a id="__codelineno-4-10" name="__codelineno-4-10" href="#__codelineno-4-10"></a>│  │ Entry   │ Entry   │ Entry   │ ...     │
+<a id="__codelineno-4-11" name="__codelineno-4-11" href="#__codelineno-4-11"></a>│  └─────────┴─────────┴─────────┘         │
+<a id="__codelineno-4-12" name="__codelineno-4-12" href="#__codelineno-4-12"></a>│  Entry 继承 WeakReference&lt;ThreadLocal&lt;?&gt;&gt; │
+<a id="__codelineno-4-13" name="__codelineno-4-13" href="#__codelineno-4-13"></a>│  Entry.key   = ThreadLocal 对象（弱引用）  │
+<a id="__codelineno-4-14" name="__codelineno-4-14" href="#__codelineno-4-14"></a>│  Entry.value = 存的值（强引用）            │
+<a id="__codelineno-4-15" name="__codelineno-4-15" href="#__codelineno-4-15"></a>└──────────────────────────────────────────┘
+</code></pre></div>
+<p>调用关系：</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="n">tl</span><span class="p">.</span><span class="na">set</span><span class="p">(</span><span class="n">value</span><span class="p">);</span>
+<a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="c1">// 实际执行：</span>
+<a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a><span class="n">Thread</span><span class="w"> </span><span class="n">t</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">Thread</span><span class="p">.</span><span class="na">currentThread</span><span class="p">();</span><span class="w">          </span><span class="c1">// 拿到当前线程</span>
+<a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a><span class="n">ThreadLocalMap</span><span class="w"> </span><span class="n">map</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">t</span><span class="p">.</span><span class="na">threadLocals</span><span class="p">;</span><span class="w">        </span><span class="c1">// 拿线程内部的 Map</span>
+<a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a><span class="n">map</span><span class="p">.</span><span class="na">set</span><span class="p">(</span><span class="k">this</span><span class="p">,</span><span class="w"> </span><span class="n">value</span><span class="p">);</span><span class="w">                       </span><span class="c1">// key = 这个 ThreadLocal 对象</span>
+<a id="__codelineno-5-6" name="__codelineno-5-6" href="#__codelineno-5-6"></a>
+<a id="__codelineno-5-7" name="__codelineno-5-7" href="#__codelineno-5-7"></a><span class="n">tl</span><span class="p">.</span><span class="na">get</span><span class="p">();</span>
+<a id="__codelineno-5-8" name="__codelineno-5-8" href="#__codelineno-5-8"></a><span class="c1">// 实际执行：拿当前线程的 Map，用 this 作 key 查出 value</span>
+</code></pre></div>
+<p><strong>为什么这样设计？</strong>
+- 每个线程有自己的 Map，存取时不存在竞争，天然线程安全
+- 一个线程可以用多个 ThreadLocal，都以 ThreadLocal 实例为 key 存在同一个 Map 里</p>
+<h3 id="32-threadlocalmap">3.2 ThreadLocalMap 的哈希冲突：开放地址法<a class="headerlink" href="#32-threadlocalmap" title="Permanent link">&para;</a></h3>
+<p>ThreadLocalMap 没有用链表解决冲突，而是<strong>开放地址法（线性探测）</strong>：</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="c1">// 定位：i = key.threadLocalHashCode &amp; (len - 1)</span>
+<a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a><span class="c1">// 冲突时：i = nextIndex(i, len)，向后找下一个空位</span>
+</code></pre></div>
+<p>原因：
+- ThreadLocalMap 通常元素不多，开放地址法内存更紧凑（不需要 Node 对象）
+- ThreadLocal 的 hashCode 用<strong>黄金分割数 0x61c88647 累加</strong>生成，分布非常均匀，冲突概率低</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="c1">// ThreadLocal 源码</span>
+<a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a><span class="kd">private</span><span class="w"> </span><span class="kd">static</span><span class="w"> </span><span class="kd">final</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">HASH_INCREMENT</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mh">0x61c88647</span><span class="p">;</span>
+<a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a><span class="kd">private</span><span class="w"> </span><span class="kd">static</span><span class="w"> </span><span class="n">AtomicInteger</span><span class="w"> </span><span class="n">nextHashCode</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">new</span><span class="w"> </span><span class="n">AtomicInteger</span><span class="p">();</span>
+<a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a><span class="c1">// 每个 ThreadLocal 实例的 hashCode = 上一个 + 0x61c88647（模 2^32）</span>
+</code></pre></div>
+<h3 id="33">3.3 内存泄漏问题 ⭐⭐⭐⭐（必问）<a class="headerlink" href="#33" title="Permanent link">&para;</a></h3>
+<p><strong>先看引用链</strong>：</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a>线程栈
+<a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a>  └─ Thread 对象
+<a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a>       └─ ThreadLocalMap
+<a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a>            └─ Entry[]
+<a id="__codelineno-8-5" name="__codelineno-8-5" href="#__codelineno-8-5"></a>                 ├─ key ──弱引用──→ ThreadLocal 对象 ←──强引用── 外部变量（如 static 字段）
+<a id="__codelineno-8-6" name="__codelineno-8-6" href="#__codelineno-8-6"></a>                 └─ value ──强引用──→ 存储的对象
+</code></pre></div>
+<p><strong>泄漏是怎么发生的</strong>：
+1. Entry 的 <strong>key 是弱引用</strong>：当外部对 ThreadLocal 的强引用消失（如方法结束、局部变量置空），GC 会回收 ThreadLocal 对象 → key 变成 null
+2. 但 <strong>value 是强引用</strong>，且 Entry 挂在 Thread 的 Map 上
+3. 如果线程长期存活（<strong>线程池里的线程就是</strong>），这个 key=null、value 非 null 的 Entry 永远无法被访问到，也永远不被回收 → <strong>内存泄漏</strong></p>
+<p><strong>为什么 key 要设计成弱引用？</strong>
+如果 key 是强引用，ThreadLocal 对象被置空后，Entry 仍然强引用着它，连 key 都回收不了，泄漏更彻底。弱引用至少让 key 能被回收，给 ThreadLocalMap 的自清理（get/set 时会顺手清理 key=null 的 Entry）留了机会。</p>
+<p><strong>正确做法：用完必须 remove！</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a><span class="k">try</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a><span class="w">    </span><span class="n">threadLocal</span><span class="p">.</span><span class="na">set</span><span class="p">(</span><span class="n">context</span><span class="p">);</span>
+<a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a><span class="w">    </span><span class="c1">// 业务逻辑</span>
+<a id="__codelineno-9-4" name="__codelineno-9-4" href="#__codelineno-9-4"></a><span class="p">}</span><span class="w"> </span><span class="k">finally</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-9-5" name="__codelineno-9-5" href="#__codelineno-9-5"></a><span class="w">    </span><span class="n">threadLocal</span><span class="p">.</span><span class="na">remove</span><span class="p">();</span><span class="w">  </span><span class="c1">// ⭐ 强制清理，不依赖弱引用的自清理</span>
+<a id="__codelineno-9-6" name="__codelineno-9-6" href="#__codelineno-9-6"></a><span class="p">}</span>
+</code></pre></div>
+<blockquote>
+<p>记忆口诀：<strong>"弱引用防泄漏只是缓解，remove 才是根治；线程池场景必须 remove"</strong>。</p>
+</blockquote>
+<h3 id="34-threadlocal">3.4 ThreadLocal 与线程池：数据污染<a class="headerlink" href="#34-threadlocal" title="Permanent link">&para;</a></h3>
+<p>线程池的线程是复用的。若任务结束没 remove，下一个任务复用同一线程时，get() 会拿到<strong>上一个任务残留的数据</strong>——轻则逻辑错误，重则用户数据串号（A 用户看到了 B 的信息）。这就是 2.2 节拦截器里 <code>afterCompletion</code> 必须 clear 的原因。</p>
+<hr />
+<h2 id="4-inheritablethreadlocal">4. InheritableThreadLocal 与线程传递<a class="headerlink" href="#4-inheritablethreadlocal" title="Permanent link">&para;</a></h2>
+<p><strong>知识点</strong>：
+- ⭐ InheritableThreadLocal 只在 <strong>new Thread() 那一刻</strong>把父线程值拷贝给子线程
+- ⚠️ 线程池的线程是提前创建复用的 → InheritableThreadLocal 失效
+- 跨线程池传递上下文用阿里的 <strong>TransmittableThreadLocal（TTL）</strong></p>
+<h3 id="41">4.1 父子线程传递<a class="headerlink" href="#41" title="Permanent link">&para;</a></h3>
+<p>普通 ThreadLocal 的值<strong>不会</strong>传给子线程。<code>InheritableThreadLocal</code> 可以在<strong>创建子线程时</strong>把父线程的值拷贝过去：</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a><span class="n">ThreadLocal</span><span class="o">&lt;</span><span class="n">String</span><span class="o">&gt;</span><span class="w"> </span><span class="n">tl</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">new</span><span class="w"> </span><span class="n">InheritableThreadLocal</span><span class="o">&lt;&gt;</span><span class="p">();</span>
+<a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a><span class="n">tl</span><span class="p">.</span><span class="na">set</span><span class="p">(</span><span class="s">&quot;父线程的值&quot;</span><span class="p">);</span>
+<a id="__codelineno-10-3" name="__codelineno-10-3" href="#__codelineno-10-3"></a>
+<a id="__codelineno-10-4" name="__codelineno-10-4" href="#__codelineno-10-4"></a><span class="k">new</span><span class="w"> </span><span class="n">Thread</span><span class="p">(()</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-10-5" name="__codelineno-10-5" href="#__codelineno-10-5"></a><span class="w">    </span><span class="n">System</span><span class="p">.</span><span class="na">out</span><span class="p">.</span><span class="na">println</span><span class="p">(</span><span class="n">tl</span><span class="p">.</span><span class="na">get</span><span class="p">());</span><span class="w">  </span><span class="c1">// 父线程的值（创建时拷贝）</span>
+<a id="__codelineno-10-6" name="__codelineno-10-6" href="#__codelineno-10-6"></a><span class="p">}).</span><span class="na">start</span><span class="p">();</span>
+</code></pre></div>
+<h3 id="42-transmittablethreadlocal">4.2 线程池场景的失效与 TransmittableThreadLocal<a class="headerlink" href="#42-transmittablethreadlocal" title="Permanent link">&para;</a></h3>
+<p>InheritableThreadLocal 只在 <code>new Thread()</code> 那一刻拷贝。线程池的线程是复用的、早就创建好了，提交任务时不会重新拷贝 → <strong>失效</strong>。</p>
+<p>阿里开源的 <strong>TransmittableThreadLocal（TTL）</strong> 解决了这个问题：在任务提交/执行时捕获并恢复上下文，是线程池 + 链路追踪（traceId 透传）场景的标准方案。</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a><span class="c1">// TTL 用法（依赖 com.alibaba:transmittable-thread-local）</span>
+<a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a><span class="n">TransmittableThreadLocal</span><span class="o">&lt;</span><span class="n">String</span><span class="o">&gt;</span><span class="w"> </span><span class="n">ttl</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">new</span><span class="w"> </span><span class="n">TransmittableThreadLocal</span><span class="o">&lt;&gt;</span><span class="p">();</span>
+<a id="__codelineno-11-3" name="__codelineno-11-3" href="#__codelineno-11-3"></a><span class="n">ttl</span><span class="p">.</span><span class="na">set</span><span class="p">(</span><span class="s">&quot;trace-123&quot;</span><span class="p">);</span>
+<a id="__codelineno-11-4" name="__codelineno-11-4" href="#__codelineno-11-4"></a>
+<a id="__codelineno-11-5" name="__codelineno-11-5" href="#__codelineno-11-5"></a><span class="c1">// 用 TtlRunnable 包装任务，或 TtlExecutors 包装线程池</span>
+<a id="__codelineno-11-6" name="__codelineno-11-6" href="#__codelineno-11-6"></a><span class="n">ExecutorService</span><span class="w"> </span><span class="n">pool</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">TtlExecutors</span><span class="p">.</span><span class="na">getTtlExecutorService</span><span class="p">(</span><span class="n">rawPool</span><span class="p">);</span>
+<a id="__codelineno-11-7" name="__codelineno-11-7" href="#__codelineno-11-7"></a><span class="n">pool</span><span class="p">.</span><span class="na">submit</span><span class="p">(()</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="n">System</span><span class="p">.</span><span class="na">out</span><span class="p">.</span><span class="na">println</span><span class="p">(</span><span class="n">ttl</span><span class="p">.</span><span class="na">get</span><span class="p">()));</span><span class="w">  </span><span class="c1">// trace-123 ✅</span>
+</code></pre></div>
+<hr />
+<h2 id="5">5. 源码中的设计思想（进阶）<a class="headerlink" href="#5" title="Permanent link">&para;</a></h2>
+<p><strong>知识点</strong>：
+- ThreadLocalMap 挂在 Thread 上而非反过来：线程销毁时整个 Map 随线程一起回收，干净
+- get/set/remove 时会顺手清理 key=null 的 Entry（expungeStaleEntry）——但只是缓解，根治靠显式 remove</p>
+<h3 id="51-threadlocalmap-thread">5.1 为什么 ThreadLocalMap 是 Thread 的成员而不是反过来？<a class="headerlink" href="#51-threadlocalmap-thread" title="Permanent link">&para;</a></h3>
+<p>如果"一个 ThreadLocal 持有一个 Map<Thread, Value>"：
+- Thread 对象作为 key 需要弱引用管理，更复杂
+- 线程销毁时清理麻烦</p>
+<p>现在的设计（Map 挂在 Thread 上）：线程销毁时，整个 Map 跟着回收，干净利落。</p>
+<h3 id="52-getset">5.2 get/set 时的自清理<a class="headerlink" href="#52-getset" title="Permanent link">&para;</a></h3>
+<p>ThreadLocalMap 在 <code>get</code>/<code>set</code>/<code>remove</code> 时会探测性地清理一部分 key=null 的 Entry（expungeStaleEntry），这是弱引用设计的配套机制——但它是"顺手的"，不能替代显式 remove。</p>
+<hr />
+<h2 id="6-jdk-21scopedvalue">6. JDK 21+：ScopedValue（了解）<a class="headerlink" href="#6-jdk-21scopedvalue" title="Permanent link">&para;</a></h2>
+<p>虚拟线程时代，每个虚拟线程都带一个 ThreadLocalMap 成本太高，且 ThreadLocal 的可变性、无界生命周期不利于并发编程。JDK 21 引入了 <strong>ScopedValue（预览特性，JEP 446）</strong>：</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a><span class="c1">// 不可变、作用域结束自动释放、可被结构化并发继承</span>
+<a id="__codelineno-12-2" name="__codelineno-12-2" href="#__codelineno-12-2"></a><span class="kd">static</span><span class="w"> </span><span class="kd">final</span><span class="w"> </span><span class="n">ScopedValue</span><span class="o">&lt;</span><span class="n">User</span><span class="o">&gt;</span><span class="w"> </span><span class="n">CURRENT_USER</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">ScopedValue</span><span class="p">.</span><span class="na">newInstance</span><span class="p">();</span>
+<a id="__codelineno-12-3" name="__codelineno-12-3" href="#__codelineno-12-3"></a>
+<a id="__codelineno-12-4" name="__codelineno-12-4" href="#__codelineno-12-4"></a><span class="n">ScopedValue</span><span class="p">.</span><span class="na">where</span><span class="p">(</span><span class="n">CURRENT_USER</span><span class="p">,</span><span class="w"> </span><span class="n">user</span><span class="p">).</span><span class="na">run</span><span class="p">(()</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-12-5" name="__codelineno-12-5" href="#__codelineno-12-5"></a><span class="w">    </span><span class="c1">// 作用域内任何调用链都能读到</span>
+<a id="__codelineno-12-6" name="__codelineno-12-6" href="#__codelineno-12-6"></a><span class="w">    </span><span class="n">User</span><span class="w"> </span><span class="n">u</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">CURRENT_USER</span><span class="p">.</span><span class="na">get</span><span class="p">();</span>
+<a id="__codelineno-12-7" name="__codelineno-12-7" href="#__codelineno-12-7"></a><span class="p">});</span>
+<a id="__codelineno-12-8" name="__codelineno-12-8" href="#__codelineno-12-8"></a><span class="c1">// 作用域结束自动释放，无需手动 remove</span>
+</code></pre></div>
+<p>目前仍是预览 API，生产代码继续用 ThreadLocal + remove 即可，但面试可以提一句这个演进方向。</p>
+<hr />
+<h2 id="7">7. 常见面试题<a class="headerlink" href="#7" title="Permanent link">&para;</a></h2>
+<p><strong>Q1：ThreadLocal 的原理？</strong>
+每个 Thread 内部有一个 ThreadLocalMap，以 ThreadLocal 实例为 key 存储值。get/set 操作的都是当前线程自己的 Map，所以线程隔离、无需加锁。</p>
+<p><strong>Q2：ThreadLocal 为什么会内存泄漏？怎么避免？</strong>
+Entry 的 key 是 ThreadLocal 的弱引用，key 被 GC 后变成 null，但 value 是强引用且挂在线程上；线程长期存活（线程池）时这个 Entry 无法回收。避免：用完在 finally 中 remove。</p>
+<p><strong>Q3：为什么 key 是弱引用？</strong>
+让不再使用的 ThreadLocal 对象能被 GC 回收（强引用则完全回收不了），并给 ThreadLocalMap 的自清理机制留机会。但弱引用只是缓解，根治靠 remove。</p>
+<p><strong>Q4：ThreadLocal 在线程池中要注意什么？</strong>
+线程复用会导致：① 上个任务的数据残留（数据污染）；② 内存泄漏。必须在 finally 中 remove。需要跨线程池传递上下文时用 TransmittableThreadLocal。</p>
+<p><strong>Q5：InheritableThreadLocal 能解决线程池的上下文传递吗？</strong>
+不能。它只在 new Thread() 时拷贝一次，线程池的线程是提前创建复用的。要用 TTL（TransmittableThreadLocal）。</p>
+<p><strong>Q6：ThreadLocalMap 怎么解决哈希冲突？</strong>
+开放地址法（线性探测），不是链表。因为元素少、hashCode 用黄金分割数递增分布均匀。</p>
+<hr />
+<h2 id="8">8. 练习题<a class="headerlink" href="#8" title="Permanent link">&para;</a></h2>
+<p><strong>练习 1（基本使用）</strong>：创建一个 ThreadLocal<Integer>，在两个线程中分别 set 不同值，验证互不影响。</p>
+<p><strong>练习 2（SimpleDateFormat）</strong>：用 ThreadLocal 包装 SimpleDateFormat，写一个线程安全的 <code>format(Date)</code> 工具方法。</p>
+<p><strong>练习 3（用户上下文）</strong>：实现 UserContext 类（set/get/clear），写一个模拟"请求进入 set → 业务读取 → 请求结束 clear"的完整流程，并用线程池连续执行两个任务，验证不 remove 时会发生数据污染（第二个任务 get 到第一个的数据）。</p>
+<h3 id="_2">参考答案<a class="headerlink" href="#_2" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a><span class="kn">import</span><span class="w"> </span><span class="nn">java.text.SimpleDateFormat</span><span class="p">;</span>
+<a id="__codelineno-13-2" name="__codelineno-13-2" href="#__codelineno-13-2"></a><span class="kn">import</span><span class="w"> </span><span class="nn">java.util.Date</span><span class="p">;</span>
+<a id="__codelineno-13-3" name="__codelineno-13-3" href="#__codelineno-13-3"></a><span class="kn">import</span><span class="w"> </span><span class="nn">java.util.concurrent.*</span><span class="p">;</span>
+<a id="__codelineno-13-4" name="__codelineno-13-4" href="#__codelineno-13-4"></a>
+<a id="__codelineno-13-5" name="__codelineno-13-5" href="#__codelineno-13-5"></a><span class="kd">public</span><span class="w"> </span><span class="kd">class</span> <span class="nc">ThreadLocalExercises</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-13-6" name="__codelineno-13-6" href="#__codelineno-13-6"></a>
+<a id="__codelineno-13-7" name="__codelineno-13-7" href="#__codelineno-13-7"></a><span class="w">    </span><span class="kd">public</span><span class="w"> </span><span class="kd">static</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="nf">main</span><span class="p">(</span><span class="n">String</span><span class="o">[]</span><span class="w"> </span><span class="n">args</span><span class="p">)</span><span class="w"> </span><span class="kd">throws</span><span class="w"> </span><span class="n">Exception</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-13-8" name="__codelineno-13-8" href="#__codelineno-13-8"></a><span class="w">        </span><span class="c1">// 练习 1：线程隔离验证</span>
+<a id="__codelineno-13-9" name="__codelineno-13-9" href="#__codelineno-13-9"></a><span class="w">        </span><span class="n">ThreadLocal</span><span class="o">&lt;</span><span class="n">Integer</span><span class="o">&gt;</span><span class="w"> </span><span class="n">tl</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">new</span><span class="w"> </span><span class="n">ThreadLocal</span><span class="o">&lt;&gt;</span><span class="p">();</span>
+<a id="__codelineno-13-10" name="__codelineno-13-10" href="#__codelineno-13-10"></a><span class="w">        </span><span class="k">new</span><span class="w"> </span><span class="n">Thread</span><span class="p">(()</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-13-11" name="__codelineno-13-11" href="#__codelineno-13-11"></a><span class="w">            </span><span class="n">tl</span><span class="p">.</span><span class="na">set</span><span class="p">(</span><span class="mi">1</span><span class="p">);</span>
+<a id="__codelineno-13-12" name="__codelineno-13-12" href="#__codelineno-13-12"></a><span class="w">            </span><span class="n">System</span><span class="p">.</span><span class="na">out</span><span class="p">.</span><span class="na">println</span><span class="p">(</span><span class="s">&quot;线程1: &quot;</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">tl</span><span class="p">.</span><span class="na">get</span><span class="p">());</span><span class="w">  </span><span class="c1">// 1</span>
+<a id="__codelineno-13-13" name="__codelineno-13-13" href="#__codelineno-13-13"></a><span class="w">        </span><span class="p">}).</span><span class="na">start</span><span class="p">();</span>
+<a id="__codelineno-13-14" name="__codelineno-13-14" href="#__codelineno-13-14"></a><span class="w">        </span><span class="k">new</span><span class="w"> </span><span class="n">Thread</span><span class="p">(()</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-13-15" name="__codelineno-13-15" href="#__codelineno-13-15"></a><span class="w">            </span><span class="n">tl</span><span class="p">.</span><span class="na">set</span><span class="p">(</span><span class="mi">2</span><span class="p">);</span>
+<a id="__codelineno-13-16" name="__codelineno-13-16" href="#__codelineno-13-16"></a><span class="w">            </span><span class="n">System</span><span class="p">.</span><span class="na">out</span><span class="p">.</span><span class="na">println</span><span class="p">(</span><span class="s">&quot;线程2: &quot;</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">tl</span><span class="p">.</span><span class="na">get</span><span class="p">());</span><span class="w">  </span><span class="c1">// 2</span>
+<a id="__codelineno-13-17" name="__codelineno-13-17" href="#__codelineno-13-17"></a><span class="w">        </span><span class="p">}).</span><span class="na">start</span><span class="p">();</span>
+<a id="__codelineno-13-18" name="__codelineno-13-18" href="#__codelineno-13-18"></a><span class="w">        </span><span class="c1">// 各线程读写自己的副本，互不干扰</span>
+<a id="__codelineno-13-19" name="__codelineno-13-19" href="#__codelineno-13-19"></a>
+<a id="__codelineno-13-20" name="__codelineno-13-20" href="#__codelineno-13-20"></a><span class="w">        </span><span class="c1">// 练习 2：线程安全的日期格式化</span>
+<a id="__codelineno-13-21" name="__codelineno-13-21" href="#__codelineno-13-21"></a><span class="w">        </span><span class="n">System</span><span class="p">.</span><span class="na">out</span><span class="p">.</span><span class="na">println</span><span class="p">(</span><span class="n">DateUtil</span><span class="p">.</span><span class="na">format</span><span class="p">(</span><span class="k">new</span><span class="w"> </span><span class="n">Date</span><span class="p">()));</span>
+<a id="__codelineno-13-22" name="__codelineno-13-22" href="#__codelineno-13-22"></a>
+<a id="__codelineno-13-23" name="__codelineno-13-23" href="#__codelineno-13-23"></a><span class="w">        </span><span class="c1">// 练习 3：数据污染演示</span>
+<a id="__codelineno-13-24" name="__codelineno-13-24" href="#__codelineno-13-24"></a><span class="w">        </span><span class="n">ThreadLocal</span><span class="o">&lt;</span><span class="n">String</span><span class="o">&gt;</span><span class="w"> </span><span class="n">context</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">new</span><span class="w"> </span><span class="n">ThreadLocal</span><span class="o">&lt;&gt;</span><span class="p">();</span>
+<a id="__codelineno-13-25" name="__codelineno-13-25" href="#__codelineno-13-25"></a><span class="w">        </span><span class="n">ExecutorService</span><span class="w"> </span><span class="n">pool</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">Executors</span><span class="p">.</span><span class="na">newFixedThreadPool</span><span class="p">(</span><span class="mi">1</span><span class="p">);</span><span class="w">  </span><span class="c1">// 单线程池，必然复用</span>
+<a id="__codelineno-13-26" name="__codelineno-13-26" href="#__codelineno-13-26"></a><span class="w">        </span><span class="n">pool</span><span class="p">.</span><span class="na">submit</span><span class="p">(()</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="n">context</span><span class="p">.</span><span class="na">set</span><span class="p">(</span><span class="s">&quot;用户A&quot;</span><span class="p">));</span>
+<a id="__codelineno-13-27" name="__codelineno-13-27" href="#__codelineno-13-27"></a><span class="w">        </span><span class="n">Thread</span><span class="p">.</span><span class="na">sleep</span><span class="p">(</span><span class="mi">100</span><span class="p">);</span>
+<a id="__codelineno-13-28" name="__codelineno-13-28" href="#__codelineno-13-28"></a><span class="w">        </span><span class="n">pool</span><span class="p">.</span><span class="na">submit</span><span class="p">(()</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-13-29" name="__codelineno-13-29" href="#__codelineno-13-29"></a><span class="w">            </span><span class="c1">// 没有 remove，复用同一线程 → 读到上一个任务残留的&quot;用户A&quot;</span>
+<a id="__codelineno-13-30" name="__codelineno-13-30" href="#__codelineno-13-30"></a><span class="w">            </span><span class="n">System</span><span class="p">.</span><span class="na">out</span><span class="p">.</span><span class="na">println</span><span class="p">(</span><span class="s">&quot;本任务读到：&quot;</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">context</span><span class="p">.</span><span class="na">get</span><span class="p">());</span><span class="w">  </span><span class="c1">// 用户A（污染！）</span>
+<a id="__codelineno-13-31" name="__codelineno-13-31" href="#__codelineno-13-31"></a><span class="w">        </span><span class="p">});</span>
+<a id="__codelineno-13-32" name="__codelineno-13-32" href="#__codelineno-13-32"></a><span class="w">        </span><span class="n">Thread</span><span class="p">.</span><span class="na">sleep</span><span class="p">(</span><span class="mi">100</span><span class="p">);</span>
+<a id="__codelineno-13-33" name="__codelineno-13-33" href="#__codelineno-13-33"></a><span class="w">        </span><span class="n">pool</span><span class="p">.</span><span class="na">shutdown</span><span class="p">();</span>
+<a id="__codelineno-13-34" name="__codelineno-13-34" href="#__codelineno-13-34"></a><span class="w">        </span><span class="c1">// 正确做法：每个任务 finally { context.remove(); }</span>
+<a id="__codelineno-13-35" name="__codelineno-13-35" href="#__codelineno-13-35"></a><span class="w">    </span><span class="p">}</span>
+<a id="__codelineno-13-36" name="__codelineno-13-36" href="#__codelineno-13-36"></a>
+<a id="__codelineno-13-37" name="__codelineno-13-37" href="#__codelineno-13-37"></a><span class="w">    </span><span class="c1">// 练习 2</span>
+<a id="__codelineno-13-38" name="__codelineno-13-38" href="#__codelineno-13-38"></a><span class="w">    </span><span class="kd">static</span><span class="w"> </span><span class="kd">class</span> <span class="nc">DateUtil</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-13-39" name="__codelineno-13-39" href="#__codelineno-13-39"></a><span class="w">        </span><span class="kd">private</span><span class="w"> </span><span class="kd">static</span><span class="w"> </span><span class="kd">final</span><span class="w"> </span><span class="n">ThreadLocal</span><span class="o">&lt;</span><span class="n">SimpleDateFormat</span><span class="o">&gt;</span><span class="w"> </span><span class="n">FMT</span><span class="w"> </span><span class="o">=</span>
+<a id="__codelineno-13-40" name="__codelineno-13-40" href="#__codelineno-13-40"></a><span class="w">            </span><span class="n">ThreadLocal</span><span class="p">.</span><span class="na">withInitial</span><span class="p">(()</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="k">new</span><span class="w"> </span><span class="n">SimpleDateFormat</span><span class="p">(</span><span class="s">&quot;yyyy-MM-dd HH:mm:ss&quot;</span><span class="p">));</span>
+<a id="__codelineno-13-41" name="__codelineno-13-41" href="#__codelineno-13-41"></a>
+<a id="__codelineno-13-42" name="__codelineno-13-42" href="#__codelineno-13-42"></a><span class="w">        </span><span class="kd">public</span><span class="w"> </span><span class="kd">static</span><span class="w"> </span><span class="n">String</span><span class="w"> </span><span class="nf">format</span><span class="p">(</span><span class="n">Date</span><span class="w"> </span><span class="n">date</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-13-43" name="__codelineno-13-43" href="#__codelineno-13-43"></a><span class="w">            </span><span class="k">return</span><span class="w"> </span><span class="n">FMT</span><span class="p">.</span><span class="na">get</span><span class="p">().</span><span class="na">format</span><span class="p">(</span><span class="n">date</span><span class="p">);</span>
+<a id="__codelineno-13-44" name="__codelineno-13-44" href="#__codelineno-13-44"></a><span class="w">        </span><span class="p">}</span>
+<a id="__codelineno-13-45" name="__codelineno-13-45" href="#__codelineno-13-45"></a><span class="w">    </span><span class="p">}</span>
+<a id="__codelineno-13-46" name="__codelineno-13-46" href="#__codelineno-13-46"></a><span class="p">}</span>
+</code></pre></div>
+<hr />
+<h2 id="9">9. 本章小结<a class="headerlink" href="#9" title="Permanent link">&para;</a></h2>
+<h3 id="_3">核心知识点<a class="headerlink" href="#_3" title="Permanent link">&para;</a></h3>
+<p>✅ <strong>定位</strong>：线程隔离方案，每线程独立副本，无锁线程安全<br />
+✅ <strong>原理</strong>：数据存在 Thread.threadLocals（ThreadLocalMap）里，key 是 ThreadLocal 实例<br />
+✅ <strong>冲突解决</strong>：开放地址法 + 黄金分割 hashCode<br />
+✅ <strong>内存泄漏</strong>：key 弱引用 / value 强引用 + 线程长期存活 → 必须 remove<br />
+✅ <strong>传递</strong>：InheritableThreadLocal（父子线程）、TransmittableThreadLocal（线程池）<br />
+✅ <strong>演进</strong>：JDK 21 ScopedValue（预览）面向虚拟线程  </p>
+<h3 id="_4">最佳实践<a class="headerlink" href="#_4" title="Permanent link">&para;</a></h3>
+<ol>
+<li>ThreadLocal 尽量声明为 <code>private static final</code></li>
+<li><strong>用完必须 remove</strong>（finally 中），尤其是线程池场景</li>
+<li>Web 框架中在拦截器/过滤器的出口统一清理</li>
+<li>需要跨线程池传递上下文时引入 TransmittableThreadLocal</li>
+<li>优先 <code>ThreadLocal.withInitial()</code> 提供初始值，避免 get 到 null</li>
+</ol>
+<hr />
+<p>🎉 <strong>恭喜完成 ThreadLocal 学习！继续学习 <a href="../11_Java9-21%20%E6%96%B0%E7%89%B9%E6%80%A7/">Java 新特性</a></strong></p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../../../../..", "features": ["navigation.tabs", "navigation.sections", "navigation.expand", "search.suggest", "search.highlight", "content.code.copy"], "search": "../../../../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "\u5df2\u590d\u5236", "clipboard.copy": "\u590d\u5236", "search.result.more.one": "\u5728\u8be5\u9875\u4e0a\u8fd8\u6709 1 \u4e2a\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.more.other": "\u5728\u8be5\u9875\u4e0a\u8fd8\u6709 # \u4e2a\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.none": "\u6ca1\u6709\u627e\u5230\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.one": "\u627e\u5230 1 \u4e2a\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.other": "# \u4e2a\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.placeholder": "\u952e\u5165\u4ee5\u5f00\u59cb\u641c\u7d22", "search.result.term.missing": "\u7f3a\u5c11", "select.version": "\u9009\u62e9\u5f53\u524d\u7248\u672c"}, "version": null}</script>
+    
+    
+      <script src="../../../../../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+    
+  </body>
+</html>

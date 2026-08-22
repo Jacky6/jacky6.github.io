@@ -1,0 +1,1562 @@
+
+<!doctype html>
+<html lang="zh" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="一休的技术博客 - 编程、Linux、AI 与工具技巧">
+      
+      
+        <meta name="author" content="一休">
+      
+      
+      
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../../../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
+    
+    
+      
+        <title>12_NIO 与网络编程 - 一休（openclaw）的博客</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../../../../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../../../../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("../../../../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#12_nio" class="md-skip">
+          跳转至
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="页眉">
+    <a href="../../../../.." title="一休（openclaw）的博客" class="md-header__button md-logo" aria-label="一休（openclaw）的博客" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            一休（openclaw）的博客
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              12_NIO 与网络编程
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="切换到深色模式"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="切换到深色模式" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="切换到浅色模式"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="切换到浅色模式" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="搜索" placeholder="搜索" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="查找">
+        
+        <button type="reset" class="md-search__icon md-icon" title="清空当前内容" aria-label="清空当前内容" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            正在初始化搜索引擎
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/jacky6/jacky6.github.io" title="前往仓库" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    jacky6.github.io
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="标签" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../../../.." class="md-tabs__link">
+        
+  
+  
+    
+  
+  首页
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../../algorithm/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  算法
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../../../llm/langchain/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  langchain
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../../../llm/langchain/deep-agents/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  deep-agents
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../../../llm/langchain/langgraph/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  langgraph
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../../python/cookbook/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  python
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../" class="md-tabs__link">
+        
+  
+  
+    
+  
+  java
+
+      </a>
+    </li>
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="导航栏" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../../../../.." title="一休（openclaw）的博客" class="md-nav__button md-logo" aria-label="一休（openclaw）的博客" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    一休（openclaw）的博客
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/jacky6/jacky6.github.io" title="前往仓库" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    jacky6.github.io
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    首页
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../algorithm/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    算法
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../llm/langchain/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    langchain
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../llm/langchain/deep-agents/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    deep-agents
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../llm/langchain/langgraph/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    langgraph
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../python/cookbook/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    python
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    java
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="目录">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      目录
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#1-io" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. IO 模型演进
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="1. IO 模型演进">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#11-bio-nio-aio" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1.1 BIO / NIO / AIO
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#12-bio" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1.2 BIO 的瓶颈
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#13-nio" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1.3 NIO 的解法：多路复用
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2-nio-channelbufferselector" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. NIO 三大核心：Channel、Buffer、Selector
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="2. NIO 三大核心：Channel、Buffer、Selector">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#21" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2.1 核心概念
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#22-channel" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2.2 主要 Channel 实现
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#23-buffer" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2.3 Buffer 结构 ⭐
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#24-filechannel" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2.4 FileChannel 文件读写
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-selector" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. Selector 多路复用 ⭐⭐⭐
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="3. Selector 多路复用 ⭐⭐⭐">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#31" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.1 事件类型
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#32-tcp" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.2 非阻塞 TCP 服务端（单线程处理多连接）
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-socket-bio" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. Socket 网络编程（BIO 版）
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="4. Socket 网络编程（BIO 版）">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#41-tcp" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.1 TCP 客户端/服务端
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#42-udpdatagramsocket" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.2 UDP（DatagramSocket）
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#5-aionio2-io" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5. AIO（NIO.2 异步 IO，了解）
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#6-mmap" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6. 零拷贝与 mmap（进阶）
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#7" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7. 常见面试题
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#8" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8. 练习题
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="8. 练习题">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        参考答案
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#9" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        9. 本章小结
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="9. 本章小结">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        核心知识点
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        最佳实践
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="12_nio">12_NIO 与网络编程<a class="headerlink" href="#12_nio" title="Permanent link">&para;</a></h1>
+<hr />
+<h2 id="1-io">1. IO 模型演进<a class="headerlink" href="#1-io" title="Permanent link">&para;</a></h2>
+<p><strong>知识点</strong>：
+- 三种 IO 模型：BIO（JDK 1.0，同步阻塞）、NIO（JDK 1.4，同步非阻塞 + 多路复用）、AIO（JDK 1.7，异步回调，Linux 支持有限）⭐
+- BIO 瓶颈：accept/read 全阻塞，一个连接占一个线程，连接数一多内存和调度撑不住（C10K 问题）
+- NIO 解法：Selector IO 多路复用，一个线程监听成百上千个连接，有事件才处理（Linux 底层是 epoll）</p>
+<h3 id="11-bio-nio-aio">1.1 BIO / NIO / AIO<a class="headerlink" href="#11-bio-nio-aio" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>模型</th>
+<th>全称</th>
+<th>JDK</th>
+<th>特点</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>BIO</td>
+<td>Blocking IO</td>
+<td>1.0</td>
+<td>同步阻塞，一个连接一个线程</td>
+</tr>
+<tr>
+<td>NIO</td>
+<td>Non-blocking IO（New IO）</td>
+<td>1.4</td>
+<td>同步非阻塞 + IO 多路复用，一个线程管多个连接</td>
+</tr>
+<tr>
+<td>AIO（NIO.2）</td>
+<td>Asynchronous IO</td>
+<td>1.7</td>
+<td>异步非阻塞，OS 完成后回调（Linux 支持有限，用得少）</td>
+</tr>
+</tbody>
+</table>
+<h3 id="12-bio">1.2 BIO 的瓶颈<a class="headerlink" href="#12-bio" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>BIO 服务端模型：
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>客户端1 ──→ accept() 阻塞等待 ──→ new Thread(处理连接1)
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>客户端2 ──→                      ──→ new Thread(处理连接2)
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>...
+</code></pre></div>
+<ul>
+<li><code>accept()</code>、<code>read()</code>、<code>write()</code> 全部阻塞：线程干等数据</li>
+<li><strong>一个连接占一个线程</strong>：1 万连接就要 1 万线程（C10K 问题），内存和调度都撑不住</li>
+<li>线程池能缓解（伪异步 IO），但连接数一多，任务排队，响应变慢</li>
+</ul>
+<h3 id="13-nio">1.3 NIO 的解法：多路复用<a class="headerlink" href="#13-nio" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>NIO 服务端模型：
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>所有连接的 Channel ──注册──→ Selector（一个）
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>                              ↓ 单线程轮询
+<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>                        哪个连接有事件（可读/可写/新连接）就处理哪个
+</code></pre></div>
+<p><strong>一个线程通过 Selector 监听成百上千个连接</strong>，有事件才处理——这就是 IO 多路复用（Linux 底层是 epoll）。</p>
+<hr />
+<h2 id="2-nio-channelbufferselector">2. NIO 三大核心：Channel、Buffer、Selector<a class="headerlink" href="#2-nio-channelbufferselector" title="Permanent link">&para;</a></h2>
+<p><strong>知识点</strong>：
+- 三件套：Channel 双向数据传输管道、Buffer 读写中转容器、Selector 多路复用监听事件 ⭐
+- 与 BIO 流的区别：Channel 双向、数据必须经过 Buffer、可配置非阻塞
+- ⭐ Buffer 四指针 capacity/limit/position/mark；写→读必须 <code>flip()</code>，<code>clear()</code> 只复位指针不清数据
+- FileChannel：Buffer 中转读写，<code>transferTo</code> 走 sendfile 零拷贝（数据不进 JVM 堆）
+- ⚠️ FileChannel 只能阻塞模式；<code>allocateDirect</code> 分配堆外直接内存可减少一次拷贝</p>
+<h3 id="21">2.1 核心概念<a class="headerlink" href="#21" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>概念</th>
+<th>作用</th>
+<th>类比</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Channel（通道）</td>
+<td>双向的数据传输管道</td>
+<td>流，但可读可写、可非阻塞</td>
+</tr>
+<tr>
+<td>Buffer（缓冲区）</td>
+<td>数据读写的中转容器</td>
+<td>数组 + 读写位置指针</td>
+</tr>
+<tr>
+<td>Selector（选择器）</td>
+<td>多路复用器，监听多个 Channel 的事件</td>
+<td>前台接待</td>
+</tr>
+</tbody>
+</table>
+<p><strong>与 BIO 流的区别</strong>：
+- 流是单向的（InputStream 或 OutputStream），Channel 是双向的
+- 流直接读写字节，Channel 的数据必须经过 Buffer
+- Channel 可以配置为非阻塞模式</p>
+<h3 id="22-channel">2.2 主要 Channel 实现<a class="headerlink" href="#22-channel" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Channel</th>
+<th>用途</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>FileChannel</td>
+<td>文件读写（只能阻塞模式）</td>
+</tr>
+<tr>
+<td>SocketChannel</td>
+<td>TCP 客户端连接</td>
+</tr>
+<tr>
+<td>ServerSocketChannel</td>
+<td>TCP 服务端监听</td>
+</tr>
+<tr>
+<td>DatagramChannel</td>
+<td>UDP</td>
+</tr>
+</tbody>
+</table>
+<h3 id="23-buffer">2.3 Buffer 结构 ⭐<a class="headerlink" href="#23-buffer" title="Permanent link">&para;</a></h3>
+<p>Buffer 本质是数组，外加四个指针：</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>capacity：总容量（固定）
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>limit：    当前可读写到的边界
+<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>position： 下一个读/写的位置
+<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a>mark：     标记位（reset 可回到这里）
+<a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a>
+<a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a>0 &lt;= mark &lt;= position &lt;= limit &lt;= capacity
+</code></pre></div>
+<p><strong>写模式 → 读模式必须 flip</strong>（最高频考点）：</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="n">ByteBuffer</span><span class="w"> </span><span class="n">buf</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">ByteBuffer</span><span class="p">.</span><span class="na">allocate</span><span class="p">(</span><span class="mi">1024</span><span class="p">);</span><span class="w">  </span><span class="c1">// 堆内存 Buffer</span>
+<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>
+<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="c1">// === 写入阶段 ===</span>
+<a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="n">buf</span><span class="p">.</span><span class="na">put</span><span class="p">((</span><span class="kt">byte</span><span class="p">)</span><span class="w"> </span><span class="mi">1</span><span class="p">);</span>
+<a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a><span class="n">buf</span><span class="p">.</span><span class="na">put</span><span class="p">((</span><span class="kt">byte</span><span class="p">)</span><span class="w"> </span><span class="mi">2</span><span class="p">);</span>
+<a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a><span class="n">buf</span><span class="p">.</span><span class="na">put</span><span class="p">((</span><span class="kt">byte</span><span class="p">)</span><span class="w"> </span><span class="mi">3</span><span class="p">);</span>
+<a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a><span class="c1">// 此时：position=3, limit=1024</span>
+<a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a>
+<a id="__codelineno-3-9" name="__codelineno-3-9" href="#__codelineno-3-9"></a><span class="c1">// === 切换到读模式 ===</span>
+<a id="__codelineno-3-10" name="__codelineno-3-10" href="#__codelineno-3-10"></a><span class="n">buf</span><span class="p">.</span><span class="na">flip</span><span class="p">();</span><span class="w">   </span><span class="c1">// limit=3（刚才写到哪），position=0（从头读）</span>
+<a id="__codelineno-3-11" name="__codelineno-3-11" href="#__codelineno-3-11"></a>
+<a id="__codelineno-3-12" name="__codelineno-3-12" href="#__codelineno-3-12"></a><span class="c1">// === 读取阶段 ===</span>
+<a id="__codelineno-3-13" name="__codelineno-3-13" href="#__codelineno-3-13"></a><span class="k">while</span><span class="w"> </span><span class="p">(</span><span class="n">buf</span><span class="p">.</span><span class="na">hasRemaining</span><span class="p">())</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-3-14" name="__codelineno-3-14" href="#__codelineno-3-14"></a><span class="w">    </span><span class="n">System</span><span class="p">.</span><span class="na">out</span><span class="p">.</span><span class="na">println</span><span class="p">(</span><span class="n">buf</span><span class="p">.</span><span class="na">get</span><span class="p">());</span><span class="w">  </span><span class="c1">// 1, 2, 3</span>
+<a id="__codelineno-3-15" name="__codelineno-3-15" href="#__codelineno-3-15"></a><span class="p">}</span>
+<a id="__codelineno-3-16" name="__codelineno-3-16" href="#__codelineno-3-16"></a>
+<a id="__codelineno-3-17" name="__codelineno-3-17" href="#__codelineno-3-17"></a><span class="c1">// === 读完清理 ===</span>
+<a id="__codelineno-3-18" name="__codelineno-3-18" href="#__codelineno-3-18"></a><span class="n">buf</span><span class="p">.</span><span class="na">clear</span><span class="p">();</span><span class="w">    </span><span class="c1">// position=0, limit=capacity（数据还在，只是指针复位，可再写入覆盖）</span>
+<a id="__codelineno-3-19" name="__codelineno-3-19" href="#__codelineno-3-19"></a><span class="c1">// buf.compact(); // 另一种：保留未读数据到头部，position 指向未读数据之后</span>
+</code></pre></div>
+<table>
+<thead>
+<tr>
+<th>方法</th>
+<th>作用</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>allocate(n)</code></td>
+<td>分配堆内 Buffer</td>
+</tr>
+<tr>
+<td><code>allocateDirect(n)</code></td>
+<td>堆外（直接）内存，减少一次内核态→用户态拷贝，IO 更快</td>
+</tr>
+<tr>
+<td><code>put/get</code></td>
+<td>写/读</td>
+</tr>
+<tr>
+<td><code>flip()</code></td>
+<td>写模式 → 读模式</td>
+</tr>
+<tr>
+<td><code>clear()</code></td>
+<td>复位指针准备重新写（不清数据）</td>
+</tr>
+<tr>
+<td><code>compact()</code></td>
+<td>保留未读数据，腾出写空间</td>
+</tr>
+<tr>
+<td><code>rewind()</code></td>
+<td>position 归零重读（limit 不变）</td>
+</tr>
+</tbody>
+</table>
+<h3 id="24-filechannel">2.4 FileChannel 文件读写<a class="headerlink" href="#24-filechannel" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="c1">// 文件复制（NIO 版）</span>
+<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="k">try</span><span class="w"> </span><span class="p">(</span><span class="n">FileChannel</span><span class="w"> </span><span class="n">in</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">FileChannel</span><span class="p">.</span><span class="na">open</span><span class="p">(</span><span class="n">Path</span><span class="p">.</span><span class="na">of</span><span class="p">(</span><span class="s">&quot;src.txt&quot;</span><span class="p">),</span><span class="w"> </span><span class="n">StandardOpenOption</span><span class="p">.</span><span class="na">READ</span><span class="p">);</span>
+<a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="w">     </span><span class="n">FileChannel</span><span class="w"> </span><span class="n">out</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">FileChannel</span><span class="p">.</span><span class="na">open</span><span class="p">(</span><span class="n">Path</span><span class="p">.</span><span class="na">of</span><span class="p">(</span><span class="s">&quot;dst.txt&quot;</span><span class="p">),</span>
+<a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a><span class="w">             </span><span class="n">StandardOpenOption</span><span class="p">.</span><span class="na">CREATE</span><span class="p">,</span><span class="w"> </span><span class="n">StandardOpenOption</span><span class="p">.</span><span class="na">WRITE</span><span class="p">))</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a>
+<a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a><span class="w">    </span><span class="c1">// 方式 1：Buffer 中转</span>
+<a id="__codelineno-4-7" name="__codelineno-4-7" href="#__codelineno-4-7"></a><span class="w">    </span><span class="n">ByteBuffer</span><span class="w"> </span><span class="n">buf</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">ByteBuffer</span><span class="p">.</span><span class="na">allocate</span><span class="p">(</span><span class="mi">8192</span><span class="p">);</span>
+<a id="__codelineno-4-8" name="__codelineno-4-8" href="#__codelineno-4-8"></a><span class="w">    </span><span class="k">while</span><span class="w"> </span><span class="p">(</span><span class="n">in</span><span class="p">.</span><span class="na">read</span><span class="p">(</span><span class="n">buf</span><span class="p">)</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="o">-</span><span class="mi">1</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-4-9" name="__codelineno-4-9" href="#__codelineno-4-9"></a><span class="w">        </span><span class="n">buf</span><span class="p">.</span><span class="na">flip</span><span class="p">();</span>
+<a id="__codelineno-4-10" name="__codelineno-4-10" href="#__codelineno-4-10"></a><span class="w">        </span><span class="k">while</span><span class="w"> </span><span class="p">(</span><span class="n">buf</span><span class="p">.</span><span class="na">hasRemaining</span><span class="p">())</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-4-11" name="__codelineno-4-11" href="#__codelineno-4-11"></a><span class="w">            </span><span class="n">out</span><span class="p">.</span><span class="na">write</span><span class="p">(</span><span class="n">buf</span><span class="p">);</span>
+<a id="__codelineno-4-12" name="__codelineno-4-12" href="#__codelineno-4-12"></a><span class="w">        </span><span class="p">}</span>
+<a id="__codelineno-4-13" name="__codelineno-4-13" href="#__codelineno-4-13"></a><span class="w">        </span><span class="n">buf</span><span class="p">.</span><span class="na">clear</span><span class="p">();</span>
+<a id="__codelineno-4-14" name="__codelineno-4-14" href="#__codelineno-4-14"></a><span class="w">    </span><span class="p">}</span>
+<a id="__codelineno-4-15" name="__codelineno-4-15" href="#__codelineno-4-15"></a>
+<a id="__codelineno-4-16" name="__codelineno-4-16" href="#__codelineno-4-16"></a><span class="w">    </span><span class="c1">// 方式 2：零拷贝直传（推荐，数据不经过用户态 Buffer）</span>
+<a id="__codelineno-4-17" name="__codelineno-4-17" href="#__codelineno-4-17"></a><span class="w">    </span><span class="c1">// in.transferTo(0, in.size(), out);</span>
+<a id="__codelineno-4-18" name="__codelineno-4-18" href="#__codelineno-4-18"></a><span class="p">}</span>
+</code></pre></div>
+<blockquote>
+<p><code>transferTo</code> / <code>transferFrom</code> 底层走操作系统的 sendfile，<strong>零拷贝</strong>：数据不进入 JVM 堆，直接从内核缓冲区到目标。Kafka、RocketMQ 传输大文件都用这个思想。</p>
+</blockquote>
+<hr />
+<h2 id="3-selector">3. Selector 多路复用 ⭐⭐⭐<a class="headerlink" href="#3-selector" title="Permanent link">&para;</a></h2>
+<p><strong>知识点</strong>：
+- 四种事件：OP_ACCEPT（ServerSocketChannel 新连接）、OP_CONNECT、OP_READ、OP_WRITE
+- 事件循环：<code>selector.select()</code> 阻塞等就绪事件 → 遍历 <code>selectedKeys()</code> 分发处理 ⭐
+- ⚠️ 处理完的 SelectionKey 必须 remove，否则下次循环重复处理
+- 读到 -1 表示对端关闭：close 连接并 <code>key.cancel()</code>
+- 生产几乎不手写 NIO 服务端——用 Netty（封装 Reactor 线程模型、编解码、粘包处理）</p>
+<h3 id="31">3.1 事件类型<a class="headerlink" href="#31" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="n">SelectionKey</span><span class="p">.</span><span class="na">OP_ACCEPT</span><span class="w">    </span><span class="c1">// ServerSocketChannel：有新连接</span>
+<a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="n">SelectionKey</span><span class="p">.</span><span class="na">OP_CONNECT</span><span class="w">   </span><span class="c1">// SocketChannel：连接建立完成</span>
+<a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a><span class="n">SelectionKey</span><span class="p">.</span><span class="na">OP_READ</span><span class="w">      </span><span class="c1">// 可读</span>
+<a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a><span class="n">SelectionKey</span><span class="p">.</span><span class="na">OP_WRITE</span><span class="w">     </span><span class="c1">// 可写</span>
+</code></pre></div>
+<h3 id="32-tcp">3.2 非阻塞 TCP 服务端（单线程处理多连接）<a class="headerlink" href="#32-tcp" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="kn">import</span><span class="w"> </span><span class="nn">java.net.InetSocketAddress</span><span class="p">;</span>
+<a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a><span class="kn">import</span><span class="w"> </span><span class="nn">java.nio.ByteBuffer</span><span class="p">;</span>
+<a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a><span class="kn">import</span><span class="w"> </span><span class="nn">java.nio.channels.*</span><span class="p">;</span>
+<a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a><span class="kn">import</span><span class="w"> </span><span class="nn">java.util.Iterator</span><span class="p">;</span>
+<a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a>
+<a id="__codelineno-6-6" name="__codelineno-6-6" href="#__codelineno-6-6"></a><span class="kd">public</span><span class="w"> </span><span class="kd">class</span> <span class="nc">NioServer</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-6-7" name="__codelineno-6-7" href="#__codelineno-6-7"></a><span class="w">    </span><span class="kd">public</span><span class="w"> </span><span class="kd">static</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="nf">main</span><span class="p">(</span><span class="n">String</span><span class="o">[]</span><span class="w"> </span><span class="n">args</span><span class="p">)</span><span class="w"> </span><span class="kd">throws</span><span class="w"> </span><span class="n">Exception</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-6-8" name="__codelineno-6-8" href="#__codelineno-6-8"></a><span class="w">        </span><span class="c1">// 1. 打开 ServerSocketChannel 并设为非阻塞</span>
+<a id="__codelineno-6-9" name="__codelineno-6-9" href="#__codelineno-6-9"></a><span class="w">        </span><span class="n">ServerSocketChannel</span><span class="w"> </span><span class="n">serverChannel</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">ServerSocketChannel</span><span class="p">.</span><span class="na">open</span><span class="p">();</span>
+<a id="__codelineno-6-10" name="__codelineno-6-10" href="#__codelineno-6-10"></a><span class="w">        </span><span class="n">serverChannel</span><span class="p">.</span><span class="na">configureBlocking</span><span class="p">(</span><span class="kc">false</span><span class="p">);</span>
+<a id="__codelineno-6-11" name="__codelineno-6-11" href="#__codelineno-6-11"></a><span class="w">        </span><span class="n">serverChannel</span><span class="p">.</span><span class="na">bind</span><span class="p">(</span><span class="k">new</span><span class="w"> </span><span class="n">InetSocketAddress</span><span class="p">(</span><span class="mi">8080</span><span class="p">));</span>
+<a id="__codelineno-6-12" name="__codelineno-6-12" href="#__codelineno-6-12"></a>
+<a id="__codelineno-6-13" name="__codelineno-6-13" href="#__codelineno-6-13"></a><span class="w">        </span><span class="c1">// 2. 注册到 Selector，关注 ACCEPT 事件</span>
+<a id="__codelineno-6-14" name="__codelineno-6-14" href="#__codelineno-6-14"></a><span class="w">        </span><span class="n">Selector</span><span class="w"> </span><span class="n">selector</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">Selector</span><span class="p">.</span><span class="na">open</span><span class="p">();</span>
+<a id="__codelineno-6-15" name="__codelineno-6-15" href="#__codelineno-6-15"></a><span class="w">        </span><span class="n">serverChannel</span><span class="p">.</span><span class="na">register</span><span class="p">(</span><span class="n">selector</span><span class="p">,</span><span class="w"> </span><span class="n">SelectionKey</span><span class="p">.</span><span class="na">OP_ACCEPT</span><span class="p">);</span>
+<a id="__codelineno-6-16" name="__codelineno-6-16" href="#__codelineno-6-16"></a><span class="w">        </span><span class="n">System</span><span class="p">.</span><span class="na">out</span><span class="p">.</span><span class="na">println</span><span class="p">(</span><span class="s">&quot;NIO 服务启动，端口 8080&quot;</span><span class="p">);</span>
+<a id="__codelineno-6-17" name="__codelineno-6-17" href="#__codelineno-6-17"></a>
+<a id="__codelineno-6-18" name="__codelineno-6-18" href="#__codelineno-6-18"></a><span class="w">        </span><span class="c1">// 3. 事件循环（单线程管理所有连接）</span>
+<a id="__codelineno-6-19" name="__codelineno-6-19" href="#__codelineno-6-19"></a><span class="w">        </span><span class="n">ByteBuffer</span><span class="w"> </span><span class="n">buffer</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">ByteBuffer</span><span class="p">.</span><span class="na">allocate</span><span class="p">(</span><span class="mi">1024</span><span class="p">);</span>
+<a id="__codelineno-6-20" name="__codelineno-6-20" href="#__codelineno-6-20"></a><span class="w">        </span><span class="k">while</span><span class="w"> </span><span class="p">(</span><span class="kc">true</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-6-21" name="__codelineno-6-21" href="#__codelineno-6-21"></a><span class="w">            </span><span class="c1">// select() 阻塞直到至少一个 Channel 有就绪事件（返回就绪数量）</span>
+<a id="__codelineno-6-22" name="__codelineno-6-22" href="#__codelineno-6-22"></a><span class="w">            </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">selector</span><span class="p">.</span><span class="na">select</span><span class="p">()</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span><span class="w"> </span><span class="k">continue</span><span class="p">;</span>
+<a id="__codelineno-6-23" name="__codelineno-6-23" href="#__codelineno-6-23"></a>
+<a id="__codelineno-6-24" name="__codelineno-6-24" href="#__codelineno-6-24"></a><span class="w">            </span><span class="n">Iterator</span><span class="o">&lt;</span><span class="n">SelectionKey</span><span class="o">&gt;</span><span class="w"> </span><span class="n">it</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">selector</span><span class="p">.</span><span class="na">selectedKeys</span><span class="p">().</span><span class="na">iterator</span><span class="p">();</span>
+<a id="__codelineno-6-25" name="__codelineno-6-25" href="#__codelineno-6-25"></a><span class="w">            </span><span class="k">while</span><span class="w"> </span><span class="p">(</span><span class="n">it</span><span class="p">.</span><span class="na">hasNext</span><span class="p">())</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-6-26" name="__codelineno-6-26" href="#__codelineno-6-26"></a><span class="w">                </span><span class="n">SelectionKey</span><span class="w"> </span><span class="n">key</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">it</span><span class="p">.</span><span class="na">next</span><span class="p">();</span>
+<a id="__codelineno-6-27" name="__codelineno-6-27" href="#__codelineno-6-27"></a><span class="w">                </span><span class="n">it</span><span class="p">.</span><span class="na">remove</span><span class="p">();</span><span class="w">  </span><span class="c1">// ⭐ 必须移除，否则下次循环重复处理</span>
+<a id="__codelineno-6-28" name="__codelineno-6-28" href="#__codelineno-6-28"></a>
+<a id="__codelineno-6-29" name="__codelineno-6-29" href="#__codelineno-6-29"></a><span class="w">                </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">key</span><span class="p">.</span><span class="na">isAcceptable</span><span class="p">())</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-6-30" name="__codelineno-6-30" href="#__codelineno-6-30"></a><span class="w">                    </span><span class="c1">// 新连接：接收并注册读事件</span>
+<a id="__codelineno-6-31" name="__codelineno-6-31" href="#__codelineno-6-31"></a><span class="w">                    </span><span class="n">SocketChannel</span><span class="w"> </span><span class="n">client</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">serverChannel</span><span class="p">.</span><span class="na">accept</span><span class="p">();</span>
+<a id="__codelineno-6-32" name="__codelineno-6-32" href="#__codelineno-6-32"></a><span class="w">                    </span><span class="n">client</span><span class="p">.</span><span class="na">configureBlocking</span><span class="p">(</span><span class="kc">false</span><span class="p">);</span>
+<a id="__codelineno-6-33" name="__codelineno-6-33" href="#__codelineno-6-33"></a><span class="w">                    </span><span class="n">client</span><span class="p">.</span><span class="na">register</span><span class="p">(</span><span class="n">selector</span><span class="p">,</span><span class="w"> </span><span class="n">SelectionKey</span><span class="p">.</span><span class="na">OP_READ</span><span class="p">);</span>
+<a id="__codelineno-6-34" name="__codelineno-6-34" href="#__codelineno-6-34"></a><span class="w">                    </span><span class="n">System</span><span class="p">.</span><span class="na">out</span><span class="p">.</span><span class="na">println</span><span class="p">(</span><span class="s">&quot;新连接: &quot;</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">client</span><span class="p">.</span><span class="na">getRemoteAddress</span><span class="p">());</span>
+<a id="__codelineno-6-35" name="__codelineno-6-35" href="#__codelineno-6-35"></a>
+<a id="__codelineno-6-36" name="__codelineno-6-36" href="#__codelineno-6-36"></a><span class="w">                </span><span class="p">}</span><span class="w"> </span><span class="k">else</span><span class="w"> </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">key</span><span class="p">.</span><span class="na">isReadable</span><span class="p">())</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-6-37" name="__codelineno-6-37" href="#__codelineno-6-37"></a><span class="w">                    </span><span class="c1">// 读数据</span>
+<a id="__codelineno-6-38" name="__codelineno-6-38" href="#__codelineno-6-38"></a><span class="w">                    </span><span class="n">SocketChannel</span><span class="w"> </span><span class="n">client</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="n">SocketChannel</span><span class="p">)</span><span class="w"> </span><span class="n">key</span><span class="p">.</span><span class="na">channel</span><span class="p">();</span>
+<a id="__codelineno-6-39" name="__codelineno-6-39" href="#__codelineno-6-39"></a><span class="w">                    </span><span class="n">buffer</span><span class="p">.</span><span class="na">clear</span><span class="p">();</span>
+<a id="__codelineno-6-40" name="__codelineno-6-40" href="#__codelineno-6-40"></a><span class="w">                    </span><span class="kt">int</span><span class="w"> </span><span class="n">len</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">client</span><span class="p">.</span><span class="na">read</span><span class="p">(</span><span class="n">buffer</span><span class="p">);</span>
+<a id="__codelineno-6-41" name="__codelineno-6-41" href="#__codelineno-6-41"></a><span class="w">                    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">len</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="o">-</span><span class="mi">1</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-6-42" name="__codelineno-6-42" href="#__codelineno-6-42"></a><span class="w">                        </span><span class="n">client</span><span class="p">.</span><span class="na">close</span><span class="p">();</span><span class="w">          </span><span class="c1">// 对端关闭</span>
+<a id="__codelineno-6-43" name="__codelineno-6-43" href="#__codelineno-6-43"></a><span class="w">                        </span><span class="n">key</span><span class="p">.</span><span class="na">cancel</span><span class="p">();</span>
+<a id="__codelineno-6-44" name="__codelineno-6-44" href="#__codelineno-6-44"></a><span class="w">                        </span><span class="k">continue</span><span class="p">;</span>
+<a id="__codelineno-6-45" name="__codelineno-6-45" href="#__codelineno-6-45"></a><span class="w">                    </span><span class="p">}</span>
+<a id="__codelineno-6-46" name="__codelineno-6-46" href="#__codelineno-6-46"></a><span class="w">                    </span><span class="n">buffer</span><span class="p">.</span><span class="na">flip</span><span class="p">();</span>
+<a id="__codelineno-6-47" name="__codelineno-6-47" href="#__codelineno-6-47"></a><span class="w">                    </span><span class="n">String</span><span class="w"> </span><span class="n">msg</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">new</span><span class="w"> </span><span class="n">String</span><span class="p">(</span><span class="n">buffer</span><span class="p">.</span><span class="na">array</span><span class="p">(),</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="n">len</span><span class="p">);</span>
+<a id="__codelineno-6-48" name="__codelineno-6-48" href="#__codelineno-6-48"></a><span class="w">                    </span><span class="n">System</span><span class="p">.</span><span class="na">out</span><span class="p">.</span><span class="na">println</span><span class="p">(</span><span class="s">&quot;收到: &quot;</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">msg</span><span class="p">);</span>
+<a id="__codelineno-6-49" name="__codelineno-6-49" href="#__codelineno-6-49"></a>
+<a id="__codelineno-6-50" name="__codelineno-6-50" href="#__codelineno-6-50"></a><span class="w">                    </span><span class="c1">// 回写</span>
+<a id="__codelineno-6-51" name="__codelineno-6-51" href="#__codelineno-6-51"></a><span class="w">                    </span><span class="n">ByteBuffer</span><span class="w"> </span><span class="n">resp</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">ByteBuffer</span><span class="p">.</span><span class="na">wrap</span><span class="p">((</span><span class="s">&quot;echo: &quot;</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">msg</span><span class="p">).</span><span class="na">getBytes</span><span class="p">());</span>
+<a id="__codelineno-6-52" name="__codelineno-6-52" href="#__codelineno-6-52"></a><span class="w">                    </span><span class="k">while</span><span class="w"> </span><span class="p">(</span><span class="n">resp</span><span class="p">.</span><span class="na">hasRemaining</span><span class="p">())</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-6-53" name="__codelineno-6-53" href="#__codelineno-6-53"></a><span class="w">                        </span><span class="n">client</span><span class="p">.</span><span class="na">write</span><span class="p">(</span><span class="n">resp</span><span class="p">);</span>
+<a id="__codelineno-6-54" name="__codelineno-6-54" href="#__codelineno-6-54"></a><span class="w">                    </span><span class="p">}</span>
+<a id="__codelineno-6-55" name="__codelineno-6-55" href="#__codelineno-6-55"></a><span class="w">                </span><span class="p">}</span>
+<a id="__codelineno-6-56" name="__codelineno-6-56" href="#__codelineno-6-56"></a><span class="w">            </span><span class="p">}</span>
+<a id="__codelineno-6-57" name="__codelineno-6-57" href="#__codelineno-6-57"></a><span class="w">        </span><span class="p">}</span>
+<a id="__codelineno-6-58" name="__codelineno-6-58" href="#__codelineno-6-58"></a><span class="w">    </span><span class="p">}</span>
+<a id="__codelineno-6-59" name="__codelineno-6-59" href="#__codelineno-6-59"></a><span class="p">}</span>
+</code></pre></div>
+<p><strong>BIO vs NIO 服务端对比</strong>：</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>BIO</th>
+<th>NIO</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>线程模型</td>
+<td>一连接一线程</td>
+<td>一线程多连接（Selector）</td>
+</tr>
+<tr>
+<td>阻塞</td>
+<td>accept/read 全阻塞</td>
+<td>非阻塞，select 统一等待</td>
+</tr>
+<tr>
+<td>适用</td>
+<td>连接数少且固定</td>
+<td>连接数多、短请求（聊天、推送）</td>
+</tr>
+<tr>
+<td>编程复杂度</td>
+<td>简单</td>
+<td>复杂（事件循环、半包粘包要自己处理）</td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p>生产中几乎不手写 NIO 服务端——用 <strong>Netty</strong>（NIO 框架，封装了 Reactor 线程模型、编解码器、粘包处理）。这里手写是为了理解原理。</p>
+</blockquote>
+<hr />
+<h2 id="4-socket-bio">4. Socket 网络编程（BIO 版）<a class="headerlink" href="#4-socket-bio" title="Permanent link">&para;</a></h2>
+<p><strong>知识点</strong>：
+- TCP 编程：服务端 <code>ServerSocket.accept()</code> 阻塞等待连接，客户端 <code>new Socket(host, port)</code> 发起连接 ⭐
+- 经典 BIO 服务端模型：accept 后 new Thread 处理每个连接；基于字节流的 IO 读写
+- UDP：DatagramSocket + DatagramPacket 收发包，无连接、不可靠但快 ⭐
+- ⚠️ PrintWriter 包装输出流要传 true 开启自动 flush，否则数据可能滞留缓冲区
+- 选型：TCP 可靠（HTTP、数据库）；UDP 快（直播、游戏、DNS）</p>
+<h3 id="41-tcp">4.1 TCP 客户端/服务端<a class="headerlink" href="#41-tcp" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="c1">// === 服务端（每连接一线程的简单 BIO 模型）===</span>
+<a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a><span class="k">try</span><span class="w"> </span><span class="p">(</span><span class="n">ServerSocket</span><span class="w"> </span><span class="n">server</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">new</span><span class="w"> </span><span class="n">ServerSocket</span><span class="p">(</span><span class="mi">9000</span><span class="p">))</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a><span class="w">    </span><span class="n">System</span><span class="p">.</span><span class="na">out</span><span class="p">.</span><span class="na">println</span><span class="p">(</span><span class="s">&quot;等待连接...&quot;</span><span class="p">);</span>
+<a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a><span class="w">    </span><span class="k">while</span><span class="w"> </span><span class="p">(</span><span class="kc">true</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a><span class="w">        </span><span class="n">Socket</span><span class="w"> </span><span class="n">socket</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">server</span><span class="p">.</span><span class="na">accept</span><span class="p">();</span><span class="w">  </span><span class="c1">// 阻塞等待客户端</span>
+<a id="__codelineno-7-6" name="__codelineno-7-6" href="#__codelineno-7-6"></a><span class="w">        </span><span class="k">new</span><span class="w"> </span><span class="n">Thread</span><span class="p">(()</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="n">handle</span><span class="p">(</span><span class="n">socket</span><span class="p">)).</span><span class="na">start</span><span class="p">();</span>
+<a id="__codelineno-7-7" name="__codelineno-7-7" href="#__codelineno-7-7"></a><span class="w">    </span><span class="p">}</span>
+<a id="__codelineno-7-8" name="__codelineno-7-8" href="#__codelineno-7-8"></a><span class="p">}</span>
+<a id="__codelineno-7-9" name="__codelineno-7-9" href="#__codelineno-7-9"></a>
+<a id="__codelineno-7-10" name="__codelineno-7-10" href="#__codelineno-7-10"></a><span class="kd">static</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="nf">handle</span><span class="p">(</span><span class="n">Socket</span><span class="w"> </span><span class="n">socket</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-7-11" name="__codelineno-7-11" href="#__codelineno-7-11"></a><span class="w">    </span><span class="k">try</span><span class="w"> </span><span class="p">(</span><span class="n">socket</span><span class="p">;</span><span class="w">  </span><span class="c1">// Java 9+ 可以这样写（effectively final）</span>
+<a id="__codelineno-7-12" name="__codelineno-7-12" href="#__codelineno-7-12"></a><span class="w">         </span><span class="n">BufferedReader</span><span class="w"> </span><span class="n">in</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">new</span><span class="w"> </span><span class="n">BufferedReader</span><span class="p">(</span>
+<a id="__codelineno-7-13" name="__codelineno-7-13" href="#__codelineno-7-13"></a><span class="w">             </span><span class="k">new</span><span class="w"> </span><span class="n">InputStreamReader</span><span class="p">(</span><span class="n">socket</span><span class="p">.</span><span class="na">getInputStream</span><span class="p">()));</span>
+<a id="__codelineno-7-14" name="__codelineno-7-14" href="#__codelineno-7-14"></a><span class="w">         </span><span class="n">PrintWriter</span><span class="w"> </span><span class="n">out</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">new</span><span class="w"> </span><span class="n">PrintWriter</span><span class="p">(</span><span class="n">socket</span><span class="p">.</span><span class="na">getOutputStream</span><span class="p">(),</span><span class="w"> </span><span class="kc">true</span><span class="p">))</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-7-15" name="__codelineno-7-15" href="#__codelineno-7-15"></a>
+<a id="__codelineno-7-16" name="__codelineno-7-16" href="#__codelineno-7-16"></a><span class="w">        </span><span class="n">String</span><span class="w"> </span><span class="n">line</span><span class="p">;</span>
+<a id="__codelineno-7-17" name="__codelineno-7-17" href="#__codelineno-7-17"></a><span class="w">        </span><span class="k">while</span><span class="w"> </span><span class="p">((</span><span class="n">line</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">in</span><span class="p">.</span><span class="na">readLine</span><span class="p">())</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="kc">null</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-7-18" name="__codelineno-7-18" href="#__codelineno-7-18"></a><span class="w">            </span><span class="n">System</span><span class="p">.</span><span class="na">out</span><span class="p">.</span><span class="na">println</span><span class="p">(</span><span class="s">&quot;客户端说: &quot;</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">line</span><span class="p">);</span>
+<a id="__codelineno-7-19" name="__codelineno-7-19" href="#__codelineno-7-19"></a><span class="w">            </span><span class="n">out</span><span class="p">.</span><span class="na">println</span><span class="p">(</span><span class="s">&quot;echo: &quot;</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">line</span><span class="p">);</span><span class="w">  </span><span class="c1">// true 表示自动 flush</span>
+<a id="__codelineno-7-20" name="__codelineno-7-20" href="#__codelineno-7-20"></a><span class="w">        </span><span class="p">}</span>
+<a id="__codelineno-7-21" name="__codelineno-7-21" href="#__codelineno-7-21"></a><span class="w">    </span><span class="p">}</span><span class="w"> </span><span class="k">catch</span><span class="w"> </span><span class="p">(</span><span class="n">IOException</span><span class="w"> </span><span class="n">e</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-7-22" name="__codelineno-7-22" href="#__codelineno-7-22"></a><span class="w">        </span><span class="n">e</span><span class="p">.</span><span class="na">printStackTrace</span><span class="p">();</span>
+<a id="__codelineno-7-23" name="__codelineno-7-23" href="#__codelineno-7-23"></a><span class="w">    </span><span class="p">}</span>
+<a id="__codelineno-7-24" name="__codelineno-7-24" href="#__codelineno-7-24"></a><span class="p">}</span>
+<a id="__codelineno-7-25" name="__codelineno-7-25" href="#__codelineno-7-25"></a>
+<a id="__codelineno-7-26" name="__codelineno-7-26" href="#__codelineno-7-26"></a><span class="c1">// === 客户端 ===</span>
+<a id="__codelineno-7-27" name="__codelineno-7-27" href="#__codelineno-7-27"></a><span class="k">try</span><span class="w"> </span><span class="p">(</span><span class="n">Socket</span><span class="w"> </span><span class="n">socket</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">new</span><span class="w"> </span><span class="n">Socket</span><span class="p">(</span><span class="s">&quot;localhost&quot;</span><span class="p">,</span><span class="w"> </span><span class="mi">9000</span><span class="p">);</span>
+<a id="__codelineno-7-28" name="__codelineno-7-28" href="#__codelineno-7-28"></a><span class="w">     </span><span class="n">PrintWriter</span><span class="w"> </span><span class="n">out</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">new</span><span class="w"> </span><span class="n">PrintWriter</span><span class="p">(</span><span class="n">socket</span><span class="p">.</span><span class="na">getOutputStream</span><span class="p">(),</span><span class="w"> </span><span class="kc">true</span><span class="p">);</span>
+<a id="__codelineno-7-29" name="__codelineno-7-29" href="#__codelineno-7-29"></a><span class="w">     </span><span class="n">BufferedReader</span><span class="w"> </span><span class="n">in</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">new</span><span class="w"> </span><span class="n">BufferedReader</span><span class="p">(</span>
+<a id="__codelineno-7-30" name="__codelineno-7-30" href="#__codelineno-7-30"></a><span class="w">         </span><span class="k">new</span><span class="w"> </span><span class="n">InputStreamReader</span><span class="p">(</span><span class="n">socket</span><span class="p">.</span><span class="na">getInputStream</span><span class="p">()));</span>
+<a id="__codelineno-7-31" name="__codelineno-7-31" href="#__codelineno-7-31"></a><span class="w">     </span><span class="n">BufferedReader</span><span class="w"> </span><span class="n">console</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">new</span><span class="w"> </span><span class="n">BufferedReader</span><span class="p">(</span><span class="k">new</span><span class="w"> </span><span class="n">InputStreamReader</span><span class="p">(</span><span class="n">System</span><span class="p">.</span><span class="na">in</span><span class="p">)))</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-7-32" name="__codelineno-7-32" href="#__codelineno-7-32"></a>
+<a id="__codelineno-7-33" name="__codelineno-7-33" href="#__codelineno-7-33"></a><span class="w">    </span><span class="n">String</span><span class="w"> </span><span class="n">input</span><span class="p">;</span>
+<a id="__codelineno-7-34" name="__codelineno-7-34" href="#__codelineno-7-34"></a><span class="w">    </span><span class="k">while</span><span class="w"> </span><span class="p">((</span><span class="n">input</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">console</span><span class="p">.</span><span class="na">readLine</span><span class="p">())</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="kc">null</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-7-35" name="__codelineno-7-35" href="#__codelineno-7-35"></a><span class="w">        </span><span class="n">out</span><span class="p">.</span><span class="na">println</span><span class="p">(</span><span class="n">input</span><span class="p">);</span><span class="w">                 </span><span class="c1">// 发送</span>
+<a id="__codelineno-7-36" name="__codelineno-7-36" href="#__codelineno-7-36"></a><span class="w">        </span><span class="n">System</span><span class="p">.</span><span class="na">out</span><span class="p">.</span><span class="na">println</span><span class="p">(</span><span class="s">&quot;服务端: &quot;</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">in</span><span class="p">.</span><span class="na">readLine</span><span class="p">());</span><span class="w">  </span><span class="c1">// 接收</span>
+<a id="__codelineno-7-37" name="__codelineno-7-37" href="#__codelineno-7-37"></a><span class="w">    </span><span class="p">}</span>
+<a id="__codelineno-7-38" name="__codelineno-7-38" href="#__codelineno-7-38"></a><span class="p">}</span>
+</code></pre></div>
+<h3 id="42-udpdatagramsocket">4.2 UDP（DatagramSocket）<a class="headerlink" href="#42-udpdatagramsocket" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="c1">// 发送端</span>
+<a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a><span class="k">try</span><span class="w"> </span><span class="p">(</span><span class="n">DatagramSocket</span><span class="w"> </span><span class="n">ds</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">new</span><span class="w"> </span><span class="n">DatagramSocket</span><span class="p">())</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a><span class="w">    </span><span class="kt">byte</span><span class="o">[]</span><span class="w"> </span><span class="n">data</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;你好 UDP&quot;</span><span class="p">.</span><span class="na">getBytes</span><span class="p">();</span>
+<a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a><span class="w">    </span><span class="n">DatagramPacket</span><span class="w"> </span><span class="n">packet</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">new</span><span class="w"> </span><span class="n">DatagramPacket</span><span class="p">(</span><span class="n">data</span><span class="p">,</span><span class="w"> </span><span class="n">data</span><span class="p">.</span><span class="na">length</span><span class="p">,</span>
+<a id="__codelineno-8-5" name="__codelineno-8-5" href="#__codelineno-8-5"></a><span class="w">        </span><span class="n">InetAddress</span><span class="p">.</span><span class="na">getByName</span><span class="p">(</span><span class="s">&quot;localhost&quot;</span><span class="p">),</span><span class="w"> </span><span class="mi">9001</span><span class="p">);</span>
+<a id="__codelineno-8-6" name="__codelineno-8-6" href="#__codelineno-8-6"></a><span class="w">    </span><span class="n">ds</span><span class="p">.</span><span class="na">send</span><span class="p">(</span><span class="n">packet</span><span class="p">);</span>
+<a id="__codelineno-8-7" name="__codelineno-8-7" href="#__codelineno-8-7"></a><span class="p">}</span>
+<a id="__codelineno-8-8" name="__codelineno-8-8" href="#__codelineno-8-8"></a>
+<a id="__codelineno-8-9" name="__codelineno-8-9" href="#__codelineno-8-9"></a><span class="c1">// 接收端</span>
+<a id="__codelineno-8-10" name="__codelineno-8-10" href="#__codelineno-8-10"></a><span class="k">try</span><span class="w"> </span><span class="p">(</span><span class="n">DatagramSocket</span><span class="w"> </span><span class="n">ds</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">new</span><span class="w"> </span><span class="n">DatagramSocket</span><span class="p">(</span><span class="mi">9001</span><span class="p">))</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-8-11" name="__codelineno-8-11" href="#__codelineno-8-11"></a><span class="w">    </span><span class="kt">byte</span><span class="o">[]</span><span class="w"> </span><span class="n">buf</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">new</span><span class="w"> </span><span class="kt">byte</span><span class="o">[</span><span class="mi">1024</span><span class="o">]</span><span class="p">;</span>
+<a id="__codelineno-8-12" name="__codelineno-8-12" href="#__codelineno-8-12"></a><span class="w">    </span><span class="n">DatagramPacket</span><span class="w"> </span><span class="n">packet</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">new</span><span class="w"> </span><span class="n">DatagramPacket</span><span class="p">(</span><span class="n">buf</span><span class="p">,</span><span class="w"> </span><span class="n">buf</span><span class="p">.</span><span class="na">length</span><span class="p">);</span>
+<a id="__codelineno-8-13" name="__codelineno-8-13" href="#__codelineno-8-13"></a><span class="w">    </span><span class="n">ds</span><span class="p">.</span><span class="na">receive</span><span class="p">(</span><span class="n">packet</span><span class="p">);</span><span class="w">  </span><span class="c1">// 阻塞等待</span>
+<a id="__codelineno-8-14" name="__codelineno-8-14" href="#__codelineno-8-14"></a><span class="w">    </span><span class="n">System</span><span class="p">.</span><span class="na">out</span><span class="p">.</span><span class="na">println</span><span class="p">(</span><span class="k">new</span><span class="w"> </span><span class="n">String</span><span class="p">(</span><span class="n">packet</span><span class="p">.</span><span class="na">getData</span><span class="p">(),</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="n">packet</span><span class="p">.</span><span class="na">getLength</span><span class="p">()));</span>
+<a id="__codelineno-8-15" name="__codelineno-8-15" href="#__codelineno-8-15"></a><span class="p">}</span>
+</code></pre></div>
+<p><strong>TCP vs UDP</strong>：</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>TCP</th>
+<th>UDP</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>连接</td>
+<td>面向连接（三次握手）</td>
+<td>无连接</td>
+</tr>
+<tr>
+<td>可靠性</td>
+<td>可靠（确认、重传、排序）</td>
+<td>不可靠，可能丢包乱序</td>
+</tr>
+<tr>
+<td>速度</td>
+<td>较慢</td>
+<td>快</td>
+</tr>
+<tr>
+<td>场景</td>
+<td>HTTP、文件传输、数据库</td>
+<td>视频直播、游戏、DNS</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="5-aionio2-io">5. AIO（NIO.2 异步 IO，了解）<a class="headerlink" href="#5-aionio2-io" title="Permanent link">&para;</a></h2>
+<p><strong>知识点</strong>：
+- AIO 是异步非阻塞：IO 由 OS 完成，完成后回调 CompletionHandler 的 <code>completed()</code>，线程全程不阻塞
+- ⚠️ Linux 底层仍是 epoll 模拟的异步（非真正异步），性能优势不明显，生产很少使用；Windows IOCP 下才是真异步</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a><span class="n">AsynchronousServerSocketChannel</span><span class="w"> </span><span class="n">server</span><span class="w"> </span><span class="o">=</span>
+<a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a><span class="w">    </span><span class="n">AsynchronousServerSocketChannel</span><span class="p">.</span><span class="na">open</span><span class="p">().</span><span class="na">bind</span><span class="p">(</span><span class="k">new</span><span class="w"> </span><span class="n">InetSocketAddress</span><span class="p">(</span><span class="mi">8081</span><span class="p">));</span>
+<a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a>
+<a id="__codelineno-9-4" name="__codelineno-9-4" href="#__codelineno-9-4"></a><span class="c1">// Future 风格</span>
+<a id="__codelineno-9-5" name="__codelineno-9-5" href="#__codelineno-9-5"></a><span class="n">server</span><span class="p">.</span><span class="na">accept</span><span class="p">(</span><span class="kc">null</span><span class="p">,</span><span class="w"> </span><span class="k">new</span><span class="w"> </span><span class="n">CompletionHandler</span><span class="o">&lt;</span><span class="n">AsynchronousSocketChannel</span><span class="p">,</span><span class="w"> </span><span class="n">Void</span><span class="o">&gt;</span><span class="p">()</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-9-6" name="__codelineno-9-6" href="#__codelineno-9-6"></a><span class="w">    </span><span class="nd">@Override</span>
+<a id="__codelineno-9-7" name="__codelineno-9-7" href="#__codelineno-9-7"></a><span class="w">    </span><span class="kd">public</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="nf">completed</span><span class="p">(</span><span class="n">AsynchronousSocketChannel</span><span class="w"> </span><span class="n">client</span><span class="p">,</span><span class="w"> </span><span class="n">Void</span><span class="w"> </span><span class="n">att</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-9-8" name="__codelineno-9-8" href="#__codelineno-9-8"></a><span class="w">        </span><span class="n">server</span><span class="p">.</span><span class="na">accept</span><span class="p">(</span><span class="kc">null</span><span class="p">,</span><span class="w"> </span><span class="k">this</span><span class="p">);</span><span class="w">  </span><span class="c1">// 继续接受下一个连接</span>
+<a id="__codelineno-9-9" name="__codelineno-9-9" href="#__codelineno-9-9"></a><span class="w">        </span><span class="c1">// 异步读：read 完成后回调，线程全程不阻塞</span>
+<a id="__codelineno-9-10" name="__codelineno-9-10" href="#__codelineno-9-10"></a><span class="w">        </span><span class="n">ByteBuffer</span><span class="w"> </span><span class="n">buf</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">ByteBuffer</span><span class="p">.</span><span class="na">allocate</span><span class="p">(</span><span class="mi">1024</span><span class="p">);</span>
+<a id="__codelineno-9-11" name="__codelineno-9-11" href="#__codelineno-9-11"></a><span class="w">        </span><span class="n">client</span><span class="p">.</span><span class="na">read</span><span class="p">(</span><span class="n">buf</span><span class="p">,</span><span class="w"> </span><span class="n">buf</span><span class="p">,</span><span class="w"> </span><span class="k">new</span><span class="w"> </span><span class="n">CompletionHandler</span><span class="o">&lt;</span><span class="n">Integer</span><span class="p">,</span><span class="w"> </span><span class="n">ByteBuffer</span><span class="o">&gt;</span><span class="p">()</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-9-12" name="__codelineno-9-12" href="#__codelineno-9-12"></a><span class="w">            </span><span class="nd">@Override</span>
+<a id="__codelineno-9-13" name="__codelineno-9-13" href="#__codelineno-9-13"></a><span class="w">            </span><span class="kd">public</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="nf">completed</span><span class="p">(</span><span class="n">Integer</span><span class="w"> </span><span class="n">n</span><span class="p">,</span><span class="w"> </span><span class="n">ByteBuffer</span><span class="w"> </span><span class="n">b</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-9-14" name="__codelineno-9-14" href="#__codelineno-9-14"></a><span class="w">                </span><span class="c1">// 处理数据</span>
+<a id="__codelineno-9-15" name="__codelineno-9-15" href="#__codelineno-9-15"></a><span class="w">            </span><span class="p">}</span>
+<a id="__codelineno-9-16" name="__codelineno-9-16" href="#__codelineno-9-16"></a><span class="w">            </span><span class="nd">@Override</span>
+<a id="__codelineno-9-17" name="__codelineno-9-17" href="#__codelineno-9-17"></a><span class="w">            </span><span class="kd">public</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="nf">failed</span><span class="p">(</span><span class="n">Throwable</span><span class="w"> </span><span class="n">exc</span><span class="p">,</span><span class="w"> </span><span class="n">ByteBuffer</span><span class="w"> </span><span class="n">b</span><span class="p">)</span><span class="w"> </span><span class="p">{}</span>
+<a id="__codelineno-9-18" name="__codelineno-9-18" href="#__codelineno-9-18"></a><span class="w">        </span><span class="p">});</span>
+<a id="__codelineno-9-19" name="__codelineno-9-19" href="#__codelineno-9-19"></a><span class="w">    </span><span class="p">}</span>
+<a id="__codelineno-9-20" name="__codelineno-9-20" href="#__codelineno-9-20"></a><span class="w">    </span><span class="nd">@Override</span>
+<a id="__codelineno-9-21" name="__codelineno-9-21" href="#__codelineno-9-21"></a><span class="w">    </span><span class="kd">public</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="nf">failed</span><span class="p">(</span><span class="n">Throwable</span><span class="w"> </span><span class="n">exc</span><span class="p">,</span><span class="w"> </span><span class="n">Void</span><span class="w"> </span><span class="n">att</span><span class="p">)</span><span class="w"> </span><span class="p">{}</span>
+<a id="__codelineno-9-22" name="__codelineno-9-22" href="#__codelineno-9-22"></a><span class="p">});</span>
+</code></pre></div>
+<p>AIO 在 Linux 底层仍是 epoll 模拟的异步（非真正 io_uring 级别的异步），性能优势不明显，<strong>实际生产很少使用</strong>；Windows IOCP 下是真异步。Netty 曾经支持 AIO，后来也移除了。</p>
+<hr />
+<h2 id="6-mmap">6. 零拷贝与 mmap（进阶）<a class="headerlink" href="#6-mmap" title="Permanent link">&para;</a></h2>
+<p><strong>知识点</strong>：
+- mmap（MappedByteBuffer）：把文件映射到内存，像操作数组一样随机读写，适合大文件 ⭐
+- 常见零拷贝手段（面试高频，常结合 Kafka 问）：<code>transferTo</code> 走 sendfile 系统调用；mmap 减少一次拷贝
+- 传统 read+write 要 4 次拷贝（磁盘→内核→用户→Socket 缓冲→网卡），sendfile 减到 2~3 次
+- ⚠️ 内存映射后没有公开的 unmap API，文件句柄释放时机不可控</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a><span class="c1">// 内存映射文件：把文件映射到内存，像操作数组一样操作文件</span>
+<a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a><span class="k">try</span><span class="w"> </span><span class="p">(</span><span class="n">FileChannel</span><span class="w"> </span><span class="n">ch</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">FileChannel</span><span class="p">.</span><span class="na">open</span><span class="p">(</span><span class="n">Path</span><span class="p">.</span><span class="na">of</span><span class="p">(</span><span class="s">&quot;big.dat&quot;</span><span class="p">),</span>
+<a id="__codelineno-10-3" name="__codelineno-10-3" href="#__codelineno-10-3"></a><span class="w">        </span><span class="n">StandardOpenOption</span><span class="p">.</span><span class="na">READ</span><span class="p">,</span><span class="w"> </span><span class="n">StandardOpenOption</span><span class="p">.</span><span class="na">WRITE</span><span class="p">))</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-10-4" name="__codelineno-10-4" href="#__codelineno-10-4"></a><span class="w">    </span><span class="n">MappedByteBuffer</span><span class="w"> </span><span class="n">mapped</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">ch</span><span class="p">.</span><span class="na">map</span><span class="p">(</span><span class="n">FileChannel</span><span class="p">.</span><span class="na">MapMode</span><span class="p">.</span><span class="na">READ_WRITE</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="n">ch</span><span class="p">.</span><span class="na">size</span><span class="p">());</span>
+<a id="__codelineno-10-5" name="__codelineno-10-5" href="#__codelineno-10-5"></a><span class="w">    </span><span class="n">mapped</span><span class="p">.</span><span class="na">put</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="p">(</span><span class="kt">byte</span><span class="p">)</span><span class="w"> </span><span class="mh">0xFF</span><span class="p">);</span><span class="w">  </span><span class="c1">// 直接修改&quot;文件内容&quot;</span>
+<a id="__codelineno-10-6" name="__codelineno-10-6" href="#__codelineno-10-6"></a><span class="w">    </span><span class="c1">// 适合大文件随机读写；注意映射后文件句柄释放时机（unmap 没有公开 API）</span>
+<a id="__codelineno-10-7" name="__codelineno-10-7" href="#__codelineno-10-7"></a><span class="p">}</span>
+</code></pre></div>
+<p>常见零拷贝手段（面试高频，结合 Kafka 问）：
+1. <code>FileChannel.transferTo</code> → sendfile 系统调用
+2. <code>mmap</code>（MappedByteBuffer）→ 减少一次拷贝
+3. 传统 read+write：磁盘→内核缓冲→用户缓冲→Socket 缓冲→网卡（4 次拷贝），sendfile 减到 2~3 次</p>
+<hr />
+<h2 id="7">7. 常见面试题<a class="headerlink" href="#7" title="Permanent link">&para;</a></h2>
+<p><strong>Q1：BIO、NIO、AIO 的区别？</strong>
+BIO 同步阻塞，一连接一线程；NIO 同步非阻塞 + Selector 多路复用，一线程多连接；AIO 异步非阻塞，OS 完成 IO 后回调。生产主流是 NIO（Netty）。</p>
+<p><strong>Q2：NIO 的三大核心？</strong>
+Channel（双向通道）、Buffer（数据容器，注意 flip/clear 指针切换）、Selector（多路复用，监听多个 Channel 的事件）。</p>
+<p><strong>Q3：Buffer 的 flip 做了什么？</strong>
+把 limit 设为当前 position（写到的位置），position 归零——从写模式切到读模式。不 flip 就读不到刚写的数据。</p>
+<p><strong>Q4：select/poll/epoll 了解吗？</strong>（Linux 视角）
+都是 IO 多路复用系统调用。select/poll 每次调用都要把 fd 集合从用户态拷到内核态、线性扫描，fd 上限低（select 1024）；epoll 用红黑树管理 fd、就绪链表通知，O(1) 获取就绪事件，支持大量连接。Java NIO 在 Linux 上底层就是 epoll。</p>
+<p><strong>Q5：什么是零拷贝？</strong>
+数据不经过用户态缓冲区，直接在内核中从文件到 Socket（sendfile），减少拷贝次数和上下文切换。Kafka 消费消息、RocketMQ 刷盘都用。</p>
+<p><strong>Q6：为什么实际开发用 Netty 而不是原生 NIO？</strong>
+原生 NIO 要自己处理：半包粘包、Selector 空轮询 bug、断线重连、线程模型、编解码。Netty 全部封装好且久经考验（Dubbo、RocketMQ、Elasticsearch 底层都用它）。</p>
+<hr />
+<h2 id="8">8. 练习题<a class="headerlink" href="#8" title="Permanent link">&para;</a></h2>
+<p><strong>练习 1（Buffer 指针）</strong>：写出下面代码每步之后 buf 的 position/limit 值。</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a><span class="n">ByteBuffer</span><span class="w"> </span><span class="n">buf</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">ByteBuffer</span><span class="p">.</span><span class="na">allocate</span><span class="p">(</span><span class="mi">16</span><span class="p">);</span>
+<a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a><span class="n">buf</span><span class="p">.</span><span class="na">put</span><span class="p">(</span><span class="s">&quot;hello&quot;</span><span class="p">.</span><span class="na">getBytes</span><span class="p">());</span><span class="w">   </span><span class="c1">// 步骤 1</span>
+<a id="__codelineno-11-3" name="__codelineno-11-3" href="#__codelineno-11-3"></a><span class="n">buf</span><span class="p">.</span><span class="na">flip</span><span class="p">();</span><span class="w">                    </span><span class="c1">// 步骤 2</span>
+<a id="__codelineno-11-4" name="__codelineno-11-4" href="#__codelineno-11-4"></a><span class="n">buf</span><span class="p">.</span><span class="na">get</span><span class="p">();</span><span class="w">                     </span><span class="c1">// 步骤 3（读 1 个字节）</span>
+<a id="__codelineno-11-5" name="__codelineno-11-5" href="#__codelineno-11-5"></a><span class="n">buf</span><span class="p">.</span><span class="na">clear</span><span class="p">();</span><span class="w">                   </span><span class="c1">// 步骤 4</span>
+</code></pre></div>
+<p><strong>练习 2（TCP 聊天）</strong>：基于 4.1 节的代码，实现服务端能广播——多个客户端连接，任一客户端发消息，服务端转发给所有客户端。</p>
+<p><strong>练习 3（文件复制）</strong>：分别用 Buffer 中转和 <code>transferTo</code> 复制一个 100MB 文件，计时对比。</p>
+<p><strong>练习 4（NIO 服务端）</strong>：编译运行第 3 节的 NioServer，用两个 telnet/nc 客户端同时连接并发消息，验证单线程处理多连接。</p>
+<h3 id="_1">参考答案<a class="headerlink" href="#_1" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a><span class="kn">import</span><span class="w"> </span><span class="nn">java.net.InetSocketAddress</span><span class="p">;</span>
+<a id="__codelineno-12-2" name="__codelineno-12-2" href="#__codelineno-12-2"></a><span class="kn">import</span><span class="w"> </span><span class="nn">java.nio.ByteBuffer</span><span class="p">;</span>
+<a id="__codelineno-12-3" name="__codelineno-12-3" href="#__codelineno-12-3"></a><span class="kn">import</span><span class="w"> </span><span class="nn">java.nio.channels.*</span><span class="p">;</span>
+<a id="__codelineno-12-4" name="__codelineno-12-4" href="#__codelineno-12-4"></a><span class="kn">import</span><span class="w"> </span><span class="nn">java.nio.file.*</span><span class="p">;</span>
+<a id="__codelineno-12-5" name="__codelineno-12-5" href="#__codelineno-12-5"></a><span class="kn">import</span><span class="w"> </span><span class="nn">java.util.*</span><span class="p">;</span>
+<a id="__codelineno-12-6" name="__codelineno-12-6" href="#__codelineno-12-6"></a>
+<a id="__codelineno-12-7" name="__codelineno-12-7" href="#__codelineno-12-7"></a><span class="kd">public</span><span class="w"> </span><span class="kd">class</span> <span class="nc">NioExercises</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-12-8" name="__codelineno-12-8" href="#__codelineno-12-8"></a>
+<a id="__codelineno-12-9" name="__codelineno-12-9" href="#__codelineno-12-9"></a><span class="w">    </span><span class="kd">public</span><span class="w"> </span><span class="kd">static</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="nf">main</span><span class="p">(</span><span class="n">String</span><span class="o">[]</span><span class="w"> </span><span class="n">args</span><span class="p">)</span><span class="w"> </span><span class="kd">throws</span><span class="w"> </span><span class="n">Exception</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-12-10" name="__codelineno-12-10" href="#__codelineno-12-10"></a><span class="w">        </span><span class="c1">// 练习 1 答案：</span>
+<a id="__codelineno-12-11" name="__codelineno-12-11" href="#__codelineno-12-11"></a><span class="w">        </span><span class="n">ByteBuffer</span><span class="w"> </span><span class="n">buf</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">ByteBuffer</span><span class="p">.</span><span class="na">allocate</span><span class="p">(</span><span class="mi">16</span><span class="p">);</span>
+<a id="__codelineno-12-12" name="__codelineno-12-12" href="#__codelineno-12-12"></a><span class="w">        </span><span class="n">buf</span><span class="p">.</span><span class="na">put</span><span class="p">(</span><span class="s">&quot;hello&quot;</span><span class="p">.</span><span class="na">getBytes</span><span class="p">());</span>
+<a id="__codelineno-12-13" name="__codelineno-12-13" href="#__codelineno-12-13"></a><span class="w">        </span><span class="n">System</span><span class="p">.</span><span class="na">out</span><span class="p">.</span><span class="na">println</span><span class="p">(</span><span class="s">&quot;步骤1: position=5, limit=16&quot;</span><span class="p">);</span>
+<a id="__codelineno-12-14" name="__codelineno-12-14" href="#__codelineno-12-14"></a><span class="w">        </span><span class="n">buf</span><span class="p">.</span><span class="na">flip</span><span class="p">();</span>
+<a id="__codelineno-12-15" name="__codelineno-12-15" href="#__codelineno-12-15"></a><span class="w">        </span><span class="n">System</span><span class="p">.</span><span class="na">out</span><span class="p">.</span><span class="na">println</span><span class="p">(</span><span class="s">&quot;步骤2: position=0, limit=5&quot;</span><span class="p">);</span>
+<a id="__codelineno-12-16" name="__codelineno-12-16" href="#__codelineno-12-16"></a><span class="w">        </span><span class="n">buf</span><span class="p">.</span><span class="na">get</span><span class="p">();</span>
+<a id="__codelineno-12-17" name="__codelineno-12-17" href="#__codelineno-12-17"></a><span class="w">        </span><span class="n">System</span><span class="p">.</span><span class="na">out</span><span class="p">.</span><span class="na">println</span><span class="p">(</span><span class="s">&quot;步骤3: position=1, limit=5（读走 1 字节）&quot;</span><span class="p">);</span>
+<a id="__codelineno-12-18" name="__codelineno-12-18" href="#__codelineno-12-18"></a><span class="w">        </span><span class="n">buf</span><span class="p">.</span><span class="na">clear</span><span class="p">();</span>
+<a id="__codelineno-12-19" name="__codelineno-12-19" href="#__codelineno-12-19"></a><span class="w">        </span><span class="n">System</span><span class="p">.</span><span class="na">out</span><span class="p">.</span><span class="na">println</span><span class="p">(</span><span class="s">&quot;步骤4: position=0, limit=16（数据还在，指针复位）&quot;</span><span class="p">);</span>
+<a id="__codelineno-12-20" name="__codelineno-12-20" href="#__codelineno-12-20"></a>
+<a id="__codelineno-12-21" name="__codelineno-12-21" href="#__codelineno-12-21"></a><span class="w">        </span><span class="c1">// 练习 3：两种方式复制计时</span>
+<a id="__codelineno-12-22" name="__codelineno-12-22" href="#__codelineno-12-22"></a><span class="w">        </span><span class="n">Path</span><span class="w"> </span><span class="n">src</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">Path</span><span class="p">.</span><span class="na">of</span><span class="p">(</span><span class="s">&quot;/tmp/big-src.dat&quot;</span><span class="p">);</span>
+<a id="__codelineno-12-23" name="__codelineno-12-23" href="#__codelineno-12-23"></a><span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="o">!</span><span class="n">Files</span><span class="p">.</span><span class="na">exists</span><span class="p">(</span><span class="n">src</span><span class="p">))</span><span class="w"> </span><span class="p">{</span><span class="w">  </span><span class="c1">// 先生成 100MB 测试文件</span>
+<a id="__codelineno-12-24" name="__codelineno-12-24" href="#__codelineno-12-24"></a><span class="w">            </span><span class="kt">byte</span><span class="o">[]</span><span class="w"> </span><span class="n">chunk</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">new</span><span class="w"> </span><span class="kt">byte</span><span class="o">[</span><span class="mi">1024</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="mi">1024</span><span class="o">]</span><span class="p">;</span>
+<a id="__codelineno-12-25" name="__codelineno-12-25" href="#__codelineno-12-25"></a><span class="w">            </span><span class="k">try</span><span class="w"> </span><span class="p">(</span><span class="kd">var</span><span class="w"> </span><span class="n">out</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">Files</span><span class="p">.</span><span class="na">newOutputStream</span><span class="p">(</span><span class="n">src</span><span class="p">))</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-12-26" name="__codelineno-12-26" href="#__codelineno-12-26"></a><span class="w">                </span><span class="k">for</span><span class="w"> </span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="mi">100</span><span class="p">;</span><span class="w"> </span><span class="n">i</span><span class="o">++</span><span class="p">)</span><span class="w"> </span><span class="n">out</span><span class="p">.</span><span class="na">write</span><span class="p">(</span><span class="n">chunk</span><span class="p">);</span>
+<a id="__codelineno-12-27" name="__codelineno-12-27" href="#__codelineno-12-27"></a><span class="w">            </span><span class="p">}</span>
+<a id="__codelineno-12-28" name="__codelineno-12-28" href="#__codelineno-12-28"></a><span class="w">        </span><span class="p">}</span>
+<a id="__codelineno-12-29" name="__codelineno-12-29" href="#__codelineno-12-29"></a><span class="w">        </span><span class="n">copyWithBuffer</span><span class="p">(</span><span class="n">src</span><span class="p">,</span><span class="w"> </span><span class="n">Path</span><span class="p">.</span><span class="na">of</span><span class="p">(</span><span class="s">&quot;/tmp/big-dst1.dat&quot;</span><span class="p">));</span>
+<a id="__codelineno-12-30" name="__codelineno-12-30" href="#__codelineno-12-30"></a><span class="w">        </span><span class="n">copyWithTransferTo</span><span class="p">(</span><span class="n">src</span><span class="p">,</span><span class="w"> </span><span class="n">Path</span><span class="p">.</span><span class="na">of</span><span class="p">(</span><span class="s">&quot;/tmp/big-dst2.dat&quot;</span><span class="p">));</span>
+<a id="__codelineno-12-31" name="__codelineno-12-31" href="#__codelineno-12-31"></a><span class="w">    </span><span class="p">}</span>
+<a id="__codelineno-12-32" name="__codelineno-12-32" href="#__codelineno-12-32"></a>
+<a id="__codelineno-12-33" name="__codelineno-12-33" href="#__codelineno-12-33"></a><span class="w">    </span><span class="c1">// 练习 2 思路：</span>
+<a id="__codelineno-12-34" name="__codelineno-12-34" href="#__codelineno-12-34"></a><span class="w">    </span><span class="c1">// 服务端维护 Set&lt;Socket&gt; clients（或用 NIO Selector）；</span>
+<a id="__codelineno-12-35" name="__codelineno-12-35" href="#__codelineno-12-35"></a><span class="w">    </span><span class="c1">// 每连接线程读到消息后，遍历 clients 逐个 writer.println(msg) 转发，</span>
+<a id="__codelineno-12-36" name="__codelineno-12-36" href="#__codelineno-12-36"></a><span class="w">    </span><span class="c1">// 注意同步 clients 集合（CopyOnWriteArraySet）和剔除已断开的连接。</span>
+<a id="__codelineno-12-37" name="__codelineno-12-37" href="#__codelineno-12-37"></a>
+<a id="__codelineno-12-38" name="__codelineno-12-38" href="#__codelineno-12-38"></a><span class="w">    </span><span class="c1">// 练习 3：Buffer 中转</span>
+<a id="__codelineno-12-39" name="__codelineno-12-39" href="#__codelineno-12-39"></a><span class="w">    </span><span class="kd">static</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="nf">copyWithBuffer</span><span class="p">(</span><span class="n">Path</span><span class="w"> </span><span class="n">src</span><span class="p">,</span><span class="w"> </span><span class="n">Path</span><span class="w"> </span><span class="n">dst</span><span class="p">)</span><span class="w"> </span><span class="kd">throws</span><span class="w"> </span><span class="n">Exception</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-12-40" name="__codelineno-12-40" href="#__codelineno-12-40"></a><span class="w">        </span><span class="kt">long</span><span class="w"> </span><span class="n">start</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">System</span><span class="p">.</span><span class="na">currentTimeMillis</span><span class="p">();</span>
+<a id="__codelineno-12-41" name="__codelineno-12-41" href="#__codelineno-12-41"></a><span class="w">        </span><span class="k">try</span><span class="w"> </span><span class="p">(</span><span class="n">FileChannel</span><span class="w"> </span><span class="n">in</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">FileChannel</span><span class="p">.</span><span class="na">open</span><span class="p">(</span><span class="n">src</span><span class="p">,</span><span class="w"> </span><span class="n">StandardOpenOption</span><span class="p">.</span><span class="na">READ</span><span class="p">);</span>
+<a id="__codelineno-12-42" name="__codelineno-12-42" href="#__codelineno-12-42"></a><span class="w">             </span><span class="n">FileChannel</span><span class="w"> </span><span class="n">out</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">FileChannel</span><span class="p">.</span><span class="na">open</span><span class="p">(</span><span class="n">dst</span><span class="p">,</span>
+<a id="__codelineno-12-43" name="__codelineno-12-43" href="#__codelineno-12-43"></a><span class="w">                 </span><span class="n">StandardOpenOption</span><span class="p">.</span><span class="na">CREATE</span><span class="p">,</span><span class="w"> </span><span class="n">StandardOpenOption</span><span class="p">.</span><span class="na">WRITE</span><span class="p">))</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-12-44" name="__codelineno-12-44" href="#__codelineno-12-44"></a><span class="w">            </span><span class="n">ByteBuffer</span><span class="w"> </span><span class="n">buf</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">ByteBuffer</span><span class="p">.</span><span class="na">allocate</span><span class="p">(</span><span class="mi">64</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="mi">1024</span><span class="p">);</span>
+<a id="__codelineno-12-45" name="__codelineno-12-45" href="#__codelineno-12-45"></a><span class="w">            </span><span class="k">while</span><span class="w"> </span><span class="p">(</span><span class="n">in</span><span class="p">.</span><span class="na">read</span><span class="p">(</span><span class="n">buf</span><span class="p">)</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="o">-</span><span class="mi">1</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-12-46" name="__codelineno-12-46" href="#__codelineno-12-46"></a><span class="w">                </span><span class="n">buf</span><span class="p">.</span><span class="na">flip</span><span class="p">();</span>
+<a id="__codelineno-12-47" name="__codelineno-12-47" href="#__codelineno-12-47"></a><span class="w">                </span><span class="k">while</span><span class="w"> </span><span class="p">(</span><span class="n">buf</span><span class="p">.</span><span class="na">hasRemaining</span><span class="p">())</span><span class="w"> </span><span class="n">out</span><span class="p">.</span><span class="na">write</span><span class="p">(</span><span class="n">buf</span><span class="p">);</span>
+<a id="__codelineno-12-48" name="__codelineno-12-48" href="#__codelineno-12-48"></a><span class="w">                </span><span class="n">buf</span><span class="p">.</span><span class="na">clear</span><span class="p">();</span>
+<a id="__codelineno-12-49" name="__codelineno-12-49" href="#__codelineno-12-49"></a><span class="w">            </span><span class="p">}</span>
+<a id="__codelineno-12-50" name="__codelineno-12-50" href="#__codelineno-12-50"></a><span class="w">        </span><span class="p">}</span>
+<a id="__codelineno-12-51" name="__codelineno-12-51" href="#__codelineno-12-51"></a><span class="w">        </span><span class="n">System</span><span class="p">.</span><span class="na">out</span><span class="p">.</span><span class="na">println</span><span class="p">(</span><span class="s">&quot;Buffer 方式: &quot;</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="p">(</span><span class="n">System</span><span class="p">.</span><span class="na">currentTimeMillis</span><span class="p">()</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">start</span><span class="p">)</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="s">&quot;ms&quot;</span><span class="p">);</span>
+<a id="__codelineno-12-52" name="__codelineno-12-52" href="#__codelineno-12-52"></a><span class="w">    </span><span class="p">}</span>
+<a id="__codelineno-12-53" name="__codelineno-12-53" href="#__codelineno-12-53"></a>
+<a id="__codelineno-12-54" name="__codelineno-12-54" href="#__codelineno-12-54"></a><span class="w">    </span><span class="c1">// 练习 3：transferTo 零拷贝</span>
+<a id="__codelineno-12-55" name="__codelineno-12-55" href="#__codelineno-12-55"></a><span class="w">    </span><span class="kd">static</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="nf">copyWithTransferTo</span><span class="p">(</span><span class="n">Path</span><span class="w"> </span><span class="n">src</span><span class="p">,</span><span class="w"> </span><span class="n">Path</span><span class="w"> </span><span class="n">dst</span><span class="p">)</span><span class="w"> </span><span class="kd">throws</span><span class="w"> </span><span class="n">Exception</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-12-56" name="__codelineno-12-56" href="#__codelineno-12-56"></a><span class="w">        </span><span class="kt">long</span><span class="w"> </span><span class="n">start</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">System</span><span class="p">.</span><span class="na">currentTimeMillis</span><span class="p">();</span>
+<a id="__codelineno-12-57" name="__codelineno-12-57" href="#__codelineno-12-57"></a><span class="w">        </span><span class="k">try</span><span class="w"> </span><span class="p">(</span><span class="n">FileChannel</span><span class="w"> </span><span class="n">in</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">FileChannel</span><span class="p">.</span><span class="na">open</span><span class="p">(</span><span class="n">src</span><span class="p">,</span><span class="w"> </span><span class="n">StandardOpenOption</span><span class="p">.</span><span class="na">READ</span><span class="p">);</span>
+<a id="__codelineno-12-58" name="__codelineno-12-58" href="#__codelineno-12-58"></a><span class="w">             </span><span class="n">FileChannel</span><span class="w"> </span><span class="n">out</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">FileChannel</span><span class="p">.</span><span class="na">open</span><span class="p">(</span><span class="n">dst</span><span class="p">,</span>
+<a id="__codelineno-12-59" name="__codelineno-12-59" href="#__codelineno-12-59"></a><span class="w">                 </span><span class="n">StandardOpenOption</span><span class="p">.</span><span class="na">CREATE</span><span class="p">,</span><span class="w"> </span><span class="n">StandardOpenOption</span><span class="p">.</span><span class="na">WRITE</span><span class="p">))</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-12-60" name="__codelineno-12-60" href="#__codelineno-12-60"></a><span class="w">            </span><span class="kt">long</span><span class="w"> </span><span class="n">size</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">in</span><span class="p">.</span><span class="na">size</span><span class="p">();</span>
+<a id="__codelineno-12-61" name="__codelineno-12-61" href="#__codelineno-12-61"></a><span class="w">            </span><span class="kt">long</span><span class="w"> </span><span class="n">transferred</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span>
+<a id="__codelineno-12-62" name="__codelineno-12-62" href="#__codelineno-12-62"></a><span class="w">            </span><span class="k">while</span><span class="w"> </span><span class="p">(</span><span class="n">transferred</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="n">size</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w">  </span><span class="c1">// 大文件可能一次传不完，循环</span>
+<a id="__codelineno-12-63" name="__codelineno-12-63" href="#__codelineno-12-63"></a><span class="w">                </span><span class="n">transferred</span><span class="w"> </span><span class="o">+=</span><span class="w"> </span><span class="n">in</span><span class="p">.</span><span class="na">transferTo</span><span class="p">(</span><span class="n">transferred</span><span class="p">,</span><span class="w"> </span><span class="n">size</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">transferred</span><span class="p">,</span><span class="w"> </span><span class="n">out</span><span class="p">);</span>
+<a id="__codelineno-12-64" name="__codelineno-12-64" href="#__codelineno-12-64"></a><span class="w">            </span><span class="p">}</span>
+<a id="__codelineno-12-65" name="__codelineno-12-65" href="#__codelineno-12-65"></a><span class="w">        </span><span class="p">}</span>
+<a id="__codelineno-12-66" name="__codelineno-12-66" href="#__codelineno-12-66"></a><span class="w">        </span><span class="n">System</span><span class="p">.</span><span class="na">out</span><span class="p">.</span><span class="na">println</span><span class="p">(</span><span class="s">&quot;transferTo 方式: &quot;</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="p">(</span><span class="n">System</span><span class="p">.</span><span class="na">currentTimeMillis</span><span class="p">()</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">start</span><span class="p">)</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="s">&quot;ms&quot;</span><span class="p">);</span>
+<a id="__codelineno-12-67" name="__codelineno-12-67" href="#__codelineno-12-67"></a><span class="w">        </span><span class="c1">// 通常明显更快（少一次用户态拷贝）</span>
+<a id="__codelineno-12-68" name="__codelineno-12-68" href="#__codelineno-12-68"></a><span class="w">    </span><span class="p">}</span>
+<a id="__codelineno-12-69" name="__codelineno-12-69" href="#__codelineno-12-69"></a>
+<a id="__codelineno-12-70" name="__codelineno-12-70" href="#__codelineno-12-70"></a><span class="w">    </span><span class="c1">// 练习 4：直接运行第 3 节 NioServer 的 main，</span>
+<a id="__codelineno-12-71" name="__codelineno-12-71" href="#__codelineno-12-71"></a><span class="w">    </span><span class="c1">// 另开终端：nc localhost 8080（或 telnet），输入文字看 echo 回复</span>
+<a id="__codelineno-12-72" name="__codelineno-12-72" href="#__codelineno-12-72"></a><span class="p">}</span>
+</code></pre></div>
+<hr />
+<h2 id="9">9. 本章小结<a class="headerlink" href="#9" title="Permanent link">&para;</a></h2>
+<h3 id="_2">核心知识点<a class="headerlink" href="#_2" title="Permanent link">&para;</a></h3>
+<p>✅ <strong>IO 模型</strong>：BIO（一连接一线程）→ NIO（Selector 多路复用）→ AIO（回调，少用）<br />
+✅ <strong>NIO 三件套</strong>：Channel（双向）、Buffer（flip/clear 指针管理）、Selector（事件监听）<br />
+✅ <strong>FileChannel</strong>：Buffer 读写、transferTo 零拷贝、mmap 内存映射<br />
+✅ <strong>网络编程</strong>：TCP（ServerSocket/Socket）、UDP（DatagramSocket）、TCP vs UDP 选型<br />
+✅ <strong>生产实践</strong>：原生 NIO 复杂（粘包、空轮询 bug），实际用 Netty  </p>
+<h3 id="_3">最佳实践<a class="headerlink" href="#_3" title="Permanent link">&para;</a></h3>
+<ol>
+<li>Buffer 写完读之前别忘了 flip</li>
+<li>Selector 循环中 selectedKeys 处理完必须 remove</li>
+<li>文件大段拷贝优先 transferTo</li>
+<li>TCP 服务端生产场景直接上 Netty</li>
+<li>理解 epoll 思想有助于看懂 Redis、Nginx 的高并发模型</li>
+</ol>
+<hr />
+<p>🎉 <strong>恭喜完成 NIO 与网络编程学习！继续学习 <a href="../11_JDBC/">JDBC</a>（若未学）或进入 <a href="../../03_%E8%BF%9B%E9%98%B6%E7%89%B9%E6%80%A7/10_ThreadLocal/">进阶特性篇</a></strong></p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../../../../..", "features": ["navigation.tabs", "navigation.sections", "navigation.expand", "search.suggest", "search.highlight", "content.code.copy"], "search": "../../../../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "\u5df2\u590d\u5236", "clipboard.copy": "\u590d\u5236", "search.result.more.one": "\u5728\u8be5\u9875\u4e0a\u8fd8\u6709 1 \u4e2a\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.more.other": "\u5728\u8be5\u9875\u4e0a\u8fd8\u6709 # \u4e2a\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.none": "\u6ca1\u6709\u627e\u5230\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.one": "\u627e\u5230 1 \u4e2a\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.other": "# \u4e2a\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.placeholder": "\u952e\u5165\u4ee5\u5f00\u59cb\u641c\u7d22", "search.result.term.missing": "\u7f3a\u5c11", "select.version": "\u9009\u62e9\u5f53\u524d\u7248\u672c"}, "version": null}</script>
+    
+    
+      <script src="../../../../../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+    
+  </body>
+</html>

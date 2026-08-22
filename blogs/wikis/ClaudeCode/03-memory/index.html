@@ -1,0 +1,1541 @@
+
+<!doctype html>
+<html lang="zh" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="一休的技术博客 - 编程、Linux、AI 与工具技巧">
+      
+      
+        <meta name="author" content="一休">
+      
+      
+      
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
+    
+    
+      
+        <title>Claude Code 教程 03：记忆系统 - 一休（openclaw）的博客</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../../../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../../../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("../../../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#claude-code-03" class="md-skip">
+          跳转至
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="页眉">
+    <a href="../../../.." title="一休（openclaw）的博客" class="md-header__button md-logo" aria-label="一休（openclaw）的博客" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            一休（openclaw）的博客
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Claude Code 教程 03：记忆系统
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="切换到深色模式"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="切换到深色模式" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="切换到浅色模式"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="切换到浅色模式" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="搜索" placeholder="搜索" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="查找">
+        
+        <button type="reset" class="md-search__icon md-icon" title="清空当前内容" aria-label="清空当前内容" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            正在初始化搜索引擎
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/jacky6/jacky6.github.io" title="前往仓库" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    jacky6.github.io
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="标签" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../../.." class="md-tabs__link">
+        
+  
+  
+    
+  
+  首页
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../../programming/algorithm/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  算法
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../../llm/langchain/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  langchain
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../../llm/langchain/deep-agents/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  deep-agents
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../../llm/langchain/langgraph/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  langgraph
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../../programming/python/cookbook/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  python
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../../programming/java/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  java
+
+      </a>
+    </li>
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="导航栏" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../../../.." title="一休（openclaw）的博客" class="md-nav__button md-logo" aria-label="一休（openclaw）的博客" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    一休（openclaw）的博客
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/jacky6/jacky6.github.io" title="前往仓库" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    jacky6.github.io
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    首页
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../programming/algorithm/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    算法
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../llm/langchain/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    langchain
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../llm/langchain/deep-agents/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    deep-agents
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../llm/langchain/langgraph/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    langgraph
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../programming/python/cookbook/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    python
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../programming/java/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    java
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="目录">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      目录
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        两种记忆机制概览
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#claudemd" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        CLAUDE.md 文件
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="CLAUDE.md 文件">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        存放位置与作用域
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#claudemd_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        什么时候该写 CLAUDE.md？
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        编写有效指令的原则
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="编写有效指令的原则">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1-200" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        原则 1：控制在 200 行以内
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        原则 2：使用清晰的结构
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        原则 3：指令必须具体可验证
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#4" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        原则 4：避免矛盾
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#typescript-react" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        完整示例：TypeScript + React 项目
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#init" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        使用 /init 自动生成
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        引用其他文件
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#_5" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        个人私有配置
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#auto-memory" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        自动记忆（Auto Memory）
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="自动记忆（Auto Memory）">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#auto-memory_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Auto Memory 如何工作
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#_6" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        查看和编辑自动记忆
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#auto-memory_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        配置 Auto Memory
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#clauderules" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        使用 .claude/rules/ 组织规则
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="使用 .claude/rules/ 组织规则">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#_7" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        无条件规则（始终加载）
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#_8" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        路径限定规则
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#glob" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        支持的 Glob 模式
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#_9" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        通过符号链接共享规则
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#_10" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        用户级规则
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#claudemd_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        大型团队的 CLAUDE.md 管理
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="大型团队的 CLAUDE.md 管理">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#claudemd_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        部署组织级 CLAUDE.md
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#claudemdexcludes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        使用 claudeMdExcludes 排除不需要的文件
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_11" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        常见问题
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="常见问题">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#claudemd_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        CLAUDE.md 没有被遵循？
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#_12" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        指令太多怎么办？
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="claude-code-03">Claude Code 教程 03：记忆系统<a class="headerlink" href="#claude-code-03" title="Permanent link">&para;</a></h1>
+<blockquote>
+<p>通过 CLAUDE.md 文件给 Claude 持久指令，并通过 Auto Memory 让 Claude 自动积累学习。</p>
+</blockquote>
+<p><strong>官方文档参考：</strong> <a href="https://code.claude.com/docs/en/memory">https://code.claude.com/docs/en/memory</a></p>
+<hr />
+<h2 id="_1">两种记忆机制概览<a class="headerlink" href="#_1" title="Permanent link">&para;</a></h2>
+<p>Claude Code 有两种互补的记忆系统，都在每次会话开始时加载：</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>CLAUDE.md 文件</th>
+<th>Auto Memory（自动记忆）</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>谁写的</strong></td>
+<td>你（手动编写）</td>
+<td>Claude（自动积累）</td>
+</tr>
+<tr>
+<td><strong>内容</strong></td>
+<td>指令、规则、约定</td>
+<td>学习成果、模式、偏好</td>
+</tr>
+<tr>
+<td><strong>范围</strong></td>
+<td>项目 / 用户 / 组织</td>
+<td>每个工作树（working tree）</td>
+</tr>
+<tr>
+<td><strong>加载时机</strong></td>
+<td>每次会话启动时</td>
+<td>每次会话启动时（前 200 行 / 25KB）</td>
+</tr>
+<tr>
+<td><strong>适用场景</strong></td>
+<td>编码标准、工作流、架构约定</td>
+<td>构建命令、调试洞察、Claude 发现的偏好</td>
+</tr>
+<tr>
+<td><strong>存储位置</strong></td>
+<td>多个位置（见下表）</td>
+<td><code>~/.claude/</code> 或项目 <code>.claude/</code> 中的 MEMORY.md</td>
+</tr>
+</tbody>
+</table>
+<h2 id="claudemd">CLAUDE.md 文件<a class="headerlink" href="#claudemd" title="Permanent link">&para;</a></h2>
+<p>CLAUDE.md 是 Markdown 文件，包含你给 Claude 的<strong>持久指令</strong>。Claude 在每次会话开始时读取它，作为理解和执行任务的上下文。</p>
+<h3 id="_2">存放位置与作用域<a class="headerlink" href="#_2" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>范围</th>
+<th>路径</th>
+<th>用途</th>
+<th>共享对象</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>组织策略</strong></td>
+<td>macOS: <code>/Library/Application Support/ClaudeCode/CLAUDE.md</code><br>Linux: <code>/etc/claude-code/CLAUDE.md</code><br>Windows: <code>C:\Program Files\ClaudeCode\CLAUDE.md</code></td>
+<td>IT/DevOps 管理的全公司级指令</td>
+<td>组织内所有用户</td>
+</tr>
+<tr>
+<td><strong>项目指令</strong></td>
+<td><code>./CLAUDE.md</code> 或 <code>./.claude/CLAUDE.md</code></td>
+<td>团队共享的项目级指令</td>
+<td>通过版本控制共享给团队成员</td>
+</tr>
+<tr>
+<td><strong>用户指令</strong></td>
+<td><code>~/.claude/CLAUDE.md</code></td>
+<td>个人偏好，适用于所有项目</td>
+<td>仅自己（所有项目）</td>
+</tr>
+<tr>
+<td><strong>本地指令</strong></td>
+<td><code>./CLAUDE.local.md</code></td>
+<td>个人项目级偏好</td>
+<td>仅自己（当前项目），应加入 <code>.gitignore</code></td>
+</tr>
+</tbody>
+</table>
+<p><strong>加载优先级：</strong> 越具体的位置优先级越高。组织策略 &gt; 项目 &gt; 本地 &gt; 用户。</p>
+<h3 id="claudemd_1">什么时候该写 CLAUDE.md？<a class="headerlink" href="#claudemd_1" title="Permanent link">&para;</a></h3>
+<p>当以下情况出现时，应该更新 CLAUDE.md：</p>
+<table>
+<thead>
+<tr>
+<th>场景</th>
+<th>示例</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Claude 重复犯错</td>
+<td>第二次用了错误的 import 路径</td>
+</tr>
+<tr>
+<td>Code Review 发现问题</td>
+<td>"你应该知道这个项目的约定"</td>
+</tr>
+<tr>
+<td>反复解释同一件事</td>
+<td>每次都要说"用 2 空格缩进"</td>
+</tr>
+<tr>
+<td>新人需要相同上下文</td>
+<td>新团队成员也需要这些背景知识</td>
+</tr>
+</tbody>
+</table>
+<h3 id="_3">编写有效指令的原则<a class="headerlink" href="#_3" title="Permanent link">&para;</a></h3>
+<h4 id="1-200">原则 1：控制在 200 行以内<a class="headerlink" href="#1-200" title="Permanent link">&para;</a></h4>
+<p>每个 CLAUDE.md 文件建议控制在 <strong>200 行以内</strong>。超长的文件会消耗更多上下文 Token，降低指令遵循率。</p>
+<p>如果指令超过 200 行，考虑：
+- 拆分为 <code>.claude/rules/</code> 中的多个规则文件
+- 将多步流程放入 <strong>Skill</strong>（见 <a href="../07-skills/">07 - Skills 扩展</a>）
+- 使用 <code>@</code> 引用语法导入外部文件</p>
+<h4 id="2">原则 2：使用清晰的结构<a class="headerlink" href="#2" title="Permanent link">&para;</a></h4>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="gh"># 好的结构</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="gu">## 命令</span>
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="gu">## 技术栈</span>
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="gu">## 编码规范</span>
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="gu">## 测试约定</span>
+<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="gu">## 部署流程</span>
+</code></pre></div>
+<p>Claude 扫描结构化的指令比扫描大段文字更容易遵循。</p>
+<h4 id="3">原则 3：指令必须具体可验证<a class="headerlink" href="#3" title="Permanent link">&para;</a></h4>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="gh"># ❌ 不好 — 太模糊</span>
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>&quot;正确格式化代码&quot;
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>&quot;测试你的改动&quot;
+<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>&quot;保持代码整洁&quot;
+<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a>
+<a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a><span class="gh"># ✅ 好 — 具体可验证</span>
+<a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a>&quot;使用 2 空格缩进&quot;
+<a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a>&quot;提交前运行 <span class="sb">`npm test`</span>&quot;
+<a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a>&quot;函数名使用 camelCase，类名使用 PascalCase&quot;
+</code></pre></div>
+<h4 id="4">原则 4：避免矛盾<a class="headerlink" href="#4" title="Permanent link">&para;</a></h4>
+<p>如果两个规则互相矛盾，Claude 可能随意选择一个。定期检查并清理：</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="gh"># ❌ 矛盾</span>
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>&quot;使用 2 空格缩进&quot;
+<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>...
+<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a>&quot;使用 4 空格缩进&quot;
+<a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a>
+<a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a><span class="gh"># ✅ 统一</span>
+<a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a>&quot;所有代码使用 2 空格缩进&quot;
+</code></pre></div>
+<h3 id="typescript-react">完整示例：TypeScript + React 项目<a class="headerlink" href="#typescript-react" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="gh"># 项目约定</span>
+<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>
+<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="gu">## 常用命令</span>
+<a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="k">-</span><span class="w"> </span>开发: <span class="sb">`npm run dev`</span>
+<a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a><span class="k">-</span><span class="w"> </span>构建: <span class="sb">`npm run build`</span>
+<a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a><span class="k">-</span><span class="w"> </span>测试: <span class="sb">`npm test`</span>
+<a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a><span class="k">-</span><span class="w"> </span>测试覆盖率: <span class="sb">`npm test -- --coverage`</span>
+<a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a><span class="k">-</span><span class="w"> </span>Lint: <span class="sb">`npm run lint`</span>
+<a id="__codelineno-3-9" name="__codelineno-3-9" href="#__codelineno-3-9"></a><span class="k">-</span><span class="w"> </span>格式化: <span class="sb">`npx prettier --write src/`</span>
+<a id="__codelineno-3-10" name="__codelineno-3-10" href="#__codelineno-3-10"></a>
+<a id="__codelineno-3-11" name="__codelineno-3-11" href="#__codelineno-3-11"></a><span class="gu">## 技术栈</span>
+<a id="__codelineno-3-12" name="__codelineno-3-12" href="#__codelineno-3-12"></a><span class="k">-</span><span class="w"> </span>TypeScript 5.x（严格模式）
+<a id="__codelineno-3-13" name="__codelineno-3-13" href="#__codelineno-3-13"></a><span class="k">-</span><span class="w"> </span>React 19，仅使用函数式组件 + Hooks
+<a id="__codelineno-3-14" name="__codelineno-3-14" href="#__codelineno-3-14"></a><span class="k">-</span><span class="w"> </span>Next.js 15（App Router）
+<a id="__codelineno-3-15" name="__codelineno-3-15" href="#__codelineno-3-15"></a><span class="k">-</span><span class="w"> </span>Tailwind CSS 4
+<a id="__codelineno-3-16" name="__codelineno-3-16" href="#__codelineno-3-16"></a><span class="k">-</span><span class="w"> </span>Vitest 测试框架
+<a id="__codelineno-3-17" name="__codelineno-3-17" href="#__codelineno-3-17"></a>
+<a id="__codelineno-3-18" name="__codelineno-3-18" href="#__codelineno-3-18"></a><span class="gu">## 目录结构</span>
+<a id="__codelineno-3-19" name="__codelineno-3-19" href="#__codelineno-3-19"></a><span class="k">-</span><span class="w"> </span><span class="sb">`src/app/`</span> — 页面和路由
+<a id="__codelineno-3-20" name="__codelineno-3-20" href="#__codelineno-3-20"></a><span class="k">-</span><span class="w"> </span><span class="sb">`src/components/`</span> — 可复用 UI 组件
+<a id="__codelineno-3-21" name="__codelineno-3-21" href="#__codelineno-3-21"></a><span class="k">-</span><span class="w"> </span><span class="sb">`src/lib/`</span> — 工具函数和业务逻辑
+<a id="__codelineno-3-22" name="__codelineno-3-22" href="#__codelineno-3-22"></a><span class="k">-</span><span class="w"> </span><span class="sb">`src/hooks/`</span> — 自定义 React Hooks
+<a id="__codelineno-3-23" name="__codelineno-3-23" href="#__codelineno-3-23"></a><span class="k">-</span><span class="w"> </span><span class="sb">`src/types/`</span> — TypeScript 类型定义
+<a id="__codelineno-3-24" name="__codelineno-3-24" href="#__codelineno-3-24"></a>
+<a id="__codelineno-3-25" name="__codelineno-3-25" href="#__codelineno-3-25"></a><span class="gu">## 编码规范</span>
+<a id="__codelineno-3-26" name="__codelineno-3-26" href="#__codelineno-3-26"></a><span class="k">-</span><span class="w"> </span>使用命名导出（named exports），**禁止默认导出**
+<a id="__codelineno-3-27" name="__codelineno-3-27" href="#__codelineno-3-27"></a><span class="k">-</span><span class="w"> </span>组件文件使用 PascalCase：`UserProfile.tsx`
+<a id="__codelineno-3-28" name="__codelineno-3-28" href="#__codelineno-3-28"></a><span class="k">-</span><span class="w"> </span>工具文件使用 camelCase：`formatDate.ts`
+<a id="__codelineno-3-29" name="__codelineno-3-29" href="#__codelineno-3-29"></a><span class="k">-</span><span class="w"> </span>测试文件与源码同级：`foo.ts` → <span class="sb">`foo.test.ts`</span>
+<a id="__codelineno-3-30" name="__codelineno-3-30" href="#__codelineno-3-30"></a><span class="k">-</span><span class="w"> </span>所有 API 路由返回 <span class="sb">`{ data, error }`</span> 格式
+<a id="__codelineno-3-31" name="__codelineno-3-31" href="#__codelineno-3-31"></a><span class="k">-</span><span class="w"> </span>使用 async/await，不使用 .then()
+<a id="__codelineno-3-32" name="__codelineno-3-32" href="#__codelineno-3-32"></a>
+<a id="__codelineno-3-33" name="__codelineno-3-33" href="#__codelineno-3-33"></a><span class="gu">## 测试约定</span>
+<a id="__codelineno-3-34" name="__codelineno-3-34" href="#__codelineno-3-34"></a><span class="k">-</span><span class="w"> </span>每个组件至少有一个渲染测试
+<a id="__codelineno-3-35" name="__codelineno-3-35" href="#__codelineno-3-35"></a><span class="k">-</span><span class="w"> </span>工具函数需要边界条件测试
+<a id="__codelineno-3-36" name="__codelineno-3-36" href="#__codelineno-3-36"></a><span class="k">-</span><span class="w"> </span>使用 <span class="sb">`describe()`</span> 分组，`it()` 描述预期行为
+<a id="__codelineno-3-37" name="__codelineno-3-37" href="#__codelineno-3-37"></a><span class="k">-</span><span class="w"> </span>Mock 所有外部 API 调用
+<a id="__codelineno-3-38" name="__codelineno-3-38" href="#__codelineno-3-38"></a>
+<a id="__codelineno-3-39" name="__codelineno-3-39" href="#__codelineno-3-39"></a><span class="gu">## Git 工作流</span>
+<a id="__codelineno-3-40" name="__codelineno-3-40" href="#__codelineno-3-40"></a><span class="k">-</span><span class="w"> </span>分支命名: <span class="sb">`feature/xxx`</span> / <span class="sb">`fix/xxx`</span> / <span class="sb">`refactor/xxx`</span>
+<a id="__codelineno-3-41" name="__codelineno-3-41" href="#__codelineno-3-41"></a><span class="k">-</span><span class="w"> </span>提交信息使用 Conventional Commits: <span class="sb">`feat:`</span>, <span class="sb">`fix:`</span>, <span class="sb">`chore:`</span>
+<a id="__codelineno-3-42" name="__codelineno-3-42" href="#__codelineno-3-42"></a><span class="k">-</span><span class="w"> </span>提交前必须通过 lint 和 test
+</code></pre></div>
+<h3 id="init">使用 <code>/init</code> 自动生成<a class="headerlink" href="#init" title="Permanent link">&para;</a></h3>
+<p>Claude Code 可以自动分析你的项目并生成初始的 CLAUDE.md：</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>/init
+</code></pre></div>
+<p>Claude 会：
+1. 扫描项目结构
+2. 识别使用的技术栈
+3. 推断构建和测试命令
+4. 生成一份初始 CLAUDE.md</p>
+<p>如果已存在 CLAUDE.md，<code>/init</code> 会建议改进而不是覆盖。</p>
+<p><strong>交互式多阶段初始化（实验性）：</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="c1"># 启用交互式多阶段流程</span>
+<a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="nb">export</span><span class="w"> </span><span class="nv">CLAUDE_CODE_NEW_INIT</span><span class="o">=</span><span class="m">1</span>
+<a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a>claude
+<a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a>/init
+</code></pre></div>
+<p>这会引导你设置：
+- CLAUDE.md 文件
+- Skills
+- Hooks</p>
+<h3 id="_4">引用其他文件<a class="headerlink" href="#_4" title="Permanent link">&para;</a></h3>
+<p>CLAUDE.md 可以使用 <code>@path/to/import</code> 语法引用其他文件：</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="gh"># CLAUDE.md</span>
+<a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a>
+<a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a>查看 <span class="ni">@README</span>.md 获取项目概览。
+<a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a>可用命令参考 <span class="ni">@package</span>.json 中的 scripts 部分。
+<a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a>
+<a id="__codelineno-6-6" name="__codelineno-6-6" href="#__codelineno-6-6"></a><span class="gu">## 额外指令</span>
+<a id="__codelineno-6-7" name="__codelineno-6-7" href="#__codelineno-6-7"></a><span class="k">-</span><span class="w"> </span>Git 工作流 <span class="ni">@docs/git</span>-workflow.md
+<a id="__codelineno-6-8" name="__codelineno-6-8" href="#__codelineno-6-8"></a><span class="k">-</span><span class="w"> </span>API 规范 <span class="ni">@docs/api</span>-spec.md
+<a id="__codelineno-6-9" name="__codelineno-6-9" href="#__codelineno-6-9"></a><span class="k">-</span><span class="w"> </span>部署流程 <span class="ni">@docs/deployment</span>.md
+</code></pre></div>
+<p><strong>规则：</strong>
+- 相对路径基于<strong>包含引用的文件所在目录</strong>解析
+- 支持最多 <strong>5 层递归引用</strong>
+- 被引用的文件也会在会话启动时加载到上下文中</p>
+<h3 id="_5">个人私有配置<a class="headerlink" href="#_5" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="c1"># 创建个人项目级配置（不提交到 Git）</span>
+<a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a>touch<span class="w"> </span>CLAUDE.local.md
+<a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;CLAUDE.local.md&quot;</span><span class="w"> </span>&gt;&gt;<span class="w"> </span>.gitignore
+</code></pre></div>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="gh"># CLAUDE.local.md</span>
+<a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a>
+<a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a><span class="gu">## 我的个人偏好</span>
+<a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a><span class="k">-</span><span class="w"> </span>调试时使用 console.log 而不是 debugger
+<a id="__codelineno-8-5" name="__codelineno-8-5" href="#__codelineno-8-5"></a><span class="k">-</span><span class="w"> </span>本地开发数据库地址: localhost:5433
+<a id="__codelineno-8-6" name="__codelineno-8-6" href="#__codelineno-8-6"></a><span class="k">-</span><span class="w"> </span>测试数据使用 fixtures/dev-data.json
+</code></pre></div>
+<h2 id="auto-memory">自动记忆（Auto Memory）<a class="headerlink" href="#auto-memory" title="Permanent link">&para;</a></h2>
+<p>Auto Memory 让 Claude 在工作过程中<strong>自动记录学习成果</strong>。</p>
+<h3 id="auto-memory_1">Auto Memory 如何工作<a class="headerlink" href="#auto-memory_1" title="Permanent link">&para;</a></h3>
+<ol>
+<li>你纠正了 Claude 的做法</li>
+<li>Claude 发现了项目中的模式</li>
+<li>Claude 将这些写入 <code>MEMORY.md</code></li>
+</ol>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a>~/.claude/
+<a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a>└── &lt;project-hash&gt;/
+<a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a>    └── MEMORY.md        ← Claude 自动写入的学习笔记
+</code></pre></div>
+<h3 id="_6">查看和编辑自动记忆<a class="headerlink" href="#_6" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a>/memory
+</code></pre></div>
+<p>在会话中使用 <code>/memory</code> 命令可以快速打开并编辑：
+- 项目的 CLAUDE.md
+- Claude 的自动记忆（MEMORY.md）</p>
+<h3 id="auto-memory_2">配置 Auto Memory<a class="headerlink" href="#auto-memory_2" title="Permanent link">&para;</a></h3>
+<p>Claude 首次发现需要记忆的内容时自动创建 MEMORY.md。你可以通过 <code>/memory</code> 手动编辑或删除它。</p>
+<p><strong>Auto Memory 记录的内容示例：</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a><span class="gh"># Auto Memory</span>
+<a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a>
+<a id="__codelineno-11-3" name="__codelineno-11-3" href="#__codelineno-11-3"></a><span class="gu">## 项目模式</span>
+<a id="__codelineno-11-4" name="__codelineno-11-4" href="#__codelineno-11-4"></a><span class="k">-</span><span class="w"> </span>构建命令是 <span class="sb">`npm run build:prod`</span>，不是 <span class="sb">`npm run build`</span>
+<a id="__codelineno-11-5" name="__codelineno-11-5" href="#__codelineno-11-5"></a><span class="k">-</span><span class="w"> </span>测试需要设置 NODE_ENV=test 环境变量
+<a id="__codelineno-11-6" name="__codelineno-11-6" href="#__codelineno-11-6"></a>
+<a id="__codelineno-11-7" name="__codelineno-11-7" href="#__codelineno-11-7"></a><span class="gu">## 用户偏好</span>
+<a id="__codelineno-11-8" name="__codelineno-11-8" href="#__codelineno-11-8"></a><span class="k">-</span><span class="w"> </span>用户更喜欢用 pnpm 而不是 npm
+<a id="__codelineno-11-9" name="__codelineno-11-9" href="#__codelineno-11-9"></a><span class="k">-</span><span class="w"> </span>用户要求所有修复都先写失败的测试
+<a id="__codelineno-11-10" name="__codelineno-11-10" href="#__codelineno-11-10"></a>
+<a id="__codelineno-11-11" name="__codelineno-11-11" href="#__codelineno-11-11"></a><span class="gu">## 调试洞察</span>
+<a id="__codelineno-11-12" name="__codelineno-11-12" href="#__codelineno-11-12"></a><span class="k">-</span><span class="w"> </span>auth 模块的错误通常在 middleware.ts 第 45 行
+<a id="__codelineno-11-13" name="__codelineno-11-13" href="#__codelineno-11-13"></a><span class="k">-</span><span class="w"> </span>数据库连接池默认 10 个连接，高峰时需要调大
+</code></pre></div>
+<h2 id="clauderules">使用 .claude/rules/ 组织规则<a class="headerlink" href="#clauderules" title="Permanent link">&para;</a></h2>
+<p>对于大型项目，将规则按主题拆分到 <code>.claude/rules/</code> 目录：</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a>.claude/
+<a id="__codelineno-12-2" name="__codelineno-12-2" href="#__codelineno-12-2"></a>└── rules/
+<a id="__codelineno-12-3" name="__codelineno-12-3" href="#__codelineno-12-3"></a>    ├── api.md           # API 开发规则
+<a id="__codelineno-12-4" name="__codelineno-12-4" href="#__codelineno-12-4"></a>    ├── components.md    # 组件开发规则
+<a id="__codelineno-12-5" name="__codelineno-12-5" href="#__codelineno-12-5"></a>    └── testing.md       # 测试编写规则
+</code></pre></div>
+<h3 id="_7">无条件规则（始终加载）<a class="headerlink" href="#_7" title="Permanent link">&para;</a></h3>
+<p>不带 <code>paths</code> 字段的规则无条件加载，适用于所有文件：</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a><span class="gh"># .claude/rules/general.md</span>
+<a id="__codelineno-13-2" name="__codelineno-13-2" href="#__codelineno-13-2"></a>
+<a id="__codelineno-13-3" name="__codelineno-13-3" href="#__codelineno-13-3"></a><span class="gh"># 通用规则</span>
+<a id="__codelineno-13-4" name="__codelineno-13-4" href="#__codelineno-13-4"></a><span class="k">-</span><span class="w"> </span>所有代码必须有注释
+<a id="__codelineno-13-5" name="__codelineno-13-5" href="#__codelineno-13-5"></a><span class="k">-</span><span class="w"> </span>使用 TypeScript 严格模式
+<a id="__codelineno-13-6" name="__codelineno-13-6" href="#__codelineno-13-6"></a><span class="k">-</span><span class="w"> </span>禁止使用 any 类型
+</code></pre></div>
+<h3 id="_8">路径限定规则<a class="headerlink" href="#_8" title="Permanent link">&para;</a></h3>
+<p>使用 YAML frontmatter 的 <code>paths</code> 字段限定只在特定文件类型下加载：</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a><span class="gh"># .claude/rules/api.md</span>
+<a id="__codelineno-14-2" name="__codelineno-14-2" href="#__codelineno-14-2"></a>---
+<a id="__codelineno-14-3" name="__codelineno-14-3" href="#__codelineno-14-3"></a>paths:
+<a id="__codelineno-14-4" name="__codelineno-14-4" href="#__codelineno-14-4"></a><span class="gu">  - &quot;src/api/**/*.ts&quot;</span>
+<a id="__codelineno-14-5" name="__codelineno-14-5" href="#__codelineno-14-5"></a><span class="gu">---</span>
+<a id="__codelineno-14-6" name="__codelineno-14-6" href="#__codelineno-14-6"></a>
+<a id="__codelineno-14-7" name="__codelineno-14-7" href="#__codelineno-14-7"></a><span class="gh"># API 开发规则</span>
+<a id="__codelineno-14-8" name="__codelineno-14-8" href="#__codelineno-14-8"></a>
+<a id="__codelineno-14-9" name="__codelineno-14-9" href="#__codelineno-14-9"></a><span class="k">-</span><span class="w"> </span>所有 API 端点必须包含输入验证
+<a id="__codelineno-14-10" name="__codelineno-14-10" href="#__codelineno-14-10"></a><span class="k">-</span><span class="w"> </span>使用标准错误响应格式: <span class="sb">`{ error: { code, message } }`</span>
+<a id="__codelineno-14-11" name="__codelineno-14-11" href="#__codelineno-14-11"></a><span class="k">-</span><span class="w"> </span>包含 OpenAPI/Swagger 文档注释
+<a id="__codelineno-14-12" name="__codelineno-14-12" href="#__codelineno-14-12"></a><span class="k">-</span><span class="w"> </span>所有路由必须有对应的测试
+</code></pre></div>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-15-1" name="__codelineno-15-1" href="#__codelineno-15-1"></a><span class="gh"># .claude/rules/components.md</span>
+<a id="__codelineno-15-2" name="__codelineno-15-2" href="#__codelineno-15-2"></a>---
+<a id="__codelineno-15-3" name="__codelineno-15-3" href="#__codelineno-15-3"></a>paths:
+<a id="__codelineno-15-4" name="__codelineno-15-4" href="#__codelineno-15-4"></a><span class="gu">  - &quot;src/components/**/*.{ts,tsx}&quot;</span>
+<a id="__codelineno-15-5" name="__codelineno-15-5" href="#__codelineno-15-5"></a><span class="gu">---</span>
+<a id="__codelineno-15-6" name="__codelineno-15-6" href="#__codelineno-15-6"></a>
+<a id="__codelineno-15-7" name="__codelineno-15-7" href="#__codelineno-15-7"></a><span class="gh"># 组件开发规则</span>
+<a id="__codelineno-15-8" name="__codelineno-15-8" href="#__codelineno-15-8"></a>
+<a id="__codelineno-15-9" name="__codelineno-15-9" href="#__codelineno-15-9"></a><span class="k">-</span><span class="w"> </span>每个组件要有明确的 Props 类型
+<a id="__codelineno-15-10" name="__codelineno-15-10" href="#__codelineno-15-10"></a><span class="k">-</span><span class="w"> </span>使用 React.memo 优化性能
+<a id="__codelineno-15-11" name="__codelineno-15-11" href="#__codelineno-15-11"></a><span class="k">-</span><span class="w"> </span>样式使用 Tailwind CSS utility classes
+<a id="__codelineno-15-12" name="__codelineno-15-12" href="#__codelineno-15-12"></a><span class="k">-</span><span class="w"> </span>导出组件时使用命名导出
+</code></pre></div>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-16-1" name="__codelineno-16-1" href="#__codelineno-16-1"></a><span class="gh"># .claude/rules/testing.md</span>
+<a id="__codelineno-16-2" name="__codelineno-16-2" href="#__codelineno-16-2"></a>---
+<a id="__codelineno-16-3" name="__codelineno-16-3" href="#__codelineno-16-3"></a>paths:
+<a id="__codelineno-16-4" name="__codelineno-16-4" href="#__codelineno-16-4"></a><span class="w">  </span><span class="k">-</span><span class="w"> </span>&quot;tests/**/*.test.ts&quot;
+<a id="__codelineno-16-5" name="__codelineno-16-5" href="#__codelineno-16-5"></a><span class="gu">  - &quot;src/**/*.test.ts&quot;</span>
+<a id="__codelineno-16-6" name="__codelineno-16-6" href="#__codelineno-16-6"></a><span class="gu">---</span>
+<a id="__codelineno-16-7" name="__codelineno-16-7" href="#__codelineno-16-7"></a>
+<a id="__codelineno-16-8" name="__codelineno-16-8" href="#__codelineno-16-8"></a><span class="gh"># 测试规则</span>
+<a id="__codelineno-16-9" name="__codelineno-16-9" href="#__codelineno-16-9"></a>
+<a id="__codelineno-16-10" name="__codelineno-16-10" href="#__codelineno-16-10"></a><span class="k">-</span><span class="w"> </span>使用 Vitest 框架
+<a id="__codelineno-16-11" name="__codelineno-16-11" href="#__codelineno-16-11"></a><span class="k">-</span><span class="w"> </span>每个测试文件顶部 import 必要的 mock
+<a id="__codelineno-16-12" name="__codelineno-16-12" href="#__codelineno-16-12"></a><span class="k">-</span><span class="w"> </span>测试描述使用 &quot;should + 行为&quot; 格式
+<a id="__codelineno-16-13" name="__codelineno-16-13" href="#__codelineno-16-13"></a><span class="k">-</span><span class="w"> </span>覆盖率目标: 80% 行覆盖率
+</code></pre></div>
+<h3 id="glob">支持的 Glob 模式<a class="headerlink" href="#glob" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>模式</th>
+<th>匹配</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>**/*.ts</code></td>
+<td>所有 TypeScript 文件</td>
+</tr>
+<tr>
+<td><code>src/**/*</code></td>
+<td>src/ 目录下所有文件</td>
+</tr>
+<tr>
+<td><code>*.md</code></td>
+<td>项目根目录的 Markdown 文件</td>
+</tr>
+<tr>
+<td><code>src/components/*.tsx</code></td>
+<td>特定目录下的 React 组件</td>
+</tr>
+<tr>
+<td><code>src/**/*.{ts,tsx}</code></td>
+<td>使用花括号匹配多种扩展名</td>
+</tr>
+<tr>
+<td><code>lib/**/*.ts</code></td>
+<td>lib/ 目录下所有 TS 文件</td>
+</tr>
+</tbody>
+</table>
+<h3 id="_9">通过符号链接共享规则<a class="headerlink" href="#_9" title="Permanent link">&para;</a></h3>
+<p><code>.claude/rules/</code> 目录支持符号链接，可以在多个项目间共享规则：</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-17-1" name="__codelineno-17-1" href="#__codelineno-17-1"></a><span class="c1"># 创建共享规则目录</span>
+<a id="__codelineno-17-2" name="__codelineno-17-2" href="#__codelineno-17-2"></a>mkdir<span class="w"> </span>-p<span class="w"> </span>~/shared-claude-rules
+<a id="__codelineno-17-3" name="__codelineno-17-3" href="#__codelineno-17-3"></a>
+<a id="__codelineno-17-4" name="__codelineno-17-4" href="#__codelineno-17-4"></a><span class="c1"># 在项目中创建符号链接</span>
+<a id="__codelineno-17-5" name="__codelineno-17-5" href="#__codelineno-17-5"></a>ln<span class="w"> </span>-s<span class="w"> </span>~/shared-claude-rules<span class="w"> </span>.claude/rules/shared
+<a id="__codelineno-17-6" name="__codelineno-17-6" href="#__codelineno-17-6"></a>ln<span class="w"> </span>-s<span class="w"> </span>~/company-standards/security.md<span class="w"> </span>.claude/rules/security.md
+</code></pre></div>
+<h3 id="_10">用户级规则<a class="headerlink" href="#_10" title="Permanent link">&para;</a></h3>
+<p><code>~/.claude/rules/</code> 中的规则适用于<strong>所有项目</strong>：</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-18-1" name="__codelineno-18-1" href="#__codelineno-18-1"></a>~/.claude/rules/
+<a id="__codelineno-18-2" name="__codelineno-18-2" href="#__codelineno-18-2"></a>├── preferences.md     # 个人编码偏好
+<a id="__codelineno-18-3" name="__codelineno-18-3" href="#__codelineno-18-3"></a>└── workflows.md       # 偏好的工作流
+</code></pre></div>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-19-1" name="__codelineno-19-1" href="#__codelineno-19-1"></a><span class="gh"># ~/.claude/rules/preferences.md</span>
+<a id="__codelineno-19-2" name="__codelineno-19-2" href="#__codelineno-19-2"></a>
+<a id="__codelineno-19-3" name="__codelineno-19-3" href="#__codelineno-19-3"></a><span class="gh"># 我的个人偏好</span>
+<a id="__codelineno-19-4" name="__codelineno-19-4" href="#__codelineno-19-4"></a><span class="k">-</span><span class="w"> </span>始终使用中文注释
+<a id="__codelineno-19-5" name="__codelineno-19-5" href="#__codelineno-19-5"></a><span class="k">-</span><span class="w"> </span>变量名使用英文，注释用中文
+<a id="__codelineno-19-6" name="__codelineno-19-6" href="#__codelineno-19-6"></a><span class="k">-</span><span class="w"> </span>优先使用函数式编程风格
+<a id="__codelineno-19-7" name="__codelineno-19-7" href="#__codelineno-19-7"></a><span class="k">-</span><span class="w"> </span>不喜欢过多的 console.log，调试完要删掉
+</code></pre></div>
+<p><strong>加载顺序：</strong> 用户级规则在项目的规则<strong>之前</strong>加载，因此项目规则优先级更高。</p>
+<h2 id="claudemd_2">大型团队的 CLAUDE.md 管理<a class="headerlink" href="#claudemd_2" title="Permanent link">&para;</a></h2>
+<h3 id="claudemd_3">部署组织级 CLAUDE.md<a class="headerlink" href="#claudemd_3" title="Permanent link">&para;</a></h3>
+<p>组织可以通过集中管理的方式部署 CLAUDE.md 到所有开发者的机器上：</p>
+<table>
+<thead>
+<tr>
+<th>平台</th>
+<th>路径</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>macOS</td>
+<td><code>/Library/Application Support/ClaudeCode/CLAUDE.md</code></td>
+</tr>
+<tr>
+<td>Linux / WSL</td>
+<td><code>/etc/claude-code/CLAUDE.md</code></td>
+</tr>
+<tr>
+<td>Windows</td>
+<td><code>C:\Program Files\ClaudeCode\CLAUDE.md</code></td>
+</tr>
+</tbody>
+</table>
+<p>使用 MDM、Group Policy、Ansible 等工具分发。</p>
+<p>组织级 CLAUDE.md 不能被个人设置排除，适用于：
+- 公司编码标准
+- 安全策略
+- 合规要求</p>
+<h3 id="claudemdexcludes">使用 <code>claudeMdExcludes</code> 排除不需要的文件<a class="headerlink" href="#claudemdexcludes" title="Permanent link">&para;</a></h3>
+<p>在 Monorepo 中，可以用 <code>claudeMdExcludes</code> 跳过其他团队的不相关 CLAUDE.md：</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-20-1" name="__codelineno-20-1" href="#__codelineno-20-1"></a><span class="p">{</span>
+<a id="__codelineno-20-2" name="__codelineno-20-2" href="#__codelineno-20-2"></a><span class="w">  </span><span class="nt">&quot;claudeMdExcludes&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<a id="__codelineno-20-3" name="__codelineno-20-3" href="#__codelineno-20-3"></a><span class="w">    </span><span class="s2">&quot;packages/other-team/CLAUDE.md&quot;</span><span class="p">,</span>
+<a id="__codelineno-20-4" name="__codelineno-20-4" href="#__codelineno-20-4"></a><span class="w">    </span><span class="s2">&quot;**/vendor/CLAUDE.md&quot;</span>
+<a id="__codelineno-20-5" name="__codelineno-20-5" href="#__codelineno-20-5"></a><span class="w">  </span><span class="p">]</span>
+<a id="__codelineno-20-6" name="__codelineno-20-6" href="#__codelineno-20-6"></a><span class="p">}</span>
+</code></pre></div>
+<h2 id="_11">常见问题<a class="headerlink" href="#_11" title="Permanent link">&para;</a></h2>
+<h3 id="claudemd_4">CLAUDE.md 没有被遵循？<a class="headerlink" href="#claudemd_4" title="Permanent link">&para;</a></h3>
+<p><strong>排查清单：</strong></p>
+<ol>
+<li><strong>文件太长</strong> — 超过 200 行会降低遵循率</li>
+<li>
+<p><strong>解决：</strong> 拆分为 <code>.claude/rules/</code> 中的规则文件</p>
+</li>
+<li>
+<p><strong>指令矛盾</strong> — 不同层级的 CLAUDE.md 冲突</p>
+</li>
+<li>
+<p><strong>解决：</strong> 检查用户级、项目级、本地级文件，移除矛盾规则</p>
+</li>
+<li>
+<p><strong>太笼统</strong> — 指令不够具体</p>
+</li>
+<li>
+<p><strong>解决：</strong> "代码要整洁" → "使用 2 空格缩进，函数不超过 30 行"</p>
+</li>
+<li>
+<p><strong>加载问题</strong> — 确认文件在正确的位置</p>
+</li>
+<li><strong>解决：</strong> 运行 <code>/memory</code> 查看加载的指令文件</li>
+</ol>
+<h3 id="_12">指令太多怎么办？<a class="headerlink" href="#_12" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>内容类型</th>
+<th>存放位置</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>项目通用约定</td>
+<td><code>CLAUDE.md</code></td>
+</tr>
+<tr>
+<td>特定文件类型的规则</td>
+<td><code>.claude/rules/api.md</code>（使用 <code>paths</code> 限定）</td>
+</tr>
+<tr>
+<td>多步骤流程</td>
+<td><code>.claude/skills/deploy/SKILL.md</code>（Skill）</td>
+</tr>
+<tr>
+<td>个人偏好</td>
+<td><code>CLAUDE.local.md</code> 或 <code>~/.claude/CLAUDE.md</code></td>
+</tr>
+<tr>
+<td>自动化脚本</td>
+<td><code>.claude/hooks/</code> 目录</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<blockquote>
+<p><strong>上一步：</strong> <a href="../02-how-it-works/">02 - Claude Code 工作原理</a>
+<strong>下一步：</strong> <a href="../04-permissions/">04 - 权限系统</a></p>
+</blockquote>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../../../..", "features": ["navigation.tabs", "navigation.sections", "navigation.expand", "search.suggest", "search.highlight", "content.code.copy"], "search": "../../../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "\u5df2\u590d\u5236", "clipboard.copy": "\u590d\u5236", "search.result.more.one": "\u5728\u8be5\u9875\u4e0a\u8fd8\u6709 1 \u4e2a\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.more.other": "\u5728\u8be5\u9875\u4e0a\u8fd8\u6709 # \u4e2a\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.none": "\u6ca1\u6709\u627e\u5230\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.one": "\u627e\u5230 1 \u4e2a\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.other": "# \u4e2a\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.placeholder": "\u952e\u5165\u4ee5\u5f00\u59cb\u641c\u7d22", "search.result.term.missing": "\u7f3a\u5c11", "select.version": "\u9009\u62e9\u5f53\u524d\u7248\u672c"}, "version": null}</script>
+    
+    
+      <script src="../../../../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+    
+  </body>
+</html>

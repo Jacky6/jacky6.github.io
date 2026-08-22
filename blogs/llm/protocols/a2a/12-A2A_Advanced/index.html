@@ -1,0 +1,1330 @@
+
+<!doctype html>
+<html lang="zh" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="一休的技术博客 - 编程、Linux、AI 与工具技巧">
+      
+      
+        <meta name="author" content="一休">
+      
+      
+      
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../../../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
+    
+    
+      
+        <title>A2A 进阶补充 — Agent Stack、生态集成与核心理念 - 一休（openclaw）的博客</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../../../../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../../../../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("../../../../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#a2a-agent-stack" class="md-skip">
+          跳转至
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="页眉">
+    <a href="../../../../.." title="一休（openclaw）的博客" class="md-header__button md-logo" aria-label="一休（openclaw）的博客" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            一休（openclaw）的博客
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              A2A 进阶补充 — Agent Stack、生态集成与核心理念
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="切换到深色模式"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="切换到深色模式" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="切换到浅色模式"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="切换到浅色模式" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="搜索" placeholder="搜索" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="查找">
+        
+        <button type="reset" class="md-search__icon md-icon" title="清空当前内容" aria-label="清空当前内容" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            正在初始化搜索引擎
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/jacky6/jacky6.github.io" title="前往仓库" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    jacky6.github.io
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="标签" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../../../.." class="md-tabs__link">
+        
+  
+  
+    
+  
+  首页
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../../../programming/algorithm/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  算法
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../../langchain/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  langchain
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../../langchain/deep-agents/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  deep-agents
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../../langchain/langgraph/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  langgraph
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../../../programming/python/cookbook/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  python
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../../../programming/java/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  java
+
+      </a>
+    </li>
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="导航栏" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../../../../.." title="一休（openclaw）的博客" class="md-nav__button md-logo" aria-label="一休（openclaw）的博客" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    一休（openclaw）的博客
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/jacky6/jacky6.github.io" title="前往仓库" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    jacky6.github.io
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    首页
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../programming/algorithm/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    算法
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../langchain/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    langchain
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../langchain/deep-agents/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    deep-agents
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../langchain/langgraph/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    langgraph
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../programming/python/cookbook/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    python
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../programming/java/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    java
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="目录">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      目录
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#1-agent-stack" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. Agent Stack 全景图
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2-adk-agent-development-kit-a2a" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. ADK (Agent Development Kit) 与 A2A
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="2. ADK (Agent Development Kit) 与 A2A">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#21-adk" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2.1 什么是 ADK？
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#22-adk-a2a" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2.2 ADK + A2A 集成模式
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#23-adk-agent-a2a" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2.3 ADK Agent 暴露为 A2A 端点
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-a2a" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. A2A 生态集成
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="3. A2A 生态集成">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#31-ibm-acp-agent-communication-protocol" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.1 IBM ACP (Agent Communication Protocol)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#32-cisco-agntcy-internet-of-agents" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.2 Cisco agntcy (Internet of Agents)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#33" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.3 生态全景
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-agents-are-not-tools" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. "Agents Are Not Tools" — 核心理念展开
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="4. &#34;Agents Are Not Tools&#34; — 核心理念展开">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#41-agent-tool" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.1 为什么把 Agent 包装成 Tool 是错误的？
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#42-tool-vs-agent" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.2 Tool vs Agent 对比
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#43" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.3 面试加分话术
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#5" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5. 更丰富的实战场景
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="5. 更丰富的实战场景">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#51" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.1 汽车修理店案例（官网精选）
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#6-a2a-skill-mcp" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6. A2A Skill 的 MCP 资源映射
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#7" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7. 完整学习路径
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#8" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8. 参考资源更新
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="a2a-agent-stack">A2A 进阶补充 — Agent Stack、生态集成与核心理念<a class="headerlink" href="#a2a-agent-stack" title="Permanent link">&para;</a></h1>
+<blockquote>
+<p>基于官网最新更新补充：<strong>Agent Stack 全景</strong>、<strong>ADK 集成</strong>、<strong>IBM ACP / Cisco agntcy 生态</strong>，以及 <strong>"Agents Are Not Tools"</strong> 核心理念。
+配合 <code>11-A2A_Protocol.md</code> 和 <code>A2A_Learning.md</code> 构成完整的 A2A 学习路径。</p>
+</blockquote>
+<hr />
+<h2 id="1-agent-stack">1. Agent Stack 全景图<a class="headerlink" href="#1-agent-stack" title="Permanent link">&para;</a></h2>
+<p>官网更新后明确定位了 A2A 在整个 AI Agent 技术栈中的位置：</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>┌─────────────────────────────────────────────────────────────┐
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>│                      User / Human                           │
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>│                          ↕                                  │
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>├─────────────────────────────────────────────────────────────┤
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>│  Layer 4: Inter-Agent Communication                         │
+<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>│  A2A Protocol                                                │
+<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>│  &quot;Agent ↔ Agent 协作&quot;                                        │
+<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>│  ↳ 跨组织、跨框架、跨供应商                                    │
+<a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>├─────────────────────────────────────────────────────────────┤
+<a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a>│  Layer 3: Agent Frameworks                                   │
+<a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a>│  ADK (Google) / LangGraph / CrewAI / Semantic Kernel / 自研   │
+<a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a>│  &quot;怎么构建 Agent&quot;                                             │
+<a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a>├─────────────────────────────────────────────────────────────┤
+<a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a>│  Layer 2: Tool &amp; Resource Access                            │
+<a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a>│  MCP (Model Context Protocol)                                │
+<a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a>│  &quot;Agent ↔ Tool/数据&quot;                                        │
+<a id="__codelineno-0-17" name="__codelineno-0-17" href="#__codelineno-0-17"></a>│  ↳ 数据库、API、文件系统、搜索...                              │
+<a id="__codelineno-0-18" name="__codelineno-0-18" href="#__codelineno-0-18"></a>├─────────────────────────────────────────────────────────────┤
+<a id="__codelineno-0-19" name="__codelineno-0-19" href="#__codelineno-0-19"></a>│  Layer 1: Foundation Models                                  │
+<a id="__codelineno-0-20" name="__codelineno-0-20" href="#__codelineno-0-20"></a>│  Gemini / GPT / Claude / Qwen / Llama / ...                 │
+<a id="__codelineno-0-21" name="__codelineno-0-21" href="#__codelineno-0-21"></a>│  &quot;推理引擎&quot;                                                   │
+<a id="__codelineno-0-22" name="__codelineno-0-22" href="#__codelineno-0-22"></a>└─────────────────────────────────────────────────────────────┘
+</code></pre></div>
+<p><strong>一句话理解每层：</strong></p>
+<table>
+<thead>
+<tr>
+<th>层</th>
+<th>协议/工具</th>
+<th>类比</th>
+<th>解决什么</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>L4 互 Agent</td>
+<td><strong>A2A</strong></td>
+<td>电话会议</td>
+<td>Agent 之间怎么对话协作</td>
+</tr>
+<tr>
+<td>L3 框架构建</td>
+<td><strong>ADK/LangGraph</strong></td>
+<td>工具箱</td>
+<td>怎么搭建一个 Agent</td>
+</tr>
+<tr>
+<td>L2 工具接入</td>
+<td><strong>MCP</strong></td>
+<td>USB 接口</td>
+<td>Agent 怎么调用外部工具</td>
+</tr>
+<tr>
+<td>L1 推理引擎</td>
+<td><strong>LLM</strong></td>
+<td>大脑</td>
+<td>怎么思考和生成内容</td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p><strong>关键洞察</strong>：A2A 不是替代 MCP，也不是替代 LangGraph，而是在<strong>更高层次上</strong>让它们协同工作。</p>
+</blockquote>
+<hr />
+<h2 id="2-adk-agent-development-kit-a2a">2. ADK (Agent Development Kit) 与 A2A<a class="headerlink" href="#2-adk-agent-development-kit-a2a" title="Permanent link">&para;</a></h2>
+<h3 id="21-adk">2.1 什么是 ADK？<a class="headerlink" href="#21-adk" title="Permanent link">&para;</a></h3>
+<p>ADK 是 Google 开源的 <strong>Agent 开发套件</strong>，类似 LangGraph/CrewAI 的 Agent 构建框架。</p>
+<p><strong>特点：</strong>
+- 为 Gemini AI 和 Google 生态做了优化
+- <strong>模型无关</strong>：可以接任意 LLM
+- <strong>部署无关</strong>：不绑定特定云平台
+- <strong>兼容其他框架</strong>：可以与 LangGraph、CrewAI 等混合使用</p>
+<h3 id="22-adk-a2a">2.2 ADK + A2A 集成模式<a class="headerlink" href="#22-adk-a2a" title="Permanent link">&para;</a></h3>
+<p>官方推荐的 Agent 构建公式：</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>用 ADK (或任意框架) 构建 Agent
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>    +
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>用 MCP (或任意工具集) 接入工具
+<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>    +
+<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a>用 A2A 与远程 Agent、本地 Agent、人类通信
+<a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a>    =
+<a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a>完整的 Agentic 应用
+</code></pre></div>
+<h3 id="23-adk-agent-a2a">2.3 ADK Agent 暴露为 A2A 端点<a class="headerlink" href="#23-adk-agent-a2a" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>┌──────────────────────────────────────────┐
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>│           ADK Agent Application           │
+<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>│  ┌─────────┐   ┌─────────┐   ┌────────┐ │
+<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a>│  │  Agent  │──→│  MCP    │──→│  Tool  │ │
+<a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a>│  │  Core   │   │ Tools   │   │  Call  │ │
+<a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a>│  └────┬────┘   └─────────┘   └────────┘ │
+<a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a>│       │                                   │
+<a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a>│       ▼                                   │
+<a id="__codelineno-2-9" name="__codelineno-2-9" href="#__codelineno-2-9"></a>│  ┌─────────────────┐                     │
+<a id="__codelineno-2-10" name="__codelineno-2-10" href="#__codelineno-2-10"></a>│  │  A2A Server     │                     │
+<a id="__codelineno-2-11" name="__codelineno-2-11" href="#__codelineno-2-11"></a>│  │  (FastAPI 端点)  │                     │
+<a id="__codelineno-2-12" name="__codelineno-2-12" href="#__codelineno-2-12"></a>│  │  POST /sendMessage                    │
+<a id="__codelineno-2-13" name="__codelineno-2-13" href="#__codelineno-2-13"></a>│  │  POST /sendMessageStream              │
+<a id="__codelineno-2-14" name="__codelineno-2-14" href="#__codelineno-2-14"></a>│  │  GET /.well-known/agent-card.json     │
+<a id="__codelineno-2-15" name="__codelineno-2-15" href="#__codelineno-2-15"></a>│  └─────────────────┘                     │
+<a id="__codelineno-2-16" name="__codelineno-2-16" href="#__codelineno-2-16"></a>└──────────────────────────────────────────┘
+</code></pre></div>
+<hr />
+<h2 id="3-a2a">3. A2A 生态集成<a class="headerlink" href="#3-a2a" title="Permanent link">&para;</a></h2>
+<p>官网首页新增了与以下项目的集成说明：</p>
+<h3 id="31-ibm-acp-agent-communication-protocol">3.1 IBM ACP (Agent Communication Protocol)<a class="headerlink" href="#31-ibm-acp-agent-communication-protocol" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>已并入 A2A 协议</strong></li>
+<li>IBM 的 beehive 项目（<code>i-am-bee</code>）中的 Agent 通信协议已合并到 A2A 规范中</li>
+<li>这意味着 A2A 现在吸收了 IBM 在 Agent 互操作方面的实践经验</li>
+<li>GitHub 讨论：<a href="https://github.com/orgs/i-am-bee/discussions/5">https://github.com/orgs/i-am-bee/discussions/5</a></li>
+</ul>
+<h3 id="32-cisco-agntcy-internet-of-agents">3.2 Cisco agntcy (Internet of Agents)<a class="headerlink" href="#32-cisco-agntcy-internet-of-agents" title="Permanent link">&para;</a></h3>
+<p>Cisco 提供的 <strong>Agent 基础设施组件</strong>：</p>
+<table>
+<thead>
+<tr>
+<th>组件</th>
+<th>作用</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Discovery</strong></td>
+<td>Agent 发现与注册</td>
+</tr>
+<tr>
+<td><strong>Group Communication</strong></td>
+<td>群组通信（多对多）</td>
+</tr>
+<tr>
+<td><strong>Identity</strong></td>
+<td>Agent 身份管理</td>
+</tr>
+<tr>
+<td><strong>Observability</strong></td>
+<td>监控与追踪</td>
+</tr>
+</tbody>
+</table>
+<p><strong>与 A2A 的关系：</strong>
+- agntcy 使用 <strong>A2A 作为 Agent 间通信协议</strong>
+- 使用 <strong>MCP 作为工具调用协议</strong>
+- agntcy 提供的是<strong>基础设施层</strong>，A2A/MCP 是<strong>应用层协议</strong></p>
+<h3 id="33">3.3 生态全景<a class="headerlink" href="#33" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>┌──────────────────────────────────────────────────────┐
+<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>│                Agentic Ecosystem                      │
+<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>│                                                      │
+<a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a>│  ┌─────────┐     ┌─────────┐     ┌──────────┐       │
+<a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a>│  │  Cisco   │     │  IBM    │     │  Google  │       │
+<a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a>│  │  agntcy  │     │  ACP    │     │  ADK     │       │
+<a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a>│  │ (基础层) │     │ (协议)  │     │ (框架)   │       │
+<a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a>│  └────┬────┘     └────┬────┘     └────┬─────┘       │
+<a id="__codelineno-3-9" name="__codelineno-3-9" href="#__codelineno-3-9"></a>│       │               │               │              │
+<a id="__codelineno-3-10" name="__codelineno-3-10" href="#__codelineno-3-10"></a>│       └───────────────┼───────────────┘              │
+<a id="__codelineno-3-11" name="__codelineno-3-11" href="#__codelineno-3-11"></a>│                       │                              │
+<a id="__codelineno-3-12" name="__codelineno-3-12" href="#__codelineno-3-12"></a>│              ┌────────▼────────┐                     │
+<a id="__codelineno-3-13" name="__codelineno-3-13" href="#__codelineno-3-13"></a>│              │    A2A Protocol  │                     │
+<a id="__codelineno-3-14" name="__codelineno-3-14" href="#__codelineno-3-14"></a>│              │  (通信标准层)    │                     │
+<a id="__codelineno-3-15" name="__codelineno-3-15" href="#__codelineno-3-15"></a>│              └────────┬────────┘                     │
+<a id="__codelineno-3-16" name="__codelineno-3-16" href="#__codelineno-3-16"></a>│                       │                              │
+<a id="__codelineno-3-17" name="__codelineno-3-17" href="#__codelineno-3-17"></a>│              ┌────────▼────────┐                     │
+<a id="__codelineno-3-18" name="__codelineno-3-18" href="#__codelineno-3-18"></a>│              │    MCP Protocol  │                     │
+<a id="__codelineno-3-19" name="__codelineno-3-19" href="#__codelineno-3-19"></a>│              │  (工具接入层)    │                     │
+<a id="__codelineno-3-20" name="__codelineno-3-20" href="#__codelineno-3-20"></a>│              └─────────────────┘                     │
+<a id="__codelineno-3-21" name="__codelineno-3-21" href="#__codelineno-3-21"></a>└──────────────────────────────────────────────────────┘
+</code></pre></div>
+<hr />
+<h2 id="4-agents-are-not-tools">4. "Agents Are Not Tools" — 核心理念展开<a class="headerlink" href="#4-agents-are-not-tools" title="Permanent link">&para;</a></h2>
+<p>这是 A2A 存在的<strong>根本理由</strong>，官网专门有一篇讨论文章：
+<a href="https://discuss.google.dev/t/agents-are-not-tools/192812">https://discuss.google.dev/t/agents-are-not-tools/192812</a></p>
+<h3 id="41-agent-tool">4.1 为什么把 Agent 包装成 Tool 是错误的？<a class="headerlink" href="#41-agent-tool" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>❌ 错误做法：把 Agent 包装成 MCP Tool
+<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>┌──────────┐     MCP      ┌──────────────┐
+<a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a>│  Agent A │────────────→│  Agent B      │
+<a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a>│          │  tool_call   │ (被包装成 Tool)│
+<a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a>│          │←────────────│              │
+<a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a>│          │  result      │              │
+<a id="__codelineno-4-7" name="__codelineno-4-7" href="#__codelineno-4-7"></a>└──────────┘              └──────────────┘
+<a id="__codelineno-4-8" name="__codelineno-4-8" href="#__codelineno-4-8"></a>
+<a id="__codelineno-4-9" name="__codelineno-4-9" href="#__codelineno-4-9"></a>问题：
+<a id="__codelineno-4-10" name="__codelineno-4-10" href="#__codelineno-4-10"></a>  - Agent B 变成了无状态函数，丧失了自主推理能力
+<a id="__codelineno-4-11" name="__codelineno-4-11" href="#__codelineno-4-11"></a>  - 无法进行多轮对话（比如确认细节、协商方案）
+<a id="__codelineno-4-12" name="__codelineno-4-12" href="#__codelineno-4-12"></a>  - Agent B 无法主动反问或要求补充信息
+<a id="__codelineno-4-13" name="__codelineno-4-13" href="#__codelineno-4-13"></a>  - 一次调用只能返回一次结果
+</code></pre></div>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>✅ 正确做法：A2A Agent-to-Agent 通信
+<a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>┌──────────┐     A2A      ┌──────────────┐
+<a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a>│  Agent A │────────────→│  Agent B      │
+<a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a>│          │  Task/Sub   │ (保持 Agent)  │
+<a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a>│          │←────────────│              │
+<a id="__codelineno-5-6" name="__codelineno-5-6" href="#__codelineno-5-6"></a>│          │  Stream/    │  自主推理     │
+<a id="__codelineno-5-7" name="__codelineno-5-7" href="#__codelineno-5-7"></a>│          │  Artifact   │  多轮交互     │
+<a id="__codelineno-5-8" name="__codelineno-5-8" href="#__codelineno-5-8"></a>└──────────┘              │  协商/反问    │
+<a id="__codelineno-5-9" name="__codelineno-5-9" href="#__codelineno-5-9"></a>                          └──────────────┘
+<a id="__codelineno-5-10" name="__codelineno-5-10" href="#__codelineno-5-10"></a>
+<a id="__codelineno-5-11" name="__codelineno-5-11" href="#__codelineno-5-11"></a>优势：
+<a id="__codelineno-5-12" name="__codelineno-5-12" href="#__codelineno-5-12"></a>  - Agent B 保持完整的自主推理能力
+<a id="__codelineno-5-13" name="__codelineno-5-13" href="#__codelineno-5-13"></a>  - 支持多轮对话（确认、协商、补充信息）
+<a id="__codelineno-5-14" name="__codelineno-5-14" href="#__codelineno-5-14"></a>  - 支持流式输出和异步长任务
+<a id="__codelineno-5-15" name="__codelineno-5-15" href="#__codelineno-5-15"></a>  - Agent B 可以产出多个 Artifact（文档、数据、建议）
+</code></pre></div>
+<h3 id="42-tool-vs-agent">4.2 Tool vs Agent 对比<a class="headerlink" href="#42-tool-vs-agent" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>维度</th>
+<th>Tool</th>
+<th>Agent</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>本质</td>
+<td>原语（Primitive）</td>
+<td>自治系统（Autonomous System）</td>
+</tr>
+<tr>
+<td>状态</td>
+<td>通常无状态</td>
+<td>有状态（维护对话上下文）</td>
+</tr>
+<tr>
+<td>交互</td>
+<td>一次调用，返回结果</td>
+<td>多轮对话、协商、反问</td>
+</tr>
+<tr>
+<td>能力</td>
+<td>执行特定函数</td>
+<td>推理、规划、使用多个工具</td>
+</tr>
+<tr>
+<td>输入/输出</td>
+<td>结构化 schema</td>
+<td>灵活（文本、文件、结构化数据）</td>
+</tr>
+<tr>
+<td>透明度</td>
+<td>对调用方完全透明</td>
+<td><strong>不透明执行</strong>（Opaque）</td>
+</tr>
+<tr>
+<td>类比</td>
+<td>计算器、数据库查询</td>
+<td>同事、合作伙伴</td>
+</tr>
+</tbody>
+</table>
+<h3 id="43">4.3 面试加分话术<a class="headerlink" href="#43" title="Permanent link">&para;</a></h3>
+<blockquote>
+<p>"很多项目把 Agent 包装成 Tool 来调用，这本质上是<strong>降维使用</strong>——把有自主推理能力的智能体退化为无状态函数。
+A2A 的核心理念就是 <strong>Agent ≠ Tool</strong>：Agent 应该作为平等的智能体协作，保持其推理、规划、多轮对话的完整能力。
+MCP 解决 'Agent 用什么工具'，A2A 解决 'Agent 怎么和其他 Agent 合作'。两者缺一不可。"</p>
+</blockquote>
+<hr />
+<h2 id="5">5. 更丰富的实战场景<a class="headerlink" href="#5" title="Permanent link">&para;</a></h2>
+<h3 id="51">5.1 汽车修理店案例（官网精选）<a class="headerlink" href="#51" title="Permanent link">&para;</a></h3>
+<p>这个案例比旅行规划更能体现 A2A 的<strong>多层次协作</strong>：</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>🧑 顾客 (Customer)
+<a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a>  │
+<a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a>  │ A2A: &quot;我的车有异响&quot;
+<a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a>  ▼
+<a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a>🤖 店长 Agent (Shop Manager)
+<a id="__codelineno-6-6" name="__codelineno-6-6" href="#__codelineno-6-6"></a>  │
+<a id="__codelineno-6-7" name="__codelineno-6-7" href="#__codelineno-6-7"></a>  │ A2A: &quot;能发段异响视频吗？漏油多久了？&quot;
+<a id="__codelineno-6-8" name="__codelineno-6-8" href="#__codelineno-6-8"></a>  │ (多轮对话诊断)
+<a id="__codelineno-6-9" name="__codelineno-6-9" href="#__codelineno-6-9"></a>  ▼
+<a id="__codelineno-6-10" name="__codelineno-6-10" href="#__codelineno-6-10"></a>🤖 技师 Agent (Mechanic)
+<a id="__codelineno-6-11" name="__codelineno-6-11" href="#__codelineno-6-11"></a>  │
+<a id="__codelineno-6-12" name="__codelineno-6-12" href="#__codelineno-6-12"></a>  ├── MCP → 车辆诊断扫描仪: scan_vehicle_for_error_codes(vehicle_id=&#39;XYZ123&#39;)
+<a id="__codelineno-6-13" name="__codelineno-6-13" href="#__codelineno-6-13"></a>  ├── MCP → 维修手册数据库: get_repair_procedure(error_code=&#39;P0300&#39;, make=&#39;Toyota&#39;)
+<a id="__codelineno-6-14" name="__codelineno-6-14" href="#__codelineno-6-14"></a>  ├── MCP → 举升机工具: raise_platform(height_meters=2)
+<a id="__codelineno-6-15" name="__codelineno-6-15" href="#__codelineno-6-15"></a>  │
+<a id="__codelineno-6-16" name="__codelineno-6-16" href="#__codelineno-6-16"></a>  │ A2A: &quot;需要零件 #12345，2018 Camry 有货吗？&quot;
+<a id="__codelineno-6-17" name="__codelineno-6-17" href="#__codelineno-6-17"></a>  ▼
+<a id="__codelineno-6-18" name="__codelineno-6-18" href="#__codelineno-6-18"></a>🤖 零件供应商 Agent (Parts Supplier)
+<a id="__codelineno-6-19" name="__codelineno-6-19" href="#__codelineno-6-19"></a>  │
+<a id="__codelineno-6-20" name="__codelineno-6-20" href="#__codelineno-6-20"></a>  │ A2A: &quot;有货，下单确认&quot;
+<a id="__codelineno-6-21" name="__codelineno-6-21" href="#__codelineno-6-21"></a>  │
+<a id="__codelineno-6-22" name="__codelineno-6-22" href="#__codelineno-6-22"></a>  └── (订单处理)
+</code></pre></div>
+<p><strong>这个案例的亮点：</strong></p>
+<table>
+<thead>
+<tr>
+<th>交互层</th>
+<th>协议</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>顾客 ↔ 店长</td>
+<td><strong>A2A</strong></td>
+<td>多轮对话，确认问题</td>
+</tr>
+<tr>
+<td>店长 ↔ 技师</td>
+<td><strong>A2A</strong></td>
+<td>任务委派，进度跟踪</td>
+</tr>
+<tr>
+<td>技师 ↔ 工具</td>
+<td><strong>MCP</strong></td>
+<td>调用诊断设备、查询数据库</td>
+</tr>
+<tr>
+<td>技师 ↔ 供应商</td>
+<td><strong>A2A</strong></td>
+<td>Agent 间协商下单</td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p><strong>一句话总结</strong>：A2A 处理高层次的<strong>对话式、任务式</strong>协作；MCP 处理 Agent 内部的<strong>工具调用</strong>。</p>
+</blockquote>
+<hr />
+<h2 id="6-a2a-skill-mcp">6. A2A Skill 的 MCP 资源映射<a class="headerlink" href="#6-a2a-skill-mcp" title="Permanent link">&para;</a></h2>
+<p>官网提到一个有趣的能力：A2A Server 可以把部分 <strong>Skill 暴露为 MCP 兼容资源</strong>。</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>┌────────────────────────────────────────────┐
+<a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a>│              A2A Server                     │
+<a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a>│                                            │
+<a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a>│  Skill A: 复杂多轮任务 ───→ A2A Task       │
+<a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a>│    (需要协商、多轮交互)                       │
+<a id="__codelineno-7-6" name="__codelineno-7-6" href="#__codelineno-7-6"></a>│                                            │
+<a id="__codelineno-7-7" name="__codelineno-7-7" href="#__codelineno-7-7"></a>│  Skill B: 简单查询 ───────→ MCP Resource   │
+<a id="__codelineno-7-8" name="__codelineno-7-8" href="#__codelineno-7-8"></a>│    (无状态、可工具化)                        │
+<a id="__codelineno-7-9" name="__codelineno-7-9" href="#__codelineno-7-9"></a>│                                            │
+<a id="__codelineno-7-10" name="__codelineno-7-10" href="#__codelineno-7-10"></a>│  Skill C: 混合模式                          │
+<a id="__codelineno-7-11" name="__codelineno-7-11" href="#__codelineno-7-11"></a>│    A2A 主通道 + MCP 辅助资源                │
+<a id="__codelineno-7-12" name="__codelineno-7-12" href="#__codelineno-7-12"></a>└────────────────────────────────────────────┘
+</code></pre></div>
+<p><strong>适用场景：</strong>
+- 当 Agent 的某些技能确实适合无状态工具调用时
+- 其他 Agent 可以通过 MCP-style 方式发现并调用这些技能
+- 但这<strong>不是 A2A 的主要场景</strong>，只是一种兼容能力</p>
+<hr />
+<h2 id="7">7. 完整学习路径<a class="headerlink" href="#7" title="Permanent link">&para;</a></h2>
+<p>按照以下顺序系统学习 A2A：</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a>1. 先读 → 11-A2A_Protocol.md
+<a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a>   掌握：核心概念、三层架构、Task 生命周期、A2A vs MCP、企业安全
+<a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a>
+<a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a>2. 再读 → A2A_Learning.md
+<a id="__codelineno-8-5" name="__codelineno-8-5" href="#__codelineno-8-5"></a>   掌握：更详细的概念解析、实战代码示例
+<a id="__codelineno-8-6" name="__codelineno-8-6" href="#__codelineno-8-6"></a>
+<a id="__codelineno-8-7" name="__codelineno-8-7" href="#__codelineno-8-7"></a>3. 最后读 → 本篇 12-A2A_Advanced.md
+<a id="__codelineno-8-8" name="__codelineno-8-8" href="#__codelineno-8-8"></a>   掌握：Agent Stack 全景、生态集成、核心理念、复杂场景
+</code></pre></div>
+<hr />
+<h2 id="8">8. 参考资源更新<a class="headerlink" href="#8" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>资源</th>
+<th>URL</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>官网首页</td>
+<td><a href="https://a2a-protocol.org/latest/">https://a2a-protocol.org/latest/</a></td>
+</tr>
+<tr>
+<td>What is A2A</td>
+<td><a href="https://a2a-protocol.org/latest/topics/what-is-a2a/">https://a2a-protocol.org/latest/topics/what-is-a2a/</a></td>
+</tr>
+<tr>
+<td>Key Concepts</td>
+<td><a href="https://a2a-protocol.org/latest/topics/key-concepts/">https://a2a-protocol.org/latest/topics/key-concepts/</a></td>
+</tr>
+<tr>
+<td>Life of a Task</td>
+<td><a href="https://a2a-protocol.org/latest/topics/life-of-a-task/">https://a2a-protocol.org/latest/topics/life-of-a-task/</a></td>
+</tr>
+<tr>
+<td>Streaming &amp; Async</td>
+<td><a href="https://a2a-protocol.org/latest/topics/streaming-and-async/">https://a2a-protocol.org/latest/topics/streaming-and-async/</a></td>
+</tr>
+<tr>
+<td>A2A vs MCP</td>
+<td><a href="https://a2a-protocol.org/latest/topics/a2a-and-mcp/">https://a2a-protocol.org/latest/topics/a2a-and-mcp/</a></td>
+</tr>
+<tr>
+<td>Enterprise Ready</td>
+<td><a href="https://a2a-protocol.org/latest/topics/enterprise-ready/">https://a2a-protocol.org/latest/topics/enterprise-ready/</a></td>
+</tr>
+<tr>
+<td>Agent Discovery</td>
+<td><a href="https://a2a-protocol.org/latest/topics/agent-discovery/">https://a2a-protocol.org/latest/topics/agent-discovery/</a></td>
+</tr>
+<tr>
+<td>Specification v1.0.0</td>
+<td><a href="https://a2a-protocol.org/latest/specification/">https://a2a-protocol.org/latest/specification/</a></td>
+</tr>
+<tr>
+<td><strong>Agents Are Not Tools</strong> (讨论)</td>
+<td><a href="https://discuss.google.dev/t/agents-are-not-tools/192812">https://discuss.google.dev/t/agents-are-not-tools/192812</a></td>
+</tr>
+<tr>
+<td><strong>IBM ACP 合并讨论</strong></td>
+<td><a href="https://github.com/orgs/i-am-bee/discussions/5">https://github.com/orgs/i-am-bee/discussions/5</a></td>
+</tr>
+<tr>
+<td>GitHub 仓库</td>
+<td><a href="https://github.com/a2aproject/A2A">https://github.com/a2aproject/A2A</a></td>
+</tr>
+<tr>
+<td>ADK 文档</td>
+<td><a href="https://google.github.io/adk-docs/">https://google.github.io/adk-docs/</a></td>
+</tr>
+</tbody>
+</table>
+<hr />
+<p><em>本篇是对 11-A2A_Protocol.md 和 A2A_Learning.md 的最新官网内容补充，聚焦 Agent Stack 定位、生态集成与核心理念。</em></p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../../../../..", "features": ["navigation.tabs", "navigation.sections", "navigation.expand", "search.suggest", "search.highlight", "content.code.copy"], "search": "../../../../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "\u5df2\u590d\u5236", "clipboard.copy": "\u590d\u5236", "search.result.more.one": "\u5728\u8be5\u9875\u4e0a\u8fd8\u6709 1 \u4e2a\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.more.other": "\u5728\u8be5\u9875\u4e0a\u8fd8\u6709 # \u4e2a\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.none": "\u6ca1\u6709\u627e\u5230\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.one": "\u627e\u5230 1 \u4e2a\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.other": "# \u4e2a\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.placeholder": "\u952e\u5165\u4ee5\u5f00\u59cb\u641c\u7d22", "search.result.term.missing": "\u7f3a\u5c11", "select.version": "\u9009\u62e9\u5f53\u524d\u7248\u672c"}, "version": null}</script>
+    
+    
+      <script src="../../../../../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+    
+  </body>
+</html>

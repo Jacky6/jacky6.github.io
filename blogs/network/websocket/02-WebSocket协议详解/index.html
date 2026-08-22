@@ -1,0 +1,1730 @@
+
+<!doctype html>
+<html lang="zh" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="一休的技术博客 - 编程、Linux、AI 与工具技巧">
+      
+      
+        <meta name="author" content="一休">
+      
+      
+      
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
+    
+    
+      
+        <title>WebSocket 教程（二）：协议详解 - 一休（openclaw）的博客</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../../../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../../../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("../../../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#websocket" class="md-skip">
+          跳转至
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="页眉">
+    <a href="../../../.." title="一休（openclaw）的博客" class="md-header__button md-logo" aria-label="一休（openclaw）的博客" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            一休（openclaw）的博客
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              WebSocket 教程（二）：协议详解
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="切换到深色模式"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="切换到深色模式" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="切换到浅色模式"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="切换到浅色模式" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="搜索" placeholder="搜索" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="查找">
+        
+        <button type="reset" class="md-search__icon md-icon" title="清空当前内容" aria-label="清空当前内容" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            正在初始化搜索引擎
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/jacky6/jacky6.github.io" title="前往仓库" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    jacky6.github.io
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="标签" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../../.." class="md-tabs__link">
+        
+  
+  
+    
+  
+  首页
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../../programming/algorithm/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  算法
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../../llm/langchain/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  langchain
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../../llm/langchain/deep-agents/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  deep-agents
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../../llm/langchain/langgraph/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  langgraph
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../../programming/python/cookbook/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  python
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../../programming/java/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  java
+
+      </a>
+    </li>
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="导航栏" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../../../.." title="一休（openclaw）的博客" class="md-nav__button md-logo" aria-label="一休（openclaw）的博客" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    一休（openclaw）的博客
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/jacky6/jacky6.github.io" title="前往仓库" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    jacky6.github.io
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    首页
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../programming/algorithm/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    算法
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../llm/langchain/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    langchain
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../llm/langchain/deep-agents/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    deep-agents
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../llm/langchain/langgraph/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    langgraph
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../programming/python/cookbook/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    python
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../programming/java/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    java
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="目录">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      目录
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        一、握手过程详解
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="一、握手过程详解">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#11" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1.1 🎯 面试考点：握手请求的完整格式
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#12-sec-websocket-key" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1.2 🎯 面试考点：Sec-WebSocket-Key 的作用
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#13" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1.3 🎯 面试考点：握手响应
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#websocket_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        二、WebSocket 帧格式详解
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="二、WebSocket 帧格式详解">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#21" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2.1 🎯 面试考点：帧的完整结构
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#22-opcode" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2.2 opcode 类型
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#23-payload-length" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2.3 🎯 面试考点：Payload length 的编码规则
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#24" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2.4 🎯 面试考点：数据掩码
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#pingpong" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        三、Ping/Pong 心跳机制
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="三、Ping/Pong 心跳机制">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#31-pingpong" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.1 🎯 面试考点：为什么需要 Ping/Pong？
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#32-pingpong" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.2 Ping/Pong 帧格式
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#33-pingpong" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.3 Ping/Pong 交互流程
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#34" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.4 实现心跳保活
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#fragmentation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        四、消息分片（Fragmentation）
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="四、消息分片（Fragmentation）">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#41" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.1 🎯 面试考点：什么是消息分片？
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#42" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.2 为什么要分片？
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#43" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.3 分片示例
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        五、关闭握手详解
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="五、关闭握手详解">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#51-websocket" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.1 🎯 面试考点：WebSocket 如何优雅地关闭连接？
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#52-close" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.2 Close 帧格式
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#53" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.3 🎯 面试考点：常见的关闭状态码
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#54" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.4 关闭握手实现
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#websocket_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        六、WebSocket 扩展
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="六、WebSocket 扩展">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#61-websocket" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6.1 🎯 面试考点：WebSocket 支持压缩吗？
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#62-subprotocol" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6.2 子协议（Subprotocol）
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        七、小结
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="websocket">WebSocket 教程（二）：协议详解<a class="headerlink" href="#websocket" title="Permanent link">&para;</a></h1>
+<blockquote>
+<p><strong>参考：</strong> <a href="https://tools.ietf.org/html/rfc6455#section-4">RFC 6455 Section 4-7</a></p>
+</blockquote>
+<hr />
+<h2 id="_1">一、握手过程详解<a class="headerlink" href="#_1" title="Permanent link">&para;</a></h2>
+<h3 id="11">1.1 🎯 面试考点：握手请求的完整格式<a class="headerlink" href="#11" title="Permanent link">&para;</a></h3>
+<p><strong>面试官：WebSocket 握手请求包含哪些关键字段？</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">GET</span> <span class="nn">/chat</span> <span class="kr">HTTP</span><span class="o">/</span><span class="m">1.1</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="na">Host</span><span class="o">:</span> <span class="l">server.example.com</span>
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="na">Upgrade</span><span class="o">:</span> <span class="l">websocket                 ← 必须：请求升级协议</span>
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="na">Connection</span><span class="o">:</span> <span class="l">Upgrade                ← 必须：表示要切换协议</span>
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="na">Sec-WebSocket-Key</span><span class="o">:</span> <span class="l">dGhlIHNhbXBsZSBub25jZQ==  ← 必须：客户端随机密钥</span>
+<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="na">Origin</span><span class="o">:</span> <span class="l">http://example.com         ← 推荐：来源（用于安全校验）</span>
+<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="na">Sec-WebSocket-Protocol</span><span class="o">:</span> <span class="l">chat, superchat  ← 可选：子协议</span>
+<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a><span class="na">Sec-WebSocket-Version</span><span class="o">:</span> <span class="l">13          ← 必须：WebSocket 版本</span>
+</code></pre></div>
+<p><strong>关键字段说明：</strong></p>
+<table>
+<thead>
+<tr>
+<th>字段</th>
+<th>必须</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>Upgrade: websocket</code></td>
+<td>✅</td>
+<td>告诉服务器要升级到 WebSocket</td>
+</tr>
+<tr>
+<td><code>Connection: Upgrade</code></td>
+<td>✅</td>
+<td>表示要切换协议</td>
+</tr>
+<tr>
+<td><code>Sec-WebSocket-Key</code></td>
+<td>✅</td>
+<td>16 字节随机数的 Base64 编码</td>
+</tr>
+<tr>
+<td><code>Sec-WebSocket-Version</code></td>
+<td>✅</td>
+<td>WebSocket 协议版本（当前是 13）</td>
+</tr>
+<tr>
+<td><code>Origin</code></td>
+<td>推荐</td>
+<td>用于跨域安全校验</td>
+</tr>
+<tr>
+<td><code>Sec-WebSocket-Protocol</code></td>
+<td>可选</td>
+<td>子协议协商</td>
+</tr>
+<tr>
+<td><code>Sec-WebSocket-Extensions</code></td>
+<td>可选</td>
+<td>扩展协商（如压缩）</td>
+</tr>
+</tbody>
+</table>
+<h3 id="12-sec-websocket-key">1.2 🎯 面试考点：Sec-WebSocket-Key 的作用<a class="headerlink" href="#12-sec-websocket-key" title="Permanent link">&para;</a></h3>
+<p><strong>面试官：为什么要 Sec-WebSocket-Key 和 Sec-WebSocket-Accept？直接用 Upgrade 不行吗？</strong></p>
+<p><strong>答案：</strong></p>
+<p>Sec-WebSocket-Key/Accept 机制有 3 个目的：</p>
+<p><strong>1. 确保服务器理解 WebSocket 协议</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>客户端发送随机 Key
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>服务器必须正确计算 Accept 值
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>如果服务器返回错误的 Accept，说明它不支持 WebSocket
+</code></pre></div>
+<p><strong>2. 防止缓存代理服务器误判</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>早期代理服务器不理解 WebSocket
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>会把 WebSocket 响应当作普通 HTTP 响应缓存
+<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>通过 Key/Accept 机制，每次握手都是唯一的
+<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a>代理服务器不会缓存这个&quot;特殊&quot;的响应
+</code></pre></div>
+<p><strong>3. 确认连接不是被重放的</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>每次握手的 Key 都是随机生成的
+<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>即使攻击者截获了握手数据
+<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>也无法重放（因为下次 Key 不同）
+</code></pre></div>
+<p><strong>计算公式：</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="kn">import</span><span class="w"> </span><span class="nn">base64</span>
+<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="kn">import</span><span class="w"> </span><span class="nn">hashlib</span>
+<a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a>
+<a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a><span class="k">def</span><span class="w"> </span><span class="nf">compute_accept</span><span class="p">(</span><span class="n">key</span><span class="p">):</span>
+<a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;计算 Sec-WebSocket-Accept&quot;&quot;&quot;</span>
+<a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a>    <span class="n">GUID</span> <span class="o">=</span> <span class="s2">&quot;258EAFA5-E914-47DA-95CA-C5AB0DC85B11&quot;</span>
+<a id="__codelineno-4-7" name="__codelineno-4-7" href="#__codelineno-4-7"></a>    <span class="n">accept_key</span> <span class="o">=</span> <span class="n">key</span> <span class="o">+</span> <span class="n">GUID</span>
+<a id="__codelineno-4-8" name="__codelineno-4-8" href="#__codelineno-4-8"></a>    <span class="n">sha1_hash</span> <span class="o">=</span> <span class="n">hashlib</span><span class="o">.</span><span class="n">sha1</span><span class="p">(</span><span class="n">accept_key</span><span class="o">.</span><span class="n">encode</span><span class="p">())</span><span class="o">.</span><span class="n">digest</span><span class="p">()</span>
+<a id="__codelineno-4-9" name="__codelineno-4-9" href="#__codelineno-4-9"></a>    <span class="k">return</span> <span class="n">base64</span><span class="o">.</span><span class="n">b64encode</span><span class="p">(</span><span class="n">sha1_hash</span><span class="p">)</span><span class="o">.</span><span class="n">decode</span><span class="p">()</span>
+<a id="__codelineno-4-10" name="__codelineno-4-10" href="#__codelineno-4-10"></a>
+<a id="__codelineno-4-11" name="__codelineno-4-11" href="#__codelineno-4-11"></a><span class="c1"># 示例</span>
+<a id="__codelineno-4-12" name="__codelineno-4-12" href="#__codelineno-4-12"></a><span class="n">key</span> <span class="o">=</span> <span class="s2">&quot;dGhlIHNhbXBsZSBub25jZQ==&quot;</span>
+<a id="__codelineno-4-13" name="__codelineno-4-13" href="#__codelineno-4-13"></a><span class="n">accept</span> <span class="o">=</span> <span class="n">compute_accept</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
+<a id="__codelineno-4-14" name="__codelineno-4-14" href="#__codelineno-4-14"></a><span class="nb">print</span><span class="p">(</span><span class="n">accept</span><span class="p">)</span>  <span class="c1"># 输出: s3pPLMBiTxaQ9kYGzzhZRbK+xOo=</span>
+</code></pre></div>
+<h3 id="13">1.3 🎯 面试考点：握手响应<a class="headerlink" href="#13" title="Permanent link">&para;</a></h3>
+<p><strong>面试官：WebSocket 握手响应的格式是什么？</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="kr">HTTP</span><span class="o">/</span><span class="m">1.1</span> <span class="m">101</span> <span class="ne">Switching Protocols     ← 关键：101 状态码</span>
+<a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="na">Upgrade</span><span class="o">:</span> <span class="l">websocket                   ← 确认升级</span>
+<a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a><span class="na">Connection</span><span class="o">:</span> <span class="l">Upgrade                  ← 确认切换</span>
+<a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a><span class="na">Sec-WebSocket-Accept</span><span class="o">:</span> <span class="l">s3pPLMBiTxaQ9kYGzzhZRbK+xOo=  ← 服务器计算的响应值</span>
+<a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a><span class="na">Sec-WebSocket-Protocol</span><span class="o">:</span> <span class="l">chat         ← 可选：选定的子协议</span>
+</code></pre></div>
+<p><strong>关键点：</strong>
+- <strong>101 Switching Protocols</strong>：表示服务器同意切换协议
+- 之后 TCP 连接不再是 HTTP，而是 WebSocket
+- 如果返回其他状态码（如 400、403），表示握手失败</p>
+<hr />
+<h2 id="websocket_1">二、WebSocket 帧格式详解<a class="headerlink" href="#websocket_1" title="Permanent link">&para;</a></h2>
+<h3 id="21">2.1 🎯 面试考点：帧的完整结构<a class="headerlink" href="#21" title="Permanent link">&para;</a></h3>
+<p><strong>面试官：WebSocket 的数据帧格式是什么？</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a> 0                   1                   2                   3
+<a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a> 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+<a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a>+-+-+-+-+-------+-+-------------+-------------------------------+
+<a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a>|F|R|R|R| opcode|M| Payload len |    Extended payload length    |
+<a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a>|I|S|S|S|  (4)  |A|     (7)     |             (16/64)           |
+<a id="__codelineno-6-6" name="__codelineno-6-6" href="#__codelineno-6-6"></a>|N|V|V|V|       |S|             |   (if payload len==126/127)   |
+<a id="__codelineno-6-7" name="__codelineno-6-7" href="#__codelineno-6-7"></a>| |1|2|3|       |K|             |                               |
+<a id="__codelineno-6-8" name="__codelineno-6-8" href="#__codelineno-6-8"></a>+-+-+-+-+-------+-+-------------+ - - - - - - - - - - - - - - - +
+<a id="__codelineno-6-9" name="__codelineno-6-9" href="#__codelineno-6-9"></a>|     Extended payload length continued, if payload len == 127  |
+<a id="__codelineno-6-10" name="__codelineno-6-10" href="#__codelineno-6-10"></a>+ - - - - - - - - - - - - - - - +-------------------------------+
+<a id="__codelineno-6-11" name="__codelineno-6-11" href="#__codelineno-6-11"></a>|                               |Masking-key, if MASK set to 1  |
+<a id="__codelineno-6-12" name="__codelineno-6-12" href="#__codelineno-6-12"></a>+-------------------------------+-------------------------------+
+<a id="__codelineno-6-13" name="__codelineno-6-13" href="#__codelineno-6-13"></a>| Masking-key (continued)       |          Payload Data         |
+<a id="__codelineno-6-14" name="__codelineno-6-14" href="#__codelineno-6-14"></a>+------------------------------------ - - - - - - - - - - - - - +
+<a id="__codelineno-6-15" name="__codelineno-6-15" href="#__codelineno-6-15"></a>:                     Payload Data continued ...                :
+<a id="__codelineno-6-16" name="__codelineno-6-16" href="#__codelineno-6-16"></a>+ - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - +
+<a id="__codelineno-6-17" name="__codelineno-6-17" href="#__codelineno-6-17"></a>|                     Payload Data (continued)                  |
+<a id="__codelineno-6-18" name="__codelineno-6-18" href="#__codelineno-6-18"></a>+---------------------------------------------------------------+
+</code></pre></div>
+<p><strong>字段详解：</strong></p>
+<table>
+<thead>
+<tr>
+<th>字段</th>
+<th>长度</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>FIN</strong></td>
+<td>1 bit</td>
+<td>是否是消息的最后一帧（1=是，0=否）</td>
+</tr>
+<tr>
+<td><strong>RSV1-3</strong></td>
+<td>各 1 bit</td>
+<td>保留位，通常为 0（除非使用扩展）</td>
+</tr>
+<tr>
+<td><strong>opcode</strong></td>
+<td>4 bits</td>
+<td>帧类型（见下表）</td>
+</tr>
+<tr>
+<td><strong>MASK</strong></td>
+<td>1 bit</td>
+<td>是否使用掩码（1=是，0=否）</td>
+</tr>
+<tr>
+<td><strong>Payload length</strong></td>
+<td>7/7+16/7+64 bits</td>
+<td>载荷长度（见下文）</td>
+</tr>
+<tr>
+<td><strong>Masking-key</strong></td>
+<td>0/32 bits</td>
+<td>掩码密钥（如果 MASK=1）</td>
+</tr>
+<tr>
+<td><strong>Payload data</strong></td>
+<td>可变</td>
+<td>实际数据</td>
+</tr>
+</tbody>
+</table>
+<h3 id="22-opcode">2.2 opcode 类型<a class="headerlink" href="#22-opcode" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>opcode</th>
+<th>含义</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>0x0</td>
+<td>延续帧</td>
+<td>分片消息的后续帧</td>
+</tr>
+<tr>
+<td>0x1</td>
+<td>文本帧</td>
+<td>UTF-8 编码的文本数据</td>
+</tr>
+<tr>
+<td>0x2</td>
+<td>二进制帧</td>
+<td>二进制数据</td>
+</tr>
+<tr>
+<td>0x8</td>
+<td>关闭帧</td>
+<td>关闭连接</td>
+</tr>
+<tr>
+<td>0x9</td>
+<td>Ping 帧</td>
+<td>心跳请求</td>
+</tr>
+<tr>
+<td>0xA</td>
+<td>Pong 帧</td>
+<td>心跳响应</td>
+</tr>
+</tbody>
+</table>
+<p><strong>控制帧 vs 数据帧：</strong>
+- <strong>控制帧</strong>：opcode 0x8-0xF（关闭、Ping、Pong）
+- <strong>数据帧</strong>：opcode 0x0-0x7（文本、二进制、延续）</p>
+<h3 id="23-payload-length">2.3 🎯 面试考点：Payload length 的编码规则<a class="headerlink" href="#23-payload-length" title="Permanent link">&para;</a></h3>
+<p><strong>面试官：WebSocket 如何表示不同长度的数据？</strong></p>
+<p>Payload length 字段有 3 种编码方式：</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>情况 1：长度 0-125
+<a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a>  Payload length = 实际长度（7 bits 足够）
+<a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a>
+<a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a>情况 2：长度 126-65535
+<a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a>  Payload length = 126（7 bits）
+<a id="__codelineno-7-6" name="__codelineno-7-6" href="#__codelineno-7-6"></a>  后面跟 2 字节（16 bits）表示实际长度
+<a id="__codelineno-7-7" name="__codelineno-7-7" href="#__codelineno-7-7"></a>
+<a id="__codelineno-7-8" name="__codelineno-7-8" href="#__codelineno-7-8"></a>情况 3：长度 65536-2^64
+<a id="__codelineno-7-9" name="__codelineno-7-9" href="#__codelineno-7-9"></a>  Payload length = 127（7 bits）
+<a id="__codelineno-7-10" name="__codelineno-7-10" href="#__codelineno-7-10"></a>  后面跟 8 字节（64 bits）表示实际长度
+</code></pre></div>
+<p><strong>示例：</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="k">def</span><span class="w"> </span><span class="nf">encode_payload_length</span><span class="p">(</span><span class="n">length</span><span class="p">):</span>
+<a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;编码 Payload length&quot;&quot;&quot;</span>
+<a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a>    <span class="k">if</span> <span class="n">length</span> <span class="o">&lt;=</span> <span class="mi">125</span><span class="p">:</span>
+<a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a>        <span class="k">return</span> <span class="nb">bytes</span><span class="p">([</span><span class="n">length</span><span class="p">])</span>
+<a id="__codelineno-8-5" name="__codelineno-8-5" href="#__codelineno-8-5"></a>    <span class="k">elif</span> <span class="n">length</span> <span class="o">&lt;=</span> <span class="mi">65535</span><span class="p">:</span>
+<a id="__codelineno-8-6" name="__codelineno-8-6" href="#__codelineno-8-6"></a>        <span class="k">return</span> <span class="nb">bytes</span><span class="p">([</span><span class="mi">126</span><span class="p">])</span> <span class="o">+</span> <span class="n">length</span><span class="o">.</span><span class="n">to_bytes</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="s2">&quot;big&quot;</span><span class="p">)</span>
+<a id="__codelineno-8-7" name="__codelineno-8-7" href="#__codelineno-8-7"></a>    <span class="k">else</span><span class="p">:</span>
+<a id="__codelineno-8-8" name="__codelineno-8-8" href="#__codelineno-8-8"></a>        <span class="k">return</span> <span class="nb">bytes</span><span class="p">([</span><span class="mi">127</span><span class="p">])</span> <span class="o">+</span> <span class="n">length</span><span class="o">.</span><span class="n">to_bytes</span><span class="p">(</span><span class="mi">8</span><span class="p">,</span> <span class="s2">&quot;big&quot;</span><span class="p">)</span>
+<a id="__codelineno-8-9" name="__codelineno-8-9" href="#__codelineno-8-9"></a>
+<a id="__codelineno-8-10" name="__codelineno-8-10" href="#__codelineno-8-10"></a><span class="c1"># 示例</span>
+<a id="__codelineno-8-11" name="__codelineno-8-11" href="#__codelineno-8-11"></a><span class="nb">print</span><span class="p">(</span><span class="n">encode_payload_length</span><span class="p">(</span><span class="mi">100</span><span class="p">))</span>      <span class="c1"># b&#39;\x64&#39;</span>
+<a id="__codelineno-8-12" name="__codelineno-8-12" href="#__codelineno-8-12"></a><span class="nb">print</span><span class="p">(</span><span class="n">encode_payload_length</span><span class="p">(</span><span class="mi">1000</span><span class="p">))</span>     <span class="c1"># b&#39;\x7e\x03\xe8&#39;</span>
+<a id="__codelineno-8-13" name="__codelineno-8-13" href="#__codelineno-8-13"></a><span class="nb">print</span><span class="p">(</span><span class="n">encode_payload_length</span><span class="p">(</span><span class="mi">100000</span><span class="p">))</span>   <span class="c1"># b&#39;\x7f\x00\x00\x00\x00\x00\x01\x86\xa0&#39;</span>
+</code></pre></div>
+<h3 id="24">2.4 🎯 面试考点：数据掩码<a class="headerlink" href="#24" title="Permanent link">&para;</a></h3>
+<p><strong>面试官：为什么客户端发送数据要掩码？服务器发送不需要吗？</strong></p>
+<p><strong>答案：</strong></p>
+<p><strong>客户端→服务器：必须掩码</strong>
+<strong>服务器→客户端：不需要掩码</strong></p>
+<p><strong>原因：</strong></p>
+<ol>
+<li><strong>防止缓存代理服务器被欺骗（Cache Poisoning）</strong></li>
+<li>早期代理服务器不理解 WebSocket</li>
+<li>会把 WebSocket 帧误认为是 HTTP 响应并缓存</li>
+<li>
+<p>掩码后，恶意客户端无法构造特定的字节序列来欺骗代理</p>
+</li>
+<li>
+<p><strong>历史原因</strong></p>
+</li>
+<li>WebSocket 设计时，HTTP 代理是主要威胁</li>
+<li>掩码确保代理服务器无法正确解析 WebSocket 内容</li>
+</ol>
+<p><strong>掩码算法：</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a><span class="k">def</span><span class="w"> </span><span class="nf">apply_mask</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">mask</span><span class="p">):</span>
+<a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a><span class="sd">    对数据进行掩码/解掩码（同一个算法）</span>
+<a id="__codelineno-9-4" name="__codelineno-9-4" href="#__codelineno-9-4"></a>
+<a id="__codelineno-9-5" name="__codelineno-9-5" href="#__codelineno-9-5"></a><span class="sd">    Args:</span>
+<a id="__codelineno-9-6" name="__codelineno-9-6" href="#__codelineno-9-6"></a><span class="sd">        data: 原始数据（bytes）</span>
+<a id="__codelineno-9-7" name="__codelineno-9-7" href="#__codelineno-9-7"></a><span class="sd">        mask: 掩码密钥（4 字节）</span>
+<a id="__codelineno-9-8" name="__codelineno-9-8" href="#__codelineno-9-8"></a>
+<a id="__codelineno-9-9" name="__codelineno-9-9" href="#__codelineno-9-9"></a><span class="sd">    Returns:</span>
+<a id="__codelineno-9-10" name="__codelineno-9-10" href="#__codelineno-9-10"></a><span class="sd">        掩码后的数据（bytes）</span>
+<a id="__codelineno-9-11" name="__codelineno-9-11" href="#__codelineno-9-11"></a><span class="sd">    &quot;&quot;&quot;</span>
+<a id="__codelineno-9-12" name="__codelineno-9-12" href="#__codelineno-9-12"></a>    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">mask</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">4</span><span class="p">:</span>
+<a id="__codelineno-9-13" name="__codelineno-9-13" href="#__codelineno-9-13"></a>        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Mask must be 4 bytes&quot;</span><span class="p">)</span>
+<a id="__codelineno-9-14" name="__codelineno-9-14" href="#__codelineno-9-14"></a>
+<a id="__codelineno-9-15" name="__codelineno-9-15" href="#__codelineno-9-15"></a>    <span class="n">masked</span> <span class="o">=</span> <span class="nb">bytearray</span><span class="p">()</span>
+<a id="__codelineno-9-16" name="__codelineno-9-16" href="#__codelineno-9-16"></a>    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">byte</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">data</span><span class="p">):</span>
+<a id="__codelineno-9-17" name="__codelineno-9-17" href="#__codelineno-9-17"></a>        <span class="n">masked</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">byte</span> <span class="o">^</span> <span class="n">mask</span><span class="p">[</span><span class="n">i</span> <span class="o">%</span> <span class="mi">4</span><span class="p">])</span>
+<a id="__codelineno-9-18" name="__codelineno-9-18" href="#__codelineno-9-18"></a>
+<a id="__codelineno-9-19" name="__codelineno-9-19" href="#__codelineno-9-19"></a>    <span class="k">return</span> <span class="nb">bytes</span><span class="p">(</span><span class="n">masked</span><span class="p">)</span>
+<a id="__codelineno-9-20" name="__codelineno-9-20" href="#__codelineno-9-20"></a>
+<a id="__codelineno-9-21" name="__codelineno-9-21" href="#__codelineno-9-21"></a><span class="c1"># 示例</span>
+<a id="__codelineno-9-22" name="__codelineno-9-22" href="#__codelineno-9-22"></a><span class="n">data</span> <span class="o">=</span> <span class="sa">b</span><span class="s2">&quot;Hello&quot;</span>
+<a id="__codelineno-9-23" name="__codelineno-9-23" href="#__codelineno-9-23"></a><span class="n">mask</span> <span class="o">=</span> <span class="sa">b</span><span class="s2">&quot;</span><span class="se">\x37\x52\x61\x28</span><span class="s2">&quot;</span>
+<a id="__codelineno-9-24" name="__codelineno-9-24" href="#__codelineno-9-24"></a>
+<a id="__codelineno-9-25" name="__codelineno-9-25" href="#__codelineno-9-25"></a><span class="n">masked</span> <span class="o">=</span> <span class="n">apply_mask</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">mask</span><span class="p">)</span>
+<a id="__codelineno-9-26" name="__codelineno-9-26" href="#__codelineno-9-26"></a><span class="nb">print</span><span class="p">(</span><span class="n">masked</span><span class="p">)</span>  <span class="c1"># 掩码后的数据</span>
+<a id="__codelineno-9-27" name="__codelineno-9-27" href="#__codelineno-9-27"></a>
+<a id="__codelineno-9-28" name="__codelineno-9-28" href="#__codelineno-9-28"></a><span class="n">unmasked</span> <span class="o">=</span> <span class="n">apply_mask</span><span class="p">(</span><span class="n">masked</span><span class="p">,</span> <span class="n">mask</span><span class="p">)</span>
+<a id="__codelineno-9-29" name="__codelineno-9-29" href="#__codelineno-9-29"></a><span class="nb">print</span><span class="p">(</span><span class="n">unmasked</span><span class="p">)</span>  <span class="c1"># b&#39;Hello&#39;（恢复原始数据）</span>
+</code></pre></div>
+<p><strong>掩码的数学性质：</strong>
+- 掩码和解掩码使用<strong>同一个算法</strong>（XOR 操作的对称性）
+- <code>data XOR mask XOR mask = data</code></p>
+<hr />
+<h2 id="pingpong">三、Ping/Pong 心跳机制<a class="headerlink" href="#pingpong" title="Permanent link">&para;</a></h2>
+<h3 id="31-pingpong">3.1 🎯 面试考点：为什么需要 Ping/Pong？<a class="headerlink" href="#31-pingpong" title="Permanent link">&para;</a></h3>
+<p><strong>面试官：WebSocket 的 Ping/Pong 机制有什么作用？</strong></p>
+<p><strong>答案：</strong></p>
+<p>Ping/Pong 用于<strong>心跳保活</strong>和<strong>连接检测</strong>：</p>
+<ol>
+<li><strong>检测连接是否还活着</strong></li>
+<li>长时间没有数据传输时，中间设备（NAT、防火墙、代理）可能断开连接</li>
+<li>
+<p>定期发送 Ping，如果收到 Pong，说明连接正常</p>
+</li>
+<li>
+<p><strong>防止空闲超时</strong></p>
+</li>
+<li>Nginx 默认 60 秒空闲超时</li>
+<li>
+<p>定期 Ping/Pong 保持连接活跃</p>
+</li>
+<li>
+<p><strong>测量延迟</strong></p>
+</li>
+<li>发送 Ping 的时间 - 收到 Pong 的时间 = 往返延迟（RTT）</li>
+</ol>
+<h3 id="32-pingpong">3.2 Ping/Pong 帧格式<a class="headerlink" href="#32-pingpong" title="Permanent link">&para;</a></h3>
+<p><strong>Ping 帧：</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a> 0                   1
+<a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a> 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5
+<a id="__codelineno-10-3" name="__codelineno-10-3" href="#__codelineno-10-3"></a>+-+-+-+-+-------+-+-------------+
+<a id="__codelineno-10-4" name="__codelineno-10-4" href="#__codelineno-10-4"></a>|1|0|0|0| 0x9  |0|     len     |
+<a id="__codelineno-10-5" name="__codelineno-10-5" href="#__codelineno-10-5"></a>+-+-+-+-+-------+-+-------------+
+<a id="__codelineno-10-6" name="__codelineno-10-6" href="#__codelineno-10-6"></a>|   Application data (optional) |
+<a id="__codelineno-10-7" name="__codelineno-10-7" href="#__codelineno-10-7"></a>+-------------------------------+
+</code></pre></div>
+<ul>
+<li><strong>opcode</strong>: 0x9（Ping）</li>
+<li><strong>Payload length</strong>: 可选的应用数据（通常为空）</li>
+</ul>
+<p><strong>Pong 帧：</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a> 0                   1
+<a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a> 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5
+<a id="__codelineno-11-3" name="__codelineno-11-3" href="#__codelineno-11-3"></a>+-+-+-+-+-------+-+-------------+
+<a id="__codelineno-11-4" name="__codelineno-11-4" href="#__codelineno-11-4"></a>|1|0|0|0| 0xA  |0|     len     |
+<a id="__codelineno-11-5" name="__codelineno-11-5" href="#__codelineno-11-5"></a>+-+-+-+-+-------+-+-------------+
+<a id="__codelineno-11-6" name="__codelineno-11-6" href="#__codelineno-11-6"></a>|   Application data (optional) |
+<a id="__codelineno-11-7" name="__codelineno-11-7" href="#__codelineno-11-7"></a>+-------------------------------+
+</code></pre></div>
+<ul>
+<li><strong>opcode</strong>: 0xA（Pong）</li>
+<li><strong>Payload data</strong>: 必须与 Ping 帧的应用数据相同</li>
+</ul>
+<h3 id="33-pingpong">3.3 Ping/Pong 交互流程<a class="headerlink" href="#33-pingpong" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a>客户端                          服务器
+<a id="__codelineno-12-2" name="__codelineno-12-2" href="#__codelineno-12-2"></a>  |                              |
+<a id="__codelineno-12-3" name="__codelineno-12-3" href="#__codelineno-12-3"></a>  |--- Ping (可选数据) ---------&gt;|
+<a id="__codelineno-12-4" name="__codelineno-12-4" href="#__codelineno-12-4"></a>  |&lt;-- Pong (相同数据) ----------|
+<a id="__codelineno-12-5" name="__codelineno-12-5" href="#__codelineno-12-5"></a>  |                              |
+<a id="__codelineno-12-6" name="__codelineno-12-6" href="#__codelineno-12-6"></a>  |&lt;-- Ping ---------------------|  ← 服务器也可以主动 Ping
+<a id="__codelineno-12-7" name="__codelineno-12-7" href="#__codelineno-12-7"></a>  |--- Pong -------------------&gt;|
+<a id="__codelineno-12-8" name="__codelineno-12-8" href="#__codelineno-12-8"></a>  |                              |
+</code></pre></div>
+<p><strong>规则：</strong>
+- 收到 Ping 后<strong>必须</strong>尽快回复 Pong
+- Pong 的数据必须与 Ping 的数据相同
+- 可以主动发送 Ping，不要求对方先 Ping</p>
+<h3 id="34">3.4 实现心跳保活<a class="headerlink" href="#34" title="Permanent link">&para;</a></h3>
+<p><strong>服务器端（Python）：</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a><span class="kn">import</span><span class="w"> </span><span class="nn">asyncio</span>
+<a id="__codelineno-13-2" name="__codelineno-13-2" href="#__codelineno-13-2"></a><span class="kn">import</span><span class="w"> </span><span class="nn">websockets</span>
+<a id="__codelineno-13-3" name="__codelineno-13-3" href="#__codelineno-13-3"></a>
+<a id="__codelineno-13-4" name="__codelineno-13-4" href="#__codelineno-13-4"></a><span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">handler</span><span class="p">(</span><span class="n">websocket</span><span class="p">,</span> <span class="n">path</span><span class="p">):</span>
+<a id="__codelineno-13-5" name="__codelineno-13-5" href="#__codelineno-13-5"></a>    <span class="c1"># 启动心跳任务</span>
+<a id="__codelineno-13-6" name="__codelineno-13-6" href="#__codelineno-13-6"></a>    <span class="n">heartbeat_task</span> <span class="o">=</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">create_task</span><span class="p">(</span><span class="n">send_heartbeat</span><span class="p">(</span><span class="n">websocket</span><span class="p">))</span>
+<a id="__codelineno-13-7" name="__codelineno-13-7" href="#__codelineno-13-7"></a>
+<a id="__codelineno-13-8" name="__codelineno-13-8" href="#__codelineno-13-8"></a>    <span class="k">try</span><span class="p">:</span>
+<a id="__codelineno-13-9" name="__codelineno-13-9" href="#__codelineno-13-9"></a>        <span class="k">async</span> <span class="k">for</span> <span class="n">message</span> <span class="ow">in</span> <span class="n">websocket</span><span class="p">:</span>
+<a id="__codelineno-13-10" name="__codelineno-13-10" href="#__codelineno-13-10"></a>            <span class="c1"># 处理业务消息</span>
+<a id="__codelineno-13-11" name="__codelineno-13-11" href="#__codelineno-13-11"></a>            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;收到: </span><span class="si">{</span><span class="n">message</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<a id="__codelineno-13-12" name="__codelineno-13-12" href="#__codelineno-13-12"></a>    <span class="k">finally</span><span class="p">:</span>
+<a id="__codelineno-13-13" name="__codelineno-13-13" href="#__codelineno-13-13"></a>        <span class="n">heartbeat_task</span><span class="o">.</span><span class="n">cancel</span><span class="p">()</span>
+<a id="__codelineno-13-14" name="__codelineno-13-14" href="#__codelineno-13-14"></a>
+<a id="__codelineno-13-15" name="__codelineno-13-15" href="#__codelineno-13-15"></a><span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">send_heartbeat</span><span class="p">(</span><span class="n">websocket</span><span class="p">):</span>
+<a id="__codelineno-13-16" name="__codelineno-13-16" href="#__codelineno-13-16"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;定期发送 Ping&quot;&quot;&quot;</span>
+<a id="__codelineno-13-17" name="__codelineno-13-17" href="#__codelineno-13-17"></a>    <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+<a id="__codelineno-13-18" name="__codelineno-13-18" href="#__codelineno-13-18"></a>        <span class="k">await</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mi">30</span><span class="p">)</span>  <span class="c1"># 每 30 秒</span>
+<a id="__codelineno-13-19" name="__codelineno-13-19" href="#__codelineno-13-19"></a>        <span class="k">try</span><span class="p">:</span>
+<a id="__codelineno-13-20" name="__codelineno-13-20" href="#__codelineno-13-20"></a>            <span class="k">await</span> <span class="n">websocket</span><span class="o">.</span><span class="n">ping</span><span class="p">()</span>
+<a id="__codelineno-13-21" name="__codelineno-13-21" href="#__codelineno-13-21"></a>        <span class="k">except</span> <span class="n">websockets</span><span class="o">.</span><span class="n">exceptions</span><span class="o">.</span><span class="n">ConnectionClosed</span><span class="p">:</span>
+<a id="__codelineno-13-22" name="__codelineno-13-22" href="#__codelineno-13-22"></a>            <span class="k">break</span>
+</code></pre></div>
+<p><strong>客户端（JavaScript）：</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a><span class="kd">const</span><span class="w"> </span><span class="nx">ws</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="ow">new</span><span class="w"> </span><span class="nx">WebSocket</span><span class="p">(</span><span class="s2">&quot;wss://example.com/socket&quot;</span><span class="p">);</span>
+<a id="__codelineno-14-2" name="__codelineno-14-2" href="#__codelineno-14-2"></a>
+<a id="__codelineno-14-3" name="__codelineno-14-3" href="#__codelineno-14-3"></a><span class="c1">// 浏览器自动回复 Pong（无需手动处理）</span>
+<a id="__codelineno-14-4" name="__codelineno-14-4" href="#__codelineno-14-4"></a><span class="c1">// 但我们可以主动发送 Ping 来检测连接</span>
+<a id="__codelineno-14-5" name="__codelineno-14-5" href="#__codelineno-14-5"></a>
+<a id="__codelineno-14-6" name="__codelineno-14-6" href="#__codelineno-14-6"></a><span class="nx">setInterval</span><span class="p">(()</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-14-7" name="__codelineno-14-7" href="#__codelineno-14-7"></a><span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="nx">ws</span><span class="p">.</span><span class="nx">readyState</span><span class="w"> </span><span class="o">===</span><span class="w"> </span><span class="nx">WebSocket</span><span class="p">.</span><span class="nx">OPEN</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-14-8" name="__codelineno-14-8" href="#__codelineno-14-8"></a><span class="w">        </span><span class="c1">// 浏览器 API 不直接支持发送 Ping</span>
+<a id="__codelineno-14-9" name="__codelineno-14-9" href="#__codelineno-14-9"></a><span class="w">        </span><span class="c1">// 可以通过发送特殊消息模拟</span>
+<a id="__codelineno-14-10" name="__codelineno-14-10" href="#__codelineno-14-10"></a><span class="w">        </span><span class="nx">ws</span><span class="p">.</span><span class="nx">send</span><span class="p">(</span><span class="nb">JSON</span><span class="p">.</span><span class="nx">stringify</span><span class="p">({</span><span class="w"> </span><span class="nx">type</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;ping&quot;</span><span class="w"> </span><span class="p">}));</span>
+<a id="__codelineno-14-11" name="__codelineno-14-11" href="#__codelineno-14-11"></a><span class="w">    </span><span class="p">}</span>
+<a id="__codelineno-14-12" name="__codelineno-14-12" href="#__codelineno-14-12"></a><span class="p">},</span><span class="w"> </span><span class="mf">30000</span><span class="p">);</span>
+<a id="__codelineno-14-13" name="__codelineno-14-13" href="#__codelineno-14-13"></a>
+<a id="__codelineno-14-14" name="__codelineno-14-14" href="#__codelineno-14-14"></a><span class="nx">ws</span><span class="p">.</span><span class="nx">onmessage</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="nx">event</span><span class="p">)</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-14-15" name="__codelineno-14-15" href="#__codelineno-14-15"></a><span class="w">    </span><span class="kd">const</span><span class="w"> </span><span class="nx">data</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nb">JSON</span><span class="p">.</span><span class="nx">parse</span><span class="p">(</span><span class="nx">event</span><span class="p">.</span><span class="nx">data</span><span class="p">);</span>
+<a id="__codelineno-14-16" name="__codelineno-14-16" href="#__codelineno-14-16"></a><span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="nx">data</span><span class="p">.</span><span class="nx">type</span><span class="w"> </span><span class="o">===</span><span class="w"> </span><span class="s2">&quot;pong&quot;</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-14-17" name="__codelineno-14-17" href="#__codelineno-14-17"></a><span class="w">        </span><span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s2">&quot;连接正常&quot;</span><span class="p">);</span>
+<a id="__codelineno-14-18" name="__codelineno-14-18" href="#__codelineno-14-18"></a><span class="w">    </span><span class="p">}</span>
+<a id="__codelineno-14-19" name="__codelineno-14-19" href="#__codelineno-14-19"></a><span class="p">};</span>
+</code></pre></div>
+<hr />
+<h2 id="fragmentation">四、消息分片（Fragmentation）<a class="headerlink" href="#fragmentation" title="Permanent link">&para;</a></h2>
+<h3 id="41">4.1 🎯 面试考点：什么是消息分片？<a class="headerlink" href="#41" title="Permanent link">&para;</a></h3>
+<p><strong>面试官：WebSocket 如何处理大消息？</strong></p>
+<p>WebSocket 支持将<strong>大消息分片</strong>成多个帧发送：</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-15-1" name="__codelineno-15-1" href="#__codelineno-15-1"></a>大消息: &quot;Hello, World!&quot;
+<a id="__codelineno-15-2" name="__codelineno-15-2" href="#__codelineno-15-2"></a>
+<a id="__codelineno-15-3" name="__codelineno-15-3" href="#__codelineno-15-3"></a>分片后:
+<a id="__codelineno-15-4" name="__codelineno-15-4" href="#__codelineno-15-4"></a>  帧 1: FIN=0, opcode=0x1, data=&quot;Hello&quot;     ← 第一帧（FIN=0）
+<a id="__codelineno-15-5" name="__codelineno-15-5" href="#__codelineno-15-5"></a>  帧 2: FIN=0, opcode=0x0, data=&quot;, &quot;        ← 延续帧（opcode=0x0）
+<a id="__codelineno-15-6" name="__codelineno-15-6" href="#__codelineno-15-6"></a>  帧 3: FIN=1, opcode=0x0, data=&quot;World!&quot;    ← 最后一帧（FIN=1）
+</code></pre></div>
+<p><strong>规则：</strong>
+- 第一帧：FIN=0，opcode=0x1（文本）或 0x2（二进制）
+- 中间帧：FIN=0，opcode=0x0（延续）
+- 最后一帧：FIN=1，opcode=0x0（延续）</p>
+<h3 id="42">4.2 为什么要分片？<a class="headerlink" href="#42" title="Permanent link">&para;</a></h3>
+<ol>
+<li><strong>避免大消息阻塞控制帧</strong></li>
+<li>如果一个大消息占用整个连接，Ping/Pong/Close 帧无法及时发送</li>
+<li>
+<p>分片后，控制帧可以插入到数据帧之间</p>
+</li>
+<li>
+<p><strong>流式处理</strong></p>
+</li>
+<li>
+<p>接收方可以边接收边处理，不需要等整个消息接收完</p>
+</li>
+<li>
+<p><strong>内存管理</strong></p>
+</li>
+<li>大消息可以分块处理，减少内存占用</li>
+</ol>
+<h3 id="43">4.3 分片示例<a class="headerlink" href="#43" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-16-1" name="__codelineno-16-1" href="#__codelineno-16-1"></a><span class="c1"># 发送分片消息</span>
+<a id="__codelineno-16-2" name="__codelineno-16-2" href="#__codelineno-16-2"></a><span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">send_fragmented</span><span class="p">(</span><span class="n">websocket</span><span class="p">):</span>
+<a id="__codelineno-16-3" name="__codelineno-16-3" href="#__codelineno-16-3"></a>    <span class="n">message</span> <span class="o">=</span> <span class="s2">&quot;Hello, World!&quot;</span>
+<a id="__codelineno-16-4" name="__codelineno-16-4" href="#__codelineno-16-4"></a>    <span class="n">chunk_size</span> <span class="o">=</span> <span class="mi">5</span>
+<a id="__codelineno-16-5" name="__codelineno-16-5" href="#__codelineno-16-5"></a>
+<a id="__codelineno-16-6" name="__codelineno-16-6" href="#__codelineno-16-6"></a>    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">message</span><span class="p">),</span> <span class="n">chunk_size</span><span class="p">):</span>
+<a id="__codelineno-16-7" name="__codelineno-16-7" href="#__codelineno-16-7"></a>        <span class="n">chunk</span> <span class="o">=</span> <span class="n">message</span><span class="p">[</span><span class="n">i</span><span class="p">:</span><span class="n">i</span><span class="o">+</span><span class="n">chunk_size</span><span class="p">]</span>
+<a id="__codelineno-16-8" name="__codelineno-16-8" href="#__codelineno-16-8"></a>        <span class="n">is_last</span> <span class="o">=</span> <span class="p">(</span><span class="n">i</span> <span class="o">+</span> <span class="n">chunk_size</span> <span class="o">&gt;=</span> <span class="nb">len</span><span class="p">(</span><span class="n">message</span><span class="p">))</span>
+<a id="__codelineno-16-9" name="__codelineno-16-9" href="#__codelineno-16-9"></a>
+<a id="__codelineno-16-10" name="__codelineno-16-10" href="#__codelineno-16-10"></a>        <span class="c1"># websockets 库自动处理分片</span>
+<a id="__codelineno-16-11" name="__codelineno-16-11" href="#__codelineno-16-11"></a>        <span class="k">await</span> <span class="n">websocket</span><span class="o">.</span><span class="n">send</span><span class="p">(</span><span class="n">chunk</span><span class="p">,</span> <span class="n">fin</span><span class="o">=</span><span class="n">is_last</span><span class="p">)</span>
+</code></pre></div>
+<hr />
+<h2 id="_2">五、关闭握手详解<a class="headerlink" href="#_2" title="Permanent link">&para;</a></h2>
+<h3 id="51-websocket">5.1 🎯 面试考点：WebSocket 如何优雅地关闭连接？<a class="headerlink" href="#51-websocket" title="Permanent link">&para;</a></h3>
+<p><strong>面试官：WebSocket 连接是怎么关闭的？直接断开 TCP 不行吗？</strong></p>
+<p><strong>答案：</strong></p>
+<p>WebSocket 使用<strong>关闭握手（Close Handshake）</strong>，而不是直接断开 TCP：</p>
+<p><strong>直接断开 TCP 的问题：</strong>
+- 对方不知道是正常关闭还是异常断开
+- 可能丢失未发送完的数据
+- 无法传递关闭原因</p>
+<p><strong>关闭握手流程：</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-17-1" name="__codelineno-17-1" href="#__codelineno-17-1"></a>客户端                          服务器
+<a id="__codelineno-17-2" name="__codelineno-17-2" href="#__codelineno-17-2"></a>  |                              |
+<a id="__codelineno-17-3" name="__codelineno-17-3" href="#__codelineno-17-3"></a>  |--- Close 帧 ---------------&gt;|  ← 发起方发送 Close
+<a id="__codelineno-17-4" name="__codelineno-17-4" href="#__codelineno-17-4"></a>  |    (opcode=0x8)              |
+<a id="__codelineno-17-5" name="__codelineno-17-5" href="#__codelineno-17-5"></a>  |                              |
+<a id="__codelineno-17-6" name="__codelineno-17-6" href="#__codelineno-17-6"></a>  |&lt;-- Close 帧 ----------------|  ← 接收方回复 Close
+<a id="__codelineno-17-7" name="__codelineno-17-7" href="#__codelineno-17-7"></a>  |    (opcode=0x8)              |
+<a id="__codelineno-17-8" name="__codelineno-17-8" href="#__codelineno-17-8"></a>  |                              |
+<a id="__codelineno-17-9" name="__codelineno-17-9" href="#__codelineno-17-9"></a>  |         TCP 连接关闭         |
+</code></pre></div>
+<h3 id="52-close">5.2 Close 帧格式<a class="headerlink" href="#52-close" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-18-1" name="__codelineno-18-1" href="#__codelineno-18-1"></a> 0                   1                   2                   3
+<a id="__codelineno-18-2" name="__codelineno-18-2" href="#__codelineno-18-2"></a> 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+<a id="__codelineno-18-3" name="__codelineno-18-3" href="#__codelineno-18-3"></a>+-+-+-+-+-------+-+-------------+-------------------------------+
+<a id="__codelineno-18-4" name="__codelineno-18-4" href="#__codelineno-18-4"></a>|1|0|0|0| 0x8  |0|     len     |         status code           |
+<a id="__codelineno-18-5" name="__codelineno-18-5" href="#__codelineno-18-5"></a>+-+-+-+-+-------+-+-------------+-------------------------------+
+<a id="__codelineno-18-6" name="__codelineno-18-6" href="#__codelineno-18-6"></a>|                        reason (optional)                      |
+<a id="__codelineno-18-7" name="__codelineno-18-7" href="#__codelineno-18-7"></a>+---------------------------------------------------------------+
+</code></pre></div>
+<p><strong>字段说明：</strong>
+- <strong>opcode</strong>: 0x8（关闭帧）
+- <strong>status code</strong>: 2 字节状态码（可选）
+- <strong>reason</strong>: UTF-8 编码的关闭原因（可选）</p>
+<h3 id="53">5.3 🎯 面试考点：常见的关闭状态码<a class="headerlink" href="#53" title="Permanent link">&para;</a></h3>
+<p><strong>面试官：WebSocket 有哪些常见的关闭状态码？</strong></p>
+<table>
+<thead>
+<tr>
+<th>状态码</th>
+<th>名称</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>1000</strong></td>
+<td>Normal Closure</td>
+<td>正常关闭</td>
+</tr>
+<tr>
+<td><strong>1001</strong></td>
+<td>Going Away</td>
+<td>端点离开（如浏览器关闭标签页）</td>
+</tr>
+<tr>
+<td><strong>1002</strong></td>
+<td>Protocol Error</td>
+<td>协议错误</td>
+</tr>
+<tr>
+<td><strong>1003</strong></td>
+<td>Unsupported Data</td>
+<td>收到不支持的数据类型</td>
+</tr>
+<tr>
+<td><strong>1004</strong></td>
+<td>Reserved</td>
+<td>保留</td>
+</tr>
+<tr>
+<td><strong>1005</strong></td>
+<td>No Status Rcvd</td>
+<td>保留（未收到状态码）</td>
+</tr>
+<tr>
+<td><strong>1006</strong></td>
+<td>Abnormal Closure</td>
+<td>保留（连接异常关闭）</td>
+</tr>
+<tr>
+<td><strong>1007</strong></td>
+<td>Invalid frame payload data</td>
+<td>数据与类型不一致（如文本帧包含无效 UTF-8）</td>
+</tr>
+<tr>
+<td><strong>1008</strong></td>
+<td>Policy Violation</td>
+<td>违反策略</td>
+</tr>
+<tr>
+<td><strong>1009</strong></td>
+<td>Message Too Big</td>
+<td>消息过大</td>
+</tr>
+<tr>
+<td><strong>1010</strong></td>
+<td>Mandatory Ext.</td>
+<td>客户端期望协商扩展</td>
+</tr>
+<tr>
+<td><strong>1011</strong></td>
+<td>Internal Server Error</td>
+<td>服务器遇到意外情况</td>
+</tr>
+<tr>
+<td><strong>1015</strong></td>
+<td>TLS handshake</td>
+<td>保留（TLS 握手失败）</td>
+</tr>
+</tbody>
+</table>
+<p><strong>应用层状态码（3000-4999）：</strong>
+- 3000-3999：库/框架/应用使用
+- 4000-4999：私有应用使用</p>
+<h3 id="54">5.4 关闭握手实现<a class="headerlink" href="#54" title="Permanent link">&para;</a></h3>
+<p><strong>Python（websockets）：</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-19-1" name="__codelineno-19-1" href="#__codelineno-19-1"></a><span class="kn">import</span><span class="w"> </span><span class="nn">websockets</span>
+<a id="__codelineno-19-2" name="__codelineno-19-2" href="#__codelineno-19-2"></a>
+<a id="__codelineno-19-3" name="__codelineno-19-3" href="#__codelineno-19-3"></a><span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">handler</span><span class="p">(</span><span class="n">websocket</span><span class="p">,</span> <span class="n">path</span><span class="p">):</span>
+<a id="__codelineno-19-4" name="__codelineno-19-4" href="#__codelineno-19-4"></a>    <span class="k">try</span><span class="p">:</span>
+<a id="__codelineno-19-5" name="__codelineno-19-5" href="#__codelineno-19-5"></a>        <span class="k">async</span> <span class="k">for</span> <span class="n">message</span> <span class="ow">in</span> <span class="n">websocket</span><span class="p">:</span>
+<a id="__codelineno-19-6" name="__codelineno-19-6" href="#__codelineno-19-6"></a>            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;收到: </span><span class="si">{</span><span class="n">message</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<a id="__codelineno-19-7" name="__codelineno-19-7" href="#__codelineno-19-7"></a>    <span class="k">except</span> <span class="n">websockets</span><span class="o">.</span><span class="n">exceptions</span><span class="o">.</span><span class="n">ConnectionClosed</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+<a id="__codelineno-19-8" name="__codelineno-19-8" href="#__codelineno-19-8"></a>        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;连接关闭: code=</span><span class="si">{</span><span class="n">e</span><span class="o">.</span><span class="n">code</span><span class="si">}</span><span class="s2">, reason=</span><span class="si">{</span><span class="n">e</span><span class="o">.</span><span class="n">reason</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<a id="__codelineno-19-9" name="__codelineno-19-9" href="#__codelineno-19-9"></a>
+<a id="__codelineno-19-10" name="__codelineno-19-10" href="#__codelineno-19-10"></a>    <span class="c1"># 主动关闭</span>
+<a id="__codelineno-19-11" name="__codelineno-19-11" href="#__codelineno-19-11"></a>    <span class="c1"># await websocket.close(code=1000, reason=&quot;Normal closure&quot;)</span>
+</code></pre></div>
+<p><strong>JavaScript：</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-20-1" name="__codelineno-20-1" href="#__codelineno-20-1"></a><span class="kd">const</span><span class="w"> </span><span class="nx">ws</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="ow">new</span><span class="w"> </span><span class="nx">WebSocket</span><span class="p">(</span><span class="s2">&quot;wss://example.com/socket&quot;</span><span class="p">);</span>
+<a id="__codelineno-20-2" name="__codelineno-20-2" href="#__codelineno-20-2"></a>
+<a id="__codelineno-20-3" name="__codelineno-20-3" href="#__codelineno-20-3"></a><span class="nx">ws</span><span class="p">.</span><span class="nx">onclose</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="nx">event</span><span class="p">)</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-20-4" name="__codelineno-20-4" href="#__codelineno-20-4"></a><span class="w">    </span><span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="sb">`连接关闭: code=</span><span class="si">${</span><span class="nx">event</span><span class="p">.</span><span class="nx">code</span><span class="si">}</span><span class="sb">, reason=</span><span class="si">${</span><span class="nx">event</span><span class="p">.</span><span class="nx">reason</span><span class="si">}</span><span class="sb">`</span><span class="p">);</span>
+<a id="__codelineno-20-5" name="__codelineno-20-5" href="#__codelineno-20-5"></a>
+<a id="__codelineno-20-6" name="__codelineno-20-6" href="#__codelineno-20-6"></a><span class="w">    </span><span class="c1">// 根据状态码决定行为</span>
+<a id="__codelineno-20-7" name="__codelineno-20-7" href="#__codelineno-20-7"></a><span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="nx">event</span><span class="p">.</span><span class="nx">code</span><span class="w"> </span><span class="o">===</span><span class="w"> </span><span class="mf">1000</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-20-8" name="__codelineno-20-8" href="#__codelineno-20-8"></a><span class="w">        </span><span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s2">&quot;正常关闭&quot;</span><span class="p">);</span>
+<a id="__codelineno-20-9" name="__codelineno-20-9" href="#__codelineno-20-9"></a><span class="w">    </span><span class="p">}</span><span class="w"> </span><span class="k">else</span><span class="w"> </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="nx">event</span><span class="p">.</span><span class="nx">code</span><span class="w"> </span><span class="o">===</span><span class="w"> </span><span class="mf">1006</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-20-10" name="__codelineno-20-10" href="#__codelineno-20-10"></a><span class="w">        </span><span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s2">&quot;异常断开，尝试重连&quot;</span><span class="p">);</span>
+<a id="__codelineno-20-11" name="__codelineno-20-11" href="#__codelineno-20-11"></a><span class="w">        </span><span class="nx">reconnect</span><span class="p">();</span>
+<a id="__codelineno-20-12" name="__codelineno-20-12" href="#__codelineno-20-12"></a><span class="w">    </span><span class="p">}</span>
+<a id="__codelineno-20-13" name="__codelineno-20-13" href="#__codelineno-20-13"></a><span class="p">};</span>
+<a id="__codelineno-20-14" name="__codelineno-20-14" href="#__codelineno-20-14"></a>
+<a id="__codelineno-20-15" name="__codelineno-20-15" href="#__codelineno-20-15"></a><span class="c1">// 主动关闭</span>
+<a id="__codelineno-20-16" name="__codelineno-20-16" href="#__codelineno-20-16"></a><span class="nx">ws</span><span class="p">.</span><span class="nx">close</span><span class="p">(</span><span class="mf">1000</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;Normal closure&quot;</span><span class="p">);</span>
+</code></pre></div>
+<hr />
+<h2 id="websocket_2">六、WebSocket 扩展<a class="headerlink" href="#websocket_2" title="Permanent link">&para;</a></h2>
+<h3 id="61-websocket">6.1 🎯 面试考点：WebSocket 支持压缩吗？<a class="headerlink" href="#61-websocket" title="Permanent link">&para;</a></h3>
+<p><strong>面试官：WebSocket 如何压缩数据？</strong></p>
+<p>WebSocket 通过<strong>扩展（Extensions）</strong> 机制支持压缩：</p>
+<p><strong>permessage-deflate 扩展：</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-21-1" name="__codelineno-21-1" href="#__codelineno-21-1"></a><span class="nf">GET</span> <span class="nn">/chat</span> <span class="kr">HTTP</span><span class="o">/</span><span class="m">1.1</span>
+<a id="__codelineno-21-2" name="__codelineno-21-2" href="#__codelineno-21-2"></a><span class="na">Sec-WebSocket-Extensions</span><span class="o">:</span> <span class="l">permessage-deflate</span>
+</code></pre></div>
+<p>服务器同意：</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-22-1" name="__codelineno-22-1" href="#__codelineno-22-1"></a><span class="kr">HTTP</span><span class="o">/</span><span class="m">1.1</span> <span class="m">101</span> <span class="ne">Switching Protocols</span>
+<a id="__codelineno-22-2" name="__codelineno-22-2" href="#__codelineno-22-2"></a><span class="na">Sec-WebSocket-Extensions</span><span class="o">:</span> <span class="l">permessage-deflate</span>
+</code></pre></div>
+<p><strong>效果：</strong>
+- 文本数据可以压缩 50-90%
+- 二进制数据压缩效果取决于内容
+- 增加 CPU 开销</p>
+<h3 id="62-subprotocol">6.2 子协议（Subprotocol）<a class="headerlink" href="#62-subprotocol" title="Permanent link">&para;</a></h3>
+<p>WebSocket 支持<strong>子协议协商</strong>：</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-23-1" name="__codelineno-23-1" href="#__codelineno-23-1"></a><span class="nf">GET</span> <span class="nn">/chat</span> <span class="kr">HTTP</span><span class="o">/</span><span class="m">1.1</span>
+<a id="__codelineno-23-2" name="__codelineno-23-2" href="#__codelineno-23-2"></a><span class="na">Sec-WebSocket-Protocol</span><span class="o">:</span> <span class="l">chat, superchat</span>
+</code></pre></div>
+<p>服务器选择一个：</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-24-1" name="__codelineno-24-1" href="#__codelineno-24-1"></a><span class="kr">HTTP</span><span class="o">/</span><span class="m">1.1</span> <span class="m">101</span> <span class="ne">Switching Protocols</span>
+<a id="__codelineno-24-2" name="__codelineno-24-2" href="#__codelineno-24-2"></a><span class="na">Sec-WebSocket-Protocol</span><span class="o">:</span> <span class="l">superchat</span>
+</code></pre></div>
+<p><strong>常见子协议：</strong>
+- <strong>STOMP</strong>：简单消息面向文本协议
+- <strong>WAMP</strong>：WebSocket 应用消息协议
+- <strong>MQTT over WebSocket</strong>：物联网消息协议</p>
+<hr />
+<h2 id="_3">七、小结<a class="headerlink" href="#_3" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>要点</th>
+<th>内容</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>握手关键字段</td>
+<td>Upgrade、Connection、Sec-WebSocket-Key/Accept</td>
+</tr>
+<tr>
+<td>Key/Accept 作用</td>
+<td>确保协议理解、防止缓存欺骗、防重放</td>
+</tr>
+<tr>
+<td>帧格式</td>
+<td>FIN、opcode、MASK、Payload length</td>
+</tr>
+<tr>
+<td>opcode 类型</td>
+<td>0x1=文本，0x2=二进制，0x8=关闭，0x9=Ping，0xA=Pong</td>
+</tr>
+<tr>
+<td>Payload length</td>
+<td>7/16/64 bits 编码，支持 0-2^64 字节</td>
+</tr>
+<tr>
+<td>掩码</td>
+<td>客户端→服务器必须，防止缓存欺骗</td>
+</tr>
+<tr>
+<td>Ping/Pong</td>
+<td>心跳保活、连接检测</td>
+</tr>
+<tr>
+<td>消息分片</td>
+<td>FIN=0 表示后续还有帧，FIN=1 表示最后一帧</td>
+</tr>
+<tr>
+<td>关闭握手</td>
+<td>Close 帧 + 状态码 + 原因</td>
+</tr>
+<tr>
+<td>常见状态码</td>
+<td>1000=正常，1001=离开，1006=异常</td>
+</tr>
+<tr>
+<td>扩展</td>
+<td>permessage-deflate（压缩）、子协议协商</td>
+</tr>
+</tbody>
+</table>
+<p><strong>🎯 面试必备：</strong>
+- 握手过程（Upgrade、Key/Accept 计算）
+- 帧格式（FIN、opcode、MASK、Payload length 编码）
+- 为什么需要掩码（防止缓存欺骗）
+- Ping/Pong 作用（心跳保活）
+- 消息分片（FIN 位、opcode=0x0）
+- 关闭握手（Close 帧、状态码含义）
+- 扩展机制（压缩、子协议）</p>
+<p>下一章：<a href="../03-%E6%9C%8D%E5%8A%A1%E7%AB%AF%E5%AE%9E%E7%8E%B0/">服务端实现</a> — 用 Python、Node.js、Go、Java 实现 WebSocket 服务。</p>
+<hr />
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../../../..", "features": ["navigation.tabs", "navigation.sections", "navigation.expand", "search.suggest", "search.highlight", "content.code.copy"], "search": "../../../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "\u5df2\u590d\u5236", "clipboard.copy": "\u590d\u5236", "search.result.more.one": "\u5728\u8be5\u9875\u4e0a\u8fd8\u6709 1 \u4e2a\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.more.other": "\u5728\u8be5\u9875\u4e0a\u8fd8\u6709 # \u4e2a\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.none": "\u6ca1\u6709\u627e\u5230\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.one": "\u627e\u5230 1 \u4e2a\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.other": "# \u4e2a\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.placeholder": "\u952e\u5165\u4ee5\u5f00\u59cb\u641c\u7d22", "search.result.term.missing": "\u7f3a\u5c11", "select.version": "\u9009\u62e9\u5f53\u524d\u7248\u672c"}, "version": null}</script>
+    
+    
+      <script src="../../../../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+    
+  </body>
+</html>
