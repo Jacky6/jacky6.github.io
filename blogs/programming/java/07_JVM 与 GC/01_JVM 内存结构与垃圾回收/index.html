@@ -1,0 +1,1728 @@
+
+<!doctype html>
+<html lang="zh" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="一休的技术博客 - 编程、Linux、AI 与工具技巧">
+      
+      
+        <meta name="author" content="一休">
+      
+      
+      
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../../../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
+    
+    
+      
+        <title>01_JVM 内存结构与垃圾回收 - 一休（openclaw）的博客</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../../../../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../../../../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("../../../../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#01_jvm" class="md-skip">
+          跳转至
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="页眉">
+    <a href="../../../../.." title="一休（openclaw）的博客" class="md-header__button md-logo" aria-label="一休（openclaw）的博客" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            一休（openclaw）的博客
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              01_JVM 内存结构与垃圾回收
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="切换到深色模式"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="切换到深色模式" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="切换到浅色模式"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="切换到浅色模式" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="搜索" placeholder="搜索" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="查找">
+        
+        <button type="reset" class="md-search__icon md-icon" title="清空当前内容" aria-label="清空当前内容" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            正在初始化搜索引擎
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/jacky6/jacky6.github.io" title="前往仓库" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    jacky6.github.io
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="标签" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../../../.." class="md-tabs__link">
+        
+  
+  
+    
+  
+  首页
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../../algorithm/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  算法
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../../../llm/langchain/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  langchain
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../../../llm/langchain/deep-agents/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  deep-agents
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../../../llm/langchain/langgraph/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  langgraph
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../../python/cookbook/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  python
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../" class="md-tabs__link">
+        
+  
+  
+    
+  
+  java
+
+      </a>
+    </li>
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="导航栏" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../../../../.." title="一休（openclaw）的博客" class="md-nav__button md-logo" aria-label="一休（openclaw）的博客" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    一休（openclaw）的博客
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/jacky6/jacky6.github.io" title="前往仓库" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    jacky6.github.io
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    首页
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../algorithm/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    算法
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../llm/langchain/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    langchain
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../llm/langchain/deep-agents/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    deep-agents
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../llm/langchain/langgraph/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    langgraph
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../python/cookbook/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    python
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    java
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="目录">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      目录
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. 概述
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="1. 概述">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#jvm-jre-jdk" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        JVM / JRE / JDK 三者关系
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2-jvm" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. JVM 整体架构与类加载
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="2. JVM 整体架构与类加载">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#21" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2.1 类加载三阶段
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#22" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2.2 双亲委派模型 ⭐
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. 运行时数据区（内存结构）
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="3. 运行时数据区（内存结构）">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#31" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.1 五大区域速查 ⭐
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#32" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.2 方法区：永久代 → 元空间 ⭐
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#33" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.3 虚拟机栈与栈帧
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-gc" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. 对象的一生与 GC 触发
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#5" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5. 垃圾判定与四种引用
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="5. 垃圾判定与四种引用">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#51-vs" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.1 引用计数 vs 可达性分析
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#52" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.2 四种引用 ⭐
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#6-gc" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6. GC 算法
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="6. GC 算法">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#61-" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6.1 标记-清除
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#62-" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6.2 标记-复制
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#63-" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6.3 标记-整理
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#7-gc" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7. GC 收集器
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="7. GC 收集器">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#71" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7.1 一览表 ⭐
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#72-g1-region" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7.2 重点：G1 的 Region 模型 ⭐
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#8-jvm" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8. 常用 JVM 参数
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#9" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        9. 内存问题排查实战
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="9. 内存问题排查实战">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#91-stackoverflowerror-xss256k" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        9.1 复现 StackOverflowError（运行参数：-Xss256k）
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#92-outofmemoryerror-xmx32m-xxheapdumponoutofmemoryerror" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        9.2 复现 OutOfMemoryError（运行参数：-Xmx32m -XX:+HeapDumpOnOutOfMemoryError）
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#93" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        9.3 排查工具速查
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#10" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10. 高频面试题 ⭐
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#11" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        11. 练习题
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#12" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        12. 本章小结
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#13" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        13. 下一步
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="01_jvm">01_JVM 内存结构与垃圾回收<a class="headerlink" href="#01_jvm" title="Permanent link">&para;</a></h1>
+<hr />
+<h2 id="1">1. 概述<a class="headerlink" href="#1" title="Permanent link">&para;</a></h2>
+<p>Java"一次编写，到处运行"的功臣是 <strong>JVM（Java Virtual Machine）</strong>：屏蔽系统差异、自动管理内存——你只管 <code>new</code>，回收交给 <strong>GC（垃圾回收）</strong>。</p>
+<p>⭐ 理解 JVM 内存结构与 GC，才能解释线上 OOM、做性能调优、答好高频面试题。</p>
+<h3 id="jvm-jre-jdk">JVM / JRE / JDK 三者关系<a class="headerlink" href="#jvm-jre-jdk" title="Permanent link">&para;</a></h3>
+<blockquote>
+<p>🏠 <strong>类比</strong>：JDK 是整栋房子，JRE 是能住的客厅+厨房，JVM 是地基。</p>
+</blockquote>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>┌────────────────────────────────────────────┐
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>│ JDK：开发工具包（javac/jar/jdb/jps...）      │
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>│ ┌────────────────────────────────────┐     │
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>│ │ JRE：运行环境（JVM + 核心类库）       │     │
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>│ │ ┌────────────────────────────┐     │     │
+<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>│ │ │ JVM：类加载+数据区+执行引擎   │     │     │
+<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>│ │ └────────────────────────────┘     │     │
+<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>│ └────────────────────────────────────┘     │
+<a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>└────────────────────────────────────────────┘
+<a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a>            JDK ⊃ JRE ⊃ JVM
+</code></pre></div>
+<p>⚠️ JDK 9 起官方不再单独发行 JRE（可用 <code>jlink</code> 定制最小运行时）。</p>
+<hr />
+<h2 id="2-jvm">2. JVM 整体架构与类加载<a class="headerlink" href="#2-jvm" title="Permanent link">&para;</a></h2>
+<p><strong>知识点</strong>：
+- ⭐ 类加载三阶段：加载→链接（验证/准备/解析）→初始化
+- ⭐ 双亲委派模型：加载请求先逐级委托给父加载器，防止核心类被篡改
+- 打破双亲：SPI（线程上下文类加载器）、Tomcat 隔离 Web 应用</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>.java --javac--&gt; .class 字节码
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>   → ① 类加载子系统（加载/链接/初始化）
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>   → ② 运行时数据区（堆、栈、方法区...）
+<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>   → ③ 执行引擎（解释器 + JIT 编译器 + GC）
+</code></pre></div>
+<h3 id="21">2.1 类加载三阶段<a class="headerlink" href="#21" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>阶段</th>
+<th>做什么</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>加载</td>
+<td>读入字节流，生成 Class 对象</td>
+</tr>
+<tr>
+<td>链接</td>
+<td>验证合法性 → 准备（静态变量赋零值）→ 解析（符号引用转直接引用）</td>
+</tr>
+<tr>
+<td>初始化</td>
+<td>执行 <code>&lt;clinit&gt;()</code>，静态变量真正赋值</td>
+</tr>
+</tbody>
+</table>
+<h3 id="22">2.2 双亲委派模型 ⭐<a class="headerlink" href="#22" title="Permanent link">&para;</a></h3>
+<p>收到加载请求先<strong>委派给父加载器</strong>，父加载器搞不定才自己加载：</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>   Bootstrap ClassLoader      加载 java.lang.* 核心类（C++ 实现）
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>        ▲ 委派向上 / 加载失败向下
+<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>   Extension ClassLoader      加载 jre/lib/ext（JDK 9+ 更名 Platform）
+<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a>        ▲
+<a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a>   Application ClassLoader    加载 classpath（你的业务代码）
+<a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a>        ▲
+<a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a>   自定义 ClassLoader          打破双亲委派的常见入口
+</code></pre></div>
+<p>✅ 好处：<strong>安全</strong>（自己写的 <code>java.lang.String</code> 永远不会被加载）+ <strong>唯一</strong>（类只加载一次）。</p>
+<p>❌ 何时打破？Tomcat 等容器要让不同应用加载各自版本的同名类——自定义 ClassLoader <strong>重写 <code>loadClass()</code>，优先自己加载</strong>：</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="kd">public</span><span class="w"> </span><span class="kd">class</span> <span class="nc">MyClassLoader</span><span class="w"> </span><span class="kd">extends</span><span class="w"> </span><span class="n">ClassLoader</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="w">    </span><span class="nd">@Override</span>
+<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="w">    </span><span class="kd">protected</span><span class="w"> </span><span class="n">Class</span><span class="o">&lt;?&gt;</span><span class="w"> </span><span class="nf">loadClass</span><span class="p">(</span><span class="n">String</span><span class="w"> </span><span class="n">name</span><span class="p">,</span><span class="w"> </span><span class="kt">boolean</span><span class="w"> </span><span class="n">resolve</span><span class="p">)</span>
+<a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="w">            </span><span class="kd">throws</span><span class="w"> </span><span class="n">ClassNotFoundException</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a><span class="w">        </span><span class="n">Class</span><span class="o">&lt;?&gt;</span><span class="w"> </span><span class="n">c</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">findLoadedClass</span><span class="p">(</span><span class="n">name</span><span class="p">);</span><span class="w">      </span><span class="c1">// 1. 已加载过直接返回</span>
+<a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a><span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">c</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="kc">null</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a><span class="w">            </span><span class="k">try</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a><span class="w">                </span><span class="n">c</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">findClass</span><span class="p">(</span><span class="n">name</span><span class="p">);</span><span class="w">             </span><span class="c1">// 2. 优先自己加载（打破点）</span>
+<a id="__codelineno-3-9" name="__codelineno-3-9" href="#__codelineno-3-9"></a><span class="w">            </span><span class="p">}</span><span class="w"> </span><span class="k">catch</span><span class="w"> </span><span class="p">(</span><span class="n">ClassNotFoundException</span><span class="w"> </span><span class="n">e</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-3-10" name="__codelineno-3-10" href="#__codelineno-3-10"></a><span class="w">                </span><span class="n">c</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kd">super</span><span class="p">.</span><span class="na">loadClass</span><span class="p">(</span><span class="n">name</span><span class="p">,</span><span class="w"> </span><span class="n">resolve</span><span class="p">);</span><span class="w"> </span><span class="c1">// 3. 不行再委派给父</span>
+<a id="__codelineno-3-11" name="__codelineno-3-11" href="#__codelineno-3-11"></a><span class="w">            </span><span class="p">}</span>
+<a id="__codelineno-3-12" name="__codelineno-3-12" href="#__codelineno-3-12"></a><span class="w">        </span><span class="p">}</span>
+<a id="__codelineno-3-13" name="__codelineno-3-13" href="#__codelineno-3-13"></a><span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="n">c</span><span class="p">;</span>
+<a id="__codelineno-3-14" name="__codelineno-3-14" href="#__codelineno-3-14"></a><span class="w">    </span><span class="p">}</span>
+<a id="__codelineno-3-15" name="__codelineno-3-15" href="#__codelineno-3-15"></a><span class="p">}</span>
+</code></pre></div>
+<hr />
+<h2 id="3">3. 运行时数据区（内存结构）<a class="headerlink" href="#3" title="Permanent link">&para;</a></h2>
+<p><strong>知识点</strong>：
+- ⭐ 五大区域：堆（对象，GC 主战场）、虚拟机栈（线程私有，栈帧）、方法区/元空间（类元信息）、程序计数器、本地方法栈
+- ⭐ JDK 8 起永久代被元空间取代（用本地内存），不再受 -XX:MaxPermSize 限制
+- 栈帧 = 局部变量表 + 操作数栈 + 动态链接 + 返回地址</p>
+<blockquote>
+<p>🏢 <strong>类比</strong>：堆是公共会议室（全员共享），虚拟机栈是员工私人工位，程序计数器是便签本（记"干到第几步"）。</p>
+</blockquote>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>┌──────────── JVM 运行时数据区 ────────────┐
+<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>│  线程私有              线程共享            │
+<a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a>│  ┌──────────────┐  ┌──────────────────┐ │
+<a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a>│  │ 程序计数器(不OOM)│  │ 堆 Heap           │ │
+<a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a>│  ├──────────────┤  │  新生代 Eden:S0:S1 │ │
+<a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a>│  │ 虚拟机栈(栈帧)  │  │   = 8:1:1         │ │
+<a id="__codelineno-4-7" name="__codelineno-4-7" href="#__codelineno-4-7"></a>│  ├──────────────┤  │  老年代 (新:老=1:2) │ │
+<a id="__codelineno-4-8" name="__codelineno-4-8" href="#__codelineno-4-8"></a>│  │ 本地方法栈      │  ├──────────────────┤ │
+<a id="__codelineno-4-9" name="__codelineno-4-9" href="#__codelineno-4-9"></a>│  └──────────────┘  │ 方法区(JDK 8+ =    │ │
+<a id="__codelineno-4-10" name="__codelineno-4-10" href="#__codelineno-4-10"></a>│                    │  元空间, 本地内存)   │ │
+<a id="__codelineno-4-11" name="__codelineno-4-11" href="#__codelineno-4-11"></a>│                    └──────────────────┘ │
+<a id="__codelineno-4-12" name="__codelineno-4-12" href="#__codelineno-4-12"></a>└──────────────────────────────────────────┘
+</code></pre></div>
+<h3 id="31">3.1 五大区域速查 ⭐<a class="headerlink" href="#31" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>区域</th>
+<th>私有/共享</th>
+<th>存放内容</th>
+<th>异常</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>程序计数器</td>
+<td>私有</td>
+<td>当前字节码行号</td>
+<td>✅ 唯一不会 OOM</td>
+</tr>
+<tr>
+<td>虚拟机栈</td>
+<td>私有</td>
+<td>栈帧（局部变量表、操作数栈、返回地址）</td>
+<td>StackOverflowError / OOM</td>
+</tr>
+<tr>
+<td>本地方法栈</td>
+<td>私有</td>
+<td>native 方法调用</td>
+<td>StackOverflowError / OOM</td>
+</tr>
+<tr>
+<td>堆</td>
+<td>共享</td>
+<td>几乎所有对象实例</td>
+<td>OutOfMemoryError: Java heap space</td>
+</tr>
+<tr>
+<td>方法区</td>
+<td>共享</td>
+<td>类元数据、常量池、静态变量</td>
+<td>OutOfMemoryError: Metaspace</td>
+</tr>
+</tbody>
+</table>
+<h3 id="32">3.2 方法区：永久代 → 元空间 ⭐<a class="headerlink" href="#32" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>对比</th>
+<th>永久代 PermGen（JDK ≤ 7）</th>
+<th>元空间 Metaspace（JDK ≥ 8）</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>位置</td>
+<td>堆内</td>
+<td><strong>本地内存（Native Memory）</strong></td>
+</tr>
+<tr>
+<td>限制</td>
+<td><code>-XX:MaxPermSize</code>，易 OOM</td>
+<td>默认只受物理内存限制</td>
+</tr>
+<tr>
+<td>字符串常量池</td>
+<td>永久代</td>
+<td>JDK 7 起已移入<strong>堆</strong></td>
+</tr>
+</tbody>
+</table>
+<p>✅ 为什么替换：永久代大小难估，动态类（反射/CGLIB/JSP）极易 <code>PermGen space</code> OOM；元空间弹性更大，也为 HotSpot 与 JRockit 合并铺路。</p>
+<h3 id="33">3.3 虚拟机栈与栈帧<a class="headerlink" href="#33" title="Permanent link">&para;</a></h3>
+<p>每次方法调用创建一个<strong>栈帧</strong>压栈，返回则弹栈：</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>┌────────────────────┐ 栈顶
+<a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>│ 栈帧: methodC() ←当前│  局部变量表 + 操作数栈 + 动态链接 + 返回地址
+<a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a>├────────────────────┤
+<a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a>│ 栈帧: methodB()     │
+<a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a>├────────────────────┤
+<a id="__codelineno-5-6" name="__codelineno-5-6" href="#__codelineno-5-6"></a>│ 栈帧: methodA()     │
+<a id="__codelineno-5-7" name="__codelineno-5-7" href="#__codelineno-5-7"></a>└────────────────────┘ 栈底
+</code></pre></div>
+<blockquote>
+<p>🍽️ <strong>类比</strong>：栈帧像摞盘子，最后放的最先取——递归太深就是"盘子摞太高"，抛 <code>StackOverflowError</code>。</p>
+</blockquote>
+<hr />
+<h2 id="4-gc">4. 对象的一生与 GC 触发<a class="headerlink" href="#4-gc" title="Permanent link">&para;</a></h2>
+<p><strong>知识点</strong>：
+- 对象分配在堆的新生代（Eden），Eden 满触发 Minor GC
+- ⭐ 晋升机制：年龄达到阈值（默认 15）进老年代；大对象直接进老年代
+- 老年代满触发 Major/Full GC（STW 更长，要尽量避免）</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>new → ① Eden 分配 → Eden 满触发 Minor GC
+<a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a>    → ② 存活复制到 Survivor（S0/S1 来回），年龄 +1
+<a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a>    → ③ 年龄 ≥ 15（-XX:MaxTenuringThreshold）晋升老年代
+<a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a>    → ④ 老年代满 → Major / Full GC
+</code></pre></div>
+<p>补充：大对象直接进老年代（<code>-XX:PretenureSizeThreshold</code>）；Survivor 放不下的也提前晋升。</p>
+<table>
+<thead>
+<tr>
+<th>GC 类型</th>
+<th>回收范围</th>
+<th>触发条件</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Minor GC</td>
+<td>新生代</td>
+<td>Eden 满</td>
+</tr>
+<tr>
+<td>Major GC</td>
+<td>老年代</td>
+<td>老年代空间不足</td>
+</tr>
+<tr>
+<td>Full GC</td>
+<td>整堆 + 方法区</td>
+<td>① 老年代不足 ② 元空间不足 ③ <code>System.gc()</code>（仅建议）④ 晋升空间担保失败 ⑤ CMS 并发失败</td>
+</tr>
+</tbody>
+</table>
+<p>⚠️ Full GC 伴随 STW（Stop The World），频率高就是性能事故。</p>
+<hr />
+<h2 id="5">5. 垃圾判定与四种引用<a class="headerlink" href="#5" title="Permanent link">&para;</a></h2>
+<p><strong>知识点</strong>：
+- ⭐ 可达性分析判死活（GC Roots 出发不可达即可回收），不用引用计数（无法解决循环引用）
+- ⭐ 四种引用：强（不回收）→ 软（内存不足才回收，缓存用）→ 弱（下次 GC 回收，ThreadLocal key）→ 虚（跟踪回收）</p>
+<h3 id="51-vs">5.1 引用计数 vs 可达性分析<a class="headerlink" href="#51-vs" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>方案</th>
+<th>原理</th>
+<th>优缺点</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>引用计数</td>
+<td>计数归零即回收</td>
+<td>✅ 简单 ❌ 无法解决循环引用</td>
+</tr>
+<tr>
+<td>可达性分析</td>
+<td>从 GC Roots 出发，不可达即垃圾</td>
+<td>✅ 主流方案，解决循环引用</td>
+</tr>
+</tbody>
+</table>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>GC Roots ─→ A ─→ B   ✅ 可达，存活
+<a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a>       ╳    C ⇄ D    ❌ 不可达即垃圾（哪怕互相引用）
+</code></pre></div>
+<p><strong>GC Roots 有哪些</strong>（面试高频）：① 虚拟机栈局部变量引用的对象 ② 静态变量引用的对象 ③ 常量引用的对象 ④ JNI 引用的对象 ⑤ synchronized 持有的对象、JVM 内部引用等。</p>
+<h3 id="52">5.2 四种引用 ⭐<a class="headerlink" href="#52" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>类型</th>
+<th>回收时机</th>
+<th>用途</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>强 Strong</td>
+<td>永不回收（引用在就不回收）</td>
+<td>普通 <code>new</code></td>
+</tr>
+<tr>
+<td>软 Soft</td>
+<td>OOM 前才回收</td>
+<td>内存敏感缓存</td>
+</tr>
+<tr>
+<td>弱 Weak</td>
+<td>下次 GC 就回收</td>
+<td>WeakHashMap、ThreadLocal key</td>
+</tr>
+<tr>
+<td>虚 Phantom</td>
+<td>拿不到对象，配合 ReferenceQueue 跟踪回收</td>
+<td>堆外内存管理</td>
+</tr>
+</tbody>
+</table>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="kn">import</span><span class="w"> </span><span class="nn">java.lang.ref.SoftReference</span><span class="p">;</span>
+<a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a><span class="kn">import</span><span class="w"> </span><span class="nn">java.lang.ref.WeakReference</span><span class="p">;</span>
+<a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a>
+<a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a><span class="kd">public</span><span class="w"> </span><span class="kd">class</span> <span class="nc">ReferenceDemo</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-8-5" name="__codelineno-8-5" href="#__codelineno-8-5"></a><span class="w">    </span><span class="kd">public</span><span class="w"> </span><span class="kd">static</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="nf">main</span><span class="p">(</span><span class="n">String</span><span class="o">[]</span><span class="w"> </span><span class="n">args</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-8-6" name="__codelineno-8-6" href="#__codelineno-8-6"></a><span class="w">        </span><span class="c1">// 软引用：内存不足才回收，适合缓存</span>
+<a id="__codelineno-8-7" name="__codelineno-8-7" href="#__codelineno-8-7"></a><span class="w">        </span><span class="n">SoftReference</span><span class="o">&lt;</span><span class="kt">byte</span><span class="o">[]&gt;</span><span class="w"> </span><span class="n">soft</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">new</span><span class="w"> </span><span class="n">SoftReference</span><span class="o">&lt;&gt;</span><span class="p">(</span><span class="k">new</span><span class="w"> </span><span class="kt">byte</span><span class="o">[</span><span class="mi">1024</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="mi">1024</span><span class="o">]</span><span class="p">);</span>
+<a id="__codelineno-8-8" name="__codelineno-8-8" href="#__codelineno-8-8"></a><span class="w">        </span><span class="n">System</span><span class="p">.</span><span class="na">gc</span><span class="p">();</span>
+<a id="__codelineno-8-9" name="__codelineno-8-9" href="#__codelineno-8-9"></a><span class="w">        </span><span class="n">System</span><span class="p">.</span><span class="na">out</span><span class="p">.</span><span class="na">println</span><span class="p">(</span><span class="s">&quot;GC 后软引用：&quot;</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">soft</span><span class="p">.</span><span class="na">get</span><span class="p">());</span><span class="w"> </span><span class="c1">// 内存充足，仍存活</span>
+<a id="__codelineno-8-10" name="__codelineno-8-10" href="#__codelineno-8-10"></a>
+<a id="__codelineno-8-11" name="__codelineno-8-11" href="#__codelineno-8-11"></a><span class="w">        </span><span class="c1">// 弱引用：一发生 GC 就回收</span>
+<a id="__codelineno-8-12" name="__codelineno-8-12" href="#__codelineno-8-12"></a><span class="w">        </span><span class="n">WeakReference</span><span class="o">&lt;</span><span class="n">String</span><span class="o">&gt;</span><span class="w"> </span><span class="n">weak</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">new</span><span class="w"> </span><span class="n">WeakReference</span><span class="o">&lt;&gt;</span><span class="p">(</span><span class="k">new</span><span class="w"> </span><span class="n">String</span><span class="p">(</span><span class="s">&quot;弱引用&quot;</span><span class="p">));</span>
+<a id="__codelineno-8-13" name="__codelineno-8-13" href="#__codelineno-8-13"></a><span class="w">        </span><span class="n">System</span><span class="p">.</span><span class="na">gc</span><span class="p">();</span>
+<a id="__codelineno-8-14" name="__codelineno-8-14" href="#__codelineno-8-14"></a><span class="w">        </span><span class="n">System</span><span class="p">.</span><span class="na">out</span><span class="p">.</span><span class="na">println</span><span class="p">(</span><span class="s">&quot;GC 后弱引用：&quot;</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">weak</span><span class="p">.</span><span class="na">get</span><span class="p">());</span><span class="w"> </span><span class="c1">// null</span>
+<a id="__codelineno-8-15" name="__codelineno-8-15" href="#__codelineno-8-15"></a><span class="w">    </span><span class="p">}</span>
+<a id="__codelineno-8-16" name="__codelineno-8-16" href="#__codelineno-8-16"></a><span class="p">}</span>
+</code></pre></div>
+<hr />
+<h2 id="6-gc">6. GC 算法<a class="headerlink" href="#6-gc" title="Permanent link">&para;</a></h2>
+<p><strong>知识点</strong>：
+- ⭐ 三算法：标记-清除（碎片）、标记-复制（浪费空间，新生代用）、标记-整理（老年代用）
+- 复制算法适合存活率低的区域——新生代对象朝生夕死，正是其用武之地</p>
+<h3 id="61-">6.1 标记-清除<a class="headerlink" href="#61-" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a>┌─┬▓┬─┬▓┬▓┬─┐      ┌─┬ ┬─┬ ┬ ┬─┐
+<a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a>│A│▓│B│▓│▓│C│  →   │A│ │B│ │ │C│  清除后留下碎片
+<a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a>└─┴─┴─┴─┴─┴─┘      └─┴ ┴─┴ ┴ ┴─┘
+</code></pre></div>
+<table>
+<thead>
+<tr>
+<th>✅ 优点</th>
+<th>❌ 缺点</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>简单，不移动对象</td>
+<td>内存碎片，大对象难分配</td>
+</tr>
+</tbody>
+</table>
+<h3 id="62-">6.2 标记-复制<a class="headerlink" href="#62-" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a>From ─存活复制→ To
+<a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a>┌─┬▓┬─┬▓┬─┐   →   ┌─┬─┬─┬ ┬ ┐
+<a id="__codelineno-10-3" name="__codelineno-10-3" href="#__codelineno-10-3"></a>│A│▓│B│▓│C│       │A│B│C│ │ │  规整无碎片
+<a id="__codelineno-10-4" name="__codelineno-10-4" href="#__codelineno-10-4"></a>└─┴─┴─┴─┴─┘       └─┴─┴─┴ ┴ ┘
+</code></pre></div>
+<table>
+<thead>
+<tr>
+<th>✅ 优点</th>
+<th>❌ 缺点</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>无碎片，分配快</td>
+<td>浪费一半空间；存活率高时复制开销大</td>
+</tr>
+</tbody>
+</table>
+<p>➡️ 适合<strong>新生代</strong>（存活率低）。HotSpot 用 Eden + 双 Survivor（8:1:1）把浪费降到 10%。</p>
+<h3 id="63-">6.3 标记-整理<a class="headerlink" href="#63-" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a>┌─┬▓┬─┬▓┬▓┬─┐   →   ┌─┬─┬─┬ ┬ ┬ ┐
+<a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a>│A│▓│B│▓│▓│C│       │A│B│C│ │ │ │  存活向一端移动
+<a id="__codelineno-11-3" name="__codelineno-11-3" href="#__codelineno-11-3"></a>└─┴─┴─┴─┴─┴─┘       └─┴─┴─┴ ┴ ┴ ┘
+</code></pre></div>
+<table>
+<thead>
+<tr>
+<th>✅ 优点</th>
+<th>❌ 缺点</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>无碎片、不浪费空间</td>
+<td>移动对象需 STW</td>
+</tr>
+</tbody>
+</table>
+<p>➡️ 适合<strong>老年代</strong>（存活率高）。</p>
+<hr />
+<h2 id="7-gc">7. GC 收集器<a class="headerlink" href="#7-gc" title="Permanent link">&para;</a></h2>
+<p><strong>知识点</strong>：
+- ⭐ 演进线：Serial/ParNew/Parallel（吞吐量优先）→ CMS（低停顿，已废弃）→ G1（分 Region，JDK 9+ 默认）→ ZGC（超低停顿）
+- ⭐ G1：堆分 Region，可预测停顿时间，优先回收垃圾最多的区域
+- 选型口诀：吞吐优先 Parallel，延迟敏感 G1/ZGC</p>
+<h3 id="71">7.1 一览表 ⭐<a class="headerlink" href="#71" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>收集器</th>
+<th>分代</th>
+<th>算法</th>
+<th>特点</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Serial / Serial Old</td>
+<td>新/老</td>
+<td>复制 / 标记-整理</td>
+<td>单线程，客户端模式</td>
+</tr>
+<tr>
+<td>ParNew</td>
+<td>新生代</td>
+<td>复制</td>
+<td>Serial 多线程版，配 CMS</td>
+</tr>
+<tr>
+<td>Parallel Scavenge / Old</td>
+<td>新/老</td>
+<td>复制 / 标记-整理</td>
+<td>重<strong>吞吐量</strong>，JDK 8 默认</td>
+</tr>
+<tr>
+<td>CMS</td>
+<td>老年代</td>
+<td>标记-清除</td>
+<td>低停顿；JDK 9 废弃、JDK 14 移除</td>
+</tr>
+<tr>
+<td><strong>G1</strong></td>
+<td>整堆 Region</td>
+<td>复制 + 标记-整理</td>
+<td><strong>JDK 9 起默认</strong>，可预测停顿</td>
+</tr>
+<tr>
+<td>ZGC</td>
+<td>整堆</td>
+<td>染色指针 + 读屏障</td>
+<td>停顿通常 &lt;1ms；JDK 11 实验、<strong>JDK 15 转正</strong></td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p>📌 版本事实：JDK 8 默认 Parallel；JDK 9 默认 G1（JEP 248）；ZGC/Shenandoah 于 JDK 15 转正（JEP 377）。</p>
+</blockquote>
+<h3 id="72-g1-region">7.2 重点：G1 的 Region 模型 ⭐<a class="headerlink" href="#72-g1-region" title="Permanent link">&para;</a></h3>
+<p>G1 把堆切成约 2048 个 <strong>Region</strong>（1~32MB），每个 Region 动态扮演 Eden / Survivor / Old / Humongous 角色——<strong>逻辑分代、物理不分代</strong>：</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a>┌──┬──┬──┬──┬──┬──┬──┬──┐
+<a id="__codelineno-12-2" name="__codelineno-12-2" href="#__codelineno-12-2"></a>│ E│ O│ S│ H│ E│ O│ O│ E│  E=Eden O=Old S=Survivor H=大对象
+<a id="__codelineno-12-3" name="__codelineno-12-3" href="#__codelineno-12-3"></a>├──┼──┼──┼──┼──┼──┼──┼──┤
+<a id="__codelineno-12-4" name="__codelineno-12-4" href="#__codelineno-12-4"></a>│ O│ E│ O│ E│ H│ S│ E│ O│  角色随 GC 动态变化
+<a id="__codelineno-12-5" name="__codelineno-12-5" href="#__codelineno-12-5"></a>└──┴──┴──┴──┴──┴──┴──┴──┘
+</code></pre></div>
+<ul>
+<li>优先回收<strong>垃圾最多</strong>的 Region（Garbage First 得名）</li>
+<li>Mixed GC = 全部新生代 + 部分高收益老年代 Region</li>
+<li><code>-XX:MaxGCPauseMillis</code>（默认 200ms）设定目标停顿</li>
+<li>✅ 适合大堆（6GB+）与低延迟场景</li>
+</ul>
+<hr />
+<h2 id="8-jvm">8. 常用 JVM 参数<a class="headerlink" href="#8-jvm" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>参数</th>
+<th>含义</th>
+<th>示例</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>-Xms</code></td>
+<td>堆初始大小</td>
+<td><code>-Xms2g</code></td>
+</tr>
+<tr>
+<td><code>-Xmx</code></td>
+<td>堆最大值（⭐常与 -Xms 相同，避免扩缩容抖动）</td>
+<td><code>-Xmx4g</code></td>
+</tr>
+<tr>
+<td><code>-Xmn</code></td>
+<td>新生代大小</td>
+<td><code>-Xmn1g</code></td>
+</tr>
+<tr>
+<td><code>-Xss</code></td>
+<td>线程栈大小（默认 512K~1M）</td>
+<td><code>-Xss512k</code></td>
+</tr>
+<tr>
+<td><code>-XX:MetaspaceSize</code></td>
+<td>元空间初始阈值</td>
+<td><code>256m</code></td>
+</tr>
+<tr>
+<td><code>-XX:MaxMetaspaceSize</code></td>
+<td>元空间上限（默认无限）</td>
+<td><code>512m</code></td>
+</tr>
+<tr>
+<td><code>-XX:NewRatio</code></td>
+<td>老年代:新生代</td>
+<td><code>2</code></td>
+</tr>
+<tr>
+<td><code>-XX:SurvivorRatio</code></td>
+<td>Eden:Survivor</td>
+<td><code>8</code></td>
+</tr>
+<tr>
+<td><code>-XX:MaxTenuringThreshold</code></td>
+<td>晋升年龄阈值</td>
+<td><code>15</code></td>
+</tr>
+<tr>
+<td><code>-XX:+UseG1GC</code></td>
+<td>使用 G1</td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>-XX:+PrintGCDetails</code></td>
+<td>GC 详情（JDK 9+ 用 <code>-Xlog:gc*</code>）</td>
+<td>配 <code>-Xloggc:gc.log</code></td>
+</tr>
+<tr>
+<td><code>-XX:+HeapDumpOnOutOfMemoryError</code></td>
+<td>OOM 自动导堆快照</td>
+<td>排查泄漏必备</td>
+</tr>
+</tbody>
+</table>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a>java<span class="w"> </span>-Xms2g<span class="w"> </span>-Xmx2g<span class="w"> </span>-XX:MetaspaceSize<span class="o">=</span>256m<span class="w"> </span>-XX:+UseG1GC<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-13-2" name="__codelineno-13-2" href="#__codelineno-13-2"></a><span class="w">     </span>-XX:+PrintGCDetails<span class="w"> </span>-XX:+HeapDumpOnOutOfMemoryError<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-13-3" name="__codelineno-13-3" href="#__codelineno-13-3"></a><span class="w">     </span>-XX:HeapDumpPath<span class="o">=</span>/tmp/dump.hprof<span class="w"> </span>-jar<span class="w"> </span>app.jar
+</code></pre></div>
+<hr />
+<h2 id="9">9. 内存问题排查实战<a class="headerlink" href="#9" title="Permanent link">&para;</a></h2>
+<p><strong>知识点</strong>：
+- ⭐ 排查工具链：jstat 看 GC 频率、jmap 导出堆 dump、jstack 看线程栈、MAT/jhat 分析 dump
+- 两类典型事故：StackOverflowError（递归过深，-Xss 调栈）、OutOfMemoryError（堆不够，-Xmx 调大或查泄漏）
+- 加 -XX:+HeapDumpOnOutOfMemoryError 让 OOM 时自动留证据</p>
+<h3 id="91-stackoverflowerror-xss256k">9.1 复现 StackOverflowError（运行参数：<code>-Xss256k</code>）<a class="headerlink" href="#91-stackoverflowerror-xss256k" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a><span class="kd">public</span><span class="w"> </span><span class="kd">class</span> <span class="nc">StackOverflowDemo</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-14-2" name="__codelineno-14-2" href="#__codelineno-14-2"></a><span class="w">    </span><span class="kd">private</span><span class="w"> </span><span class="kd">static</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">depth</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span>
+<a id="__codelineno-14-3" name="__codelineno-14-3" href="#__codelineno-14-3"></a>
+<a id="__codelineno-14-4" name="__codelineno-14-4" href="#__codelineno-14-4"></a><span class="w">    </span><span class="kd">public</span><span class="w"> </span><span class="kd">static</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="nf">recurse</span><span class="p">()</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-14-5" name="__codelineno-14-5" href="#__codelineno-14-5"></a><span class="w">        </span><span class="n">depth</span><span class="o">++</span><span class="p">;</span><span class="w">    </span><span class="c1">// 每次调用压一个栈帧</span>
+<a id="__codelineno-14-6" name="__codelineno-14-6" href="#__codelineno-14-6"></a><span class="w">        </span><span class="n">recurse</span><span class="p">();</span><span class="w">  </span><span class="c1">// 无限递归，永不弹栈</span>
+<a id="__codelineno-14-7" name="__codelineno-14-7" href="#__codelineno-14-7"></a><span class="w">    </span><span class="p">}</span>
+<a id="__codelineno-14-8" name="__codelineno-14-8" href="#__codelineno-14-8"></a>
+<a id="__codelineno-14-9" name="__codelineno-14-9" href="#__codelineno-14-9"></a><span class="w">    </span><span class="kd">public</span><span class="w"> </span><span class="kd">static</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="nf">main</span><span class="p">(</span><span class="n">String</span><span class="o">[]</span><span class="w"> </span><span class="n">args</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-14-10" name="__codelineno-14-10" href="#__codelineno-14-10"></a><span class="w">        </span><span class="k">try</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-14-11" name="__codelineno-14-11" href="#__codelineno-14-11"></a><span class="w">            </span><span class="n">recurse</span><span class="p">();</span>
+<a id="__codelineno-14-12" name="__codelineno-14-12" href="#__codelineno-14-12"></a><span class="w">        </span><span class="p">}</span><span class="w"> </span><span class="k">catch</span><span class="w"> </span><span class="p">(</span><span class="n">StackOverflowError</span><span class="w"> </span><span class="n">e</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-14-13" name="__codelineno-14-13" href="#__codelineno-14-13"></a><span class="w">            </span><span class="n">System</span><span class="p">.</span><span class="na">out</span><span class="p">.</span><span class="na">println</span><span class="p">(</span><span class="s">&quot;栈溢出！递归深度 = &quot;</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">depth</span><span class="p">);</span>
+<a id="__codelineno-14-14" name="__codelineno-14-14" href="#__codelineno-14-14"></a><span class="w">        </span><span class="p">}</span>
+<a id="__codelineno-14-15" name="__codelineno-14-15" href="#__codelineno-14-15"></a><span class="w">    </span><span class="p">}</span>
+<a id="__codelineno-14-16" name="__codelineno-14-16" href="#__codelineno-14-16"></a><span class="p">}</span>
+</code></pre></div>
+<h3 id="92-outofmemoryerror-xmx32m-xxheapdumponoutofmemoryerror">9.2 复现 OutOfMemoryError（运行参数：<code>-Xmx32m -XX:+HeapDumpOnOutOfMemoryError</code>）<a class="headerlink" href="#92-outofmemoryerror-xmx32m-xxheapdumponoutofmemoryerror" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-15-1" name="__codelineno-15-1" href="#__codelineno-15-1"></a><span class="kn">import</span><span class="w"> </span><span class="nn">java.util.ArrayList</span><span class="p">;</span>
+<a id="__codelineno-15-2" name="__codelineno-15-2" href="#__codelineno-15-2"></a><span class="kn">import</span><span class="w"> </span><span class="nn">java.util.List</span><span class="p">;</span>
+<a id="__codelineno-15-3" name="__codelineno-15-3" href="#__codelineno-15-3"></a>
+<a id="__codelineno-15-4" name="__codelineno-15-4" href="#__codelineno-15-4"></a><span class="kd">public</span><span class="w"> </span><span class="kd">class</span> <span class="nc">OOMDemo</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-15-5" name="__codelineno-15-5" href="#__codelineno-15-5"></a><span class="w">    </span><span class="kd">static</span><span class="w"> </span><span class="kd">class</span> <span class="nc">BigObject</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-15-6" name="__codelineno-15-6" href="#__codelineno-15-6"></a><span class="w">        </span><span class="kd">private</span><span class="w"> </span><span class="kd">final</span><span class="w"> </span><span class="kt">byte</span><span class="o">[]</span><span class="w"> </span><span class="n">data</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">new</span><span class="w"> </span><span class="kt">byte</span><span class="o">[</span><span class="mi">1024</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="mi">1024</span><span class="o">]</span><span class="p">;</span><span class="w"> </span><span class="c1">// 每个约 1MB</span>
+<a id="__codelineno-15-7" name="__codelineno-15-7" href="#__codelineno-15-7"></a><span class="w">    </span><span class="p">}</span>
+<a id="__codelineno-15-8" name="__codelineno-15-8" href="#__codelineno-15-8"></a>
+<a id="__codelineno-15-9" name="__codelineno-15-9" href="#__codelineno-15-9"></a><span class="w">    </span><span class="kd">public</span><span class="w"> </span><span class="kd">static</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="nf">main</span><span class="p">(</span><span class="n">String</span><span class="o">[]</span><span class="w"> </span><span class="n">args</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-15-10" name="__codelineno-15-10" href="#__codelineno-15-10"></a><span class="w">        </span><span class="n">List</span><span class="o">&lt;</span><span class="n">BigObject</span><span class="o">&gt;</span><span class="w"> </span><span class="n">list</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">new</span><span class="w"> </span><span class="n">ArrayList</span><span class="o">&lt;&gt;</span><span class="p">();</span>
+<a id="__codelineno-15-11" name="__codelineno-15-11" href="#__codelineno-15-11"></a><span class="w">        </span><span class="k">while</span><span class="w"> </span><span class="p">(</span><span class="kc">true</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-15-12" name="__codelineno-15-12" href="#__codelineno-15-12"></a><span class="w">            </span><span class="n">list</span><span class="p">.</span><span class="na">add</span><span class="p">(</span><span class="k">new</span><span class="w"> </span><span class="n">BigObject</span><span class="p">());</span><span class="w"> </span><span class="c1">// 只进不出，强引用一直持有</span>
+<a id="__codelineno-15-13" name="__codelineno-15-13" href="#__codelineno-15-13"></a><span class="w">        </span><span class="p">}</span>
+<a id="__codelineno-15-14" name="__codelineno-15-14" href="#__codelineno-15-14"></a><span class="w">        </span><span class="c1">// java.lang.OutOfMemoryError: Java heap space</span>
+<a id="__codelineno-15-15" name="__codelineno-15-15" href="#__codelineno-15-15"></a><span class="w">    </span><span class="p">}</span>
+<a id="__codelineno-15-16" name="__codelineno-15-16" href="#__codelineno-15-16"></a><span class="p">}</span>
+</code></pre></div>
+<p>⚠️ <strong>泄漏 vs 溢出</strong>：泄漏是对象用不到却回收不掉（集合只进不出、监听器不注销）；溢出是内存真不够用。泄漏是因，溢出是果。</p>
+<h3 id="93">9.3 排查工具速查<a class="headerlink" href="#93" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>工具</th>
+<th>用途</th>
+<th>常用命令</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>jps</td>
+<td>找 Java 进程</td>
+<td><code>jps -l</code></td>
+</tr>
+<tr>
+<td>jstat</td>
+<td>GC 统计</td>
+<td><code>jstat -gc &lt;pid&gt; 1000</code></td>
+</tr>
+<tr>
+<td>jmap</td>
+<td>导出堆快照</td>
+<td><code>jmap -dump:format=b,file=heap.hprof &lt;pid&gt;</code></td>
+</tr>
+<tr>
+<td>jstack</td>
+<td>线程快照（查死锁/CPU 高）</td>
+<td><code>jstack &lt;pid&gt;</code></td>
+</tr>
+<tr>
+<td>jconsole / jvisualvm</td>
+<td>图形化监控</td>
+<td>直接启动连接进程</td>
+</tr>
+</tbody>
+</table>
+<p><strong>套路</strong>：jps 找进程 → jstat 看 GC 频率 → jmap 导快照 → MAT/VisualVM 找大对象 → 定位泄漏。</p>
+<hr />
+<h2 id="10">10. 高频面试题 ⭐<a class="headerlink" href="#10" title="Permanent link">&para;</a></h2>
+<p><strong>Q1：什么是双亲委派？为什么需要？</strong>
+A：加载请求逐级委派给父加载器，父搞不定才自己加载。保证核心类不被篡改（安全）、类只加载一次（唯一）。Tomcat 重写 <code>loadClass()</code> 优先自加载来打破它。</p>
+<p><strong>Q2：堆和栈的区别？</strong>
+A：栈线程私有，存局部变量和方法帧，随方法进出，空间小速度快；堆线程共享，存对象实例，由 GC 管理。递归过深 → StackOverflowError（栈）；对象太多 → OOM（堆）。</p>
+<p><strong>Q3：什么时候触发 Full GC？</strong>
+A：老年代不足、元空间不足、<code>System.gc()</code>、晋升担保失败、CMS 并发失败。会 STW，线上频繁触发要立即排查。</p>
+<p><strong>Q4：内存泄漏和溢出的区别？</strong>
+A：泄漏（Leak）是对象无用但被 GC Roots 可达无法回收；溢出（OOM）是空间确实不足。泄漏积累会引发溢出。</p>
+<p><strong>Q5：为什么 JDK 8 用元空间替换永久代？</strong>
+A：永久代大小难估，动态类场景易 OOM；元空间用本地内存更弹性；简化 Full GC；为 HotSpot 与 JRockit 合并铺路。</p>
+<hr />
+<h2 id="11">11. 练习题<a class="headerlink" href="#11" title="Permanent link">&para;</a></h2>
+<p><strong>练习 1</strong>：写一个必然抛 <code>StackOverflowError</code> 的程序并解释原因。
+<strong>练习 2</strong>：写一个必然抛 <code>OutOfMemoryError: Java heap space</code> 的程序并解释原因。
+<strong>练习 3</strong>：用 <code>-Xmx32m -XX:+PrintGCDetails</code> 运行练习 2，观察 GC 日志：Minor GC 出现几次？Full GC 后为什么还是崩了？</p>
+<details>
+<summary>📖 参考答案（先自己写再看！）</summary>
+
+**练习 1**：见 9.1。每次递归压入新栈帧且不返回，超过 `-Xss` 允许的深度即 StackOverflowError。
+
+**练习 2**：见 9.2。强引用链一直可达，GC 无法回收，堆被撑满后 OOM。
+
+**练习 3**：日志中多次 Minor GC，对象晋升后老年代也满，触发 Full GC；但 list 持有全部对象，Full GC 后堆占用几乎不变，再次分配即 OOM——这正是"泄漏引发溢出"的活教材。
+
+</details>
+
+<hr />
+<h2 id="12">12. 本章小结<a class="headerlink" href="#12" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>主题</th>
+<th>核心要点</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>三者关系</td>
+<td>JDK ⊃ JRE ⊃ JVM</td>
+</tr>
+<tr>
+<td>类加载</td>
+<td>加载→链接→初始化；双亲委派保安全</td>
+</tr>
+<tr>
+<td>内存结构</td>
+<td>堆/方法区共享会 OOM；栈私有会 SOE；程序计数器永不 OOM</td>
+</tr>
+<tr>
+<td>版本演进</td>
+<td>JDK 8 元空间替换永久代；JDK 9 默认 G1；JDK 15 ZGC 转正</td>
+</tr>
+<tr>
+<td>GC 算法</td>
+<td>新生代复制、老年代标记-整理、CMS 标记-清除</td>
+</tr>
+<tr>
+<td>垃圾判断</td>
+<td>可达性分析 + GC Roots；强软弱虚四种引用</td>
+</tr>
+<tr>
+<td>排查</td>
+<td>jps → jstat → jmap → MAT</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="13">13. 下一步<a class="headerlink" href="#13" title="Permanent link">&para;</a></h2>
+<ul>
+<li>🔙 基础不牢先回头：<a href="../../01_%E5%85%A5%E9%97%A8%E7%AF%87/01_Java%20%E5%85%A5%E9%97%A8/">Java 入门</a></li>
+<li>⚡ 并发与内存模型密不可分：<a href="../../03_%E8%BF%9B%E9%98%B6%E7%89%B9%E6%80%A7/01_%E5%A4%9A%E7%BA%BF%E7%A8%8B%E5%9F%BA%E7%A1%80/">多线程基础</a></li>
+<li>🚀 下一篇预告：《02_JVM 调优与 GC 日志分析》</li>
+</ul>
+<hr />
+<p>🎉 恭喜！你已掌握 JVM 内存结构与垃圾回收的核心知识。JVM 调优是"实验科学"——动手把练习 3 的 GC 日志跑出来，比背十遍理论更有用！</p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../../../../..", "features": ["navigation.tabs", "navigation.sections", "navigation.expand", "search.suggest", "search.highlight", "content.code.copy"], "search": "../../../../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "\u5df2\u590d\u5236", "clipboard.copy": "\u590d\u5236", "search.result.more.one": "\u5728\u8be5\u9875\u4e0a\u8fd8\u6709 1 \u4e2a\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.more.other": "\u5728\u8be5\u9875\u4e0a\u8fd8\u6709 # \u4e2a\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.none": "\u6ca1\u6709\u627e\u5230\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.one": "\u627e\u5230 1 \u4e2a\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.other": "# \u4e2a\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.placeholder": "\u952e\u5165\u4ee5\u5f00\u59cb\u641c\u7d22", "search.result.term.missing": "\u7f3a\u5c11", "select.version": "\u9009\u62e9\u5f53\u524d\u7248\u672c"}, "version": null}</script>
+    
+    
+      <script src="../../../../../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+    
+  </body>
+</html>
