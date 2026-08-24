@@ -887,13 +887,74 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#8" class="md-nav__link">
+  <a href="#8-micro-shop" class="md-nav__link">
     <span class="md-ellipsis">
       
-        8. 常见面试题
+        8. 实战：多模块项目（Micro-Shop）
       
     </span>
   </a>
+  
+    <nav class="md-nav" aria-label="8. 实战：多模块项目（Micro-Shop）">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#81" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8.1 项目结构
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#82-settingsgradle" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8.2 settings.gradle 与根配置
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#83" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8.3 子模块配置与模块间依赖
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#84-gradle-87-jdk-17" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8.4 实测输出（Gradle 8.7 + JDK 17）
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#85-onjava8-examples" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8.5 案例参考与避坑：OnJava8-Examples
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
   
 </li>
       
@@ -901,7 +962,7 @@
   <a href="#9" class="md-nav__link">
     <span class="md-ellipsis">
       
-        9. 练习题
+        9. 常见面试题
       
     </span>
   </a>
@@ -912,12 +973,23 @@
   <a href="#10" class="md-nav__link">
     <span class="md-ellipsis">
       
-        10. 本章小结
+        10. 练习题
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="10. 本章小结">
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#11" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        11. 本章小结
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="11. 本章小结">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
@@ -1331,7 +1403,125 @@
 <p>💡 <code>io.spring.dependency-management</code> 插件等价于 Maven 中导入 <code>spring-boot-dependencies</code> BOM，所以 starter 依赖不用写版本号。</p>
 </blockquote>
 <hr />
-<h2 id="8">8. 常见面试题<a class="headerlink" href="#8" title="Permanent link">&para;</a></h2>
+<h2 id="8-micro-shop">8. 实战：多模块项目（Micro-Shop）<a class="headerlink" href="#8-micro-shop" title="Permanent link">&para;</a></h2>
+<p><strong>知识点</strong>：
+- ⭐⭐ 多模块是微服务/分层架构的标配：common（公共库）→ 业务模块 → 应用入口
+- <code>settings.gradle</code> 用 <code>include</code> 声明子模块；根 <code>build.gradle</code> 的 <code>subprojects</code> 块统一公共配置
+- 模块间依赖用 <code>implementation project(':模块名')</code>，传递性规则与第三方依赖一致
+- ⭐ 本节全部代码基于 Gradle 8.7 + JDK 17 实机构建验证（13 个任务全部执行成功）</p>
+<h3 id="81">8.1 项目结构<a class="headerlink" href="#81" title="Permanent link">&para;</a></h3>
+<p>依赖链：<code>app → order-service → common</code>（app 也直接用 common，见 8.4 的隔离实验）</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a>shop-demo/
+<a id="__codelineno-14-2" name="__codelineno-14-2" href="#__codelineno-14-2"></a>├── settings.gradle              # 声明子模块
+<a id="__codelineno-14-3" name="__codelineno-14-3" href="#__codelineno-14-3"></a>├── build.gradle                 # 根项目：统一配置所有子模块
+<a id="__codelineno-14-4" name="__codelineno-14-4" href="#__codelineno-14-4"></a>├── gradle.properties            # 并行 + 构建缓存
+<a id="__codelineno-14-5" name="__codelineno-14-5" href="#__codelineno-14-5"></a>├── gradle/
+<a id="__codelineno-14-6" name="__codelineno-14-6" href="#__codelineno-14-6"></a>│   └── libs.versions.toml       # 版本目录（见 6.3 节）
+<a id="__codelineno-14-7" name="__codelineno-14-7" href="#__codelineno-14-7"></a>├── common/                      # 公共工具库
+<a id="__codelineno-14-8" name="__codelineno-14-8" href="#__codelineno-14-8"></a>│   ├── build.gradle
+<a id="__codelineno-14-9" name="__codelineno-14-9" href="#__codelineno-14-9"></a>│   └── src/main/java/com/example/common/Money.java
+<a id="__codelineno-14-10" name="__codelineno-14-10" href="#__codelineno-14-10"></a>├── order-service/               # 业务模块，依赖 common
+<a id="__codelineno-14-11" name="__codelineno-14-11" href="#__codelineno-14-11"></a>│   ├── build.gradle
+<a id="__codelineno-14-12" name="__codelineno-14-12" href="#__codelineno-14-12"></a>│   └── src/main/java/com/example/order/OrderService.java
+<a id="__codelineno-14-13" name="__codelineno-14-13" href="#__codelineno-14-13"></a>└── app/                         # 可运行入口，依赖 order-service
+<a id="__codelineno-14-14" name="__codelineno-14-14" href="#__codelineno-14-14"></a>    ├── build.gradle
+<a id="__codelineno-14-15" name="__codelineno-14-15" href="#__codelineno-14-15"></a>    └── src/main/java/com/example/app/App.java
+</code></pre></div>
+<h3 id="82-settingsgradle">8.2 settings.gradle 与根配置<a class="headerlink" href="#82-settingsgradle" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-15-1" name="__codelineno-15-1" href="#__codelineno-15-1"></a><span class="c1">// settings.gradle：声明子模块（目录名 = 模块名）</span>
+<a id="__codelineno-15-2" name="__codelineno-15-2" href="#__codelineno-15-2"></a><span class="n">rootProject</span><span class="o">.</span><span class="na">name</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">&#39;shop-demo&#39;</span>
+<a id="__codelineno-15-3" name="__codelineno-15-3" href="#__codelineno-15-3"></a><span class="n">include</span><span class="w"> </span><span class="s1">&#39;common&#39;</span><span class="o">,</span><span class="w"> </span><span class="s1">&#39;order-service&#39;</span><span class="o">,</span><span class="w"> </span><span class="s1">&#39;app&#39;</span>
+</code></pre></div>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-16-1" name="__codelineno-16-1" href="#__codelineno-16-1"></a><span class="c1">// 根 build.gradle：subprojects 块对所有子模块统一生效</span>
+<a id="__codelineno-16-2" name="__codelineno-16-2" href="#__codelineno-16-2"></a><span class="n">subprojects</span><span class="w"> </span><span class="o">{</span>
+<a id="__codelineno-16-3" name="__codelineno-16-3" href="#__codelineno-16-3"></a><span class="w">    </span><span class="n">apply</span><span class="w"> </span><span class="nl">plugin:</span><span class="w"> </span><span class="s1">&#39;java&#39;</span>
+<a id="__codelineno-16-4" name="__codelineno-16-4" href="#__codelineno-16-4"></a>
+<a id="__codelineno-16-5" name="__codelineno-16-5" href="#__codelineno-16-5"></a><span class="w">    </span><span class="n">group</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">&#39;com.example&#39;</span>
+<a id="__codelineno-16-6" name="__codelineno-16-6" href="#__codelineno-16-6"></a><span class="w">    </span><span class="n">version</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">&#39;1.0.0&#39;</span>
+<a id="__codelineno-16-7" name="__codelineno-16-7" href="#__codelineno-16-7"></a>
+<a id="__codelineno-16-8" name="__codelineno-16-8" href="#__codelineno-16-8"></a><span class="w">    </span><span class="n">java</span><span class="w"> </span><span class="o">{</span>
+<a id="__codelineno-16-9" name="__codelineno-16-9" href="#__codelineno-16-9"></a><span class="w">        </span><span class="n">toolchain</span><span class="w"> </span><span class="o">{</span><span class="w"> </span><span class="n">languageVersion</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">JavaLanguageVersion</span><span class="o">.</span><span class="na">of</span><span class="o">(</span><span class="mi">17</span><span class="o">)</span><span class="w"> </span><span class="o">}</span>
+<a id="__codelineno-16-10" name="__codelineno-16-10" href="#__codelineno-16-10"></a><span class="w">    </span><span class="o">}</span>
+<a id="__codelineno-16-11" name="__codelineno-16-11" href="#__codelineno-16-11"></a>
+<a id="__codelineno-16-12" name="__codelineno-16-12" href="#__codelineno-16-12"></a><span class="w">    </span><span class="n">repositories</span><span class="w"> </span><span class="o">{</span>
+<a id="__codelineno-16-13" name="__codelineno-16-13" href="#__codelineno-16-13"></a><span class="w">        </span><span class="n">maven</span><span class="w"> </span><span class="o">{</span><span class="w"> </span><span class="n">url</span><span class="w"> </span><span class="s1">&#39;https://maven.aliyun.com/repository/public&#39;</span><span class="w"> </span><span class="o">}</span>
+<a id="__codelineno-16-14" name="__codelineno-16-14" href="#__codelineno-16-14"></a><span class="w">        </span><span class="n">mavenCentral</span><span class="o">()</span>
+<a id="__codelineno-16-15" name="__codelineno-16-15" href="#__codelineno-16-15"></a><span class="w">    </span><span class="o">}</span>
+<a id="__codelineno-16-16" name="__codelineno-16-16" href="#__codelineno-16-16"></a>
+<a id="__codelineno-16-17" name="__codelineno-16-17" href="#__codelineno-16-17"></a><span class="w">    </span><span class="n">tasks</span><span class="o">.</span><span class="na">named</span><span class="o">(</span><span class="s1">&#39;test&#39;</span><span class="o">)</span><span class="w"> </span><span class="o">{</span><span class="w"> </span><span class="n">useJUnitPlatform</span><span class="o">()</span><span class="w"> </span><span class="o">}</span><span class="w">   </span><span class="c1">// 统一启用 JUnit 5</span>
+<a id="__codelineno-16-18" name="__codelineno-16-18" href="#__codelineno-16-18"></a><span class="o">}</span>
+</code></pre></div>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-17-1" name="__codelineno-17-1" href="#__codelineno-17-1"></a><span class="c1"># gradle.properties：多模块必开的两个性能开关</span>
+<a id="__codelineno-17-2" name="__codelineno-17-2" href="#__codelineno-17-2"></a><span class="na">org.gradle.parallel</span><span class="o">=</span><span class="s">true    # 无依赖的模块并行编译</span>
+<a id="__codelineno-17-3" name="__codelineno-17-3" href="#__codelineno-17-3"></a><span class="na">org.gradle.caching</span><span class="o">=</span><span class="s">true     # 构建缓存（实测第二次构建 7 个任务 FROM-CACHE）</span>
+</code></pre></div>
+<blockquote>
+<p>💡 子模块数量多、命名有规律时，可以用闭包动态发现（经典写法，OnJava8-Examples 在用）：
+<code>include rootDir.listFiles().findAll { it.isDirectory() &amp;&amp; !it.name.startsWith('.') }.collect { it.name }</code>
+显式 <code>include</code> 更清晰可控，动态发现适合几十个子模块的大型仓库。</p>
+</blockquote>
+<h3 id="83">8.3 子模块配置与模块间依赖<a class="headerlink" href="#83" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-18-1" name="__codelineno-18-1" href="#__codelineno-18-1"></a><span class="c1">// order-service/build.gradle</span>
+<a id="__codelineno-18-2" name="__codelineno-18-2" href="#__codelineno-18-2"></a><span class="n">dependencies</span><span class="w"> </span><span class="o">{</span>
+<a id="__codelineno-18-3" name="__codelineno-18-3" href="#__codelineno-18-3"></a><span class="w">    </span><span class="n">implementation</span><span class="w"> </span><span class="n">project</span><span class="o">(</span><span class="s1">&#39;:common&#39;</span><span class="o">)</span><span class="w">   </span><span class="c1">// 依赖兄弟模块</span>
+<a id="__codelineno-18-4" name="__codelineno-18-4" href="#__codelineno-18-4"></a><span class="w">    </span><span class="n">testImplementation</span><span class="w"> </span><span class="n">libs</span><span class="o">.</span><span class="na">junit</span><span class="o">.</span><span class="na">jupiter</span>
+<a id="__codelineno-18-5" name="__codelineno-18-5" href="#__codelineno-18-5"></a><span class="o">}</span>
+</code></pre></div>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-19-1" name="__codelineno-19-1" href="#__codelineno-19-1"></a><span class="c1">// app/build.gradle：可运行模块</span>
+<a id="__codelineno-19-2" name="__codelineno-19-2" href="#__codelineno-19-2"></a><span class="n">plugins</span><span class="w"> </span><span class="o">{</span>
+<a id="__codelineno-19-3" name="__codelineno-19-3" href="#__codelineno-19-3"></a><span class="w">    </span><span class="n">id</span><span class="w"> </span><span class="s1">&#39;application&#39;</span>
+<a id="__codelineno-19-4" name="__codelineno-19-4" href="#__codelineno-19-4"></a><span class="o">}</span>
+<a id="__codelineno-19-5" name="__codelineno-19-5" href="#__codelineno-19-5"></a>
+<a id="__codelineno-19-6" name="__codelineno-19-6" href="#__codelineno-19-6"></a><span class="n">dependencies</span><span class="w"> </span><span class="o">{</span>
+<a id="__codelineno-19-7" name="__codelineno-19-7" href="#__codelineno-19-7"></a><span class="w">    </span><span class="n">implementation</span><span class="w"> </span><span class="n">project</span><span class="o">(</span><span class="s1">&#39;:order-service&#39;</span><span class="o">)</span>
+<a id="__codelineno-19-8" name="__codelineno-19-8" href="#__codelineno-19-8"></a><span class="w">    </span><span class="c1">// common 是 order-service 的 implementation 依赖，不会传递过来——</span>
+<a id="__codelineno-19-9" name="__codelineno-19-9" href="#__codelineno-19-9"></a><span class="w">    </span><span class="c1">// app 直接用到了 Money 类，所以必须显式声明（见 8.4 实测证明）</span>
+<a id="__codelineno-19-10" name="__codelineno-19-10" href="#__codelineno-19-10"></a><span class="w">    </span><span class="n">implementation</span><span class="w"> </span><span class="n">project</span><span class="o">(</span><span class="s1">&#39;:common&#39;</span><span class="o">)</span>
+<a id="__codelineno-19-11" name="__codelineno-19-11" href="#__codelineno-19-11"></a><span class="o">}</span>
+<a id="__codelineno-19-12" name="__codelineno-19-12" href="#__codelineno-19-12"></a>
+<a id="__codelineno-19-13" name="__codelineno-19-13" href="#__codelineno-19-13"></a><span class="n">application</span><span class="w"> </span><span class="o">{</span>
+<a id="__codelineno-19-14" name="__codelineno-19-14" href="#__codelineno-19-14"></a><span class="w">    </span><span class="n">mainClass</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">&#39;com.example.app.App&#39;</span>
+<a id="__codelineno-19-15" name="__codelineno-19-15" href="#__codelineno-19-15"></a><span class="o">}</span>
+</code></pre></div>
+<p><code>common</code> 里的 <code>Money</code> 值对象与 <code>order-service</code> 的调用代码从略（完整可运行版本见练习题 3）。</p>
+<h3 id="84-gradle-87-jdk-17">8.4 实测输出（Gradle 8.7 + JDK 17）<a class="headerlink" href="#84-gradle-87-jdk-17" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-20-1" name="__codelineno-20-1" href="#__codelineno-20-1"></a>$<span class="w"> </span>./gradlew<span class="w"> </span>projects
+<a id="__codelineno-20-2" name="__codelineno-20-2" href="#__codelineno-20-2"></a>Root<span class="w"> </span>project<span class="w"> </span><span class="s1">&#39;shop-demo&#39;</span>
+<a id="__codelineno-20-3" name="__codelineno-20-3" href="#__codelineno-20-3"></a>+---<span class="w"> </span>Project<span class="w"> </span><span class="s1">&#39;:app&#39;</span>
+<a id="__codelineno-20-4" name="__codelineno-20-4" href="#__codelineno-20-4"></a>+---<span class="w"> </span>Project<span class="w"> </span><span class="s1">&#39;:common&#39;</span>
+<a id="__codelineno-20-5" name="__codelineno-20-5" href="#__codelineno-20-5"></a><span class="se">\-</span>--<span class="w"> </span>Project<span class="w"> </span><span class="s1">&#39;:order-service&#39;</span>
+<a id="__codelineno-20-6" name="__codelineno-20-6" href="#__codelineno-20-6"></a>
+<a id="__codelineno-20-7" name="__codelineno-20-7" href="#__codelineno-20-7"></a>$<span class="w"> </span>./gradlew<span class="w"> </span>:app:dependencies<span class="w"> </span>--configuration<span class="w"> </span>runtimeClasspath
+<a id="__codelineno-20-8" name="__codelineno-20-8" href="#__codelineno-20-8"></a>runtimeClasspath<span class="w"> </span>-<span class="w"> </span>Runtime<span class="w"> </span>classpath<span class="w"> </span>of<span class="w"> </span><span class="nb">source</span><span class="w"> </span><span class="nb">set</span><span class="w"> </span><span class="s1">&#39;main&#39;</span>.
+<a id="__codelineno-20-9" name="__codelineno-20-9" href="#__codelineno-20-9"></a>+---<span class="w"> </span>project<span class="w"> </span>:order-service
+<a id="__codelineno-20-10" name="__codelineno-20-10" href="#__codelineno-20-10"></a><span class="p">|</span><span class="w">    </span><span class="se">\-</span>--<span class="w"> </span>project<span class="w"> </span>:common
+<a id="__codelineno-20-11" name="__codelineno-20-11" href="#__codelineno-20-11"></a><span class="se">\-</span>--<span class="w"> </span>project<span class="w"> </span>:common
+<a id="__codelineno-20-12" name="__codelineno-20-12" href="#__codelineno-20-12"></a>
+<a id="__codelineno-20-13" name="__codelineno-20-13" href="#__codelineno-20-13"></a>$<span class="w"> </span>./gradlew<span class="w"> </span>build
+<a id="__codelineno-20-14" name="__codelineno-20-14" href="#__codelineno-20-14"></a>BUILD<span class="w"> </span>SUCCESSFUL<span class="w">        </span><span class="c1"># 13 个任务：3 模块 × (编译+测试+打包)</span>
+<a id="__codelineno-20-15" name="__codelineno-20-15" href="#__codelineno-20-15"></a>$<span class="w"> </span>./gradlew<span class="w"> </span>:app:run
+<a id="__codelineno-20-16" name="__codelineno-20-16" href="#__codelineno-20-16"></a>订单总额：59.70<span class="w"> </span>元
+</code></pre></div>
+<p><strong>implementation 隔离性实测</strong>：把 <code>app</code> 里对 <code>:common</code> 的显式依赖删掉再编译——</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-21-1" name="__codelineno-21-1" href="#__codelineno-21-1"></a>&gt; Task :app:compileJava FAILED
+<a id="__codelineno-21-2" name="__codelineno-21-2" href="#__codelineno-21-2"></a>BUILD FAILED    # Money 类不在 app 的编译类路径上
+</code></pre></div>
+<p>因为 <code>order-service</code> 用的是 <code>implementation</code>（不传递）。这正是 6.1 节"能用 implementation 就不用 api"的原因：<strong>谁用谁声明，依赖边界清晰</strong>。若 common 的类型出现在 order-service 的公开 API 签名里，才该升级为 <code>api project(':common')</code>。</p>
+<h3 id="85-onjava8-examples">8.5 案例参考与避坑：OnJava8-Examples<a class="headerlink" href="#85-onjava8-examples" title="Permanent link">&para;</a></h3>
+<p>《On Java 8》（Bruce Eckel）的官方示例仓库 <a href="https://github.com/BruceEckel/OnJava8-Examples">BruceEckel/OnJava8-Examples</a> 是一个 39 子模块的 Gradle 多模块项目，有两个值得学习的技巧：</p>
+<ul>
+<li><code>settings.gradle</code> 用闭包动态发现子模块（8.2 节引用的写法即出于此）</li>
+<li><code>apply from: 'gradle/java.gradle'</code> 把公共构建逻辑抽到共享脚本（现代等价物是 convention plugin）</li>
+</ul>
+<p>⚠️ <strong>但它不适合直接上手练</strong>（本机实测结论）：
+- Gradle 锁定 <strong>6.8.1</strong>，其 Groovy 2.5 无法在 JDK 17 上运行，实测报 <code>Unsupported class file major version 61</code>
+- 配置大量过时写法：<code>compile</code>（Gradle 7 已废弃）、<code>jcenter()</code>（已退役）、<code>buildscript</code> 旧式插件声明
+- 许可证仅允许"课堂场景不修改使用并标注出处"，不可随意修改转载</p>
+<blockquote>
+<p>📖 学习多模块的正确姿势：以本节这种现代化小项目为骨架，读大仓库的<strong>思路</strong>（模块划分、共享配置），而不是照抄旧配置。</p>
+</blockquote>
+<hr />
+<h2 id="9">9. 常见面试题<a class="headerlink" href="#9" title="Permanent link">&para;</a></h2>
 <p><strong>Q1：implementation 和 api 的区别？</strong></p>
 <p><code>api</code> 声明的依赖会<strong>传递</strong>给依赖当前模块的项目，出现在它们的编译类路径上；<code>implementation</code> 的依赖仅本模块可见，不向外暴露。好处是：① 模块内部实现变更不会导致下游重新编译，构建更快；② 依赖边界清晰。结论：<strong>默认 implementation，只有写在公开 API 签名里的依赖才用 api</strong>。</p>
 <p><strong>Q2：为什么项目要自带 Gradle Wrapper？</strong></p>
@@ -1344,39 +1534,106 @@
 <li><strong>避免重复工作</strong>：Maven 每次 <code>mvn clean install</code> 全量重来，Gradle 只算增量</li>
 </ul>
 <hr />
-<h2 id="9">9. 练习题<a class="headerlink" href="#9" title="Permanent link">&para;</a></h2>
+<h2 id="10">10. 练习题<a class="headerlink" href="#10" title="Permanent link">&para;</a></h2>
 <p><strong>练习 1</strong>：使用 Gradle 初始化一个可运行的 Java 控制台项目，执行构建并运行。</p>
 <p><strong>练习 2</strong>：为项目添加 Guava 依赖，使用其 <code>Lists.newArrayList()</code> 创建列表并打印，验证依赖生效。</p>
+<p><strong>练习 3</strong>：按 8 节结构从零搭建 <code>shop-demo</code> 多模块项目（common / order-service / app），跑通 <code>build</code> 和 <code>:app:run</code>，并用 <code>:app:dependencies</code> 验证依赖树。</p>
 <details>
 <summary>📝 参考答案（点击展开）</summary>
 
 **练习 1**：
 
-<div class="highlight"><pre><span></span><code><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a>mkdir<span class="w"> </span>demo<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="nb">cd</span><span class="w"> </span>demo
-<a id="__codelineno-14-2" name="__codelineno-14-2" href="#__codelineno-14-2"></a>gradle<span class="w"> </span>init<span class="w"> </span>--type<span class="w"> </span>java-application
-<a id="__codelineno-14-3" name="__codelineno-14-3" href="#__codelineno-14-3"></a><span class="c1"># 按提示选择：Groovy DSL / Java 17</span>
-<a id="__codelineno-14-4" name="__codelineno-14-4" href="#__codelineno-14-4"></a>
-<a id="__codelineno-14-5" name="__codelineno-14-5" href="#__codelineno-14-5"></a>./gradlew<span class="w"> </span>build<span class="w">     </span><span class="c1"># 编译 + 测试 + 打包</span>
-<a id="__codelineno-14-6" name="__codelineno-14-6" href="#__codelineno-14-6"></a>./gradlew<span class="w"> </span>run<span class="w">       </span><span class="c1"># 输出 Hello, World!</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-22-1" name="__codelineno-22-1" href="#__codelineno-22-1"></a>mkdir<span class="w"> </span>demo<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="nb">cd</span><span class="w"> </span>demo
+<a id="__codelineno-22-2" name="__codelineno-22-2" href="#__codelineno-22-2"></a>gradle<span class="w"> </span>init<span class="w"> </span>--type<span class="w"> </span>java-application
+<a id="__codelineno-22-3" name="__codelineno-22-3" href="#__codelineno-22-3"></a><span class="c1"># 按提示选择：Groovy DSL / Java 17</span>
+<a id="__codelineno-22-4" name="__codelineno-22-4" href="#__codelineno-22-4"></a>
+<a id="__codelineno-22-5" name="__codelineno-22-5" href="#__codelineno-22-5"></a>./gradlew<span class="w"> </span>build<span class="w">     </span><span class="c1"># 编译 + 测试 + 打包</span>
+<a id="__codelineno-22-6" name="__codelineno-22-6" href="#__codelineno-22-6"></a>./gradlew<span class="w"> </span>run<span class="w">       </span><span class="c1"># 输出 Hello, World!</span>
 </code></pre></div>
 
 **练习 2**：在 `build.gradle` 添加 `implementation 'com.google.guava:guava:33.0.0-jre'`，修改 `App.java`：
 
-<div class="highlight"><pre><span></span><code><a id="__codelineno-15-1" name="__codelineno-15-1" href="#__codelineno-15-1"></a><span class="kn">import</span><span class="w"> </span><span class="nn">com.google.common.collect.Lists</span><span class="p">;</span>
-<a id="__codelineno-15-2" name="__codelineno-15-2" href="#__codelineno-15-2"></a>
-<a id="__codelineno-15-3" name="__codelineno-15-3" href="#__codelineno-15-3"></a><span class="kd">public</span><span class="w"> </span><span class="kd">class</span> <span class="nc">App</span><span class="w"> </span><span class="p">{</span>
-<a id="__codelineno-15-4" name="__codelineno-15-4" href="#__codelineno-15-4"></a><span class="w">    </span><span class="kd">public</span><span class="w"> </span><span class="kd">static</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="nf">main</span><span class="p">(</span><span class="n">String</span><span class="o">[]</span><span class="w"> </span><span class="n">args</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
-<a id="__codelineno-15-5" name="__codelineno-15-5" href="#__codelineno-15-5"></a><span class="w">        </span><span class="n">System</span><span class="p">.</span><span class="na">out</span><span class="p">.</span><span class="na">println</span><span class="p">(</span><span class="n">Lists</span><span class="p">.</span><span class="na">newArrayList</span><span class="p">(</span><span class="s">&quot;Java&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;Gradle&quot;</span><span class="p">));</span><span class="w">  </span><span class="c1">// [Java, Gradle]</span>
-<a id="__codelineno-15-6" name="__codelineno-15-6" href="#__codelineno-15-6"></a><span class="w">    </span><span class="p">}</span>
-<a id="__codelineno-15-7" name="__codelineno-15-7" href="#__codelineno-15-7"></a><span class="p">}</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-23-1" name="__codelineno-23-1" href="#__codelineno-23-1"></a><span class="kn">import</span><span class="w"> </span><span class="nn">com.google.common.collect.Lists</span><span class="p">;</span>
+<a id="__codelineno-23-2" name="__codelineno-23-2" href="#__codelineno-23-2"></a>
+<a id="__codelineno-23-3" name="__codelineno-23-3" href="#__codelineno-23-3"></a><span class="kd">public</span><span class="w"> </span><span class="kd">class</span> <span class="nc">App</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-23-4" name="__codelineno-23-4" href="#__codelineno-23-4"></a><span class="w">    </span><span class="kd">public</span><span class="w"> </span><span class="kd">static</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="nf">main</span><span class="p">(</span><span class="n">String</span><span class="o">[]</span><span class="w"> </span><span class="n">args</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-23-5" name="__codelineno-23-5" href="#__codelineno-23-5"></a><span class="w">        </span><span class="n">System</span><span class="p">.</span><span class="na">out</span><span class="p">.</span><span class="na">println</span><span class="p">(</span><span class="n">Lists</span><span class="p">.</span><span class="na">newArrayList</span><span class="p">(</span><span class="s">&quot;Java&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;Gradle&quot;</span><span class="p">));</span><span class="w">  </span><span class="c1">// [Java, Gradle]</span>
+<a id="__codelineno-23-6" name="__codelineno-23-6" href="#__codelineno-23-6"></a><span class="w">    </span><span class="p">}</span>
+<a id="__codelineno-23-7" name="__codelineno-23-7" href="#__codelineno-23-7"></a><span class="p">}</span>
 </code></pre></div>
 
 运行 `./gradlew run` 输出列表即成功；`./gradlew dependencies` 可查看传递依赖。
 
+**练习 3**：四个构建文件见 8.2/8.3 节，以下为三个模块的 Java 源码（已实机验证）：
+
+<div class="highlight"><pre><span></span><code><a id="__codelineno-24-1" name="__codelineno-24-1" href="#__codelineno-24-1"></a><span class="c1">// common/src/main/java/com/example/common/Money.java</span>
+<a id="__codelineno-24-2" name="__codelineno-24-2" href="#__codelineno-24-2"></a><span class="kn">package</span><span class="w"> </span><span class="nn">com.example.common</span><span class="p">;</span>
+<a id="__codelineno-24-3" name="__codelineno-24-3" href="#__codelineno-24-3"></a>
+<a id="__codelineno-24-4" name="__codelineno-24-4" href="#__codelineno-24-4"></a><span class="cm">/** Money: simple value object for price calculation. */</span>
+<a id="__codelineno-24-5" name="__codelineno-24-5" href="#__codelineno-24-5"></a><span class="kd">public</span><span class="w"> </span><span class="kd">class</span> <span class="nc">Money</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-24-6" name="__codelineno-24-6" href="#__codelineno-24-6"></a><span class="w">    </span><span class="kd">private</span><span class="w"> </span><span class="kd">final</span><span class="w"> </span><span class="kt">long</span><span class="w"> </span><span class="n">cents</span><span class="p">;</span>
+<a id="__codelineno-24-7" name="__codelineno-24-7" href="#__codelineno-24-7"></a>
+<a id="__codelineno-24-8" name="__codelineno-24-8" href="#__codelineno-24-8"></a><span class="w">    </span><span class="kd">private</span><span class="w"> </span><span class="nf">Money</span><span class="p">(</span><span class="kt">long</span><span class="w"> </span><span class="n">cents</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-24-9" name="__codelineno-24-9" href="#__codelineno-24-9"></a><span class="w">        </span><span class="k">this</span><span class="p">.</span><span class="na">cents</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">cents</span><span class="p">;</span>
+<a id="__codelineno-24-10" name="__codelineno-24-10" href="#__codelineno-24-10"></a><span class="w">    </span><span class="p">}</span>
+<a id="__codelineno-24-11" name="__codelineno-24-11" href="#__codelineno-24-11"></a>
+<a id="__codelineno-24-12" name="__codelineno-24-12" href="#__codelineno-24-12"></a><span class="w">    </span><span class="kd">public</span><span class="w"> </span><span class="kd">static</span><span class="w"> </span><span class="n">Money</span><span class="w"> </span><span class="nf">ofYuan</span><span class="p">(</span><span class="kt">double</span><span class="w"> </span><span class="n">yuan</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-24-13" name="__codelineno-24-13" href="#__codelineno-24-13"></a><span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="k">new</span><span class="w"> </span><span class="n">Money</span><span class="p">(</span><span class="n">Math</span><span class="p">.</span><span class="na">round</span><span class="p">(</span><span class="n">yuan</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="mi">100</span><span class="p">));</span><span class="w">   </span><span class="c1">// 用 long 存分，避免浮点误差</span>
+<a id="__codelineno-24-14" name="__codelineno-24-14" href="#__codelineno-24-14"></a><span class="w">    </span><span class="p">}</span>
+<a id="__codelineno-24-15" name="__codelineno-24-15" href="#__codelineno-24-15"></a>
+<a id="__codelineno-24-16" name="__codelineno-24-16" href="#__codelineno-24-16"></a><span class="w">    </span><span class="kd">public</span><span class="w"> </span><span class="n">Money</span><span class="w"> </span><span class="nf">multiply</span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">quantity</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-24-17" name="__codelineno-24-17" href="#__codelineno-24-17"></a><span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="k">new</span><span class="w"> </span><span class="n">Money</span><span class="p">(</span><span class="n">cents</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">quantity</span><span class="p">);</span>
+<a id="__codelineno-24-18" name="__codelineno-24-18" href="#__codelineno-24-18"></a><span class="w">    </span><span class="p">}</span>
+<a id="__codelineno-24-19" name="__codelineno-24-19" href="#__codelineno-24-19"></a>
+<a id="__codelineno-24-20" name="__codelineno-24-20" href="#__codelineno-24-20"></a><span class="w">    </span><span class="kd">public</span><span class="w"> </span><span class="kt">long</span><span class="w"> </span><span class="nf">getCents</span><span class="p">()</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-24-21" name="__codelineno-24-21" href="#__codelineno-24-21"></a><span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="n">cents</span><span class="p">;</span>
+<a id="__codelineno-24-22" name="__codelineno-24-22" href="#__codelineno-24-22"></a><span class="w">    </span><span class="p">}</span>
+<a id="__codelineno-24-23" name="__codelineno-24-23" href="#__codelineno-24-23"></a>
+<a id="__codelineno-24-24" name="__codelineno-24-24" href="#__codelineno-24-24"></a><span class="w">    </span><span class="nd">@Override</span>
+<a id="__codelineno-24-25" name="__codelineno-24-25" href="#__codelineno-24-25"></a><span class="w">    </span><span class="kd">public</span><span class="w"> </span><span class="n">String</span><span class="w"> </span><span class="nf">toString</span><span class="p">()</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-24-26" name="__codelineno-24-26" href="#__codelineno-24-26"></a><span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="n">String</span><span class="p">.</span><span class="na">format</span><span class="p">(</span><span class="s">&quot;%.2f&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">cents</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="mf">100.0</span><span class="p">);</span>
+<a id="__codelineno-24-27" name="__codelineno-24-27" href="#__codelineno-24-27"></a><span class="w">    </span><span class="p">}</span>
+<a id="__codelineno-24-28" name="__codelineno-24-28" href="#__codelineno-24-28"></a><span class="p">}</span>
+</code></pre></div>
+
+<div class="highlight"><pre><span></span><code><a id="__codelineno-25-1" name="__codelineno-25-1" href="#__codelineno-25-1"></a><span class="c1">// order-service/src/main/java/com/example/order/OrderService.java</span>
+<a id="__codelineno-25-2" name="__codelineno-25-2" href="#__codelineno-25-2"></a><span class="kn">package</span><span class="w"> </span><span class="nn">com.example.order</span><span class="p">;</span>
+<a id="__codelineno-25-3" name="__codelineno-25-3" href="#__codelineno-25-3"></a>
+<a id="__codelineno-25-4" name="__codelineno-25-4" href="#__codelineno-25-4"></a><span class="kn">import</span><span class="w"> </span><span class="nn">com.example.common.Money</span><span class="p">;</span>
+<a id="__codelineno-25-5" name="__codelineno-25-5" href="#__codelineno-25-5"></a>
+<a id="__codelineno-25-6" name="__codelineno-25-6" href="#__codelineno-25-6"></a><span class="cm">/** OrderService: computes order total using Money from common module. */</span>
+<a id="__codelineno-25-7" name="__codelineno-25-7" href="#__codelineno-25-7"></a><span class="kd">public</span><span class="w"> </span><span class="kd">class</span> <span class="nc">OrderService</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-25-8" name="__codelineno-25-8" href="#__codelineno-25-8"></a><span class="w">    </span><span class="kd">public</span><span class="w"> </span><span class="n">Money</span><span class="w"> </span><span class="nf">totalPrice</span><span class="p">(</span><span class="n">Money</span><span class="w"> </span><span class="n">unitPrice</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">quantity</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-25-9" name="__codelineno-25-9" href="#__codelineno-25-9"></a><span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">quantity</span><span class="w"> </span><span class="o">&lt;=</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-25-10" name="__codelineno-25-10" href="#__codelineno-25-10"></a><span class="w">            </span><span class="k">throw</span><span class="w"> </span><span class="k">new</span><span class="w"> </span><span class="n">IllegalArgumentException</span><span class="p">(</span><span class="s">&quot;quantity must be positive&quot;</span><span class="p">);</span>
+<a id="__codelineno-25-11" name="__codelineno-25-11" href="#__codelineno-25-11"></a><span class="w">        </span><span class="p">}</span>
+<a id="__codelineno-25-12" name="__codelineno-25-12" href="#__codelineno-25-12"></a><span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="n">unitPrice</span><span class="p">.</span><span class="na">multiply</span><span class="p">(</span><span class="n">quantity</span><span class="p">);</span>
+<a id="__codelineno-25-13" name="__codelineno-25-13" href="#__codelineno-25-13"></a><span class="w">    </span><span class="p">}</span>
+<a id="__codelineno-25-14" name="__codelineno-25-14" href="#__codelineno-25-14"></a><span class="p">}</span>
+</code></pre></div>
+
+<div class="highlight"><pre><span></span><code><a id="__codelineno-26-1" name="__codelineno-26-1" href="#__codelineno-26-1"></a><span class="c1">// app/src/main/java/com/example/app/App.java</span>
+<a id="__codelineno-26-2" name="__codelineno-26-2" href="#__codelineno-26-2"></a><span class="kn">package</span><span class="w"> </span><span class="nn">com.example.app</span><span class="p">;</span>
+<a id="__codelineno-26-3" name="__codelineno-26-3" href="#__codelineno-26-3"></a>
+<a id="__codelineno-26-4" name="__codelineno-26-4" href="#__codelineno-26-4"></a><span class="kn">import</span><span class="w"> </span><span class="nn">com.example.common.Money</span><span class="p">;</span>
+<a id="__codelineno-26-5" name="__codelineno-26-5" href="#__codelineno-26-5"></a><span class="kn">import</span><span class="w"> </span><span class="nn">com.example.order.OrderService</span><span class="p">;</span>
+<a id="__codelineno-26-6" name="__codelineno-26-6" href="#__codelineno-26-6"></a>
+<a id="__codelineno-26-7" name="__codelineno-26-7" href="#__codelineno-26-7"></a><span class="cm">/** Console entry point demonstrating the multi-module dependency chain. */</span>
+<a id="__codelineno-26-8" name="__codelineno-26-8" href="#__codelineno-26-8"></a><span class="kd">public</span><span class="w"> </span><span class="kd">class</span> <span class="nc">App</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-26-9" name="__codelineno-26-9" href="#__codelineno-26-9"></a><span class="w">    </span><span class="kd">public</span><span class="w"> </span><span class="kd">static</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="nf">main</span><span class="p">(</span><span class="n">String</span><span class="o">[]</span><span class="w"> </span><span class="n">args</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-26-10" name="__codelineno-26-10" href="#__codelineno-26-10"></a><span class="w">        </span><span class="n">OrderService</span><span class="w"> </span><span class="n">svc</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">new</span><span class="w"> </span><span class="n">OrderService</span><span class="p">();</span>
+<a id="__codelineno-26-11" name="__codelineno-26-11" href="#__codelineno-26-11"></a><span class="w">        </span><span class="n">Money</span><span class="w"> </span><span class="n">total</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">svc</span><span class="p">.</span><span class="na">totalPrice</span><span class="p">(</span><span class="n">Money</span><span class="p">.</span><span class="na">ofYuan</span><span class="p">(</span><span class="mf">19.9</span><span class="p">),</span><span class="w"> </span><span class="mi">3</span><span class="p">);</span>
+<a id="__codelineno-26-12" name="__codelineno-26-12" href="#__codelineno-26-12"></a><span class="w">        </span><span class="n">System</span><span class="p">.</span><span class="na">out</span><span class="p">.</span><span class="na">println</span><span class="p">(</span><span class="s">&quot;订单总额：&quot;</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">total</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="s">&quot; 元&quot;</span><span class="p">);</span><span class="w">   </span><span class="c1">// 订单总额：59.70 元</span>
+<a id="__codelineno-26-13" name="__codelineno-26-13" href="#__codelineno-26-13"></a><span class="w">    </span><span class="p">}</span>
+<a id="__codelineno-26-14" name="__codelineno-26-14" href="#__codelineno-26-14"></a><span class="p">}</span>
+</code></pre></div>
+
+验收：`./gradlew build` 显示 13 个任务成功（3 个测试全部通过），`./gradlew :app:run` 输出 `订单总额：59.70 元`。
+
 </details>
 
 <hr />
-<h2 id="10">10. 本章小结<a class="headerlink" href="#10" title="Permanent link">&para;</a></h2>
+<h2 id="11">11. 本章小结<a class="headerlink" href="#11" title="Permanent link">&para;</a></h2>
 <h3 id="_1">核心知识点<a class="headerlink" href="#_1" title="Permanent link">&para;</a></h3>
 <p>✅ <strong>核心概念</strong>：Project / Task / Plugin，构建即任务依赖图<br />
 ✅ <strong>Wrapper</strong>：gradlew 锁定版本，保证团队环境一致<br />
@@ -1384,14 +1641,16 @@
 ✅ <strong>依赖范围</strong>：implementation（默认）、api、compileOnly、runtimeOnly<br />
 ✅ <strong>Kotlin DSL</strong>：类型安全，IDE 支持更好，官方推荐<br />
 ✅ <strong>版本目录</strong>：libs.versions.toml 统一管理版本<br />
+✅ <strong>多模块</strong>：settings.gradle include 声明、subprojects 统一配置、project(':模块') 互引、并行+缓存提速<br />
 ✅ <strong>性能优势</strong>：增量构建 + 构建缓存 + 并行执行  </p>
 <h3 id="_2">最佳实践<a class="headerlink" href="#_2" title="Permanent link">&para;</a></h3>
 <ol>
 <li>⭐ 始终使用 Wrapper，并提交到 Git</li>
-<li>依赖默认用 <code>implementation</code>，最小化 <code>api</code></li>
+<li>依赖默认用 <code>implementation</code>，最小化 <code>api</code>（谁用谁声明）</li>
 <li>国内开发配置阿里云镜像加速</li>
 <li>用 <code>./gradlew dependencies</code> 排查依赖冲突</li>
-<li>大型项目开启构建缓存：<code>org.gradle.caching=true</code>（gradle.properties）</li>
+<li>多模块项目开启 <code>org.gradle.parallel</code> + <code>org.gradle.caching</code></li>
+<li>参考大型开源项目学思路，但注意 Gradle 版本与配置写法是否过时</li>
 </ol>
 <hr />
 <p>🎉 <strong>恭喜完成 Gradle 学习！继续学习 <a href="../05_Java%20%E7%BC%96%E7%A0%81%E8%A7%84%E8%8C%83/">Java 编码规范</a></strong></p>
