@@ -2048,28 +2048,33 @@ Martin Kleppmann 和 Redis 官方对此有过著名争论。生产环境建议�
 <a id="__codelineno-23-25" name="__codelineno-23-25" href="#__codelineno-23-25"></a><span class="k">else</span><span class="p">:</span>
 <a id="__codelineno-23-26" name="__codelineno-23-26" href="#__codelineno-23-26"></a>    <span class="k">return</span> <span class="s2">&quot;Rate limit exceeded&quot;</span><span class="p">,</span> <span class="mi">429</span>
 </code></pre></div>
-上面限流存在两个问题：
-1. 竞态条件（Race Condition）： <code>incr</code> 和 <code>expire</code> 不是原子操作！高并发下可能出现：
-    + 线程 A 执行 incr 返回 1
-    + 线程 B 执行 incr 返回 2
-    + 线程 A 执行 expire 设置过期时间
-    + 线程 B 也判断 current == 1 ❌ 不成立，但假设并发时序不同可能导致 expire 没被设置
-   + 结果：key 永不过期，内存泄漏
+上面限流存在两个问题：</p>
+<ol>
+<li>竞态条件（Race Condition）： <code>incr</code> 和 <code>expire</code> 不是原子操作！高并发下可能出现：<ul>
+<li>线程 A 执行 incr 返回 1</li>
+<li>线程 B 执行 incr 返回 2</li>
+<li>线程 A 执行 expire 设置过期时间</li>
+<li>线程 B 也判断 current == 1 ❌ 不成立，但假设并发时序不同可能导致 expire 没被设置</li>
+</ul>
+</li>
+<li>结果：key 永不过期，内存泄漏
 <div class="highlight"><pre><span></span><code><a id="__codelineno-24-1" name="__codelineno-24-1" href="#__codelineno-24-1"></a>时间线（内存泄漏场景）：
 <a id="__codelineno-24-2" name="__codelineno-24-2" href="#__codelineno-24-2"></a>T1: 线程 A 执行 incr，返回 1
 <a id="__codelineno-24-3" name="__codelineno-24-3" href="#__codelineno-24-3"></a>T2: 线程 A 宕机了/网络断了/代码抛异常了...
 <a id="__codelineno-24-4" name="__codelineno-24-4" href="#__codelineno-24-4"></a>T3: 线程 B、C、D... 继续 incr，但再也没有人执行 expire ❌
-</code></pre></div>
-2. 固定时间窗口边界问题:这是固定窗口限流，在窗口边界会被突破：
+</code></pre></div></li>
+<li>固定时间窗口边界问题:这是固定窗口限流，在窗口边界会被突破：
 <div class="highlight"><pre><span></span><code><a id="__codelineno-25-1" name="__codelineno-25-1" href="#__codelineno-25-1"></a><span class="n">window_key</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">key</span><span class="si">}</span><span class="s2">:</span><span class="si">{</span><span class="n">current_time</span><span class="w"> </span><span class="o">//</span><span class="w"> </span><span class="bp">self</span><span class="o">.</span><span class="n">window_seconds</span><span class="si">}</span><span class="s2">&quot;</span>
-</code></pre></div>
-   + 假设窗口 60 秒，0-60 秒一个窗口
-   + 59 秒时来了 100 个请求（用满配额）
-   + 61 秒时又来 100 个请求（新窗口）
-   + 实际 2 秒内处理了 200 个请求，是限流值的 2 倍</p>
-<p>完善版本如下：
-1. 用 Lua 脚本保证 INCR + EXPIRE + 判断 的原子性
-2. 固定窗口问题仍存在，如需更精确可用滑动窗口或令牌桶算法
+</code></pre></div></li>
+<li>假设窗口 60 秒，0-60 秒一个窗口</li>
+<li>59 秒时来了 100 个请求（用满配额）</li>
+<li>61 秒时又来 100 个请求（新窗口）</li>
+<li>实际 2 秒内处理了 200 个请求，是限流值的 2 倍</li>
+</ol>
+<p>完善版本如下：</p>
+<ol>
+<li>用 Lua 脚本保证 INCR + EXPIRE + 判断 的原子性</li>
+<li>固定窗口问题仍存在，如需更精确可用滑动窗口或令牌桶算法
 <div class="highlight"><pre><span></span><code><a id="__codelineno-26-1" name="__codelineno-26-1" href="#__codelineno-26-1"></a><span class="kn">import</span><span class="w"> </span><span class="nn">time</span>
 <a id="__codelineno-26-2" name="__codelineno-26-2" href="#__codelineno-26-2"></a>
 <a id="__codelineno-26-3" name="__codelineno-26-3" href="#__codelineno-26-3"></a><span class="k">class</span><span class="w"> </span><span class="nc">RateLimiter</span><span class="p">:</span>
@@ -2105,7 +2110,8 @@ Martin Kleppmann 和 Redis 官方对此有过著名争论。生产环境建议�
 <a id="__codelineno-26-33" name="__codelineno-26-33" href="#__codelineno-26-33"></a>    <span class="n">process_request</span><span class="p">()</span>
 <a id="__codelineno-26-34" name="__codelineno-26-34" href="#__codelineno-26-34"></a><span class="k">else</span><span class="p">:</span>
 <a id="__codelineno-26-35" name="__codelineno-26-35" href="#__codelineno-26-35"></a>    <span class="k">return</span> <span class="s2">&quot;Rate limit exceeded&quot;</span><span class="p">,</span> <span class="mi">429</span>
-</code></pre></div></p>
+</code></pre></div></li>
+</ol>
 <h5 id="zset">滑动窗口限流器：ZSET 滑动窗口（推荐）<a class="headerlink" href="#zset" title="Permanent link">&para;</a></h5>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-27-1" name="__codelineno-27-1" href="#__codelineno-27-1"></a><span class="kn">import</span><span class="w"> </span><span class="nn">time</span>
 <a id="__codelineno-27-2" name="__codelineno-27-2" href="#__codelineno-27-2"></a><span class="kn">import</span><span class="w"> </span><span class="nn">redis</span>
@@ -2389,10 +2395,12 @@ Martin Kleppmann 和 Redis 官方对此有过著名争论。生产环境建议�
 </tr>
 </tbody>
 </table>
-<p>推荐使用
-1. API 限流 → 滑动窗口（方案一）
-2. 需要支持突发 → 令牌桶（方案二）
-3. 简单场景 → 固定窗口（修复原子性问题后）</p>
+<p>推荐使用</p>
+<ol>
+<li>API 限流 → 滑动窗口（方案一）</li>
+<li>需要支持突发 → 令牌桶（方案二）</li>
+<li>简单场景 → 固定窗口（修复原子性问题后）</li>
+</ol>
 <h3 id="62">6.2 签到系统<a class="headerlink" href="#62" title="Permanent link">&para;</a></h3>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-29-1" name="__codelineno-29-1" href="#__codelineno-29-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">datetime</span><span class="w"> </span><span class="kn">import</span> <span class="n">datetime</span><span class="p">,</span> <span class="n">timedelta</span>
 <a id="__codelineno-29-2" name="__codelineno-29-2" href="#__codelineno-29-2"></a>

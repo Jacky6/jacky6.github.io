@@ -1024,10 +1024,12 @@
 <a id="__codelineno-1-11" name="__codelineno-1-11" href="#__codelineno-1-11"></a>  |        ↓                     |
 <a id="__codelineno-1-12" name="__codelineno-1-12" href="#__codelineno-1-12"></a>  |  内存对象（Java/Go）          |
 </code></pre></div>
-<p><strong>关键点：</strong>
-- 不同语言的对象模型不同（Python dict vs Java Map vs Go map）
-- 网络只能传输字节流
-- 需要一种通用的格式来描述数据</p>
+<p><strong>关键点：</strong></p>
+<ul>
+<li>不同语言的对象模型不同（Python dict vs Java Map vs Go map）</li>
+<li>网络只能传输字节流</li>
+<li>需要一种通用的格式来描述数据</li>
+</ul>
 <hr />
 <h2 id="_2">二、🎯 面试考点：常见的序列化协议<a class="headerlink" href="#_2" title="Permanent link">&para;</a></h2>
 <p><strong>面试官：有哪些常见的序列化协议？各有什么特点？</strong></p>
@@ -1164,10 +1166,12 @@
 <a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a><span class="w">  </span><span class="kt">int32</span><span class="w"> </span><span class="na">age</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">4</span><span class="p">;</span><span class="w">     </span><span class="c1">// 字段编号 4</span>
 <a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a><span class="p">}</span>
 </code></pre></div>
-<p><strong>Protobuf 更小的原因：</strong>
-- 不包含字段名（只用编号）
-- 二进制编码（数字直接存储，不转为字符串）
-- 可选字段不占空间（默认值不编码）</p>
+<p><strong>Protobuf 更小的原因：</strong></p>
+<ul>
+<li>不包含字段名（只用编号）</li>
+<li>二进制编码（数字直接存储，不转为字符串）</li>
+<li>可选字段不占空间（默认值不编码）</li>
+</ul>
 <hr />
 <h2 id="protocol-buffers">三、Protocol Buffers 基础语法<a class="headerlink" href="#protocol-buffers" title="Permanent link">&para;</a></h2>
 <h3 id="31">3.1 定义消息类型<a class="headerlink" href="#31" title="Permanent link">&para;</a></h3>
@@ -1206,12 +1210,14 @@
 <a id="__codelineno-5-10" name="__codelineno-5-10" href="#__codelineno-5-10"></a><span class="w">  </span><span class="kt">int32</span><span class="w"> </span><span class="na">large_field</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">20000</span><span class="p">;</span><span class="w"> </span><span class="c1">// ⚠️ 大号（16-2047）占 2 字节</span>
 <a id="__codelineno-5-11" name="__codelineno-5-11" href="#__codelineno-5-11"></a><span class="p">}</span>
 </code></pre></div>
-<p><strong>字段编号规则：</strong>
-- <strong>1-15</strong>：占 1 字节（包括字段编号 + 类型）→ 常用字段用小编号
-- <strong>16-2047</strong>：占 2 字节 → 不常用字段用大号
-- <strong>19000-19999</strong>：保留，不能使用
-- 编号一旦使用，<strong>不能更改</strong>（否则破坏兼容性）
-- 编号一旦删除，<strong>不能重用</strong>（除非确定旧数据已清理）</p>
+<p><strong>字段编号规则：</strong></p>
+<ul>
+<li><strong>1-15</strong>：占 1 字节（包括字段编号 + 类型）→ 常用字段用小编号</li>
+<li><strong>16-2047</strong>：占 2 字节 → 不常用字段用大号</li>
+<li><strong>19000-19999</strong>：保留，不能使用</li>
+<li>编号一旦使用，<strong>不能更改</strong>（否则破坏兼容性）</li>
+<li>编号一旦删除，<strong>不能重用</strong>（除非确定旧数据已清理）</li>
+</ul>
 <h3 id="33-proto3">3.3 🎯 面试考点：字段规则（proto3）<a class="headerlink" href="#33-proto3" title="Permanent link">&para;</a></h3>
 <p><strong>面试官：proto3 的字段有什么规则？</strong></p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="kd">message</span><span class="w"> </span><span class="nc">Example</span><span class="w"> </span><span class="p">{</span>
@@ -1448,10 +1454,12 @@
 <div class="highlight"><pre><span></span><code><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a><span class="p">{</span><span class="nt">&quot;id&quot;</span><span class="p">:</span><span class="mi">150</span><span class="p">,</span><span class="nt">&quot;name&quot;</span><span class="p">:</span><span class="s2">&quot;Alice&quot;</span><span class="p">}</span>
 <a id="__codelineno-13-2" name="__codelineno-13-2" href="#__codelineno-13-2"></a><span class="c1">// 25 字节（包含字段名、引号、冒号等）</span>
 </code></pre></div>
-<p><strong>Protobuf 更小：</strong>
-- 不包含字段名（只用编号）
-- 数字用 Varint 编码（150 只占 2 字节）
-- 字符串直接存储（不需要引号）</p>
+<p><strong>Protobuf 更小：</strong></p>
+<ul>
+<li>不包含字段名（只用编号）</li>
+<li>数字用 Varint 编码（150 只占 2 字节）</li>
+<li>字符串直接存储（不需要引号）</li>
+</ul>
 <h3 id="43-protobuf">4.3 🎯 面试考点：为什么 Protobuf 快？<a class="headerlink" href="#43-protobuf" title="Permanent link">&para;</a></h3>
 <p><strong>面试官：为什么 Protobuf 比 JSON 快？</strong></p>
 <p><strong>答案：</strong></p>
@@ -1583,10 +1591,12 @@
 <a id="__codelineno-15-13" name="__codelineno-15-13" href="#__codelineno-15-13"></a><span class="w">  </span><span class="k">reserved</span><span class="w"> </span><span class="s">&quot;email&quot;</span><span class="p">;</span><span class="w">     </span><span class="c1">// 保留字段名 &quot;email&quot;</span>
 <a id="__codelineno-15-14" name="__codelineno-15-14" href="#__codelineno-15-14"></a><span class="p">}</span>
 </code></pre></div>
-<p><strong>reserved 的作用：</strong>
-- 防止字段编号被重用（避免与旧数据冲突）
-- 防止字段名被重用（避免命名混淆）
-- protoc 编译器会检查，如果有人使用 reserved 的编号/名字，会报错</p>
+<p><strong>reserved 的作用：</strong></p>
+<ul>
+<li>防止字段编号被重用（避免与旧数据冲突）</li>
+<li>防止字段名被重用（避免命名混淆）</li>
+<li>protoc 编译器会检查，如果有人使用 reserved 的编号/名字，会报错</li>
+</ul>
 <h3 id="53">5.3 🎯 面试考点：枚举的兼容性<a class="headerlink" href="#53" title="Permanent link">&para;</a></h3>
 <p><strong>面试官：枚举如何保证兼容性？</strong></p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-16-1" name="__codelineno-16-1" href="#__codelineno-16-1"></a><span class="c1">// 版本 1</span>
@@ -1604,11 +1614,13 @@
 <a id="__codelineno-16-13" name="__codelineno-16-13" href="#__codelineno-16-13"></a><span class="w">  </span><span class="na">PENDING</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">3</span><span class="p">;</span><span class="w">  </span><span class="c1">// ✅ 新增枚举值（向后兼容）</span>
 <a id="__codelineno-16-14" name="__codelineno-16-14" href="#__codelineno-16-14"></a><span class="p">}</span>
 </code></pre></div>
-<p><strong>枚举兼容性规则：</strong>
-- ✅ 可以新增枚举值
-- ❌ 不能删除枚举值（旧数据可能包含该值）
-- ❌ 不能更改枚举值的编号
-- ✅ 第一个枚举值必须是 0（proto3 要求，作为默认值）</p>
+<p><strong>枚举兼容性规则：</strong></p>
+<ul>
+<li>✅ 可以新增枚举值</li>
+<li>❌ 不能删除枚举值（旧数据可能包含该值）</li>
+<li>❌ 不能更改枚举值的编号</li>
+<li>✅ 第一个枚举值必须是 0（proto3 要求，作为默认值）</li>
+</ul>
 <hr />
 <h2 id="rpc">六、🎯 面试考点：定义 RPC 服务<a class="headerlink" href="#rpc" title="Permanent link">&para;</a></h2>
 <p><strong>面试官：如何在 Protobuf 中定义 RPC 服务？</strong></p>
@@ -1787,11 +1799,13 @@
 <a id="__codelineno-23-15" name="__codelineno-23-15" href="#__codelineno-23-15"></a><span class="w">  </span><span class="kt">string</span><span class="w"> </span><span class="na">name</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">200</span><span class="p">;</span><span class="w">   </span><span class="c1">// ❌ 浪费空间</span>
 <a id="__codelineno-23-16" name="__codelineno-23-16" href="#__codelineno-23-16"></a><span class="p">}</span>
 </code></pre></div>
-<p><strong>最佳实践：</strong>
-- <strong>1-15</strong>：留给最常用的字段（占 1 字节）
-- <strong>16-2047</strong>：留给不常用的字段（占 2 字节）
-- 一旦分配，<strong>不要更改</strong>字段编号
-- 删除字段时，使用 <strong>reserved</strong> 保留编号</p>
+<p><strong>最佳实践：</strong></p>
+<ul>
+<li><strong>1-15</strong>：留给最常用的字段（占 1 字节）</li>
+<li><strong>16-2047</strong>：留给不常用的字段（占 2 字节）</li>
+<li>一旦分配，<strong>不要更改</strong>字段编号</li>
+<li>删除字段时，使用 <strong>reserved</strong> 保留编号</li>
+</ul>
 <h3 id="82-repeated-vs-map">8.2 🎯 面试考点：repeated vs map<a class="headerlink" href="#82-repeated-vs-map" title="Permanent link">&para;</a></h3>
 <p><strong>面试官：什么时候用 repeated，什么时候用 map？</strong></p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-24-1" name="__codelineno-24-1" href="#__codelineno-24-1"></a><span class="kd">message</span><span class="w"> </span><span class="nc">Example</span><span class="w"> </span><span class="p">{</span>
@@ -1862,11 +1876,13 @@
 <a id="__codelineno-25-24" name="__codelineno-25-24" href="#__codelineno-25-24"></a><span class="w">  </span><span class="kt">string</span><span class="w"> </span><span class="na">account_number</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">2</span><span class="p">;</span>
 <a id="__codelineno-25-25" name="__codelineno-25-25" href="#__codelineno-25-25"></a><span class="p">}</span>
 </code></pre></div>
-<p><strong>oneof 的特点：</strong>
-- 同一时刻只能设置一个字段
-- 设置新字段会自动清除旧字段
-- 节省空间（只编码一个字段）
-- 适用于互斥场景（如支付方式、错误类型）</p>
+<p><strong>oneof 的特点：</strong></p>
+<ul>
+<li>同一时刻只能设置一个字段</li>
+<li>设置新字段会自动清除旧字段</li>
+<li>节省空间（只编码一个字段）</li>
+<li>适用于互斥场景（如支付方式、错误类型）</li>
+</ul>
 <hr />
 <h2 id="_4">九、小结<a class="headerlink" href="#_4" title="Permanent link">&para;</a></h2>
 <table>
@@ -1915,12 +1931,14 @@
 </tr>
 </tbody>
 </table>
-<p><strong>🎯 面试必备：</strong>
-- JSON vs Protobuf 对比
-- Protobuf 编码原理（Varint、字段编号、wire_type）
-- 向后兼容性规则（新增字段、reserved、枚举）
-- 四种调用模式（Unary、Server Stream、Client Stream、Bidirectional）
-- 字段编号选择（1-15 常用，16-2047 不常用）</p>
+<p><strong>🎯 面试必备：</strong></p>
+<ul>
+<li>JSON vs Protobuf 对比</li>
+<li>Protobuf 编码原理（Varint、字段编号、wire_type）</li>
+<li>向后兼容性规则（新增字段、reserved、枚举）</li>
+<li>四种调用模式（Unary、Server Stream、Client Stream、Bidirectional）</li>
+<li>字段编号选择（1-15 常用，16-2047 不常用）</li>
+</ul>
 <p>下一章：<a href="../03-gRPC%E6%9C%8D%E5%8A%A1%E7%AB%AF%E4%B8%8E%E5%AE%A2%E6%88%B7%E7%AB%AF%E5%AE%9E%E7%8E%B0/">gRPC 服务端与客户端实现</a> — 动手实现 gRPC 服务，掌握四种调用模式。</p>
 <hr />
 

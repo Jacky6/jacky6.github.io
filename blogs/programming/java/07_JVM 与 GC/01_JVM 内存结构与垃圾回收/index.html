@@ -1012,10 +1012,12 @@
 <p>⚠️ JDK 9 起官方不再单独发行 JRE（可用 <code>jlink</code> 定制最小运行时）。</p>
 <hr />
 <h2 id="2-jvm">2. JVM 整体架构与类加载<a class="headerlink" href="#2-jvm" title="Permanent link">&para;</a></h2>
-<p><strong>知识点</strong>：
-- ⭐ 类加载三阶段：加载→链接（验证/准备/解析）→初始化
-- ⭐ 双亲委派模型：加载请求先逐级委托给父加载器，防止核心类被篡改
-- 打破双亲：SPI（线程上下文类加载器）、Tomcat 隔离 Web 应用</p>
+<p><strong>知识点</strong>：</p>
+<ul>
+<li>⭐ 类加载三阶段：加载→链接（验证/准备/解析）→初始化</li>
+<li>⭐ 双亲委派模型：加载请求先逐级委托给父加载器，防止核心类被篡改</li>
+<li>打破双亲：SPI（线程上下文类加载器）、Tomcat 隔离 Web 应用</li>
+</ul>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>.java --javac--&gt; .class 字节码
 <a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>   → ① 类加载子系统（加载/链接/初始化）
 <a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>   → ② 运行时数据区（堆、栈、方法区...）
@@ -1074,10 +1076,12 @@
 </code></pre></div>
 <hr />
 <h2 id="3">3. 运行时数据区（内存结构）<a class="headerlink" href="#3" title="Permanent link">&para;</a></h2>
-<p><strong>知识点</strong>：
-- ⭐ 五大区域：堆（对象，GC 主战场）、虚拟机栈（线程私有，栈帧）、方法区/元空间（类元信息）、程序计数器、本地方法栈
-- ⭐ JDK 8 起永久代被元空间取代（用本地内存），不再受 -XX:MaxPermSize 限制
-- 栈帧 = 局部变量表 + 操作数栈 + 动态链接 + 返回地址</p>
+<p><strong>知识点</strong>：</p>
+<ul>
+<li>⭐ 五大区域：堆（对象，GC 主战场）、虚拟机栈（线程私有，栈帧）、方法区/元空间（类元信息）、程序计数器、本地方法栈</li>
+<li>⭐ JDK 8 起永久代被元空间取代（用本地内存），不再受 -XX:MaxPermSize 限制</li>
+<li>栈帧 = 局部变量表 + 操作数栈 + 动态链接 + 返回地址</li>
+</ul>
 <blockquote>
 <p>🏢 <strong>类比</strong>：堆是公共会议室（全员共享），虚拟机栈是员工私人工位，程序计数器是便签本（记"干到第几步"）。</p>
 </blockquote>
@@ -1180,10 +1184,12 @@
 </blockquote>
 <hr />
 <h2 id="4-gc">4. 对象的一生与 GC 触发<a class="headerlink" href="#4-gc" title="Permanent link">&para;</a></h2>
-<p><strong>知识点</strong>：
-- 对象分配在堆的新生代（Eden），Eden 满触发 Minor GC
-- ⭐ 晋升机制：年龄达到阈值（默认 15）进老年代；大对象直接进老年代
-- 老年代满触发 Major/Full GC（STW 更长，要尽量避免）</p>
+<p><strong>知识点</strong>：</p>
+<ul>
+<li>对象分配在堆的新生代（Eden），Eden 满触发 Minor GC</li>
+<li>⭐ 晋升机制：年龄达到阈值（默认 15）进老年代；大对象直接进老年代</li>
+<li>老年代满触发 Major/Full GC（STW 更长，要尽量避免）</li>
+</ul>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>new → ① Eden 分配 → Eden 满触发 Minor GC
 <a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a>    → ② 存活复制到 Survivor（S0/S1 来回），年龄 +1
 <a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a>    → ③ 年龄 ≥ 15（-XX:MaxTenuringThreshold）晋升老年代
@@ -1219,9 +1225,11 @@
 <p>⚠️ Full GC 伴随 STW（Stop The World），频率高就是性能事故。</p>
 <hr />
 <h2 id="5">5. 垃圾判定与四种引用<a class="headerlink" href="#5" title="Permanent link">&para;</a></h2>
-<p><strong>知识点</strong>：
-- ⭐ 可达性分析判死活（GC Roots 出发不可达即可回收），不用引用计数（无法解决循环引用）
-- ⭐ 四种引用：强（不回收）→ 软（内存不足才回收，缓存用）→ 弱（下次 GC 回收，ThreadLocal key）→ 虚（跟踪回收）</p>
+<p><strong>知识点</strong>：</p>
+<ul>
+<li>⭐ 可达性分析判死活（GC Roots 出发不可达即可回收），不用引用计数（无法解决循环引用）</li>
+<li>⭐ 四种引用：强（不回收）→ 软（内存不足才回收，缓存用）→ 弱（下次 GC 回收，ThreadLocal key）→ 虚（跟踪回收）</li>
+</ul>
 <h3 id="51-vs">5.1 引用计数 vs 可达性分析<a class="headerlink" href="#51-vs" title="Permanent link">&para;</a></h3>
 <table>
 <thead>
@@ -1299,9 +1307,11 @@
 </code></pre></div>
 <hr />
 <h2 id="6-gc">6. GC 算法<a class="headerlink" href="#6-gc" title="Permanent link">&para;</a></h2>
-<p><strong>知识点</strong>：
-- ⭐ 三算法：标记-清除（碎片）、标记-复制（浪费空间，新生代用）、标记-整理（老年代用）
-- 复制算法适合存活率低的区域——新生代对象朝生夕死，正是其用武之地</p>
+<p><strong>知识点</strong>：</p>
+<ul>
+<li>⭐ 三算法：标记-清除（碎片）、标记-复制（浪费空间，新生代用）、标记-整理（老年代用）</li>
+<li>复制算法适合存活率低的区域——新生代对象朝生夕死，正是其用武之地</li>
+</ul>
 <h3 id="61-">6.1 标记-清除<a class="headerlink" href="#61-" title="Permanent link">&para;</a></h3>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a>┌─┬▓┬─┬▓┬▓┬─┐      ┌─┬ ┬─┬ ┬ ┬─┐
 <a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a>│A│▓│B│▓│▓│C│  →   │A│ │B│ │ │C│  清除后留下碎片
@@ -1364,10 +1374,12 @@
 <p>➡️ 适合<strong>老年代</strong>（存活率高）。</p>
 <hr />
 <h2 id="7-gc">7. GC 收集器<a class="headerlink" href="#7-gc" title="Permanent link">&para;</a></h2>
-<p><strong>知识点</strong>：
-- ⭐ 演进线：Serial/ParNew/Parallel（吞吐量优先）→ CMS（低停顿，已废弃）→ G1（分 Region，JDK 9+ 默认）→ ZGC（超低停顿）
-- ⭐ G1：堆分 Region，可预测停顿时间，优先回收垃圾最多的区域
-- 选型口诀：吞吐优先 Parallel，延迟敏感 G1/ZGC</p>
+<p><strong>知识点</strong>：</p>
+<ul>
+<li>⭐ 演进线：Serial/ParNew/Parallel（吞吐量优先）→ CMS（低停顿，已废弃）→ G1（分 Region，JDK 9+ 默认）→ ZGC（超低停顿）</li>
+<li>⭐ G1：堆分 Region，可预测停顿时间，优先回收垃圾最多的区域</li>
+<li>选型口诀：吞吐优先 Parallel，延迟敏感 G1/ZGC</li>
+</ul>
 <h3 id="71">7.1 一览表 ⭐<a class="headerlink" href="#71" title="Permanent link">&para;</a></h3>
 <table>
 <thead>
@@ -1513,10 +1525,12 @@
 </code></pre></div>
 <hr />
 <h2 id="9">9. 内存问题排查实战<a class="headerlink" href="#9" title="Permanent link">&para;</a></h2>
-<p><strong>知识点</strong>：
-- ⭐ 排查工具链：jstat 看 GC 频率、jmap 导出堆 dump、jstack 看线程栈、MAT/jhat 分析 dump
-- 两类典型事故：StackOverflowError（递归过深，-Xss 调栈）、OutOfMemoryError（堆不够，-Xmx 调大或查泄漏）
-- 加 -XX:+HeapDumpOnOutOfMemoryError 让 OOM 时自动留证据</p>
+<p><strong>知识点</strong>：</p>
+<ul>
+<li>⭐ 排查工具链：jstat 看 GC 频率、jmap 导出堆 dump、jstack 看线程栈、MAT/jhat 分析 dump</li>
+<li>两类典型事故：StackOverflowError（递归过深，-Xss 调栈）、OutOfMemoryError（堆不够，-Xmx 调大或查泄漏）</li>
+<li>加 -XX:+HeapDumpOnOutOfMemoryError 让 OOM 时自动留证据</li>
+</ul>
 <h3 id="91-stackoverflowerror-xss256k">9.1 复现 StackOverflowError（运行参数：<code>-Xss256k</code>）<a class="headerlink" href="#91-stackoverflowerror-xss256k" title="Permanent link">&para;</a></h3>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a><span class="kd">public</span><span class="w"> </span><span class="kd">class</span> <span class="nc">StackOverflowDemo</span><span class="w"> </span><span class="p">{</span>
 <a id="__codelineno-14-2" name="__codelineno-14-2" href="#__codelineno-14-2"></a><span class="w">    </span><span class="kd">private</span><span class="w"> </span><span class="kd">static</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">depth</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span>

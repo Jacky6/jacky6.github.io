@@ -840,10 +840,14 @@
 </code></pre></div>
 <ul>
 <li><strong>Kafka 4.0 起 ZooKeeper 已被彻底移除</strong>，只支持 KRaft 模式</li>
-<li>Controller 是一个独立的 Raft Quorum（通常 3/5 个节点），可以专职，
-  也可以和 Broker 合并部署（combined mode，适合小规模）</li>
-<li>元数据（Topic、分区、副本、ISR 等）存储在内部 topic
-  <code>__cluster_metadata</code> 中，通过 Raft 复制，不再是"选一个 Controller 存 ZK"</li>
+<li>
+<p>Controller 是一个独立的 Raft Quorum（通常 3/5 个节点），可以专职，
+  也可以和 Broker 合并部署（combined mode，适合小规模）</p>
+</li>
+<li>
+<p>元数据（Topic、分区、副本、ISR 等）存储在内部 topic
+  <code>__cluster_metadata</code> 中，通过 Raft 复制，不再是"选一个 Controller 存 ZK"</p>
+</li>
 </ul>
 <h2 id="kraft-vs-zookeeper">KRaft vs ZooKeeper 模式（历史对比）<a class="headerlink" href="#kraft-vs-zookeeper" title="Permanent link">&para;</a></h2>
 <table>
@@ -943,15 +947,19 @@ Tiered Storage 把"冷数据"卸载到远端对象存储（S3/GCS/HDFS/文件系
 <a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a><span class="c1"># local.retention.ms：本地磁盘保留多久（热数据）</span>
 <a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a><span class="c1"># retention.ms：整体保留多久（含远端冷数据）</span>
 </code></pre></div>
-<p>收益：
-- <strong>存储成本</strong>：冷数据放对象存储，Broker 磁盘只留热数据
-- <strong>弹性</strong>：Broker 可以按计算需求扩缩，不用为存数据而扩容
-- <strong>更长的可回溯窗口</strong>：保留期从"几天"变成"几个月/年"</p>
-<p>注意（官方 Limitations）：
-- <strong>不支持 compacted topic</strong>（KIP-1272 在推进中）
-- 单次 fetch 请求只服务<strong>一个</strong>远端分区，回溯冷数据是吞吐瓶颈
-- 关闭 Broker 级开关前必须先删掉所有启用分层的 topic
-- 消费冷数据延迟更高，<code>fetch</code> 会触发远端拉取</p>
+<p>收益：</p>
+<ul>
+<li><strong>存储成本</strong>：冷数据放对象存储，Broker 磁盘只留热数据</li>
+<li><strong>弹性</strong>：Broker 可以按计算需求扩缩，不用为存数据而扩容</li>
+<li><strong>更长的可回溯窗口</strong>：保留期从"几天"变成"几个月/年"</li>
+</ul>
+<p>注意（官方 Limitations）：</p>
+<ul>
+<li><strong>不支持 compacted topic</strong>（KIP-1272 在推进中）</li>
+<li>单次 fetch 请求只服务<strong>一个</strong>远端分区，回溯冷数据是吞吐瓶颈</li>
+<li>关闭 Broker 级开关前必须先删掉所有启用分层的 topic</li>
+<li>消费冷数据延迟更高，<code>fetch</code> 会触发远端拉取</li>
+</ul>
 <h2 id="_3">副本机制<a class="headerlink" href="#_3" title="Permanent link">&para;</a></h2>
 <h3 id="leader-follower">Leader &amp; Follower<a class="headerlink" href="#leader-follower" title="Permanent link">&para;</a></h3>
 <p>每个 Partition 有多个副本（replica），分布在不同的 Broker 上：</p>
@@ -972,15 +980,19 @@ Tiered Storage 把"冷数据"卸载到远端对象存储（S3/GCS/HDFS/文件系
 <a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a>如果 Broker 2 落后太多（超过 replica.lag.time.max.ms）：
 <a id="__codelineno-9-4" name="__codelineno-9-4" href="#__codelineno-9-4"></a>ISR = {Broker 0, Broker 1}   // Broker 2 被踢出
 </code></pre></div>
-<p>关键配置：
-- <code>replica.lag.time.max.ms</code>：Follower 落后多久被踢出 ISR（默认 30s）
-- <code>min.insync.replicas</code>：最少同步副本数（配合 <code>acks=all</code> 使用）</p>
+<p>关键配置：</p>
+<ul>
+<li><code>replica.lag.time.max.ms</code>：Follower 落后多久被踢出 ISR（默认 30s）</li>
+<li><code>min.insync.replicas</code>：最少同步副本数（配合 <code>acks=all</code> 使用）</li>
+</ul>
 <h3 id="leader">Leader 选举<a class="headerlink" href="#leader" title="Permanent link">&para;</a></h3>
-<p>当 Leader 挂掉：
-1. Controller 从 ISR 中选一个新 Leader（通过 AlterPartition）
-2. 如果 ISR 为空 → 看 <code>unclean.leader.election.enable</code>
-   - <code>true</code>：从非 ISR 中选（可能丢数据）
-   - <code>false</code>：Partition 不可用（保证数据不丢，<strong>生产推荐</strong>）</p>
+<p>当 Leader 挂掉：</p>
+<ol>
+<li>Controller 从 ISR 中选一个新 Leader（通过 AlterPartition）</li>
+<li>如果 ISR 为空 → 看 <code>unclean.leader.election.enable</code></li>
+<li><code>true</code>：从非 ISR 中选（可能丢数据）</li>
+<li><code>false</code>：Partition 不可用（保证数据不丢，<strong>生产推荐</strong>）</li>
+</ol>
 <h3 id="hw-leo">高水位（HW）与 LEO<a class="headerlink" href="#hw-leo" title="Permanent link">&para;</a></h3>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a>LEO（Log End Offset）：每个副本下一条要写入的 offset
 <a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a>HW（High Watermark） ：ISR 中所有副本都复制到的最小 LEO
@@ -993,9 +1005,13 @@ Tiered Storage 把"冷数据"卸载到远端对象存储（S3/GCS/HDFS/文件系
 <h3 id="kraft-kafka-4x">KRaft 模式（Kafka 4.x 唯一模式）<a class="headerlink" href="#kraft-kafka-4x" title="Permanent link">&para;</a></h3>
 <ul>
 <li>Controller 是一个 <strong>Raft Quorum</strong>（奇数个节点，通常 3 或 5）</li>
-<li>Active Controller 处理元数据变更（建 Topic、分区重分配、Leader 选举），
-  通过 Raft 日志复制给其他 Controller 和所有 Broker</li>
-<li>Broker 不再需要全量拉取元数据，只订阅增量变更（MetadataVersion 机制）</li>
+<li>
+<p>Active Controller 处理元数据变更（建 Topic、分区重分配、Leader 选举），
+  通过 Raft 日志复制给其他 Controller 和所有 Broker</p>
+</li>
+<li>
+<p>Broker 不再需要全量拉取元数据，只订阅增量变更（MetadataVersion 机制）</p>
+</li>
 <li>配置示例：</li>
 </ul>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a><span class="c1"># server.properties（KRaft 动态 quorum，4.x 推荐）</span>

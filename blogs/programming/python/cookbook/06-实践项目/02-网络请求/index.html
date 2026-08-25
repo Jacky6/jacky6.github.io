@@ -1032,10 +1032,12 @@
 </table>
 <hr />
 <h2 id="urllib-http">🌐 urllib - 内置 HTTP 库<a class="headerlink" href="#urllib-http" title="Permanent link">&para;</a></h2>
-<p><strong>知识点</strong>：
-- urllib.request 是标准库自带的 HTTP 客户端，无需安装
-- 返回的响应是字节流，要 decode 成字符串；状态码用 response.status（旧版本 response.code）
-- ⚠️ 只适合简单请求，复杂场景（session、重试）用 requests</p>
+<p><strong>知识点</strong>：</p>
+<ul>
+<li>urllib.request 是标准库自带的 HTTP 客户端，无需安装</li>
+<li>返回的响应是字节流，要 decode 成字符串；状态码用 response.status（旧版本 response.code）</li>
+<li>⚠️ 只适合简单请求，复杂场景（session、重试）用 requests</li>
+</ul>
 <h3 id="_2">基本请求<a class="headerlink" href="#_2" title="Permanent link">&para;</a></h3>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="kn">import</span><span class="w"> </span><span class="nn">urllib.request</span>
 <a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="kn">import</span><span class="w"> </span><span class="nn">urllib.parse</span>
@@ -1081,11 +1083,13 @@
 <a id="__codelineno-2-10" name="__codelineno-2-10" href="#__codelineno-2-10"></a>    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;网络错误：</span><span class="si">{</span><span class="n">e</span><span class="o">.</span><span class="n">reason</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 </code></pre></div>
 <h2 id="requests-http">📦 requests - 第三方 HTTP 库<a class="headerlink" href="#requests-http" title="Permanent link">&para;</a></h2>
-<p><strong>知识点</strong>：
-- ⭐ requests 是 Python HTTP 请求的事实标准（需 pip install requests）
-- 响应对象：response.text（文本）、response.json()（解析 JSON）、response.status_code
-- ⚠️ requests 默认<strong>不抛异常</strong>（404/500 也正常返回），用 raise_for_status() 检查
-- ⚠️ 所有请求加 timeout 参数，防止服务器无响应时永久阻塞</p>
+<p><strong>知识点</strong>：</p>
+<ul>
+<li>⭐ requests 是 Python HTTP 请求的事实标准（需 pip install requests）</li>
+<li>响应对象：response.text（文本）、response.json()（解析 JSON）、response.status_code</li>
+<li>⚠️ requests 默认<strong>不抛异常</strong>（404/500 也正常返回），用 raise_for_status() 检查</li>
+<li>⚠️ 所有请求加 timeout 参数，防止服务器无响应时永久阻塞</li>
+</ul>
 <h3 id="_5">安装<a class="headerlink" href="#_5" title="Permanent link">&para;</a></h3>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>pip<span class="w"> </span>install<span class="w"> </span>requests
 </code></pre></div>
@@ -1154,9 +1158,11 @@
 <a id="__codelineno-7-12" name="__codelineno-7-12" href="#__codelineno-7-12"></a>        <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">chunk</span><span class="p">)</span>
 </code></pre></div>
 <h2 id="_10">🎯 实际例子<a class="headerlink" href="#_10" title="Permanent link">&para;</a></h2>
-<p><strong>知识点</strong>：
-- 调用第三方 API 的通用套路：组装参数 → GET → 检查状态 → 解析 JSON → 异常兜底
-- API key 等敏感信息不要硬编码，用环境变量</p>
+<p><strong>知识点</strong>：</p>
+<ul>
+<li>调用第三方 API 的通用套路：组装参数 → GET → 检查状态 → 解析 JSON → 异常兜底</li>
+<li>API key 等敏感信息不要硬编码，用环境变量</li>
+</ul>
 <h3 id="1">1. 天气查询<a class="headerlink" href="#1" title="Permanent link">&para;</a></h3>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="kn">import</span><span class="w"> </span><span class="nn">requests</span>
 <a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a>
@@ -1349,11 +1355,13 @@
 <a id="__codelineno-13-36" name="__codelineno-13-36" href="#__codelineno-13-36"></a><span class="c1">#     print(f&quot;  - {item[&#39;title&#39;]}&quot;)</span>
 </code></pre></div>
 <h2 id="_11">⚠️ 最佳实践<a class="headerlink" href="#_11" title="Permanent link">&para;</a></h2>
-<p><strong>知识点</strong>：
-- ⭐ 所有请求必须设 timeout：requests 默认无限等待，服务器无响应时程序会永久阻塞
-- timeout 单值同时作用于连接（connect）和读取（read）；传元组 (connect, read) 分开设置
-- ⚠️ timeout 不是整体下载时限——是"两次收到数据之间"的最大等待，超时抛 Timeout 异常
-- 错误处理按具体异常分层捕获，最后用 RequestException 兜底</p>
+<p><strong>知识点</strong>：</p>
+<ul>
+<li>⭐ 所有请求必须设 timeout：requests 默认无限等待，服务器无响应时程序会永久阻塞</li>
+<li>timeout 单值同时作用于连接（connect）和读取（read）；传元组 (connect, read) 分开设置</li>
+<li>⚠️ timeout 不是整体下载时限——是"两次收到数据之间"的最大等待，超时抛 Timeout 异常</li>
+<li>错误处理按具体异常分层捕获，最后用 RequestException 兜底</li>
+</ul>
 <h3 id="1_1">1. 设置超时<a class="headerlink" href="#1_1" title="Permanent link">&para;</a></h3>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a><span class="c1"># ✅ 推荐</span>
 <a id="__codelineno-14-2" name="__codelineno-14-2" href="#__codelineno-14-2"></a><span class="n">response</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
@@ -1395,11 +1403,13 @@
 <a id="__codelineno-16-8" name="__codelineno-16-8" href="#__codelineno-16-8"></a>    <span class="n">response</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">url</span><span class="p">)</span>
 </code></pre></div>
 <h2 id="_12">🔁 重试与指数退避<a class="headerlink" href="#_12" title="Permanent link">&para;</a></h2>
-<p><strong>知识点</strong>：
-- 网络抖动（超时、连接重置、5xx）很常见，自动重试能显著提高成功率
-- 指数退避：第 n 次重试前等待 delay × 2^n 秒，避免失败时疯狂重试打垮服务器
-- ⭐ 面试重点：为什么用指数退避而不是固定间隔——大量客户端同时重试会形成"重试风暴"
-- 进阶：HTTPAdapter + urllib3 的 Retry 可在连接层自动重试指定状态码</p>
+<p><strong>知识点</strong>：</p>
+<ul>
+<li>网络抖动（超时、连接重置、5xx）很常见，自动重试能显著提高成功率</li>
+<li>指数退避：第 n 次重试前等待 delay × 2^n 秒，避免失败时疯狂重试打垮服务器</li>
+<li>⭐ 面试重点：为什么用指数退避而不是固定间隔——大量客户端同时重试会形成"重试风暴"</li>
+<li>进阶：HTTPAdapter + urllib3 的 Retry 可在连接层自动重试指定状态码</li>
+</ul>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-17-1" name="__codelineno-17-1" href="#__codelineno-17-1"></a><span class="kn">import</span><span class="w"> </span><span class="nn">time</span>
 <a id="__codelineno-17-2" name="__codelineno-17-2" href="#__codelineno-17-2"></a><span class="kn">import</span><span class="w"> </span><span class="nn">requests</span>
 <a id="__codelineno-17-3" name="__codelineno-17-3" href="#__codelineno-17-3"></a>
@@ -1433,11 +1443,13 @@
 <a id="__codelineno-18-9" name="__codelineno-18-9" href="#__codelineno-18-9"></a><span class="n">session</span><span class="o">.</span><span class="n">mount</span><span class="p">(</span><span class="s2">&quot;http://&quot;</span><span class="p">,</span> <span class="n">HTTPAdapter</span><span class="p">(</span><span class="n">max_retries</span><span class="o">=</span><span class="n">retry</span><span class="p">))</span>
 </code></pre></div>
 <h2 id="_13">🤖 爬虫礼貌性<a class="headerlink" href="#_13" title="Permanent link">&para;</a></h2>
-<p><strong>知识点</strong>：
-- 爬虫必须设 User-Agent 表明身份（requests 默认 UA 容易被网站拒绝）
-- 每次请求之间 time.sleep 限速，别把目标服务器打挂；并发爬取更要克制
-- 先看目标网站的 robots.txt（如 https://example.com/robots.txt），遵守爬取规则
-- ⚠️ 商用爬虫还要注意服务条款与数据合规问题</p>
+<p><strong>知识点</strong>：</p>
+<ul>
+<li>爬虫必须设 User-Agent 表明身份（requests 默认 UA 容易被网站拒绝）</li>
+<li>每次请求之间 time.sleep 限速，别把目标服务器打挂；并发爬取更要克制</li>
+<li>先看目标网站的 robots.txt（如 https://example.com/robots.txt），遵守爬取规则</li>
+<li>⚠️ 商用爬虫还要注意服务条款与数据合规问题</li>
+</ul>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-19-1" name="__codelineno-19-1" href="#__codelineno-19-1"></a><span class="kn">import</span><span class="w"> </span><span class="nn">time</span>
 <a id="__codelineno-19-2" name="__codelineno-19-2" href="#__codelineno-19-2"></a><span class="kn">import</span><span class="w"> </span><span class="nn">requests</span>
 <a id="__codelineno-19-3" name="__codelineno-19-3" href="#__codelineno-19-3"></a>

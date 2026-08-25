@@ -943,16 +943,20 @@
 - 面试被问"这些工具类的原理"，答 AQS + state + CAS + 等待队列即可</p>
 </blockquote>
 <h2 id="1-countdownlatch">1. CountDownLatch<a class="headerlink" href="#1-countdownlatch" title="Permanent link">&para;</a></h2>
-<p><strong>知识点</strong>：
-- ⭐ 一次性倒计时器：主线程 await 等 N 个子任务 countDown 完
-- 计数减到 0 唤醒所有等待线程；不可重置
-- ⚠️ countDown 放 finally，防止任务异常导致永久阻塞</p>
+<p><strong>知识点</strong>：</p>
+<ul>
+<li>⭐ 一次性倒计时器：主线程 await 等 N 个子任务 countDown 完</li>
+<li>计数减到 0 唤醒所有等待线程；不可重置</li>
+<li>⚠️ countDown 放 finally，防止任务异常导致永久阻塞</li>
+</ul>
 <h3 id="11">1.1 概述<a class="headerlink" href="#11" title="Permanent link">&para;</a></h3>
 <p><strong>CountDownLatch</strong> 允许一个或多个线程等待其他线程完成操作。</p>
-<p><strong>特点</strong>：
-- ✅ 倒计时器，不可重用
-- ✅ 一个或多个线程等待
-- ✅ 其他线程执行后倒计数</p>
+<p><strong>特点</strong>：</p>
+<ul>
+<li>✅ 倒计时器，不可重用</li>
+<li>✅ 一个或多个线程等待</li>
+<li>✅ 其他线程执行后倒计数</li>
+</ul>
 <p><strong>⚠️ countDown 的异常陷阱（生产事故高发）</strong>：</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="c1">// ❌ 危险：任务抛异常时 countDown 不会执行 → 主线程 await() 永久阻塞</span>
 <a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="k">new</span><span class="w"> </span><span class="n">Thread</span><span class="p">(()</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="p">{</span>
@@ -1047,15 +1051,19 @@
 </code></pre></div>
 <hr />
 <h2 id="2-cyclicbarrier">2. CyclicBarrier<a class="headerlink" href="#2-cyclicbarrier" title="Permanent link">&para;</a></h2>
-<p><strong>知识点</strong>：
-- ⭐ 可复用屏障：N 个线程互相等待到齐后一起继续（await 互相等）
-- 到齐后可执行屏障动作，自动重置进入下一轮</p>
+<p><strong>知识点</strong>：</p>
+<ul>
+<li>⭐ 可复用屏障：N 个线程互相等待到齐后一起继续（await 互相等）</li>
+<li>到齐后可执行屏障动作，自动重置进入下一轮</li>
+</ul>
 <h3 id="21">2.1 概述<a class="headerlink" href="#21" title="Permanent link">&para;</a></h3>
 <p><strong>CyclicBarrier</strong> 让一组线程互相等待，到达屏障点后再一起继续。</p>
-<p><strong>特点</strong>：
-- ✅ 可重用（循环使用）
-- ✅ 多个线程互相等待
-- ✅ 可执行屏障动作</p>
+<p><strong>特点</strong>：</p>
+<ul>
+<li>✅ 可重用（循环使用）</li>
+<li>✅ 多个线程互相等待</li>
+<li>✅ 可执行屏障动作</li>
+</ul>
 <h3 id="22">2.2 基本使用<a class="headerlink" href="#22" title="Permanent link">&para;</a></h3>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="kn">import</span><span class="w"> </span><span class="nn">java.util.concurrent.CyclicBarrier</span><span class="p">;</span>
 <a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>
@@ -1117,15 +1125,19 @@
 </code></pre></div>
 <hr />
 <h2 id="3-semaphore">3. Semaphore<a class="headerlink" href="#3-semaphore" title="Permanent link">&para;</a></h2>
-<p><strong>知识点</strong>：
-- ⭐ 信号量 = 许可池：控制同时访问资源的线程数（限流）
-- acquire 拿许可（无则阻塞）、release 归还；公平模式按排队顺序</p>
+<p><strong>知识点</strong>：</p>
+<ul>
+<li>⭐ 信号量 = 许可池：控制同时访问资源的线程数（限流）</li>
+<li>acquire 拿许可（无则阻塞）、release 归还；公平模式按排队顺序</li>
+</ul>
 <h3 id="31">3.1 概述<a class="headerlink" href="#31" title="Permanent link">&para;</a></h3>
 <p><strong>Semaphore</strong>（信号量）控制同时访问特定资源的线程数量。</p>
-<p><strong>特点</strong>：
-- ✅ 限流
-- ✅ 控制并发访问数
-- ✅ 公平/非公平模式</p>
+<p><strong>特点</strong>：</p>
+<ul>
+<li>✅ 限流</li>
+<li>✅ 控制并发访问数</li>
+<li>✅ 公平/非公平模式</li>
+</ul>
 <h3 id="32">3.2 基本使用<a class="headerlink" href="#32" title="Permanent link">&para;</a></h3>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="kn">import</span><span class="w"> </span><span class="nn">java.util.concurrent.Semaphore</span><span class="p">;</span>
 <a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>
@@ -1188,15 +1200,19 @@
 </code></pre></div>
 <hr />
 <h2 id="4-exchanger">4. Exchanger<a class="headerlink" href="#4-exchanger" title="Permanent link">&para;</a></h2>
-<p><strong>知识点</strong>：
-- 两个线程在交换点互换数据的专用工具（双方都到达才交换）
-- 场景少：遗传算法种群交换、校对双人核对</p>
+<p><strong>知识点</strong>：</p>
+<ul>
+<li>两个线程在交换点互换数据的专用工具（双方都到达才交换）</li>
+<li>场景少：遗传算法种群交换、校对双人核对</li>
+</ul>
 <h3 id="41">4.1 概述<a class="headerlink" href="#41" title="Permanent link">&para;</a></h3>
 <p><strong>Exchanger</strong> 用于两个线程之间交换数据。</p>
-<p><strong>特点</strong>：
-- ✅ 仅支持两个线程
-- ✅ 双向数据交换
-- ✅ 屏障点交换</p>
+<p><strong>特点</strong>：</p>
+<ul>
+<li>✅ 仅支持两个线程</li>
+<li>✅ 双向数据交换</li>
+<li>✅ 屏障点交换</li>
+</ul>
 <h3 id="42">4.2 基本使用<a class="headerlink" href="#42" title="Permanent link">&para;</a></h3>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="kn">import</span><span class="w"> </span><span class="nn">java.util.concurrent.Exchanger</span><span class="p">;</span>
 <a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a>
@@ -1226,15 +1242,19 @@
 </code></pre></div>
 <hr />
 <h2 id="5-phaser">5. Phaser<a class="headerlink" href="#5-phaser" title="Permanent link">&para;</a></h2>
-<p><strong>知识点</strong>：
-- 动态版 CyclicBarrier：参与者数量可运行时增减，支持多阶段同步
-- 复杂度高，只在多阶段并行计算场景用</p>
+<p><strong>知识点</strong>：</p>
+<ul>
+<li>动态版 CyclicBarrier：参与者数量可运行时增减，支持多阶段同步</li>
+<li>复杂度高，只在多阶段并行计算场景用</li>
+</ul>
 <h3 id="51">5.1 概述<a class="headerlink" href="#51" title="Permanent link">&para;</a></h3>
 <p><strong>Phaser</strong> 是更灵活的屏障工具，支持动态注册/注销。</p>
-<p><strong>特点</strong>：
-- ✅ 动态调整线程数
-- ✅ 多阶段屏障
-- ✅ 可重用</p>
+<p><strong>特点</strong>：</p>
+<ul>
+<li>✅ 动态调整线程数</li>
+<li>✅ 多阶段屏障</li>
+<li>✅ 可重用</li>
+</ul>
 <h3 id="52">5.2 基本使用<a class="headerlink" href="#52" title="Permanent link">&para;</a></h3>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="kn">import</span><span class="w"> </span><span class="nn">java.util.concurrent.Phaser</span><span class="p">;</span>
 <a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a>

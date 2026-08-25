@@ -994,19 +994,16 @@
 <td>JDK 21 ScopedValue（预览）面向虚拟线程</td>
 <td>⭐⭐</td>
 </tr>
-<tr>
-<td>---</td>
-<td></td>
-<td></td>
-<td></td>
-</tr>
 </tbody>
 </table>
+<hr />
 <h2 id="1-threadlocal">1. ThreadLocal 概述<a class="headerlink" href="#1-threadlocal" title="Permanent link">&para;</a></h2>
-<p><strong>知识点</strong>：
-- ⭐ ThreadLocal 为每个线程提供独立变量副本，线程隔离，天然免锁
-- 与锁互补：锁解决"共享数据互斥"，ThreadLocal 解决"每人一份数据"
-- 典型场景：数据库连接绑定、Web 请求用户上下文、链路追踪 traceId、SimpleDateFormat 包装</p>
+<p><strong>知识点</strong>：</p>
+<ul>
+<li>⭐ ThreadLocal 为每个线程提供独立变量副本，线程隔离，天然免锁</li>
+<li>与锁互补：锁解决"共享数据互斥"，ThreadLocal 解决"每人一份数据"</li>
+<li>典型场景：数据库连接绑定、Web 请求用户上下文、链路追踪 traceId、SimpleDateFormat 包装</li>
+</ul>
 <h3 id="11-threadlocal">1.1 什么是 ThreadLocal<a class="headerlink" href="#11-threadlocal" title="Permanent link">&para;</a></h3>
 <p><strong>ThreadLocal</strong> 为每个线程提供独立的变量副本，实现<strong>线程隔离</strong>：每个线程访问的都是自己私有的那份数据，天然线程安全，无需加锁。</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">ThreadLocal</span><span class="o">&lt;</span><span class="n">String</span><span class="o">&gt;</span><span class="w"> </span><span class="n">tl</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">new</span><span class="w"> </span><span class="n">ThreadLocal</span><span class="o">&lt;&gt;</span><span class="p">();</span>
@@ -1058,10 +1055,12 @@
 </code></pre></div>
 <hr />
 <h2 id="2">2. 基本使用<a class="headerlink" href="#2" title="Permanent link">&para;</a></h2>
-<p><strong>知识点</strong>：
-- 核心三方法：set / get / remove；<code>withInitial(Supplier)</code> 提供初始值
-- ⚠️ 线程池场景<strong>用完必须 remove</strong>，否则线程复用导致数据串号/内存泄漏
-- Web 框架通常在拦截器入口 set、出口 clear</p>
+<p><strong>知识点</strong>：</p>
+<ul>
+<li>核心三方法：set / get / remove；<code>withInitial(Supplier)</code> 提供初始值</li>
+<li>⚠️ 线程池场景<strong>用完必须 remove</strong>，否则线程复用导致数据串号/内存泄漏</li>
+<li>Web 框架通常在拦截器入口 set、出口 clear</li>
+</ul>
 <h3 id="21">2.1 常用方法<a class="headerlink" href="#21" title="Permanent link">&para;</a></h3>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="n">ThreadLocal</span><span class="o">&lt;</span><span class="n">Integer</span><span class="o">&gt;</span><span class="w"> </span><span class="n">tl</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">new</span><span class="w"> </span><span class="n">ThreadLocal</span><span class="o">&lt;&gt;</span><span class="p">();</span>
 <a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>
@@ -1108,10 +1107,12 @@
 </code></pre></div>
 <hr />
 <h2 id="3">3. 底层原理 ⭐⭐⭐⭐<a class="headerlink" href="#3" title="Permanent link">&para;</a></h2>
-<p><strong>知识点</strong>：
-- ⭐ 数据不存在 ThreadLocal 里，而是存在<strong>每个 Thread 的 threadLocals（ThreadLocalMap）</strong> 里，key 是 ThreadLocal 实例
-- ⭐ Entry 的 key 是弱引用、value 是强引用——key 被 GC 后 value 残留 → 内存泄漏根因
-- ThreadLocalMap 用开放地址法解决冲突，hashCode 用黄金分割数 0x61c88647 递增</p>
+<p><strong>知识点</strong>：</p>
+<ul>
+<li>⭐ 数据不存在 ThreadLocal 里，而是存在<strong>每个 Thread 的 threadLocals（ThreadLocalMap）</strong> 里，key 是 ThreadLocal 实例</li>
+<li>⭐ Entry 的 key 是弱引用、value 是强引用——key 被 GC 后 value 残留 → 内存泄漏根因</li>
+<li>ThreadLocalMap 用开放地址法解决冲突，hashCode 用黄金分割数 0x61c88647 递增</li>
+</ul>
 <h3 id="31">3.1 存储结构<a class="headerlink" href="#31" title="Permanent link">&para;</a></h3>
 <p><strong>关键认知：数据不是存在 ThreadLocal 对象里，而是存在每个 Thread 对象里。</strong></p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>每个 Thread 对象内部：
@@ -1140,17 +1141,21 @@
 <a id="__codelineno-5-7" name="__codelineno-5-7" href="#__codelineno-5-7"></a><span class="n">tl</span><span class="p">.</span><span class="na">get</span><span class="p">();</span>
 <a id="__codelineno-5-8" name="__codelineno-5-8" href="#__codelineno-5-8"></a><span class="c1">// 实际执行：拿当前线程的 Map，用 this 作 key 查出 value</span>
 </code></pre></div>
-<p><strong>为什么这样设计？</strong>
-- 每个线程有自己的 Map，存取时不存在竞争，天然线程安全
-- 一个线程可以用多个 ThreadLocal，都以 ThreadLocal 实例为 key 存在同一个 Map 里</p>
+<p><strong>为什么这样设计？</strong></p>
+<ul>
+<li>每个线程有自己的 Map，存取时不存在竞争，天然线程安全</li>
+<li>一个线程可以用多个 ThreadLocal，都以 ThreadLocal 实例为 key 存在同一个 Map 里</li>
+</ul>
 <h3 id="32-threadlocalmap">3.2 ThreadLocalMap 的哈希冲突：开放地址法<a class="headerlink" href="#32-threadlocalmap" title="Permanent link">&para;</a></h3>
 <p>ThreadLocalMap 没有用链表解决冲突，而是<strong>开放地址法（线性探测）</strong>：</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="c1">// 定位：i = key.threadLocalHashCode &amp; (len - 1)</span>
 <a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a><span class="c1">// 冲突时：i = nextIndex(i, len)，向后找下一个空位</span>
 </code></pre></div>
-<p>原因：
-- ThreadLocalMap 通常元素不多，开放地址法内存更紧凑（不需要 Node 对象）
-- ThreadLocal 的 hashCode 用<strong>黄金分割数 0x61c88647 累加</strong>生成，分布非常均匀，冲突概率低</p>
+<p>原因：</p>
+<ul>
+<li>ThreadLocalMap 通常元素不多，开放地址法内存更紧凑（不需要 Node 对象）</li>
+<li>ThreadLocal 的 hashCode 用<strong>黄金分割数 0x61c88647 累加</strong>生成，分布非常均匀，冲突概率低</li>
+</ul>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="c1">// ThreadLocal 源码</span>
 <a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a><span class="kd">private</span><span class="w"> </span><span class="kd">static</span><span class="w"> </span><span class="kd">final</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">HASH_INCREMENT</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mh">0x61c88647</span><span class="p">;</span>
 <a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a><span class="kd">private</span><span class="w"> </span><span class="kd">static</span><span class="w"> </span><span class="n">AtomicInteger</span><span class="w"> </span><span class="n">nextHashCode</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">new</span><span class="w"> </span><span class="n">AtomicInteger</span><span class="p">();</span>
@@ -1165,10 +1170,12 @@
 <a id="__codelineno-8-5" name="__codelineno-8-5" href="#__codelineno-8-5"></a>                 ├─ key ──弱引用──→ ThreadLocal 对象 ←──强引用── 外部变量（如 static 字段）
 <a id="__codelineno-8-6" name="__codelineno-8-6" href="#__codelineno-8-6"></a>                 └─ value ──强引用──→ 存储的对象
 </code></pre></div>
-<p><strong>泄漏是怎么发生的</strong>：
-1. Entry 的 <strong>key 是弱引用</strong>：当外部对 ThreadLocal 的强引用消失（如方法结束、局部变量置空），GC 会回收 ThreadLocal 对象 → key 变成 null
-2. 但 <strong>value 是强引用</strong>，且 Entry 挂在 Thread 的 Map 上
-3. 如果线程长期存活（<strong>线程池里的线程就是</strong>），这个 key=null、value 非 null 的 Entry 永远无法被访问到，也永远不被回收 → <strong>内存泄漏</strong></p>
+<p><strong>泄漏是怎么发生的</strong>：</p>
+<ol>
+<li>Entry 的 <strong>key 是弱引用</strong>：当外部对 ThreadLocal 的强引用消失（如方法结束、局部变量置空），GC 会回收 ThreadLocal 对象 → key 变成 null</li>
+<li>但 <strong>value 是强引用</strong>，且 Entry 挂在 Thread 的 Map 上</li>
+<li>如果线程长期存活（<strong>线程池里的线程就是</strong>），这个 key=null、value 非 null 的 Entry 永远无法被访问到，也永远不被回收 → <strong>内存泄漏</strong></li>
+</ol>
 <p><strong>为什么 key 要设计成弱引用？</strong>
 如果 key 是强引用，ThreadLocal 对象被置空后，Entry 仍然强引用着它，连 key 都回收不了，泄漏更彻底。弱引用至少让 key 能被回收，给 ThreadLocalMap 的自清理（get/set 时会顺手清理 key=null 的 Entry）留了机会。</p>
 <p><strong>正确做法：用完必须 remove！</strong></p>
@@ -1186,10 +1193,12 @@
 <p>线程池的线程是复用的。若任务结束没 remove，下一个任务复用同一线程时，get() 会拿到<strong>上一个任务残留的数据</strong>——轻则逻辑错误，重则用户数据串号（A 用户看到了 B 的信息）。这就是 2.2 节拦截器里 <code>afterCompletion</code> 必须 clear 的原因。</p>
 <hr />
 <h2 id="4-inheritablethreadlocal">4. InheritableThreadLocal 与线程传递<a class="headerlink" href="#4-inheritablethreadlocal" title="Permanent link">&para;</a></h2>
-<p><strong>知识点</strong>：
-- ⭐ InheritableThreadLocal 只在 <strong>new Thread() 那一刻</strong>把父线程值拷贝给子线程
-- ⚠️ 线程池的线程是提前创建复用的 → InheritableThreadLocal 失效
-- 跨线程池传递上下文用阿里的 <strong>TransmittableThreadLocal（TTL）</strong></p>
+<p><strong>知识点</strong>：</p>
+<ul>
+<li>⭐ InheritableThreadLocal 只在 <strong>new Thread() 那一刻</strong>把父线程值拷贝给子线程</li>
+<li>⚠️ 线程池的线程是提前创建复用的 → InheritableThreadLocal 失效</li>
+<li>跨线程池传递上下文用阿里的 <strong>TransmittableThreadLocal（TTL）</strong></li>
+</ul>
 <h3 id="41">4.1 父子线程传递<a class="headerlink" href="#41" title="Permanent link">&para;</a></h3>
 <p>普通 ThreadLocal 的值<strong>不会</strong>传给子线程。<code>InheritableThreadLocal</code> 可以在<strong>创建子线程时</strong>把父线程的值拷贝过去：</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a><span class="n">ThreadLocal</span><span class="o">&lt;</span><span class="n">String</span><span class="o">&gt;</span><span class="w"> </span><span class="n">tl</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">new</span><span class="w"> </span><span class="n">InheritableThreadLocal</span><span class="o">&lt;&gt;</span><span class="p">();</span>
@@ -1212,13 +1221,17 @@
 </code></pre></div>
 <hr />
 <h2 id="5">5. 源码中的设计思想（进阶）<a class="headerlink" href="#5" title="Permanent link">&para;</a></h2>
-<p><strong>知识点</strong>：
-- ThreadLocalMap 挂在 Thread 上而非反过来：线程销毁时整个 Map 随线程一起回收，干净
-- get/set/remove 时会顺手清理 key=null 的 Entry（expungeStaleEntry）——但只是缓解，根治靠显式 remove</p>
+<p><strong>知识点</strong>：</p>
+<ul>
+<li>ThreadLocalMap 挂在 Thread 上而非反过来：线程销毁时整个 Map 随线程一起回收，干净</li>
+<li>get/set/remove 时会顺手清理 key=null 的 Entry（expungeStaleEntry）——但只是缓解，根治靠显式 remove</li>
+</ul>
 <h3 id="51-threadlocalmap-thread">5.1 为什么 ThreadLocalMap 是 Thread 的成员而不是反过来？<a class="headerlink" href="#51-threadlocalmap-thread" title="Permanent link">&para;</a></h3>
-<p>如果"一个 ThreadLocal 持有一个 Map<Thread, Value>"：
-- Thread 对象作为 key 需要弱引用管理，更复杂
-- 线程销毁时清理麻烦</p>
+<p>如果"一个 ThreadLocal 持有一个 Map<Thread, Value>"：</p>
+<ul>
+<li>Thread 对象作为 key 需要弱引用管理，更复杂</li>
+<li>线程销毁时清理麻烦</li>
+</ul>
 <p>现在的设计（Map 挂在 Thread 上）：线程销毁时，整个 Map 跟着回收，干净利落。</p>
 <h3 id="52-getset">5.2 get/set 时的自清理<a class="headerlink" href="#52-getset" title="Permanent link">&para;</a></h3>
 <p>ThreadLocalMap 在 <code>get</code>/<code>set</code>/<code>remove</code> 时会探测性地清理一部分 key=null 的 Entry（expungeStaleEntry），这是弱引用设计的配套机制——但它是"顺手的"，不能替代显式 remove。</p>

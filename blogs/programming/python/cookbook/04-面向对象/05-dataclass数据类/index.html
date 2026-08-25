@@ -864,10 +864,12 @@
 </table>
 <hr />
 <h2 id="1-dataclass">1. 什么是 dataclass<a class="headerlink" href="#1-dataclass" title="Permanent link">&para;</a></h2>
-<p><strong>知识点</strong>：
-- ⭐ <code>@dataclass</code> 装饰器根据<strong>类型注解</strong>自动生成 <code>__init__</code>、<code>__repr__</code>、<code>__eq__</code> 等样板方法
-- 定位：只承载数据的类（DTO/VO/配置对象），替代手写几十行样板或普通 dict
-- 对比：普通类要手写构造器和 <strong>repr</strong>；namedtuple 不可变且不能加默认方法；dataclass 两全</p>
+<p><strong>知识点</strong>：</p>
+<ul>
+<li>⭐ <code>@dataclass</code> 装饰器根据<strong>类型注解</strong>自动生成 <code>__init__</code>、<code>__repr__</code>、<code>__eq__</code> 等样板方法</li>
+<li>定位：只承载数据的类（DTO/VO/配置对象），替代手写几十行样板或普通 dict</li>
+<li>对比：普通类要手写构造器和 <strong>repr</strong>；namedtuple 不可变且不能加默认方法；dataclass 两全</li>
+</ul>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="c1"># ❌ 普通类：一堆样板代码</span>
 <a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="k">class</span><span class="w"> </span><span class="nc">User</span><span class="p">:</span>
 <a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">age</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">):</span>
@@ -895,10 +897,12 @@
 </code></pre></div>
 <hr />
 <h2 id="2-default_factory">2. 默认值与 default_factory ⚠️<a class="headerlink" href="#2-default_factory" title="Permanent link">&para;</a></h2>
-<p><strong>知识点</strong>：
-- ⭐ 可变默认值（list/dict/set）<strong>禁止</strong>直接写 <code>= []</code>（会报 ValueError），必须用 <code>field(default_factory=list)</code>
-- 原因：默认值在类定义时只求值一次，直接写可变对象会让所有实例共享同一份（和默认参数陷阱同源）
-- 带默认值的字段必须放在无默认值字段后面（和函数参数规则一致）</p>
+<p><strong>知识点</strong>：</p>
+<ul>
+<li>⭐ 可变默认值（list/dict/set）<strong>禁止</strong>直接写 <code>= []</code>（会报 ValueError），必须用 <code>field(default_factory=list)</code></li>
+<li>原因：默认值在类定义时只求值一次，直接写可变对象会让所有实例共享同一份（和默认参数陷阱同源）</li>
+<li>带默认值的字段必须放在无默认值字段后面（和函数参数规则一致）</li>
+</ul>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">dataclasses</span><span class="w"> </span><span class="kn">import</span> <span class="n">dataclass</span><span class="p">,</span> <span class="n">field</span>
 <a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>
 <a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="nd">@dataclass</span>
@@ -917,10 +921,12 @@
 </code></pre></div>
 <hr />
 <h2 id="3-frozen">3. frozen：不可变数据类<a class="headerlink" href="#3-frozen" title="Permanent link">&para;</a></h2>
-<p><strong>知识点</strong>：
-- ⭐ <code>frozen=True</code>：实例创建后字段只读，赋值抛 <code>FrozenInstanceError</code>
-- frozen 类自动获得 <code>__hash__</code>，可以放进 set、做字典 key
-- 适用：配置对象、缓存 key、坐标点等不该被修改的数据</p>
+<p><strong>知识点</strong>：</p>
+<ul>
+<li>⭐ <code>frozen=True</code>：实例创建后字段只读，赋值抛 <code>FrozenInstanceError</code></li>
+<li>frozen 类自动获得 <code>__hash__</code>，可以放进 set、做字典 key</li>
+<li>适用：配置对象、缓存 key、坐标点等不该被修改的数据</li>
+</ul>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">dataclasses</span><span class="w"> </span><span class="kn">import</span> <span class="n">dataclass</span>
 <a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>
 <a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="nd">@dataclass</span><span class="p">(</span><span class="n">frozen</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
@@ -937,9 +943,11 @@
 </code></pre></div>
 <hr />
 <h2 id="4-order">4. order：自动生成比较方法<a class="headerlink" href="#4-order" title="Permanent link">&para;</a></h2>
-<p><strong>知识点</strong>：
-- <code>order=True</code>：按字段顺序生成 <code>&lt;</code>、<code>&lt;=</code>、<code>&gt;</code>、<code>&gt;=</code>（元组式逐字段比较）
-- ⭐ 不想参与比较的字段用 <code>field(compare=False)</code>（如名字字段，只按分数排序）</p>
+<p><strong>知识点</strong>：</p>
+<ul>
+<li><code>order=True</code>：按字段顺序生成 <code>&lt;</code>、<code>&lt;=</code>、<code>&gt;</code>、<code>&gt;=</code>（元组式逐字段比较）</li>
+<li>⭐ 不想参与比较的字段用 <code>field(compare=False)</code>（如名字字段，只按分数排序）</li>
+</ul>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">dataclasses</span><span class="w"> </span><span class="kn">import</span> <span class="n">dataclass</span><span class="p">,</span> <span class="n">field</span>
 <a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>
 <a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="nd">@dataclass</span><span class="p">(</span><span class="n">order</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
@@ -953,10 +961,12 @@
 </code></pre></div>
 <hr />
 <h2 id="5-slots-post_init">5. slots 与 <strong>post_init</strong><a class="headerlink" href="#5-slots-post_init" title="Permanent link">&para;</a></h2>
-<p><strong>知识点</strong>：
-- ⭐ <code>slots=True</code>（Python 3.10+）：自动生成 <code>__slots__</code>，节省内存、禁止动态添加属性
-- ⭐ <code>__post_init__</code>：<code>__init__</code> 结束后自动调用的钩子，做参数校验或计算派生字段
-- ⚠️ frozen 类里修改字段要用 <code>object.__setattr__(self, ...)</code>（绕过冻结检查）</p>
+<p><strong>知识点</strong>：</p>
+<ul>
+<li>⭐ <code>slots=True</code>（Python 3.10+）：自动生成 <code>__slots__</code>，节省内存、禁止动态添加属性</li>
+<li>⭐ <code>__post_init__</code>：<code>__init__</code> 结束后自动调用的钩子，做参数校验或计算派生字段</li>
+<li>⚠️ frozen 类里修改字段要用 <code>object.__setattr__(self, ...)</code>（绕过冻结检查）</li>
+</ul>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">dataclasses</span><span class="w"> </span><span class="kn">import</span> <span class="n">dataclass</span><span class="p">,</span> <span class="n">field</span>
 <a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>
 <a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="c1"># slots：禁止动态加属性</span>
@@ -982,10 +992,12 @@
 </code></pre></div>
 <hr />
 <h2 id="6-asdict-astuple">6. 序列化：asdict / astuple<a class="headerlink" href="#6-asdict-astuple" title="Permanent link">&para;</a></h2>
-<p><strong>知识点</strong>：
-- <code>asdict(obj)</code>：递归转成 dict（嵌套 dataclass 也会展开），常用于转 JSON
-- <code>astuple(obj)</code>：递归转成 tuple
-- 配合 <code>json.dumps(asdict(obj))</code> 是最常用的"对象转 JSON"套路</p>
+<p><strong>知识点</strong>：</p>
+<ul>
+<li><code>asdict(obj)</code>：递归转成 dict（嵌套 dataclass 也会展开），常用于转 JSON</li>
+<li><code>astuple(obj)</code>：递归转成 tuple</li>
+<li>配合 <code>json.dumps(asdict(obj))</code> 是最常用的"对象转 JSON"套路</li>
+</ul>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">dataclasses</span><span class="w"> </span><span class="kn">import</span> <span class="n">dataclass</span><span class="p">,</span> <span class="n">asdict</span><span class="p">,</span> <span class="n">astuple</span>
 <a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="kn">import</span><span class="w"> </span><span class="nn">json</span>
 <a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a>
@@ -1001,11 +1013,13 @@
 </code></pre></div>
 <hr />
 <h2 id="7-kw_only-initvarpython-310">7. 进阶：kw_only 与 InitVar（Python 3.10+）<a class="headerlink" href="#7-kw_only-initvarpython-310" title="Permanent link">&para;</a></h2>
-<p><strong>知识点</strong>：
-- ⭐ <code>kw_only=True</code>（类级或字段级）：强制字段用关键字传参，位置传参会抛 TypeError——字段多的配置类防传错位置
-- <code>InitVar[T]</code>：只出现在 <code>__init__</code> 参数里的"伪字段"，通过 <code>__post_init__</code> 接收使用，<strong>不存为实例属性</strong>
-- <code>field(repr=False)</code>：敏感字段（如密码）不显示在 repr 输出里
-- ⚠️ kw_only 是 Python 3.10+ 特性，低版本不可用</p>
+<p><strong>知识点</strong>：</p>
+<ul>
+<li>⭐ <code>kw_only=True</code>（类级或字段级）：强制字段用关键字传参，位置传参会抛 TypeError——字段多的配置类防传错位置</li>
+<li><code>InitVar[T]</code>：只出现在 <code>__init__</code> 参数里的"伪字段"，通过 <code>__post_init__</code> 接收使用，<strong>不存为实例属性</strong></li>
+<li><code>field(repr=False)</code>：敏感字段（如密码）不显示在 repr 输出里</li>
+<li>⚠️ kw_only 是 Python 3.10+ 特性，低版本不可用</li>
+</ul>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">dataclasses</span><span class="w"> </span><span class="kn">import</span> <span class="n">dataclass</span><span class="p">,</span> <span class="n">field</span><span class="p">,</span> <span class="n">InitVar</span>
 <a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a>
 <a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a><span class="c1"># kw_only：整个类所有字段强制关键字传参</span>

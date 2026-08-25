@@ -891,9 +891,11 @@
 <h1 id="10_">10_序列化<a class="headerlink" href="#10_" title="Permanent link">&para;</a></h1>
 <hr />
 <h2 id="1">1. 概述<a class="headerlink" href="#1" title="Permanent link">&para;</a></h2>
-<p><strong>知识点</strong>：
-- 序列化 = 对象 → 字节流（便于存储/网络传输）；反序列化是还原
-- ⚠️ Java 原生序列化安全性差，跨系统通信优先 JSON</p>
+<p><strong>知识点</strong>：</p>
+<ul>
+<li>序列化 = 对象 → 字节流（便于存储/网络传输）；反序列化是还原</li>
+<li>⚠️ Java 原生序列化安全性差，跨系统通信优先 JSON</li>
+</ul>
 <h3 id="11">1.1 什么是序列化<a class="headerlink" href="#11" title="Permanent link">&para;</a></h3>
 <p><strong>序列化（Serialization）</strong>：把内存中的<strong>对象</strong>转换成<strong>字节序列</strong>。
 <strong>反序列化（Deserialization）</strong>：把<strong>字节序列</strong>还原成<strong>对象</strong>。</p>
@@ -931,10 +933,12 @@
 <p>⚠️ 只有<strong>实例字段</strong>被序列化；方法、static 字段、class 定义不在字节序列里。</p>
 <hr />
 <h2 id="2">2. 核心用法<a class="headerlink" href="#2" title="Permanent link">&para;</a></h2>
-<p><strong>知识点</strong>：
-- 实现 Serializable 标记接口才能序列化；ObjectOutputStream/ObjectInputStream 读写
-- ⭐ serialVersionUID 版本控制：不一致抛 InvalidClassException，所有可序列化类显式声明
-- transient 字段不参与序列化；static 字段本来就不属于对象</p>
+<p><strong>知识点</strong>：</p>
+<ul>
+<li>实现 Serializable 标记接口才能序列化；ObjectOutputStream/ObjectInputStream 读写</li>
+<li>⭐ serialVersionUID 版本控制：不一致抛 InvalidClassException，所有可序列化类显式声明</li>
+<li>transient 字段不参与序列化；static 字段本来就不属于对象</li>
+</ul>
 <h3 id="21-serializable">2.1 Serializable 标记接口<a class="headerlink" href="#21-serializable" title="Permanent link">&para;</a></h3>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="c1">// Serializable 是标记接口：没有任何方法，只是声明&quot;我允许被序列化&quot;</span>
 <a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="kd">public</span><span class="w"> </span><span class="kd">class</span> <span class="nc">User</span><span class="w"> </span><span class="kd">implements</span><span class="w"> </span><span class="n">Serializable</span><span class="w"> </span><span class="p">{</span>
@@ -1002,10 +1006,12 @@
 <a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>  └── 不等 ❌ InvalidClassException: local class incompatible
 </code></pre></div>
 <p><strong>不写会怎样</strong>：JVM 按类结构（类名、接口、字段、方法签名等做 SHA-1 取 8 字节）自动计算默认值，对类结构极其敏感——加一个字段 UID 就可能变，旧数据全部读不了。</p>
-<p><strong>最佳实践</strong>：
-- ✅ 显式声明：<code>private static final long serialVersionUID = 1L;</code>
-- ✅ 不兼容修改（如删字段）时手动递增为 <code>2L</code>
-- ⚠️ 枚举固定为 <code>0L</code>，自己声明的会被忽略</p>
+<p><strong>最佳实践</strong>：</p>
+<ul>
+<li>✅ 显式声明：<code>private static final long serialVersionUID = 1L;</code></li>
+<li>✅ 不兼容修改（如删字段）时手动递增为 <code>2L</code></li>
+<li>⚠️ 枚举固定为 <code>0L</code>，自己声明的会被忽略</li>
+</ul>
 <table>
 <thead>
 <tr>
@@ -1030,10 +1036,12 @@
 </table>
 <h3 id="24-transient">2.4 transient 关键字<a class="headerlink" href="#24-transient" title="Permanent link">&para;</a></h3>
 <p><code>transient</code> 修饰的字段<strong>不写入字节流</strong>，反序列化后为默认值（null / 0 / false）。</p>
-<p><strong>什么时候用</strong>：
-- 🔒 敏感信息：密码、密钥
-- 🚫 字段类型不可序列化：Thread、Socket、数据库连接
-- ♻️ 可重建的缓存字段，反序列化后重新计算</p>
+<p><strong>什么时候用</strong>：</p>
+<ul>
+<li>🔒 敏感信息：密码、密钥</li>
+<li>🚫 字段类型不可序列化：Thread、Socket、数据库连接</li>
+<li>♻️ 可重建的缓存字段，反序列化后重新计算</li>
+</ul>
 <p>⚠️ static 字段属于类、本来就不序列化，再加 transient 是多余的（见 Q4）。</p>
 <h3 id="25-writeobject-readobject">2.5 自定义序列化：writeObject / readObject<a class="headerlink" href="#25-writeobject-readobject" title="Permanent link">&para;</a></h3>
 <p>类中定义这两个<strong>私有方法</strong>，序列化框架会自动调用（底层通过反射查找，见 <a href="../../03_%E8%BF%9B%E9%98%B6%E7%89%B9%E6%80%A7/02_%E5%8F%8D%E5%B0%84/">02_反射</a>）：</p>
@@ -1158,9 +1166,11 @@
 <p>⚠️ 缺点：性能差（IO + 反射），且对象图中<strong>所有</strong>类必须可序列化。高性能场景手写拷贝构造器。</p>
 <hr />
 <h2 id="3">3. 底层原理<a class="headerlink" href="#3" title="Permanent link">&para;</a></h2>
-<p><strong>知识点</strong>：
-- 序列化流包含类元信息 + 字段值，按对象图递归写入
-- ⚠️ 单例要加 readResolve 防止反序列化创建新实例（枚举单例免疫）</p>
+<p><strong>知识点</strong>：</p>
+<ul>
+<li>序列化流包含类元信息 + 字段值，按对象图递归写入</li>
+<li>⚠️ 单例要加 readResolve 防止反序列化创建新实例（枚举单例免疫）</li>
+</ul>
 <h3 id="31">3.1 序列化流程<a class="headerlink" href="#31" title="Permanent link">&para;</a></h3>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a>oos.writeObject(root)
 <a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a>  ① 检查 Serializable（否则 NotSerializableException）
@@ -1281,23 +1291,27 @@ Serializable 类不调用自身构造器，但会调用第一个不可序列化�
 
 <hr />
 <h2 id="8">8. 本章小结<a class="headerlink" href="#8" title="Permanent link">&para;</a></h2>
-<p><strong>核心知识点</strong>：
-- ✅ 序列化 = 对象 → 字节序列；反序列化反之
-- ✅ 类实现标记接口 Serializable；用 writeObject/readObject 读写
-- ✅ serialVersionUID 务必显式声明；不写则自动计算，类一改就抛 InvalidClassException
-- ✅ transient 字段不参与序列化；static 本来就不参与
-- ✅ writeObject/readObject 自定义读写；writeReplace/readResolve 替换对象（单例保护）
-- ✅ Externalizable 完全自主，但强制 public 无参构造器
-- ✅ 反序列化不调用构造器；第一个不可序列化父类的无参构造器会被调用
-- ✅ 句柄表保证循环引用安全、重复引用只写一份
-- ✅ 现代开发优先 JSON；原生序列化警惕反序列化漏洞</p>
-<p><strong>最佳实践</strong>：
-1. 所有可序列化类显式声明 <code>serialVersionUID = 1L</code>
-2. 敏感字段一律 transient
-3. 单例加 readResolve，或用枚举单例
-4. 不反序列化不可信数据；必要时用 ObjectInputFilter 白名单
-5. 跨系统通信优先 JSON
-6. 深拷贝优先手写拷贝构造器，序列化深拷贝仅作便捷方案</p>
+<p><strong>核心知识点</strong>：</p>
+<ul>
+<li>✅ 序列化 = 对象 → 字节序列；反序列化反之</li>
+<li>✅ 类实现标记接口 Serializable；用 writeObject/readObject 读写</li>
+<li>✅ serialVersionUID 务必显式声明；不写则自动计算，类一改就抛 InvalidClassException</li>
+<li>✅ transient 字段不参与序列化；static 本来就不参与</li>
+<li>✅ writeObject/readObject 自定义读写；writeReplace/readResolve 替换对象（单例保护）</li>
+<li>✅ Externalizable 完全自主，但强制 public 无参构造器</li>
+<li>✅ 反序列化不调用构造器；第一个不可序列化父类的无参构造器会被调用</li>
+<li>✅ 句柄表保证循环引用安全、重复引用只写一份</li>
+<li>✅ 现代开发优先 JSON；原生序列化警惕反序列化漏洞</li>
+</ul>
+<p><strong>最佳实践</strong>：</p>
+<ol>
+<li>所有可序列化类显式声明 <code>serialVersionUID = 1L</code></li>
+<li>敏感字段一律 transient</li>
+<li>单例加 readResolve，或用枚举单例</li>
+<li>不反序列化不可信数据；必要时用 ObjectInputFilter 白名单</li>
+<li>跨系统通信优先 JSON</li>
+<li>深拷贝优先手写拷贝构造器，序列化深拷贝仅作便捷方案</li>
+</ol>
 <hr />
 <h2 id="9">9. 下一步<a class="headerlink" href="#9" title="Permanent link">&para;</a></h2>
 <ul>

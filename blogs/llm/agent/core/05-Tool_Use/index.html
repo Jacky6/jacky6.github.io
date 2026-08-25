@@ -805,8 +805,10 @@
 <a id="__codelineno-3-22" name="__codelineno-3-22" href="#__codelineno-3-22"></a>        ▼
 <a id="__codelineno-3-23" name="__codelineno-3-23" href="#__codelineno-3-23"></a>   具备 Tool Calling 能力的模型
 </code></pre></div>
-<p><strong>关键实现细节</strong>：
-- 模型 tokenizer 中新增特殊 token（如 `</p>
+<p><strong>关键实现细节</strong>：</p>
+<ul>
+<li>模型 tokenizer 中新增特殊 token（如 `</li>
+</ul>
 <h1 id="-basetool-">---- 方式三：BaseTool 子类（需要完全控制）----<a class="headerlink" href="#-basetool-" title="Permanent link">&para;</a></h1>
 <p>class WeatherTool(BaseTool):
     name: str = "get_weather"
@@ -1376,23 +1378,28 @@ tool_graph = builder.compile()
 <h3 id="53">5.3 核心流程（知识注入模式）<a class="headerlink" href="#53" title="Permanent link">&para;</a></h3>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-19-1" name="__codelineno-19-1" href="#__codelineno-19-1"></a>1. 用户: &quot;帮我审查 src/main.py&quot;
 <a id="__codelineno-19-2" name="__codelineno-19-2" href="#__codelineno-19-2"></a>                    │
-<a id="__codelineno-19-3" name="__codelineno-19-3" href="#__codelineno-19-3"></a>2. SkillMatcher:    │  匹配 → &quot;code-review&quot; Skill
-<a id="__codelineno-19-4" name="__codelineno-19-4" href="#__codelineno-19-4"></a>                    ▼
-<a id="__codelineno-19-5" name="__codelineno-19-5" href="#__codelineno-19-5"></a>3. Skill Loader:    读取 SKILL.md 内容
-<a id="__codelineno-19-6" name="__codelineno-19-6" href="#__codelineno-19-6"></a>                    │
-<a id="__codelineno-19-7" name="__codelineno-19-7" href="#__codelineno-19-7"></a>4. Prompt Builder:  基础 prompt + Skill 内容 + 工具定义
-<a id="__codelineno-19-8" name="__codelineno-19-8" href="#__codelineno-19-8"></a>                    │  → 组装成完整的 System Prompt
-<a id="__codelineno-19-9" name="__codelineno-19-9" href="#__codelineno-19-9"></a>                    ▼
-<a id="__codelineno-19-10" name="__codelineno-19-10" href="#__codelineno-19-10"></a>5. LLM:             读了 Skill &quot;说明书&quot;，自主规划：
-<a id="__codelineno-19-11" name="__codelineno-19-11" href="#__codelineno-19-11"></a>                    │  Thought: 先读代码
-<a id="__codelineno-19-12" name="__codelineno-19-12" href="#__codelineno-19-12"></a>                    │  → 调用 read_file(&quot;src/main.py&quot;)
-<a id="__codelineno-19-13" name="__codelineno-19-13" href="#__codelineno-19-13"></a>                    │  Thought: 跑一下 lint
-<a id="__codelineno-19-14" name="__codelineno-19-14" href="#__codelineno-19-14"></a>                    │  → 调用 terminal(&quot;pylint src/main.py&quot;)
-<a id="__codelineno-19-15" name="__codelineno-19-15" href="#__codelineno-19-15"></a>                    │  Thought: 跑测试
-<a id="__codelineno-19-16" name="__codelineno-19-16" href="#__codelineno-19-16"></a>                    │  → 调用 terminal(&quot;pytest&quot;)
-<a id="__codelineno-19-17" name="__codelineno-19-17" href="#__codelineno-19-17"></a>                    │  Thought: 信息够了，输出审查报告
-<a id="__codelineno-19-18" name="__codelineno-19-18" href="#__codelineno-19-18"></a>                    ▼
-<a id="__codelineno-19-19" name="__codelineno-19-19" href="#__codelineno-19-19"></a>6. 输出:            结构化审查报告
+<a id="__codelineno-19-3" name="__codelineno-19-3" href="#__codelineno-19-3"></a>
+<a id="__codelineno-19-4" name="__codelineno-19-4" href="#__codelineno-19-4"></a>2. SkillMatcher:    │  匹配 → &quot;code-review&quot; Skill
+<a id="__codelineno-19-5" name="__codelineno-19-5" href="#__codelineno-19-5"></a>                    ▼
+<a id="__codelineno-19-6" name="__codelineno-19-6" href="#__codelineno-19-6"></a>
+<a id="__codelineno-19-7" name="__codelineno-19-7" href="#__codelineno-19-7"></a>3. Skill Loader:    读取 SKILL.md 内容
+<a id="__codelineno-19-8" name="__codelineno-19-8" href="#__codelineno-19-8"></a>                    │
+<a id="__codelineno-19-9" name="__codelineno-19-9" href="#__codelineno-19-9"></a>
+<a id="__codelineno-19-10" name="__codelineno-19-10" href="#__codelineno-19-10"></a>4. Prompt Builder:  基础 prompt + Skill 内容 + 工具定义
+<a id="__codelineno-19-11" name="__codelineno-19-11" href="#__codelineno-19-11"></a>                    │  → 组装成完整的 System Prompt
+<a id="__codelineno-19-12" name="__codelineno-19-12" href="#__codelineno-19-12"></a>                    ▼
+<a id="__codelineno-19-13" name="__codelineno-19-13" href="#__codelineno-19-13"></a>
+<a id="__codelineno-19-14" name="__codelineno-19-14" href="#__codelineno-19-14"></a>5. LLM:             读了 Skill &quot;说明书&quot;，自主规划：
+<a id="__codelineno-19-15" name="__codelineno-19-15" href="#__codelineno-19-15"></a>                    │  Thought: 先读代码
+<a id="__codelineno-19-16" name="__codelineno-19-16" href="#__codelineno-19-16"></a>                    │  → 调用 read_file(&quot;src/main.py&quot;)
+<a id="__codelineno-19-17" name="__codelineno-19-17" href="#__codelineno-19-17"></a>                    │  Thought: 跑一下 lint
+<a id="__codelineno-19-18" name="__codelineno-19-18" href="#__codelineno-19-18"></a>                    │  → 调用 terminal(&quot;pylint src/main.py&quot;)
+<a id="__codelineno-19-19" name="__codelineno-19-19" href="#__codelineno-19-19"></a>                    │  Thought: 跑测试
+<a id="__codelineno-19-20" name="__codelineno-19-20" href="#__codelineno-19-20"></a>                    │  → 调用 terminal(&quot;pytest&quot;)
+<a id="__codelineno-19-21" name="__codelineno-19-21" href="#__codelineno-19-21"></a>                    │  Thought: 信息够了，输出审查报告
+<a id="__codelineno-19-22" name="__codelineno-19-22" href="#__codelineno-19-22"></a>                    ▼
+<a id="__codelineno-19-23" name="__codelineno-19-23" href="#__codelineno-19-23"></a>
+<a id="__codelineno-19-24" name="__codelineno-19-24" href="#__codelineno-19-24"></a>6. 输出:            结构化审查报告
 </code></pre></div>
 <h3 id="54-skill">5.4 Skill 的核心价值<a class="headerlink" href="#54-skill" title="Permanent link">&para;</a></h3>
 <p>Skill 的核心价值不是"自动化执行"，而是<strong>经验复用</strong>：</p>

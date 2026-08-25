@@ -1137,16 +1137,22 @@
 </code></pre></div>
 <h3 id="exactly-once">Exactly-Once<a class="headerlink" href="#exactly-once" title="Permanent link">&para;</a></h3>
 <p>消息恰好被消费一次：</p>
-<p><strong>实现方式 1：幂等性 Producer</strong>
-- 单 Partition 内去重
-- 配置 <code>enable.idempotence=true</code></p>
-<p><strong>实现方式 2：事务</strong>
-- 跨 Partition/Topic 原子性
-- 配合 <code>isolation.level=read_committed</code></p>
-<p><strong>实现方式 3：Kafka Streams</strong>
-- 内置 EOS 支持
-- 配置 <code>processing.guarantee=exactly_once_v2</code>（需要 broker 2.5+）
-- 注意：旧版 <code>exactly_once</code>（v1）在 Kafka 3.0 废弃、<strong>4.0 已移除</strong>，只剩 v2</p>
+<p><strong>实现方式 1：幂等性 Producer</strong></p>
+<ul>
+<li>单 Partition 内去重</li>
+<li>配置 <code>enable.idempotence=true</code></li>
+</ul>
+<p><strong>实现方式 2：事务</strong></p>
+<ul>
+<li>跨 Partition/Topic 原子性</li>
+<li>配合 <code>isolation.level=read_committed</code></li>
+</ul>
+<p><strong>实现方式 3：Kafka Streams</strong></p>
+<ul>
+<li>内置 EOS 支持</li>
+<li>配置 <code>processing.guarantee=exactly_once_v2</code>（需要 broker 2.5+）</li>
+<li>注意：旧版 <code>exactly_once</code>（v1）在 Kafka 3.0 废弃、<strong>4.0 已移除</strong>，只剩 v2</li>
+</ul>
 <blockquote>
 <p>补充（Kafka 4.0+）：事务协议升级为 <strong>transaction v2</strong>（KIP-890，服务端防御）：
 每个事务都会 bump producer epoch，防止僵尸 Producer / 延迟到达的请求写入
@@ -1190,10 +1196,12 @@
 <a id="__codelineno-7-7" name="__codelineno-7-7" href="#__codelineno-7-7"></a>
 <a id="__codelineno-7-8" name="__codelineno-7-8" href="#__codelineno-7-8"></a><span class="n">builder</span><span class="p">.</span><span class="na">addStateStore</span><span class="p">(</span><span class="n">storeBuilder</span><span class="p">);</span>
 </code></pre></div>
-<p>类型：
-- <strong>Persistent</strong>：RocksDB，磁盘存储
-- <strong>In-Memory</strong>：内存存储
-- <strong>Windowed</strong>：时间窗口存储</p>
+<p>类型：</p>
+<ul>
+<li><strong>Persistent</strong>：RocksDB，磁盘存储</li>
+<li><strong>In-Memory</strong>：内存存储</li>
+<li><strong>Windowed</strong>：时间窗口存储</li>
+</ul>
 <h3 id="_5">窗口操作<a class="headerlink" href="#_5" title="Permanent link">&para;</a></h3>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="c1">// 滚动窗口</span>
 <a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a><span class="n">windowedBy</span><span class="p">(</span><span class="n">TimeWindows</span><span class="p">.</span><span class="na">of</span><span class="p">(</span><span class="n">Duration</span><span class="p">.</span><span class="na">ofMinutes</span><span class="p">(</span><span class="mi">5</span><span class="p">)))</span>
@@ -1215,14 +1223,22 @@
 </code></pre></div>
 <p>要点：</p>
 <ul>
-<li><code>num.stream.threads &gt; 1</code> 时，Streams 会给每个 StreamThread 的 consumer 在
+<li>
+<p><code>num.stream.threads &gt; 1</code> 时，Streams 会给每个 StreamThread 的 consumer 在
   用户配置的 id 后<strong>自动追加标识</strong>（clientId/线程号），保证同实例多线程不冲突，
-  所以只需按"实例"粒度配一个</li>
-<li><strong>不设置时是动态成员</strong>（默认），每次重启都触发 rebalance</li>
+  所以只需按"实例"粒度配一个</p>
+</li>
+<li>
+<p><strong>不设置时是动态成员</strong>（默认），每次重启都触发 rebalance</p>
+</li>
 <li>Streams 2.3+ 默认就是增量 rebalance（StreamsPartitionAssignor），配合静态成员</li>
-<li><code>num.standby.replicas=1</code>，滚动升级时实例在 session.timeout 内回来直接拿回
-  原任务，本地 RocksDB 状态无需从 changelog 重建，基本无中断</li>
-<li>注意：新的 Streams group 协议（KIP-1071，4.1+ 早期访问）暂不支持 instance.id</li>
+<li>
+<p><code>num.standby.replicas=1</code>，滚动升级时实例在 session.timeout 内回来直接拿回
+  原任务，本地 RocksDB 状态无需从 changelog 重建，基本无中断</p>
+</li>
+<li>
+<p>注意：新的 Streams group 协议（KIP-1071，4.1+ 早期访问）暂不支持 instance.id</p>
+</li>
 </ul>
 <h2 id="kafka-connect">Kafka Connect<a class="headerlink" href="#kafka-connect" title="Permanent link">&para;</a></h2>
 <p>数据集成框架，用于在 Kafka 和其他系统之间移动数据。</p>
@@ -1397,9 +1413,13 @@ Connect <strong>默认不给这些 consumer 设置 <code>group.instance.id</code
 </code></pre></div>
 <ul>
 <li>不调用 <code>acknowledge</code> 时，下一次 <code>poll()</code> 隐式确认上一批（implicit ACK）</li>
-<li>ACK 类型语义：<code>ACCEPT</code>=成功；<code>RELEASE</code>=临时失败，回到 Available 等待重投（累计 delivery count）；
-  <code>REJECT</code>=永久失败，直接归档不再投递</li>
-<li>处理时间长可用 <code>AcknowledgeType.RENEW</code> 延长锁，防止被重投（4.2+，KIP-1222）</li>
+<li>
+<p>ACK 类型语义：<code>ACCEPT</code>=成功；<code>RELEASE</code>=临时失败，回到 Available 等待重投（累计 delivery count）；
+  <code>REJECT</code>=永久失败，直接归档不再投递</p>
+</li>
+<li>
+<p>处理时间长可用 <code>AcknowledgeType.RENEW</code> 延长锁，防止被重投（4.2+，KIP-1222）</p>
+</li>
 <li>RELEASE 重投次数超过 <code>group.share.delivery.count.limit</code>（默认 5）后记录自动归档（防毒丸消息）</li>
 </ul>
 <h2 id="schema-registry">Schema Registry<a class="headerlink" href="#schema-registry" title="Permanent link">&para;</a></h2>

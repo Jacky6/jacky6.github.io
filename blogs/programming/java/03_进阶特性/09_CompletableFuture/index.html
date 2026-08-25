@@ -1077,27 +1077,26 @@
 <td>避免 get() 阻塞、自定义线程池、防公共池耗尽</td>
 <td>⭐⭐⭐</td>
 </tr>
-<tr>
-<td>---</td>
-<td></td>
-<td></td>
-<td></td>
-</tr>
 </tbody>
 </table>
+<hr />
 <h2 id="1-completablefuture">1. CompletableFuture 概述<a class="headerlink" href="#1-completablefuture" title="Permanent link">&para;</a></h2>
-<p><strong>知识点</strong>：
-- CompletableFuture = Future + 回调链：异步执行 + 任务编排，不阻塞主线程
-- ⭐ 对比 Future：Future 只能 get() 阻塞等结果或轮询，无法串联后续任务
-- 实现了 CompletionStage 接口，提供几十种组合/回调方法
-- 默认用 ForkJoinPool.commonPool，生产建议自定义线程池</p>
+<p><strong>知识点</strong>：</p>
+<ul>
+<li>CompletableFuture = Future + 回调链：异步执行 + 任务编排，不阻塞主线程</li>
+<li>⭐ 对比 Future：Future 只能 get() 阻塞等结果或轮询，无法串联后续任务</li>
+<li>实现了 CompletionStage 接口，提供几十种组合/回调方法</li>
+<li>默认用 ForkJoinPool.commonPool，生产建议自定义线程池</li>
+</ul>
 <h3 id="11-completablefuture">1.1 什么是 CompletableFuture<a class="headerlink" href="#11-completablefuture" title="Permanent link">&para;</a></h3>
 <p><strong>CompletableFuture</strong> 是 Java 8 引入的异步编程工具，支持链式调用和组合。</p>
-<p><strong>优点</strong>：
-- ✅ 异步执行
-- ✅ 链式调用
-- ✅ 组合多个异步任务
-- ✅ 异常处理</p>
+<p><strong>优点</strong>：</p>
+<ul>
+<li>✅ 异步执行</li>
+<li>✅ 链式调用</li>
+<li>✅ 组合多个异步任务</li>
+<li>✅ 异常处理</li>
+</ul>
 <h3 id="12-future-vs-completablefuture">1.2 Future vs CompletableFuture<a class="headerlink" href="#12-future-vs-completablefuture" title="Permanent link">&para;</a></h3>
 <table>
 <thead>
@@ -1137,10 +1136,12 @@
 </table>
 <hr />
 <h2 id="2">2. 创建异步任务<a class="headerlink" href="#2" title="Permanent link">&para;</a></h2>
-<p><strong>知识点</strong>：
-- ⭐ supplyAsync（有返回值）/ runAsync（无返回值）提交异步任务
-- ⚠️ 默认用 ForkJoinPool.commonPool，阻塞 IO 任务务必传自定义线程池，防止耗尽公共池
-- 返回的 CompletableFuture 可继续链式编排</p>
+<p><strong>知识点</strong>：</p>
+<ul>
+<li>⭐ supplyAsync（有返回值）/ runAsync（无返回值）提交异步任务</li>
+<li>⚠️ 默认用 ForkJoinPool.commonPool，阻塞 IO 任务务必传自定义线程池，防止耗尽公共池</li>
+<li>返回的 CompletableFuture 可继续链式编排</li>
+</ul>
 <h3 id="21-supplyasync">2.1 使用 supplyAsync<a class="headerlink" href="#21-supplyasync" title="Permanent link">&para;</a></h3>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="kn">import</span><span class="w"> </span><span class="nn">java.util.concurrent.CompletableFuture</span><span class="p">;</span>
 <a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>
@@ -1168,10 +1169,12 @@
 </code></pre></div>
 <hr />
 <h2 id="3">3. 回调方法<a class="headerlink" href="#3" title="Permanent link">&para;</a></h2>
-<p><strong>知识点</strong>：
-- ⭐ 按返回值记：thenApply（转换，有返回）、thenAccept（消费，无返回）、thenRun（不关心上一步结果）
-- thenCompose 串联两个异步任务（扁平化，类似 flatMap）；thenCombine 合并两个独立任务的结果
-- 带 Async 后缀的版本在另一个线程执行回调</p>
+<p><strong>知识点</strong>：</p>
+<ul>
+<li>⭐ 按返回值记：thenApply（转换，有返回）、thenAccept（消费，无返回）、thenRun（不关心上一步结果）</li>
+<li>thenCompose 串联两个异步任务（扁平化，类似 flatMap）；thenCombine 合并两个独立任务的结果</li>
+<li>带 Async 后缀的版本在另一个线程执行回调</li>
+</ul>
 <h3 id="31-thenapply">3.1 thenApply（转换）<a class="headerlink" href="#31-thenapply" title="Permanent link">&para;</a></h3>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="n">CompletableFuture</span><span class="o">&lt;</span><span class="n">String</span><span class="o">&gt;</span><span class="w"> </span><span class="n">future</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">CompletableFuture</span>
 <a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="w">    </span><span class="p">.</span><span class="na">supplyAsync</span><span class="p">(()</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="s">&quot;Hello&quot;</span><span class="p">)</span>
@@ -1207,10 +1210,12 @@
 </code></pre></div>
 <hr />
 <h2 id="4">4. 异常处理<a class="headerlink" href="#4" title="Permanent link">&para;</a></h2>
-<p><strong>知识点</strong>：
-- ⭐ exceptionally（异常时兜底返回值）、handle（成功失败都处理，可转换）、whenComplete（记录日志，不改变结果）
-- 链上任何一步抛异常，会跳过后续普通回调，直达异常处理节点
-- ⚠️ 异常被吞在 CompletableFuture 里，不加处理就"静默失败"——必须显式处理</p>
+<p><strong>知识点</strong>：</p>
+<ul>
+<li>⭐ exceptionally（异常时兜底返回值）、handle（成功失败都处理，可转换）、whenComplete（记录日志，不改变结果）</li>
+<li>链上任何一步抛异常，会跳过后续普通回调，直达异常处理节点</li>
+<li>⚠️ 异常被吞在 CompletableFuture 里，不加处理就"静默失败"——必须显式处理</li>
+</ul>
 <h3 id="41-exceptionally">4.1 exceptionally<a class="headerlink" href="#41-exceptionally" title="Permanent link">&para;</a></h3>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="n">CompletableFuture</span><span class="o">&lt;</span><span class="n">String</span><span class="o">&gt;</span><span class="w"> </span><span class="n">future</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">CompletableFuture</span>
 <a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a><span class="w">    </span><span class="p">.</span><span class="na">supplyAsync</span><span class="p">(()</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="p">{</span>
@@ -1245,10 +1250,12 @@
 </code></pre></div>
 <hr />
 <h2 id="5">5. 组合多个任务<a class="headerlink" href="#5" title="Permanent link">&para;</a></h2>
-<p><strong>知识点</strong>：
-- ⭐ allOf：等全部完成（返回 CompletableFuture<Void>，结果要自己从各任务取）
-- ⭐ anyOf：任一完成即返回（竞速场景，取最快结果）
-- 典型应用：并行调多个下游服务后聚合</p>
+<p><strong>知识点</strong>：</p>
+<ul>
+<li>⭐ allOf：等全部完成（返回 CompletableFuture<Void>，结果要自己从各任务取）</li>
+<li>⭐ anyOf：任一完成即返回（竞速场景，取最快结果）</li>
+<li>典型应用：并行调多个下游服务后聚合</li>
+</ul>
 <h3 id="51-allof">5.1 allOf（全部完成）<a class="headerlink" href="#51-allof" title="Permanent link">&para;</a></h3>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a><span class="n">CompletableFuture</span><span class="o">&lt;</span><span class="n">String</span><span class="o">&gt;</span><span class="w"> </span><span class="n">f1</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">CompletableFuture</span><span class="p">.</span><span class="na">supplyAsync</span><span class="p">(()</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="s">&quot;任务 1&quot;</span><span class="p">);</span>
 <a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a><span class="n">CompletableFuture</span><span class="o">&lt;</span><span class="n">String</span><span class="o">&gt;</span><span class="w"> </span><span class="n">f2</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">CompletableFuture</span><span class="p">.</span><span class="na">supplyAsync</span><span class="p">(()</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="s">&quot;任务 2&quot;</span><span class="p">);</span>
@@ -1367,8 +1374,10 @@
 </code></pre></div>
 <hr />
 <h2 id="7">7. 完整示例<a class="headerlink" href="#7" title="Permanent link">&para;</a></h2>
-<p><strong>知识点</strong>：
-- 综合示例串联：supplyAsync 创建 → thenApply 转换 → thenCombine 合并 → exceptionally 兜底</p>
+<p><strong>知识点</strong>：</p>
+<ul>
+<li>综合示例串联：supplyAsync 创建 → thenApply 转换 → thenCombine 合并 → exceptionally 兜底</li>
+</ul>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-17-1" name="__codelineno-17-1" href="#__codelineno-17-1"></a><span class="kd">public</span><span class="w"> </span><span class="kd">class</span> <span class="nc">OrderService</span><span class="w"> </span><span class="p">{</span>
 <a id="__codelineno-17-2" name="__codelineno-17-2" href="#__codelineno-17-2"></a>
 <a id="__codelineno-17-3" name="__codelineno-17-3" href="#__codelineno-17-3"></a><span class="w">    </span><span class="kd">public</span><span class="w"> </span><span class="n">CompletableFuture</span><span class="o">&lt;</span><span class="n">OrderResult</span><span class="o">&gt;</span><span class="w"> </span><span class="nf">processOrder</span><span class="p">(</span><span class="n">Order</span><span class="w"> </span><span class="n">order</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
