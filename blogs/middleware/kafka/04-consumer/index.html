@@ -906,17 +906,21 @@
 <a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="w">    </span><span class="p">}</span>
 <a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="p">}</span>
 </code></pre></div>
-<p><strong>为什么不用 Push？</strong>
-- Push 模式由 Broker 决定发送速率，Consumer 可能处理不过来
-- Pull 模式由 Consumer 控制节奏，更灵活</p>
+<p><strong>为什么不用 Push？</strong></p>
+<ul>
+<li>Push 模式由 Broker 决定发送速率，Consumer 可能处理不过来</li>
+<li>Pull 模式由 Consumer 控制节奏，更灵活</li>
+</ul>
 <h2 id="offset">Offset 管理<a class="headerlink" href="#offset" title="Permanent link">&para;</a></h2>
 <h3 id="_2">自动提交（默认）<a class="headerlink" href="#_2" title="Permanent link">&para;</a></h3>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="n">props</span><span class="p">.</span><span class="na">put</span><span class="p">(</span><span class="s">&quot;enable.auto.commit&quot;</span><span class="p">,</span><span class="w"> </span><span class="kc">true</span><span class="p">);</span>
 <a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="n">props</span><span class="p">.</span><span class="na">put</span><span class="p">(</span><span class="s">&quot;auto.commit.interval.ms&quot;</span><span class="p">,</span><span class="w"> </span><span class="mi">5000</span><span class="p">);</span><span class="w">  </span><span class="c1">// 每 5s 提交一次</span>
 </code></pre></div>
-<p>问题：
-- 消息处理完但还没提交 offset → Consumer 挂了 → 重启后重复消费
-- 消息没处理完就提交了 → 丢失消息</p>
+<p>问题：</p>
+<ul>
+<li>消息处理完但还没提交 offset → Consumer 挂了 → 重启后重复消费</li>
+<li>消息没处理完就提交了 → 丢失消息</li>
+</ul>
 <h3 id="_3">手动提交<a class="headerlink" href="#_3" title="Permanent link">&para;</a></h3>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="n">props</span><span class="p">.</span><span class="na">put</span><span class="p">(</span><span class="s">&quot;enable.auto.commit&quot;</span><span class="p">,</span><span class="w"> </span><span class="kc">false</span><span class="p">);</span>
 <a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>
@@ -970,13 +974,19 @@
 <p>分两层看：</p>
 <p><strong>1. Kafka 层面（协议行为）：不需要等处理完</strong></p>
 <ul>
-<li>Kafka 从不"等待正在处理的消息处理完"，它只等 Consumer 在 <code>poll()</code> 循环中
-  响应协调协议。</li>
-<li>Rebalance 信号是在 Consumer <strong>下一次 <code>poll()</code></strong> 时送达的。此时已拉取到本地
+<li>
+<p>Kafka 从不"等待正在处理的消息处理完"，它只等 Consumer 在 <code>poll()</code> 循环中
+  响应协调协议。</p>
+</li>
+<li>
+<p>Rebalance 信号是在 Consumer <strong>下一次 <code>poll()</code></strong> 时送达的。此时已拉取到本地
   的消息批次还在你的业务代码里处理，Kafka 完全不知情——这部分是普通 Java 代码，
-  不受任何管控。</li>
-<li>所以：<strong>正在处理的那批消息不会被暂停或打断，会继续执行完</strong>；但处理完之后
-  Consumer 必须立刻回到 <code>poll()</code> 参与 Rebalance，期间整个 Group 停止拉取新消息。</li>
+  不受任何管控。</p>
+</li>
+<li>
+<p>所以：<strong>正在处理的那批消息不会被暂停或打断，会继续执行完</strong>；但处理完之后
+  Consumer 必须立刻回到 <code>poll()</code> 参与 Rebalance，期间整个 Group 停止拉取新消息。</p>
+</li>
 </ul>
 <p><strong>2. 业务层面（正确性）：强烈建议处理完并 commit 再进入 rebalance</strong></p>
 <ul>
@@ -1101,13 +1111,21 @@ rebalance，持有它们的 Consumer 完全不受影响</strong>，只有被迁�
 <code>CooperativeStickyAssignor / StickyAssignor / RoundRobinAssignor → uniform</code>。</p>
 <p><strong>迁移与现状：</strong></p>
 <ul>
-<li>支持<strong>滚动迁移</strong>：第一个新协议 Consumer 加入经典组时，Coordinator 自动
-  切换整组（代理老客户端的 Join/Sync/Heartbeat 请求），可逐台重启升级</li>
-<li>需要 <strong>KRaft 模式</strong>（ZooKeeper 模式没有此能力）</li>
-<li>客户端要求：Java client 4.0+；librdkafka 系（confluent-kafka-python 等）
+<li>
+<p>支持<strong>滚动迁移</strong>：第一个新协议 Consumer 加入经典组时，Coordinator 自动
+  切换整组（代理老客户端的 Join/Sync/Heartbeat 请求），可逐台重启升级</p>
+</li>
+<li>
+<p>需要 <strong>KRaft 模式</strong>（ZooKeeper 模式没有此能力）</p>
+</li>
+<li>
+<p>客户端要求：Java client 4.0+；librdkafka 系（confluent-kafka-python 等）
   2.10 EA → 2.11 Preview → <strong>2.12 起生产可用</strong>；kafka-python / aiokafka
-  等纯 Python 实现暂不支持</li>
-<li>趋势：Kafka 4.3 起分阶段弃用经典协议（KIP-1274），新项目直接用新协议</li>
+  等纯 Python 实现暂不支持</p>
+</li>
+<li>
+<p>趋势：Kafka 4.3 起分阶段弃用经典协议（KIP-1274），新项目直接用新协议</p>
+</li>
 <li>⚠️ 早期 4.x 小版本存在过新协议相关 bug（如 group 卡在 rebalance 状态），
   上生产前确认 broker 小版本足够新、先在预发环境验证</li>
 </ul>
@@ -1122,9 +1140,13 @@ rebalance，持有它们的 Consumer 完全不受影响</strong>，只有被迁�
 <ol>
 <li>Coordinator 记住 <code>group.instance.id</code> → 分区分配的映射</li>
 <li>静态成员关闭时<strong>不发送 LeaveGroup</strong>，只是停止心跳</li>
-<li>在 <code>session.timeout.ms</code> 内带着相同 instance id 重新加入 →
-   <strong>不触发 rebalance</strong>，直接拿回原来的分区继续消费</li>
-<li>超过 <code>session.timeout.ms</code> 没回来 → 被踢出，才触发 rebalance</li>
+<li>
+<p>在 <code>session.timeout.ms</code> 内带着相同 instance id 重新加入 →
+   <strong>不触发 rebalance</strong>，直接拿回原来的分区继续消费</p>
+</li>
+<li>
+<p>超过 <code>session.timeout.ms</code> 没回来 → 被踢出，才触发 rebalance</p>
+</li>
 </ol>
 <p><strong>典型场景：</strong></p>
 <ul>
@@ -1173,12 +1195,16 @@ Streams / Connect 中静态成员的用法见 05 章对应小节。</p>
 <p>经典协议下，每个新 Consumer 加入都触发一轮 rebalance：N 台机器挨个启动 ≈
 最多 N 轮 Stop-The-World。不过有两个缓解因素：</p>
 <ol>
-<li><strong>Join 会折叠</strong>：rebalance 进行中到达的 join 请求会被折叠进同一轮
+<li>
+<p><strong>Join 会折叠</strong>：rebalance 进行中到达的 join 请求会被折叠进同一轮
    （Coordinator 在 <code>rebalance.timeout.ms</code> 内收集所有成员的 join）。
-   机器启动时间越接近，实际轮数越少</li>
-<li><strong><code>group.initial.rebalance.delay.ms</code></strong>（默认 3s，broker 端配置）：
+   机器启动时间越接近，实际轮数越少</p>
+</li>
+<li>
+<p><strong><code>group.initial.rebalance.delay.ms</code></strong>（默认 3s，broker 端配置）：
    只对<strong>新 Group 的第一次 rebalance</strong> 生效——Coordinator 先等这段时间
-   让更多成员加入再分配，适合整组冷启动；对已有 Group 的扩容无效</li>
+   让更多成员加入再分配，适合整组冷启动；对已有 Group 的扩容无效</p>
+</li>
 </ol>
 <p><strong>静态成员帮不上扩容的忙</strong>：新机器是全新身份（新的或没有 instance id），
 加入必然触发 rebalance。静态成员解决的是"同一身份重启回来"，不是"新成员加入"。</p>
@@ -1259,14 +1285,18 @@ rebalance——先加分区再加机器。</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a><span class="n">props</span><span class="p">.</span><span class="na">put</span><span class="p">(</span><span class="s">&quot;max.poll.records&quot;</span><span class="p">,</span><span class="w"> </span><span class="mi">500</span><span class="p">);</span><span class="w">         </span><span class="c1">// 一次 poll 最大记录数</span>
 <a id="__codelineno-14-2" name="__codelineno-14-2" href="#__codelineno-14-2"></a><span class="n">props</span><span class="p">.</span><span class="na">put</span><span class="p">(</span><span class="s">&quot;max.poll.interval.ms&quot;</span><span class="p">,</span><span class="w"> </span><span class="mi">300000</span><span class="p">);</span><span class="w">  </span><span class="c1">// 两次 poll 最大间隔</span>
 </code></pre></div>
-<p>如果处理时间超过 <code>max.poll.interval.ms</code>：
-- Consumer 被踢出 Group
-- 触发 Rebalance
-- 消息被重新消费</p>
-<p><strong>解决方案：</strong>
-- 减小 <code>max.poll.records</code>
-- 增大 <code>max.poll.interval.ms</code>
-- 异步处理（但要小心 offset 提交顺序）</p>
+<p>如果处理时间超过 <code>max.poll.interval.ms</code>：</p>
+<ul>
+<li>Consumer 被踢出 Group</li>
+<li>触发 Rebalance</li>
+<li>消息被重新消费</li>
+</ul>
+<p><strong>解决方案：</strong></p>
+<ul>
+<li>减小 <code>max.poll.records</code></li>
+<li>增大 <code>max.poll.interval.ms</code></li>
+<li>异步处理（但要小心 offset 提交顺序）</li>
+</ul>
 <h2 id="_6">代码示例<a class="headerlink" href="#_6" title="Permanent link">&para;</a></h2>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-15-1" name="__codelineno-15-1" href="#__codelineno-15-1"></a><span class="n">Properties</span><span class="w"> </span><span class="n">props</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">new</span><span class="w"> </span><span class="n">Properties</span><span class="p">();</span>
 <a id="__codelineno-15-2" name="__codelineno-15-2" href="#__codelineno-15-2"></a><span class="n">props</span><span class="p">.</span><span class="na">put</span><span class="p">(</span><span class="s">&quot;bootstrap.servers&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;broker1:9092,broker2:9092&quot;</span><span class="p">);</span>

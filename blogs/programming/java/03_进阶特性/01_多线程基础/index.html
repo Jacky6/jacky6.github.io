@@ -1111,19 +1111,16 @@
 <td>sleep 不释放锁，wait 释放且必须在同步块 ⭐</td>
 <td>⭐⭐⭐⭐</td>
 </tr>
-<tr>
-<td>---</td>
-<td></td>
-<td></td>
-<td></td>
-</tr>
 </tbody>
 </table>
+<hr />
 <h2 id="1">1. 线程基础<a class="headerlink" href="#1" title="Permanent link">&para;</a></h2>
-<p><strong>知识点</strong>：
-- 线程是程序执行的最小单元，一个进程含多个线程，共享进程内存
-- ⭐ Java 线程六种状态：NEW/RUNNABLE/BLOCKED/WAITING/TIMED_WAITING/TERMINATED（没有 RUNNING）
-- HotSpot 的 Java 线程 1:1 映射内核线程，创建/切换成本高（虚拟线程见进阶篇第 11 章）</p>
+<p><strong>知识点</strong>：</p>
+<ul>
+<li>线程是程序执行的最小单元，一个进程含多个线程，共享进程内存</li>
+<li>⭐ Java 线程六种状态：NEW/RUNNABLE/BLOCKED/WAITING/TIMED_WAITING/TERMINATED（没有 RUNNING）</li>
+<li>HotSpot 的 Java 线程 1:1 映射内核线程，创建/切换成本高（虚拟线程见进阶篇第 11 章）</li>
+</ul>
 <h3 id="11">1.1 什么是线程<a class="headerlink" href="#11" title="Permanent link">&para;</a></h3>
 <p><strong>线程</strong>（Thread）是程序执行的最小单元，一个进程可以包含多个线程。</p>
 <p><strong>进程 vs 线程</strong>：</p>
@@ -1304,10 +1301,12 @@
 </code></pre></div>
 <hr />
 <h2 id="2">2. 创建线程<a class="headerlink" href="#2" title="Permanent link">&para;</a></h2>
-<p><strong>知识点</strong>：
-- 四种方式：继承 Thread、实现 Runnable、实现 Callable（有返回值）、线程池 ⭐
-- ⭐ 推荐 Runnable/Callable：Java 单继承限制 + 任务与线程解耦
-- start() 启动新线程，直接调 run() 只是普通方法调用；start 只能调一次</p>
+<p><strong>知识点</strong>：</p>
+<ul>
+<li>四种方式：继承 Thread、实现 Runnable、实现 Callable（有返回值）、线程池 ⭐</li>
+<li>⭐ 推荐 Runnable/Callable：Java 单继承限制 + 任务与线程解耦</li>
+<li>start() 启动新线程，直接调 run() 只是普通方法调用；start 只能调一次</li>
+</ul>
 <h3 id="21-thread">2.1 继承 Thread 类<a class="headerlink" href="#21-thread" title="Permanent link">&para;</a></h3>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="kd">class</span> <span class="nc">MyThread</span><span class="w"> </span><span class="kd">extends</span><span class="w"> </span><span class="n">Thread</span><span class="w"> </span><span class="p">{</span>
 <a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="w">    </span><span class="nd">@Override</span>
@@ -1410,11 +1409,13 @@
 </blockquote>
 <hr />
 <h2 id="3">3. 线程同步<a class="headerlink" href="#3" title="Permanent link">&para;</a></h2>
-<p><strong>知识点</strong>：
-- 三大同步手段：synchronized（JVM 级）、volatile（可见性+有序性）、ReentrantLock（API 级，功能多）
-- ⭐ synchronized 锁升级：无锁→偏向锁→轻量级锁→重量级锁（JDK 15+ 偏向锁默认禁用）
-- ⭐ volatile 不保证原子性，count++ 仍不安全
-- 死锁四条件：互斥、持有并等待、不可剥夺、循环等待——破坏任一即可避免</p>
+<p><strong>知识点</strong>：</p>
+<ul>
+<li>三大同步手段：synchronized（JVM 级）、volatile（可见性+有序性）、ReentrantLock（API 级，功能多）</li>
+<li>⭐ synchronized 锁升级：无锁→偏向锁→轻量级锁→重量级锁（JDK 15+ 偏向锁默认禁用）</li>
+<li>⭐ volatile 不保证原子性，count++ 仍不安全</li>
+<li>死锁四条件：互斥、持有并等待、不可剥夺、循环等待——破坏任一即可避免</li>
+</ul>
 <h3 id="31-synchronized">3.1 synchronized 关键字<a class="headerlink" href="#31-synchronized" title="Permanent link">&para;</a></h3>
 <p><strong>三种用法</strong>：</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="kd">class</span> <span class="nc">Counter</span><span class="w"> </span><span class="p">{</span>
@@ -1437,10 +1438,12 @@
 <a id="__codelineno-6-18" name="__codelineno-6-18" href="#__codelineno-6-18"></a><span class="w">    </span><span class="p">}</span>
 <a id="__codelineno-6-19" name="__codelineno-6-19" href="#__codelineno-6-19"></a><span class="p">}</span>
 </code></pre></div>
-<p><strong>底层原理</strong>：
-- 代码块层面：字节码 <code>monitorenter</code> / <code>monitorexit</code> 指令，每个对象关联一个 monitor（管程）
-- 方法层面：方法访问标志 <code>ACC_SYNCHRONIZED</code>
-- monitor 记录持有线程和重入次数，所以 synchronized 是<strong>可重入锁</strong>（同一线程重复进入同一把锁不会死锁）</p>
+<p><strong>底层原理</strong>：</p>
+<ul>
+<li>代码块层面：字节码 <code>monitorenter</code> / <code>monitorexit</code> 指令，每个对象关联一个 monitor（管程）</li>
+<li>方法层面：方法访问标志 <code>ACC_SYNCHRONIZED</code></li>
+<li>monitor 记录持有线程和重入次数，所以 synchronized 是<strong>可重入锁</strong>（同一线程重复进入同一把锁不会死锁）</li>
+</ul>
 <p><strong>锁升级 ⭐⭐⭐</strong>（JDK 6 引入的优化，由 JVM 自动完成）：</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>无锁 → 偏向锁 → 轻量级锁 → 重量级锁（只能升级不能降级）
 </code></pre></div>
@@ -1493,10 +1496,12 @@
 <a id="__codelineno-8-12" name="__codelineno-8-12" href="#__codelineno-8-12"></a><span class="w">    </span><span class="p">}</span>
 <a id="__codelineno-8-13" name="__codelineno-8-13" href="#__codelineno-8-13"></a><span class="p">}</span>
 </code></pre></div>
-<p><strong>volatile 作用</strong>：
-- ✅ 保证可见性（一个线程修改，写回主内存，其他线程立即看到）
-- ✅ 禁止指令重排序（内存屏障；经典应用：双重检查单例的 <code>instance</code> 必须加 volatile，防止拿到"半初始化"对象）
-- ❌ 不保证原子性（<code>count++</code> 这种复合操作仍然不安全，要用 AtomicInteger 或锁）</p>
+<p><strong>volatile 作用</strong>：</p>
+<ul>
+<li>✅ 保证可见性（一个线程修改，写回主内存，其他线程立即看到）</li>
+<li>✅ 禁止指令重排序（内存屏障；经典应用：双重检查单例的 <code>instance</code> 必须加 volatile，防止拿到"半初始化"对象）</li>
+<li>❌ 不保证原子性（<code>count++</code> 这种复合操作仍然不安全，要用 AtomicInteger 或锁）</li>
+</ul>
 <p><strong>volatile vs synchronized</strong>：volatile 只能修饰变量，保证可见性/有序性；synchronized 可修饰方法/代码块，同时保证原子性、可见性、有序性。</p>
 <h3 id="33-reentrantlock">3.3 ReentrantLock<a class="headerlink" href="#33-reentrantlock" title="Permanent link">&para;</a></h3>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a><span class="kn">import</span><span class="w"> </span><span class="nn">java.util.concurrent.locks.ReentrantLock</span><span class="p">;</span>
@@ -1581,11 +1586,13 @@
 </table>
 <p><strong>选择建议</strong>：简单同步优先 synchronized（写法简单、JVM 持续优化）；需要可中断/超时/公平/多条件时用 ReentrantLock。</p>
 <h3 id="34">3.4 死锁 ⭐⭐⭐<a class="headerlink" href="#34" title="Permanent link">&para;</a></h3>
-<p><strong>死锁的四个必要条件</strong>（破坏任意一个即可避免）：
-1. <strong>互斥</strong>：资源一次只能被一个线程占用
-2. <strong>持有并等待</strong>：持有资源的同时等待其他资源
-3. <strong>不可剥夺</strong>：已获得的资源不能被强行夺走
-4. <strong>循环等待</strong>：线程间形成等待环路</p>
+<p><strong>死锁的四个必要条件</strong>（破坏任意一个即可避免）：</p>
+<ol>
+<li><strong>互斥</strong>：资源一次只能被一个线程占用</li>
+<li><strong>持有并等待</strong>：持有资源的同时等待其他资源</li>
+<li><strong>不可剥夺</strong>：已获得的资源不能被强行夺走</li>
+<li><strong>循环等待</strong>：线程间形成等待环路</li>
+</ol>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a><span class="c1">// 经典死锁示例：两个线程以相反顺序获取两把锁</span>
 <a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a><span class="n">Object</span><span class="w"> </span><span class="n">lockA</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">new</span><span class="w"> </span><span class="n">Object</span><span class="p">();</span>
 <a id="__codelineno-11-3" name="__codelineno-11-3" href="#__codelineno-11-3"></a><span class="n">Object</span><span class="w"> </span><span class="n">lockB</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">new</span><span class="w"> </span><span class="n">Object</span><span class="p">();</span>
@@ -1605,10 +1612,12 @@
 <a id="__codelineno-11-17" name="__codelineno-11-17" href="#__codelineno-11-17"></a><span class="p">}).</span><span class="na">start</span><span class="p">();</span>
 <a id="__codelineno-11-18" name="__codelineno-11-18" href="#__codelineno-11-18"></a><span class="c1">// 两线程互相等待对方手里的锁 → 永远阻塞</span>
 </code></pre></div>
-<p><strong>排查与避免</strong>：
-- <code>jstack &lt;pid&gt;</code> 打印线程栈，会直接标注 <code>Found one Java-level deadlock</code>
-- <code>jconsole</code> 图形界面点"检测死锁"
-- 避免方法：<strong>固定加锁顺序</strong>、使用 <code>tryLock</code> 超时退让、缩小锁粒度</p>
+<p><strong>排查与避免</strong>：</p>
+<ul>
+<li><code>jstack &lt;pid&gt;</code> 打印线程栈，会直接标注 <code>Found one Java-level deadlock</code></li>
+<li><code>jconsole</code> 图形界面点"检测死锁"</li>
+<li>避免方法：<strong>固定加锁顺序</strong>、使用 <code>tryLock</code> 超时退让、缩小锁粒度</li>
+</ul>
 <h3 id="35">3.5 线程中断机制<a class="headerlink" href="#35" title="Permanent link">&para;</a></h3>
 <p>Java 没有强制停止线程的安全方法（<code>stop()</code> 已废弃），标准做法是<strong>协作式中断</strong>：</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a><span class="n">Thread</span><span class="w"> </span><span class="n">worker</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">new</span><span class="w"> </span><span class="n">Thread</span><span class="p">(()</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="p">{</span>
@@ -1655,11 +1664,13 @@
 </table>
 <hr />
 <h2 id="4">4. 线程池 ⭐⭐⭐<a class="headerlink" href="#4" title="Permanent link">&para;</a></h2>
-<p><strong>知识点</strong>：
-- ⭐ 为什么用线程池：复用线程降低开销、控制并发度防 OOM、统一管理
-- ⭐ ThreadPoolExecutor 七大参数 + 四步提交流程（核心线程→队列→非核心线程→拒绝策略）必背
-- ⚠️ 禁止用 Executors 工厂创建（无界队列/无上限线程数可能 OOM）
-- 四种拒绝策略：AbortPolicy（默认）/CallerRunsPolicy/DiscardPolicy/DiscardOldestPolicy</p>
+<p><strong>知识点</strong>：</p>
+<ul>
+<li>⭐ 为什么用线程池：复用线程降低开销、控制并发度防 OOM、统一管理</li>
+<li>⭐ ThreadPoolExecutor 七大参数 + 四步提交流程（核心线程→队列→非核心线程→拒绝策略）必背</li>
+<li>⚠️ 禁止用 Executors 工厂创建（无界队列/无上限线程数可能 OOM）</li>
+<li>四种拒绝策略：AbortPolicy（默认）/CallerRunsPolicy/DiscardPolicy/DiscardOldestPolicy</li>
+</ul>
 <h3 id="41">4.1 为什么用线程池<a class="headerlink" href="#41" title="Permanent link">&para;</a></h3>
 <ul>
 <li><strong>降低开销</strong>：线程创建/销毁成本高，池化复用</li>
@@ -1746,18 +1757,22 @@
 </tr>
 </tbody>
 </table>
-<p><strong>线程数经验值</strong>：
-- CPU 密集型：线程数 ≈ CPU 核数 + 1（多一个防偶发缺页中断）
-- IO 密集型：线程数 ≈ CPU 核数 × 2（或 核数 × (1 + 等待时间/计算时间)）
-- 实际要压测调参，公式只是起点</p>
+<p><strong>线程数经验值</strong>：</p>
+<ul>
+<li>CPU 密集型：线程数 ≈ CPU 核数 + 1（多一个防偶发缺页中断）</li>
+<li>IO 密集型：线程数 ≈ CPU 核数 × 2（或 核数 × (1 + 等待时间/计算时间)）</li>
+<li>实际要压测调参，公式只是起点</li>
+</ul>
 <p><strong>execute vs submit</strong>：execute 提交 Runnable 无返回值；submit 提交 Runnable/Callable 返回 Future，且能捕获任务异常（execute 的异常直接抛出）。</p>
 <p><strong>shutdown vs shutdownNow</strong>：shutdown 不接新任务、等已提交任务完成；shutdownNow 尝试中断正在执行的任务、返回未执行的任务列表。</p>
 <hr />
 <h2 id="5">5. 线程通信<a class="headerlink" href="#5" title="Permanent link">&para;</a></h2>
-<p><strong>知识点</strong>：
-- wait/notify：Object 方法，必须在 synchronized 块内；wait 释放锁，sleep 不释放
-- ⭐ CountDownLatch（一次性，一个等多个）vs CyclicBarrier（可复用，互相等）
-- wait 判断条件必须用 while 循环（防虚假唤醒），推荐 notifyAll</p>
+<p><strong>知识点</strong>：</p>
+<ul>
+<li>wait/notify：Object 方法，必须在 synchronized 块内；wait 释放锁，sleep 不释放</li>
+<li>⭐ CountDownLatch（一次性，一个等多个）vs CyclicBarrier（可复用，互相等）</li>
+<li>wait 判断条件必须用 while 循环（防虚假唤醒），推荐 notifyAll</li>
+</ul>
 <h3 id="51-waitnotifyobject">5.1 wait/notify（Object 方法）<a class="headerlink" href="#51-waitnotifyobject" title="Permanent link">&para;</a></h3>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-16-1" name="__codelineno-16-1" href="#__codelineno-16-1"></a><span class="c1">// wait/notify 必须在 synchronized 块内调用，否则抛 IllegalMonitorStateException</span>
 <a id="__codelineno-16-2" name="__codelineno-16-2" href="#__codelineno-16-2"></a><span class="kd">synchronized</span><span class="w"> </span><span class="p">(</span><span class="n">lock</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
@@ -1849,9 +1864,11 @@
 <p>更多工具类见 <a href="../07_%E5%B9%B6%E5%8F%91%E5%B7%A5%E5%85%B7%E7%B1%BB%E8%AF%A6%E8%A7%A3/">并发工具类详解</a>。</p>
 <hr />
 <h2 id="6">6. 经典问题<a class="headerlink" href="#6" title="Permanent link">&para;</a></h2>
-<p><strong>知识点</strong>：
-- ⭐ 生产者-消费者：手写用 wait/notify + while 判条件；生产直接用 BlockingQueue
-- 双重检查单例：instance 必须 volatile（防指令重排导致半初始化对象）</p>
+<p><strong>知识点</strong>：</p>
+<ul>
+<li>⭐ 生产者-消费者：手写用 wait/notify + while 判条件；生产直接用 BlockingQueue</li>
+<li>双重检查单例：instance 必须 volatile（防指令重排导致半初始化对象）</li>
+</ul>
 <h3 id="61-">6.1 生产者 - 消费者<a class="headerlink" href="#61-" title="Permanent link">&para;</a></h3>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-19-1" name="__codelineno-19-1" href="#__codelineno-19-1"></a><span class="kd">class</span> <span class="nc">ProducerConsumer</span><span class="w"> </span><span class="p">{</span>
 <a id="__codelineno-19-2" name="__codelineno-19-2" href="#__codelineno-19-2"></a><span class="w">    </span><span class="kd">private</span><span class="w"> </span><span class="kd">final</span><span class="w"> </span><span class="n">Queue</span><span class="o">&lt;</span><span class="n">Integer</span><span class="o">&gt;</span><span class="w"> </span><span class="n">queue</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">new</span><span class="w"> </span><span class="n">LinkedList</span><span class="o">&lt;&gt;</span><span class="p">();</span>

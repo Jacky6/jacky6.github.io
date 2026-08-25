@@ -1037,10 +1037,12 @@
 <h1 id="11_jdbc">11_JDBC<a class="headerlink" href="#11_jdbc" title="Permanent link">&para;</a></h1>
 <hr />
 <h2 id="1-jdbc">1. JDBC 概述<a class="headerlink" href="#1-jdbc" title="Permanent link">&para;</a></h2>
-<p><strong>知识点</strong>：
-- ⭐ JDBC = Java 访问关系数据库的标准 API（java.sql 包），面向接口编程，换库只换驱动
-- 核心接口：Connection（连接）、PreparedStatement（预编译 SQL）、ResultSet（结果集）
-- JDBC 4.0+ 驱动 SPI 自动注册，无需 Class.forName</p>
+<p><strong>知识点</strong>：</p>
+<ul>
+<li>⭐ JDBC = Java 访问关系数据库的标准 API（java.sql 包），面向接口编程，换库只换驱动</li>
+<li>核心接口：Connection（连接）、PreparedStatement（预编译 SQL）、ResultSet（结果集）</li>
+<li>JDBC 4.0+ 驱动 SPI 自动注册，无需 Class.forName</li>
+</ul>
 <h3 id="11-jdbc">1.1 什么是 JDBC<a class="headerlink" href="#11-jdbc" title="Permanent link">&para;</a></h3>
 <p><strong>JDBC</strong>（Java Database Connectivity）是 Java 访问关系型数据库的<strong>标准 API</strong>（java.sql 包）。它定义了一套接口，各数据库厂商提供实现（驱动 jar），Java 代码面向接口编程，换数据库只需换驱动和连接串。</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>应用程序代码
@@ -1092,11 +1094,13 @@
 </table>
 <hr />
 <h2 id="2">2. 快速开始<a class="headerlink" href="#2" title="Permanent link">&para;</a></h2>
-<p><strong>知识点</strong>：
-- Maven 坐标添加数据库驱动；JDBC 4.0 起驱动经 SPI 自动注册，无需再写 <code>Class.forName</code> ⭐
-- 获取连接：<code>DriverManager.getConnection(url, user, password)</code>，配合 try-with-resources 自动关闭资源
-- ⚠️ MySQL 8 连接串需明确 <code>serverTimezone</code> 参数
-- 核心三件套：Connection（连接与事务）、PreparedStatement（执行 SQL）、ResultSet（查询结果）</p>
+<p><strong>知识点</strong>：</p>
+<ul>
+<li>Maven 坐标添加数据库驱动；JDBC 4.0 起驱动经 SPI 自动注册，无需再写 <code>Class.forName</code> ⭐</li>
+<li>获取连接：<code>DriverManager.getConnection(url, user, password)</code>，配合 try-with-resources 自动关闭资源</li>
+<li>⚠️ MySQL 8 连接串需明确 <code>serverTimezone</code> 参数</li>
+<li>核心三件套：Connection（连接与事务）、PreparedStatement（执行 SQL）、ResultSet（查询结果）</li>
+</ul>
 <h3 id="21-maven">2.1 添加驱动依赖（Maven）<a class="headerlink" href="#21-maven" title="Permanent link">&para;</a></h3>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="cm">&lt;!-- MySQL 8.x 驱动 --&gt;</span>
 <a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="nt">&lt;dependency&gt;</span>
@@ -1137,18 +1141,22 @@
 <a id="__codelineno-2-26" name="__codelineno-2-26" href="#__codelineno-2-26"></a><span class="w">    </span><span class="p">}</span>
 <a id="__codelineno-2-27" name="__codelineno-2-27" href="#__codelineno-2-27"></a><span class="p">}</span>
 </code></pre></div>
-<p><strong>连接串要点</strong>（MySQL）：
-- <code>jdbc:mysql://host:port/dbname</code>，MySQL 默认端口 3306
-- <code>serverTimezone</code>：MySQL 8 驱动要求明确时区
-- <code>useSSL=false</code>：本地开发关闭 SSL 警告
-- <code>rewriteBatchedStatements=true</code>：批量插入性能优化</p>
+<p><strong>连接串要点</strong>（MySQL）：</p>
+<ul>
+<li><code>jdbc:mysql://host:port/dbname</code>，MySQL 默认端口 3306</li>
+<li><code>serverTimezone</code>：MySQL 8 驱动要求明确时区</li>
+<li><code>useSSL=false</code>：本地开发关闭 SSL 警告</li>
+<li><code>rewriteBatchedStatements=true</code>：批量插入性能优化</li>
+</ul>
 <hr />
 <h2 id="3-crud">3. CRUD 操作<a class="headerlink" href="#3-crud" title="Permanent link">&para;</a></h2>
-<p><strong>知识点</strong>：
-- 增删改用 <code>executeUpdate()</code>，返回受影响行数；查询用 <code>executeQuery()</code>，返回 ResultSet
-- ResultSet 是游标：<code>while (rs.next())</code> 逐行推进，按<strong>列名</strong>（推荐）或列序号（从 1 开始）取值
-- 取回自增主键：prepareStatement 时传 <code>RETURN_GENERATED_KEYS</code>，再调 <code>getGeneratedKeys()</code>
-- 批量：<code>addBatch()</code> 攒批 + <code>executeBatch()</code> 分批提交；⚠️ MySQL 要加 <code>rewriteBatchedStatements=true</code> 才真正合并 ⭐</p>
+<p><strong>知识点</strong>：</p>
+<ul>
+<li>增删改用 <code>executeUpdate()</code>，返回受影响行数；查询用 <code>executeQuery()</code>，返回 ResultSet</li>
+<li>ResultSet 是游标：<code>while (rs.next())</code> 逐行推进，按<strong>列名</strong>（推荐）或列序号（从 1 开始）取值</li>
+<li>取回自增主键：prepareStatement 时传 <code>RETURN_GENERATED_KEYS</code>，再调 <code>getGeneratedKeys()</code></li>
+<li>批量：<code>addBatch()</code> 攒批 + <code>executeBatch()</code> 分批提交；⚠️ MySQL 要加 <code>rewriteBatchedStatements=true</code> 才真正合并 ⭐</li>
+</ul>
 <h3 id="31-executeupdate">3.1 增删改（executeUpdate）<a class="headerlink" href="#31-executeupdate" title="Permanent link">&para;</a></h3>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="c1">// INSERT</span>
 <a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="n">String</span><span class="w"> </span><span class="n">sql</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;INSERT INTO users(name, age) VALUES(?, ?)&quot;</span><span class="p">;</span>
@@ -1203,11 +1211,13 @@
 </code></pre></div>
 <hr />
 <h2 id="4-sql-preparedstatement">4. SQL 注入与 PreparedStatement ⭐⭐⭐<a class="headerlink" href="#4-sql-preparedstatement" title="Permanent link">&para;</a></h2>
-<p><strong>知识点</strong>：
-- SQL 注入：字符串拼接让用户输入改变 SQL 结构（恒真条件导致全表数据泄露）
-- ⭐ PreparedStatement 预编译 + 参数化是根本防御：SQL 模板先编译，参数只作为"值"传输
-- 附带好处：相同 SQL 模板可复用执行计划，性能更好
-- ⚠️ <code>?</code> 占位符不能替代表名/列名/ORDER BY 字段，动态排序列要用白名单校验</p>
+<p><strong>知识点</strong>：</p>
+<ul>
+<li>SQL 注入：字符串拼接让用户输入改变 SQL 结构（恒真条件导致全表数据泄露）</li>
+<li>⭐ PreparedStatement 预编译 + 参数化是根本防御：SQL 模板先编译，参数只作为"值"传输</li>
+<li>附带好处：相同 SQL 模板可复用执行计划，性能更好</li>
+<li>⚠️ <code>?</code> 占位符不能替代表名/列名/ORDER BY 字段，动态排序列要用白名单校验</li>
+</ul>
 <h3 id="41">4.1 注入是怎么发生的<a class="headerlink" href="#41" title="Permanent link">&para;</a></h3>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="c1">// ❌ Statement 拼接 SQL：危险！</span>
 <a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a><span class="n">String</span><span class="w"> </span><span class="n">name</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">request</span><span class="p">.</span><span class="na">getParameter</span><span class="p">(</span><span class="s">&quot;name&quot;</span><span class="p">);</span><span class="w">  </span><span class="c1">// 假设用户输入 &#39; OR &#39;1&#39;=&#39;1</span>
@@ -1222,20 +1232,24 @@
 <a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a><span class="n">PreparedStatement</span><span class="w"> </span><span class="n">ps</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">conn</span><span class="p">.</span><span class="na">prepareStatement</span><span class="p">(</span><span class="s">&quot;SELECT * FROM users WHERE name = ?&quot;</span><span class="p">);</span>
 <a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a><span class="n">ps</span><span class="p">.</span><span class="na">setString</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="n">name</span><span class="p">);</span><span class="w">  </span><span class="c1">// 无论输入什么，都只是字符串值，不可能改变 SQL 结构</span>
 </code></pre></div>
-<p>原理：
-1. <strong>预编译</strong>：SQL 模板先发送到数据库编译出执行计划，<code>?</code> 的位置已固定
-2. <strong>参数化</strong>：参数以数据形式传输，不参与 SQL 解析，注入内容失去语法意义
-3. 附带好处：相同 SQL 模板可复用执行计划，性能更好</p>
+<p>原理：</p>
+<ol>
+<li><strong>预编译</strong>：SQL 模板先发送到数据库编译出执行计划，<code>?</code> 的位置已固定</li>
+<li><strong>参数化</strong>：参数以数据形式传输，不参与 SQL 解析，注入内容失去语法意义</li>
+<li>附带好处：相同 SQL 模板可复用执行计划，性能更好</li>
+</ol>
 <blockquote>
 <p>注意：<code>?</code> 不能替代表名、列名、ORDER BY 字段（这些是 SQL 结构不是值），动态排序列要用白名单校验。</p>
 </blockquote>
 <hr />
 <h2 id="5">5. 事务管理<a class="headerlink" href="#5" title="Permanent link">&para;</a></h2>
-<p><strong>知识点</strong>：
-- 事务流程：<code>setAutoCommit(false)</code> 开启 → 执行多条 SQL → 成功 commit / 失败 rollback
-- ⭐ 四种隔离级别：READ_UNCOMMITTED → READ_COMMITTED（Oracle 默认）→ REPEATABLE_READ（MySQL InnoDB 默认）→ SERIALIZABLE，隔离性递增、并发性递减
-- ⚠️ 连接池场景归还连接前要恢复 autoCommit 为 true
-- Savepoint 保存点支持只回滚事务的一部分</p>
+<p><strong>知识点</strong>：</p>
+<ul>
+<li>事务流程：<code>setAutoCommit(false)</code> 开启 → 执行多条 SQL → 成功 commit / 失败 rollback</li>
+<li>⭐ 四种隔离级别：READ_UNCOMMITTED → READ_COMMITTED（Oracle 默认）→ REPEATABLE_READ（MySQL InnoDB 默认）→ SERIALIZABLE，隔离性递增、并发性递减</li>
+<li>⚠️ 连接池场景归还连接前要恢复 autoCommit 为 true</li>
+<li>Savepoint 保存点支持只回滚事务的一部分</li>
+</ul>
 <h3 id="51">5.1 基本用法<a class="headerlink" href="#51" title="Permanent link">&para;</a></h3>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="n">Connection</span><span class="w"> </span><span class="n">conn</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">dataSource</span><span class="p">.</span><span class="na">getConnection</span><span class="p">();</span>
 <a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a><span class="k">try</span><span class="w"> </span><span class="p">{</span>
@@ -1319,11 +1333,13 @@
 </code></pre></div>
 <hr />
 <h2 id="6">6. 连接池 ⭐⭐⭐⭐<a class="headerlink" href="#6" title="Permanent link">&para;</a></h2>
-<p><strong>知识点</strong>：
-- 连接创建销毁昂贵（TCP 握手 + 认证）且数据库连接数有限 → 连接池预创建并复用连接 ⭐
-- 借还模型：<code>getConnection()</code> 借（毫秒级），<code>close()</code> 在池化实现下是<strong>归还</strong>而非真关闭
-- 关键参数：maximumPoolSize、minimumIdle、connectionTimeout、maxLifetime（要小于数据库超时）
-- 选型：HikariCP 性能最强、SpringBoot 默认；Druid 功能全（监控、SQL 防火墙）、国内常用</p>
+<p><strong>知识点</strong>：</p>
+<ul>
+<li>连接创建销毁昂贵（TCP 握手 + 认证）且数据库连接数有限 → 连接池预创建并复用连接 ⭐</li>
+<li>借还模型：<code>getConnection()</code> 借（毫秒级），<code>close()</code> 在池化实现下是<strong>归还</strong>而非真关闭</li>
+<li>关键参数：maximumPoolSize、minimumIdle、connectionTimeout、maxLifetime（要小于数据库超时）</li>
+<li>选型：HikariCP 性能最强、SpringBoot 默认；Druid 功能全（监控、SQL 防火墙）、国内常用</li>
+</ul>
 <h3 id="61">6.1 为什么需要连接池<a class="headerlink" href="#61" title="Permanent link">&para;</a></h3>
 <p>数据库连接的创建（TCP 握手 + 认证 + 会话初始化）耗时几十到几百毫秒，频繁创建销毁是巨大浪费，且数据库连接数有限（MySQL 默认 max_connections=151）。连接池<strong>预先创建并复用连接</strong>：</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a>应用借连接：dataSource.getConnection()（从池中取，毫秒级）
@@ -1392,11 +1408,13 @@
 </table>
 <hr />
 <h2 id="7">7. 连接池原理与常见问题 ⭐<a class="headerlink" href="#7" title="Permanent link">&para;</a></h2>
-<p><strong>知识点</strong>：
-- 工作流程：初始化建 minIdle 个连接 → 借出时校验有效性，无空闲且达 maxSize 则等待超时 → 归还时重置状态（回滚未提交事务、恢复 autoCommit）
-- ⚠️ 连接泄漏：借出后忘 close 或异常路径漏还 → try-with-resources + HikariCP leakDetectionThreshold 检测
-- 连接数不是越大越好；HikariCP 官方公式 <code>connections = core_count * 2 + effective_spindle_count</code>，10~20 往往够用
-- maxLifetime 必须小于数据库 wait_timeout，否则应用会拿到已被数据库关闭的"死连接"</p>
+<p><strong>知识点</strong>：</p>
+<ul>
+<li>工作流程：初始化建 minIdle 个连接 → 借出时校验有效性，无空闲且达 maxSize 则等待超时 → 归还时重置状态（回滚未提交事务、恢复 autoCommit）</li>
+<li>⚠️ 连接泄漏：借出后忘 close 或异常路径漏还 → try-with-resources + HikariCP leakDetectionThreshold 检测</li>
+<li>连接数不是越大越好；HikariCP 官方公式 <code>connections = core_count * 2 + effective_spindle_count</code>，10~20 往往够用</li>
+<li>maxLifetime 必须小于数据库 wait_timeout，否则应用会拿到已被数据库关闭的"死连接"</li>
+</ul>
 <h3 id="71">7.1 连接池工作流程<a class="headerlink" href="#71" title="Permanent link">&para;</a></h3>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-15-1" name="__codelineno-15-1" href="#__codelineno-15-1"></a>初始化：创建 minIdle 个连接放入空闲队列
 <a id="__codelineno-15-2" name="__codelineno-15-2" href="#__codelineno-15-2"></a>借：getConnection()
@@ -1408,19 +1426,27 @@
 <a id="__codelineno-15-8" name="__codelineno-15-8" href="#__codelineno-15-8"></a>后台维护：检测空闲超时、最大存活时间、泄漏检测
 </code></pre></div>
 <h3 id="72">7.2 高频问题<a class="headerlink" href="#72" title="Permanent link">&para;</a></h3>
-<p><strong>连接泄漏</strong>：借出后没 close（忘写或异常路径漏了），连接被耗尽。
-- 对策：try-with-resources；开启 HikariCP 的 leakDetectionThreshold（如 60 秒未归还打堆栈日志）</p>
-<p><strong>连接数设置多大？</strong>
-- 不是越大越好：连接多 → 数据库上下文切换开销大、锁竞争加剧
-- HikariCP 官方公式：<code>connections = (core_count * 2) + effective_spindle_count</code>（磁盘数，SSD 按 1 算）
-- 10~20 往往能支撑惊人的吞吐量，先压测再调</p>
-<p><strong>maxLifetime 为什么要小于数据库超时？</strong>
-- MySQL 的 wait_timeout 默认 8 小时会单方面关闭空闲连接；连接池若不先于它回收，应用拿到的就是已被数据库关闭的"死连接"。HikariCP 默认 30 分钟，安全。</p>
+<p><strong>连接泄漏</strong>：借出后没 close（忘写或异常路径漏了），连接被耗尽。</p>
+<ul>
+<li>对策：try-with-resources；开启 HikariCP 的 leakDetectionThreshold（如 60 秒未归还打堆栈日志）</li>
+</ul>
+<p><strong>连接数设置多大？</strong></p>
+<ul>
+<li>不是越大越好：连接多 → 数据库上下文切换开销大、锁竞争加剧</li>
+<li>HikariCP 官方公式：<code>connections = (core_count * 2) + effective_spindle_count</code>（磁盘数，SSD 按 1 算）</li>
+<li>10~20 往往能支撑惊人的吞吐量，先压测再调</li>
+</ul>
+<p><strong>maxLifetime 为什么要小于数据库超时？</strong></p>
+<ul>
+<li>MySQL 的 wait_timeout 默认 8 小时会单方面关闭空闲连接；连接池若不先于它回收，应用拿到的就是已被数据库关闭的"死连接"。HikariCP 默认 30 分钟，安全。</li>
+</ul>
 <hr />
 <h2 id="8-jdbc">8. JDBC 的封装演进<a class="headerlink" href="#8-jdbc" title="Permanent link">&para;</a></h2>
-<p><strong>知识点</strong>：
-- 原生 JDBC 繁琐 → Spring JdbcTemplate（轻封装）→ MyBatis（半自动 ORM）→ JPA（全自动）
-- ⭐ 国内主流：MyBatis（SQL 可控）；实际开发不再裸写 JDBC</p>
+<p><strong>知识点</strong>：</p>
+<ul>
+<li>原生 JDBC 繁琐 → Spring JdbcTemplate（轻封装）→ MyBatis（半自动 ORM）→ JPA（全自动）</li>
+<li>⭐ 国内主流：MyBatis（SQL 可控）；实际开发不再裸写 JDBC</li>
+</ul>
 <p>手写 JDBC 太繁琐（获取连接、设参数、手动映射、关资源），实际开发都用封装：</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-16-1" name="__codelineno-16-1" href="#__codelineno-16-1"></a>原生 JDBC（本章）
 <a id="__codelineno-16-2" name="__codelineno-16-2" href="#__codelineno-16-2"></a>  ↓ 轻量封装

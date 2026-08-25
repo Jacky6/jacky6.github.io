@@ -1122,32 +1122,31 @@
 <td>Spring/MyBatis/JSON序列化/IDE 的共同底层</td>
 <td>⭐⭐⭐</td>
 </tr>
-<tr>
-<td>---</td>
-<td></td>
-<td></td>
-<td></td>
-</tr>
 </tbody>
 </table>
+<hr />
 <h2 id="1">1. 反射概述<a class="headerlink" href="#1" title="Permanent link">&para;</a></h2>
-<p><strong>知识点</strong>：
-- 反射 = 运行时获取类信息（字段/方法/构造器/注解）并动态操作它们的能力
-- ⭐ 正常编码是"类→对象"，反射是"对象/类名→反推类结构"，故称"反射"
-- ⭐ 反射是 Spring、MyBatis、JSON 序列化、IDE 自动补全的共同底层
-- ⚠️ 代价：性能开销、破坏封装（可访问私有成员）、可读性差</p>
+<p><strong>知识点</strong>：</p>
+<ul>
+<li>反射 = 运行时获取类信息（字段/方法/构造器/注解）并动态操作它们的能力</li>
+<li>⭐ 正常编码是"类→对象"，反射是"对象/类名→反推类结构"，故称"反射"</li>
+<li>⭐ 反射是 Spring、MyBatis、JSON 序列化、IDE 自动补全的共同底层</li>
+<li>⚠️ 代价：性能开销、破坏封装（可访问私有成员）、可读性差</li>
+</ul>
 <h3 id="11">1.1 什么是反射<a class="headerlink" href="#11" title="Permanent link">&para;</a></h3>
 <p><strong>反射</strong>（Reflection）是 Java 在运行时获取类信息并操作类成员的能力。</p>
 <blockquote>
 <p><strong>为什么叫"反射"？</strong> 正常写代码是"正向"的：先知道类，再用类创建对象（<code>Person p = new Person()</code>）。反射则相反：先拿到<strong>对象或类名</strong>，反过来"照镜子"看清这个类的结构——有哪些字段、方法、构造器，还能动态调用它们。这个"由对象反推类"的过程就是"反射"。</p>
 <p><strong>一句话</strong>：反射让你能在<strong>运行时</strong>做<strong>编译期才能做</strong>的事。它是 Spring（扫描 @Component）、MyBatis（Mapper 接口生成实现）、JSON 序列化（读写私有字段）、IDE 自动补全的共同底层。</p>
 </blockquote>
-<p><strong>作用</strong>：
-- ✅ 运行时获取类的信息（属性、方法、构造器）
-- ✅ 运行时创建对象
-- ✅ 运行时调用方法
-- ✅ 运行时访问和修改字段
-- ✅ 框架的基础（Spring、MyBatis 等）</p>
+<p><strong>作用</strong>：</p>
+<ul>
+<li>✅ 运行时获取类的信息（属性、方法、构造器）</li>
+<li>✅ 运行时创建对象</li>
+<li>✅ 运行时调用方法</li>
+<li>✅ 运行时访问和修改字段</li>
+<li>✅ 框架的基础（Spring、MyBatis 等）</li>
+</ul>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>编译时：已知类名 → 直接使用
 <a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>运行时：类名是字符串 → 通过反射获取
 </code></pre></div>
@@ -1155,21 +1154,27 @@
 <p><strong>⭐ Class 对象（理解反射的钥匙）</strong>：每个类被 JVM 加载后，都会在方法区生成<strong>唯一的一个</strong> <code>Class</code> 对象，保存该类的全部元信息（类名、字段、方法、注解…）。反射的一切操作都从"拿到 Class 对象"开始。同一个类无论创建多少实例，<code>getClass()</code> 拿到的都是同一个 Class 对象。</p>
 </blockquote>
 <h3 id="12">1.2 反射的优缺点<a class="headerlink" href="#12" title="Permanent link">&para;</a></h3>
-<p><strong>优点</strong>：
-- ✅ 灵活：运行时动态操作
-- ✅ 通用：框架开发的基础
-- ✅ 解耦：降低代码耦合度</p>
-<p><strong>缺点</strong>：
-- ❌ 性能开销：比直接调用慢
-- ❌ 安全问题：可以访问私有成员
-- ❌ 代码复杂：可读性差</p>
+<p><strong>优点</strong>：</p>
+<ul>
+<li>✅ 灵活：运行时动态操作</li>
+<li>✅ 通用：框架开发的基础</li>
+<li>✅ 解耦：降低代码耦合度</li>
+</ul>
+<p><strong>缺点</strong>：</p>
+<ul>
+<li>❌ 性能开销：比直接调用慢</li>
+<li>❌ 安全问题：可以访问私有成员</li>
+<li>❌ 代码复杂：可读性差</li>
+</ul>
 <hr />
 <h2 id="2-class">2. 获取 Class 对象<a class="headerlink" href="#2-class" title="Permanent link">&para;</a></h2>
-<p><strong>知识点</strong>：
-- 反射一切操作从拿到 Class 对象开始——每类被 JVM 加载后有且仅有一个
-- ⭐ 三种方式：<code>类名.class</code>（编译期）、<code>对象.getClass()</code>（运行期）、<code>Class.forName("全限定名")</code>（字符串，框架最常用）
-- 三种方式拿到的都是<strong>同一个</strong> Class 对象（可用 == 比较）
-- 基本类型和数组也有 Class 对象（int.class、int[].class）</p>
+<p><strong>知识点</strong>：</p>
+<ul>
+<li>反射一切操作从拿到 Class 对象开始——每类被 JVM 加载后有且仅有一个</li>
+<li>⭐ 三种方式：<code>类名.class</code>（编译期）、<code>对象.getClass()</code>（运行期）、<code>Class.forName("全限定名")</code>（字符串，框架最常用）</li>
+<li>三种方式拿到的都是<strong>同一个</strong> Class 对象（可用 == 比较）</li>
+<li>基本类型和数组也有 Class 对象（int.class、int[].class）</li>
+</ul>
 <h3 id="21">2.1 三种方式<a class="headerlink" href="#21" title="Permanent link">&para;</a></h3>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="c1">// 方式 1：Class.forName()（推荐）</span>
 <a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="n">Class</span><span class="o">&lt;?&gt;</span><span class="w"> </span><span class="n">clazz1</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">Class</span><span class="p">.</span><span class="na">forName</span><span class="p">(</span><span class="s">&quot;com.example.Person&quot;</span><span class="p">);</span>
@@ -1202,10 +1207,12 @@
 </code></pre></div>
 <hr />
 <h2 id="3">3. 创建对象<a class="headerlink" href="#3" title="Permanent link">&para;</a></h2>
-<p><strong>知识点</strong>：
-- 反射创建对象两步：先拿 Constructor，再 newInstance(实参)
-- ⭐ <code>Class.newInstance()</code> 只能调无参构造且吞异常，JDK 9 起已过时
-- ⚠️ 访问 private 构造器要先 <code>setAccessible(true)</code> 绕过访问检查（暴力反射）</p>
+<p><strong>知识点</strong>：</p>
+<ul>
+<li>反射创建对象两步：先拿 Constructor，再 newInstance(实参)</li>
+<li>⭐ <code>Class.newInstance()</code> 只能调无参构造且吞异常，JDK 9 起已过时</li>
+<li>⚠️ 访问 private 构造器要先 <code>setAccessible(true)</code> 绕过访问检查（暴力反射）</li>
+</ul>
 <h3 id="31-classnewinstance">3.1 使用 Class.newInstance()（已过时）<a class="headerlink" href="#31-classnewinstance" title="Permanent link">&para;</a></h3>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="n">Class</span><span class="o">&lt;?&gt;</span><span class="w"> </span><span class="n">clazz</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">Class</span><span class="p">.</span><span class="na">forName</span><span class="p">(</span><span class="s">&quot;com.example.Person&quot;</span><span class="p">);</span>
 <a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="n">Object</span><span class="w"> </span><span class="n">obj</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">clazz</span><span class="p">.</span><span class="na">newInstance</span><span class="p">();</span><span class="w">  </span><span class="c1">// 调用无参构造</span>
@@ -1228,10 +1235,12 @@
 </code></pre></div>
 <hr />
 <h2 id="4">4. 访问字段<a class="headerlink" href="#4" title="Permanent link">&para;</a></h2>
-<p><strong>知识点</strong>：
-- <code>getField</code> 只拿 public 字段（含继承的）；<code>getDeclaredField</code> 拿本类所有字段（含私有）
-- 读写私有字段前必须 <code>setAccessible(true)</code>
-- JSON 序列化/反序列化、属性拷贝工具（BeanUtils）底层都靠这一步</p>
+<p><strong>知识点</strong>：</p>
+<ul>
+<li><code>getField</code> 只拿 public 字段（含继承的）；<code>getDeclaredField</code> 拿本类所有字段（含私有）</li>
+<li>读写私有字段前必须 <code>setAccessible(true)</code></li>
+<li>JSON 序列化/反序列化、属性拷贝工具（BeanUtils）底层都靠这一步</li>
+</ul>
 <h3 id="41">4.1 获取字段<a class="headerlink" href="#41" title="Permanent link">&para;</a></h3>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="n">Class</span><span class="o">&lt;?&gt;</span><span class="w"> </span><span class="n">clazz</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">Class</span><span class="p">.</span><span class="na">forName</span><span class="p">(</span><span class="s">&quot;com.example.Person&quot;</span><span class="p">);</span>
 <a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a>
@@ -1267,11 +1276,13 @@
 </code></pre></div>
 <hr />
 <h2 id="5">5. 访问方法<a class="headerlink" href="#5" title="Permanent link">&para;</a></h2>
-<p><strong>知识点</strong>：
-- <code>getMethod(名字, 参数类型列表)</code> 拿 public 方法；<code>getDeclaredMethod</code> 拿本类所有方法
-- 调用：<code>method.invoke(对象, 实参...)</code>；静态方法对象传 null
-- ⭐ 获取方法必须指定参数类型——这是区分重载方法的唯一方式
-- 调用私有方法同样要 setAccessible(true)</p>
+<p><strong>知识点</strong>：</p>
+<ul>
+<li><code>getMethod(名字, 参数类型列表)</code> 拿 public 方法；<code>getDeclaredMethod</code> 拿本类所有方法</li>
+<li>调用：<code>method.invoke(对象, 实参...)</code>；静态方法对象传 null</li>
+<li>⭐ 获取方法必须指定参数类型——这是区分重载方法的唯一方式</li>
+<li>调用私有方法同样要 setAccessible(true)</li>
+</ul>
 <h3 id="51">5.1 获取方法<a class="headerlink" href="#51" title="Permanent link">&para;</a></h3>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a><span class="n">Class</span><span class="o">&lt;?&gt;</span><span class="w"> </span><span class="n">clazz</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">Class</span><span class="p">.</span><span class="na">forName</span><span class="p">(</span><span class="s">&quot;com.example.Person&quot;</span><span class="p">);</span>
 <a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a>
@@ -1315,10 +1326,12 @@
 </code></pre></div>
 <hr />
 <h2 id="6">6. 反射实战<a class="headerlink" href="#6" title="Permanent link">&para;</a></h2>
-<p><strong>知识点</strong>：
-- 反射的典型落地：通用对象工厂、属性拷贝、注解驱动、JDBC 加载驱动
-- 思路：用字符串（类名/方法名）驱动逻辑，配合配置实现解耦
-- ⚠️ 反射牺牲编译期检查和性能，只在框架/工具层使用</p>
+<p><strong>知识点</strong>：</p>
+<ul>
+<li>反射的典型落地：通用对象工厂、属性拷贝、注解驱动、JDBC 加载驱动</li>
+<li>思路：用字符串（类名/方法名）驱动逻辑，配合配置实现解耦</li>
+<li>⚠️ 反射牺牲编译期检查和性能，只在框架/工具层使用</li>
+</ul>
 <h3 id="61">6.1 通用对象创建工厂<a class="headerlink" href="#61" title="Permanent link">&para;</a></h3>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a><span class="kd">public</span><span class="w"> </span><span class="kd">class</span> <span class="nc">ObjectFactory</span><span class="w"> </span><span class="p">{</span>
 <a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a><span class="w">    </span><span class="kd">public</span><span class="w"> </span><span class="kd">static</span><span class="w"> </span><span class="o">&lt;</span><span class="n">T</span><span class="o">&gt;</span><span class="w"> </span><span class="n">T</span><span class="w"> </span><span class="nf">createObject</span><span class="p">(</span><span class="n">Class</span><span class="o">&lt;</span><span class="n">T</span><span class="o">&gt;</span><span class="w"> </span><span class="n">clazz</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
@@ -1393,10 +1406,12 @@
 </code></pre></div>
 <hr />
 <h2 id="7">7. 泛型与反射<a class="headerlink" href="#7" title="Permanent link">&para;</a></h2>
-<p><strong>知识点</strong>：
-- 类型擦除不是绝对的：类/字段/方法签名上的泛型信息<strong>保留在字节码元数据里</strong>
-- 通过反射可取到泛型实际类型（ParameterizedType），常用于通用 DAO/JSON 反序列化
-- 被擦除的只是方法体内部的泛型使用</p>
+<p><strong>知识点</strong>：</p>
+<ul>
+<li>类型擦除不是绝对的：类/字段/方法签名上的泛型信息<strong>保留在字节码元数据里</strong></li>
+<li>通过反射可取到泛型实际类型（ParameterizedType），常用于通用 DAO/JSON 反序列化</li>
+<li>被擦除的只是方法体内部的泛型使用</li>
+</ul>
 <h3 id="71">7.1 获取泛型信息<a class="headerlink" href="#71" title="Permanent link">&para;</a></h3>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-15-1" name="__codelineno-15-1" href="#__codelineno-15-1"></a><span class="kd">public</span><span class="w"> </span><span class="kd">class</span> <span class="nc">GenericTest</span><span class="w"> </span><span class="p">{</span>
 <a id="__codelineno-15-2" name="__codelineno-15-2" href="#__codelineno-15-2"></a><span class="w">    </span><span class="kd">private</span><span class="w"> </span><span class="n">List</span><span class="o">&lt;</span><span class="n">String</span><span class="o">&gt;</span><span class="w"> </span><span class="n">list</span><span class="p">;</span>
@@ -1418,10 +1433,12 @@
 </code></pre></div>
 <hr />
 <h2 id="8">8. 性能优化<a class="headerlink" href="#8" title="Permanent link">&para;</a></h2>
-<p><strong>知识点</strong>：
-- 反射比直接调用慢：查找成员 + 参数装箱 + 访问权限检查
-- ⭐ 三招优化：缓存 Class/Method/Constructor 对象、setAccessible(true) 跳过权限检查、高频路径改 MethodHandle 或直接调用
-- 框架（如 Spring）都做了反射缓存，业务代码不必过度担忧</p>
+<p><strong>知识点</strong>：</p>
+<ul>
+<li>反射比直接调用慢：查找成员 + 参数装箱 + 访问权限检查</li>
+<li>⭐ 三招优化：缓存 Class/Method/Constructor 对象、setAccessible(true) 跳过权限检查、高频路径改 MethodHandle 或直接调用</li>
+<li>框架（如 Spring）都做了反射缓存，业务代码不必过度担忧</li>
+</ul>
 <h3 id="81-class">8.1 缓存 Class 对象<a class="headerlink" href="#81-class" title="Permanent link">&para;</a></h3>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-16-1" name="__codelineno-16-1" href="#__codelineno-16-1"></a><span class="kd">public</span><span class="w"> </span><span class="kd">class</span> <span class="nc">ClassCache</span><span class="w"> </span><span class="p">{</span>
 <a id="__codelineno-16-2" name="__codelineno-16-2" href="#__codelineno-16-2"></a><span class="w">    </span><span class="kd">private</span><span class="w"> </span><span class="kd">static</span><span class="w"> </span><span class="kd">final</span><span class="w"> </span><span class="n">Map</span><span class="o">&lt;</span><span class="n">String</span><span class="p">,</span><span class="w"> </span><span class="n">Class</span><span class="o">&lt;?&gt;&gt;</span><span class="w"> </span><span class="n">cache</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">new</span><span class="w"> </span><span class="n">ConcurrentHashMap</span><span class="o">&lt;&gt;</span><span class="p">();</span>

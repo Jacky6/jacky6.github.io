@@ -890,10 +890,12 @@
 </blockquote>
 <hr />
 <h2 id="1">1. 类加载全过程详解<a class="headerlink" href="#1" title="Permanent link">&para;</a></h2>
-<p><strong>知识点</strong>：
-- ⭐ 五个阶段：加载 → 验证 → 准备 → 解析 → 初始化（中间三步合称<strong>链接</strong>）
-- ⭐ 初始化触发时机（主动引用）是面试必考点
-- 准备阶段只赋零值，static final 常量例外</p>
+<p><strong>知识点</strong>：</p>
+<ul>
+<li>⭐ 五个阶段：加载 → 验证 → 准备 → 解析 → 初始化（中间三步合称<strong>链接</strong>）</li>
+<li>⭐ 初始化触发时机（主动引用）是面试必考点</li>
+<li>准备阶段只赋零值，static final 常量例外</li>
+</ul>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>.class 字节流 → ①加载(读字节流) → ②链接(验证→准备→解析) → ③初始化(执行 &lt;clinit&gt;)
 </code></pre></div>
 <h3 id="11">1.1 五阶段速查表 ⭐<a class="headerlink" href="#11" title="Permanent link">&para;</a></h3>
@@ -1007,10 +1009,12 @@
 <p>✅ 用 <code>java -verbose:class LoadDemo</code> 可观察每个类的加载时机。</p>
 <hr />
 <h2 id="2">2. 双亲委派模型深挖<a class="headerlink" href="#2" title="Permanent link">&para;</a></h2>
-<p><strong>知识点</strong>：
-- ⭐ 加载请求先逐级<strong>向上委派</strong>，父加载器搞不定才自己加载
-- JDK 9+ 三层：Bootstrap / Platform / Application（Extension 已更名）
-- ⭐ 打破场景：SPI（线程上下文类加载器）、Tomcat、OSGi、热部署</p>
+<p><strong>知识点</strong>：</p>
+<ul>
+<li>⭐ 加载请求先逐级<strong>向上委派</strong>，父加载器搞不定才自己加载</li>
+<li>JDK 9+ 三层：Bootstrap / Platform / Application（Extension 已更名）</li>
+<li>⭐ 打破场景：SPI（线程上下文类加载器）、Tomcat、OSGi、热部署</li>
+</ul>
 <h3 id="21-loadclass">2.1 结构与 loadClass 逻辑<a class="headerlink" href="#21-loadclass" title="Permanent link">&para;</a></h3>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>   Bootstrap ClassLoader    java.lang.* 核心类（JVM 内置，C++ 实现）
 <a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>        ▲ 委派向上 / 失败回退
@@ -1021,9 +1025,11 @@
 <a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a>   自定义 ClassLoader        findClass() 是打破委派的入口
 </code></pre></div>
 <p><code>ClassLoader.loadClass()</code> 核心逻辑：先 <code>findLoadedClass()</code> 查缓存 → 没加载就委派父加载器 → 父抛 ClassNotFoundException 才轮到自己 <code>findClass()</code>。</p>
-<p>✅ 为什么需要双亲委派：
-1. <strong>安全</strong>：你自己写的 <code>java.lang.String</code> ❌ 永远不会被加载（Bootstrap 先加载了正版）
-2. <strong>唯一</strong>：同一个类只被加载一次，避免重复加载与类型混乱</p>
+<p>✅ 为什么需要双亲委派：</p>
+<ol>
+<li><strong>安全</strong>：你自己写的 <code>java.lang.String</code> ❌ 永远不会被加载（Bootstrap 先加载了正版）</li>
+<li><strong>唯一</strong>：同一个类只被加载一次，避免重复加载与类型混乱</li>
+</ol>
 <blockquote>
 <p>🐍 Python 类比：像 <code>sys.modules</code> 缓存 + import 委派的组合，保证同名模块只导入一次；Java 把它上升为安全架构。</p>
 </blockquote>
@@ -1067,9 +1073,11 @@
 <p><strong>Tomcat</strong>：每个 webapp 有独立 WebAppClassLoader，<strong>先自己加载</strong>应用类（child-first）再向上委派；不同应用可用同名不同版本的类且互不干扰，是多应用隔离部署的基石。</p>
 <hr />
 <h2 id="3">3. 字节码文件结构<a class="headerlink" href="#3" title="Permanent link">&para;</a></h2>
-<p><strong>知识点</strong>：
-- ⭐ class 文件 = 魔数 + 版本号 + 常量池 + 访问标志 + 字段表 + 方法表 + 属性表
-- ⭐ 会用 <code>javap -v</code> 读懂真实输出，面试能逐行解释</p>
+<p><strong>知识点</strong>：</p>
+<ul>
+<li>⭐ class 文件 = 魔数 + 版本号 + 常量池 + 访问标志 + 字段表 + 方法表 + 属性表</li>
+<li>⭐ 会用 <code>javap -v</code> 读懂真实输出，面试能逐行解释</li>
+</ul>
 <h3 id="31">3.1 整体结构图<a class="headerlink" href="#31" title="Permanent link">&para;</a></h3>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>u4 magic(0xCAFEBABE) → u2 版本号(major 61=JDK17) → 常量池(类的&quot;通讯录&quot;)
 <a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>→ 访问标志 + this/super/interfaces → 字段表 → 方法表(含字节码) → 属性表(Code 等)
@@ -1137,10 +1145,12 @@
 <p>✅ 阅读要点：常量池是"通讯录"（编号 → 字符串/类/方法引用）；Code 属性是面向操作数栈的指令；实例方法的局部变量表 slot 0 固定是 <code>this</code>。</p>
 <hr />
 <h2 id="4">4. 方法调用指令与多态<a class="headerlink" href="#4" title="Permanent link">&para;</a></h2>
-<p><strong>知识点</strong>：
-- ⭐ 五条调用指令对应五类调用目标
-- ⭐ 静态分派（重载，编译期定）vs 动态分派（重写，运行期查 vtable）
-- lambda 用 invokedynamic，调用目标在运行期才生成</p>
+<p><strong>知识点</strong>：</p>
+<ul>
+<li>⭐ 五条调用指令对应五类调用目标</li>
+<li>⭐ 静态分派（重载，编译期定）vs 动态分派（重写，运行期查 vtable）</li>
+<li>lambda 用 invokedynamic，调用目标在运行期才生成</li>
+</ul>
 <h3 id="41">4.1 五种指令对比 ⭐<a class="headerlink" href="#41" title="Permanent link">&para;</a></h3>
 <table>
 <thead>
@@ -1223,9 +1233,11 @@
 <p>⚠️ JIT 优化：对只有一个实现类的 invokevirtual，HotSpot 会做<strong>去虚化</strong>（内联为直接调用）——所以 Java 多态的开销常常是零。</p>
 <hr />
 <h2 id="5">5. 动态代理的字节码原理<a class="headerlink" href="#5" title="Permanent link">&para;</a></h2>
-<p><strong>知识点</strong>：
-- ⭐ JDK Proxy：运行时生成<strong>实现接口</strong>的 <code>$ProxyN</code>，用 invokevirtual 调 <code>InvocationHandler.invoke</code>
-- ⭐ CGLIB：生成<strong>目标类的子类</strong>，MethodInterceptor + FastClass 索引调用</p>
+<p><strong>知识点</strong>：</p>
+<ul>
+<li>⭐ JDK Proxy：运行时生成<strong>实现接口</strong>的 <code>$ProxyN</code>，用 invokevirtual 调 <code>InvocationHandler.invoke</code></li>
+<li>⭐ CGLIB：生成<strong>目标类的子类</strong>，MethodInterceptor + FastClass 索引调用</li>
+</ul>
 <h3 id="51-jdk-proxy">5.1 JDK Proxy 生成的字节码长什么样<a class="headerlink" href="#51-jdk-proxy" title="Permanent link">&para;</a></h3>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a><span class="kn">import</span><span class="w"> </span><span class="nn">java.lang.reflect.Proxy</span><span class="p">;</span>
 <a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a>

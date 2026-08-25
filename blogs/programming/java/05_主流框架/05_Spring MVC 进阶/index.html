@@ -1114,13 +1114,15 @@
 <blockquote>
 <p>前置：已学完 <a href="../02_Spring%20MVC/">02_Spring MVC</a> 基础篇。本篇基于 <strong>JDK 17 + Spring Boot 3.x</strong>（<code>jakarta.*</code> 命名空间），覆盖六大进阶主题：WebMvcConfigurer、HttpMessageConverter 与 Jackson 定制、RESTful 设计规范、统一异常处理深化（RFC 7807）、拦截器实战、参数解析器扩展。</p>
 </blockquote>
-<p><strong>本篇总览</strong>：
-- ⭐ WebMvcConfigurer 是定制 Spring MVC 默认行为的正规入口（SpringBoot 下<strong>不要</strong>加 <code>@EnableWebMvc</code>）
-- ⭐ Jackson 定制三档：<code>spring.jackson.*</code> 属性 &lt; <code>Jackson2ObjectMapperBuilderCustomizer</code> &lt; 自定义 <code>ObjectMapper</code> Bean
-- ⭐ RESTful = 资源建模 + HTTP 方法语义 + 状态码规范 + 版本控制 + 幂等性
-- ⭐ 异常三件套：ErrorCode 枚举 + BusinessException（保留异常链）+ <code>@RestControllerAdvice</code>（可选 ProblemDetail）
-- ⭐ 拦截器三实战：登录态 / 接口耗时 / 防重复提交；ThreadLocal 必须在 afterCompletion 中 remove
-- ⭐ <code>HandlerMethodArgumentResolver</code> 让 <code>@LoginUser</code> 直接把当前用户注入 Controller 参数</p>
+<p><strong>本篇总览</strong>：</p>
+<ul>
+<li>⭐ WebMvcConfigurer 是定制 Spring MVC 默认行为的正规入口（SpringBoot 下<strong>不要</strong>加 <code>@EnableWebMvc</code>）</li>
+<li>⭐ Jackson 定制三档：<code>spring.jackson.*</code> 属性 &lt; <code>Jackson2ObjectMapperBuilderCustomizer</code> &lt; 自定义 <code>ObjectMapper</code> Bean</li>
+<li>⭐ RESTful = 资源建模 + HTTP 方法语义 + 状态码规范 + 版本控制 + 幂等性</li>
+<li>⭐ 异常三件套：ErrorCode 枚举 + BusinessException（保留异常链）+ <code>@RestControllerAdvice</code>（可选 ProblemDetail）</li>
+<li>⭐ 拦截器三实战：登录态 / 接口耗时 / 防重复提交；ThreadLocal 必须在 afterCompletion 中 remove</li>
+<li>⭐ <code>HandlerMethodArgumentResolver</code> 让 <code>@LoginUser</code> 直接把当前用户注入 Controller 参数</li>
+</ul>
 <p><strong>公共依赖与 Result 类</strong>（全篇示例都会用到）：</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="cm">&lt;!-- pom.xml：SpringBoot 3.x 父工程下只需这两个 starter --&gt;</span>
 <a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="nt">&lt;dependency&gt;</span>
@@ -1165,11 +1167,13 @@
 </code></pre></div>
 <hr />
 <h2 id="1-webmvcconfigurer">1. WebMvcConfigurer 全接口方法详解<a class="headerlink" href="#1-webmvcconfigurer" title="Permanent link">&para;</a></h2>
-<p><strong>知识点</strong>：
-- ⭐ <code>WebMvcConfigurer</code> 是 Spring 提供的<strong>回调接口</strong>：Spring MVC 初始化时回调它的方法，让你往默认配置里"加料"
-- ⭐ SpringBoot 下写法：<code>@Configuration</code> 类实现该接口，<strong>重写哪个方法就定制哪块</strong>，其余保持 Boot 自动配置
-- ⭐ 可以有多个实现类，全部生效（内部用组合器合并调用），冲突时可用 <code>@Order</code> 控制顺序
-- ⚠️ SpringBoot 中<strong>千万不要加 <code>@EnableWebMvc</code></strong>——它会让 Boot 的 WebMvc 自动配置整体失效（见 1.3）</p>
+<p><strong>知识点</strong>：</p>
+<ul>
+<li>⭐ <code>WebMvcConfigurer</code> 是 Spring 提供的<strong>回调接口</strong>：Spring MVC 初始化时回调它的方法，让你往默认配置里"加料"</li>
+<li>⭐ SpringBoot 下写法：<code>@Configuration</code> 类实现该接口，<strong>重写哪个方法就定制哪块</strong>，其余保持 Boot 自动配置</li>
+<li>⭐ 可以有多个实现类，全部生效（内部用组合器合并调用），冲突时可用 <code>@Order</code> 控制顺序</li>
+<li>⚠️ SpringBoot 中<strong>千万不要加 <code>@EnableWebMvc</code></strong>——它会让 Boot 的 WebMvc 自动配置整体失效（见 1.3）</li>
+</ul>
 <h3 id="11">1.1 接口方法全景表<a class="headerlink" href="#11" title="Permanent link">&para;</a></h3>
 <table>
 <thead>
@@ -1446,11 +1450,13 @@
 </ol>
 <hr />
 <h2 id="2-httpmessageconverter-jackson">2. HttpMessageConverter 详解与 Jackson 定制<a class="headerlink" href="#2-httpmessageconverter-jackson" title="Permanent link">&para;</a></h2>
-<p><strong>知识点</strong>：
-- ⭐ <code>HttpMessageConverter</code> 是"HTTP 报文 ↔ Java 对象"的双向转换器接口；<code>@RequestBody</code> 反序列化、<code>@ResponseBody</code> 序列化都靠它
-- ⭐ 选择规则：<strong>按注册顺序遍历，第一个 <code>canRead/canWrite</code> 匹配的就生效</strong>——顺序即优先级
-- ⭐ SpringBoot 默认注册约 10 个转换器，JSON 场景用的是 <code>MappingJackson2HttpMessageConverter</code>（内部持有一个 <code>ObjectMapper</code>）
-- ⭐ Jackson 定制三档由浅入深：<code>spring.jackson.*</code> 属性 → <code>Jackson2ObjectMapperBuilderCustomizer</code> → 自定义 <code>ObjectMapper</code> Bean</p>
+<p><strong>知识点</strong>：</p>
+<ul>
+<li>⭐ <code>HttpMessageConverter</code> 是"HTTP 报文 ↔ Java 对象"的双向转换器接口；<code>@RequestBody</code> 反序列化、<code>@ResponseBody</code> 序列化都靠它</li>
+<li>⭐ 选择规则：<strong>按注册顺序遍历，第一个 <code>canRead/canWrite</code> 匹配的就生效</strong>——顺序即优先级</li>
+<li>⭐ SpringBoot 默认注册约 10 个转换器，JSON 场景用的是 <code>MappingJackson2HttpMessageConverter</code>（内部持有一个 <code>ObjectMapper</code>）</li>
+<li>⭐ Jackson 定制三档由浅入深：<code>spring.jackson.*</code> 属性 → <code>Jackson2ObjectMapperBuilderCustomizer</code> → 自定义 <code>ObjectMapper</code> Bean</li>
+</ul>
 <h3 id="21">2.1 接口本质与默认转换器<a class="headerlink" href="#21" title="Permanent link">&para;</a></h3>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a><span class="c1">// org.springframework.http.converter.HttpMessageConverter（简化）</span>
 <a id="__codelineno-12-2" name="__codelineno-12-2" href="#__codelineno-12-2"></a><span class="kd">public</span><span class="w"> </span><span class="kd">interface</span> <span class="nc">HttpMessageConverter</span><span class="o">&lt;</span><span class="n">T</span><span class="o">&gt;</span><span class="w"> </span><span class="p">{</span>
@@ -1691,11 +1697,13 @@
 </ol>
 <hr />
 <h2 id="3-restful-api">3. RESTful API 设计规范<a class="headerlink" href="#3-restful-api" title="Permanent link">&para;</a></h2>
-<p><strong>知识点</strong>：
-- ⭐ REST = 以"资源"为中心建模：URL 定位资源，HTTP 方法表达动作，状态码表达结果
-- ⭐ URL 用名词复数、层级表达从属关系；动作用方法不用动词
-- ⭐ 版本控制放 URL 前缀（<code>/api/v1</code>）最直观；幂等性靠方法语义 + 幂等键
-- ⚠️ REST 不是教条：查询条件复杂时 <code>POST /search</code> 这类"RPC 风"接口完全可接受</p>
+<p><strong>知识点</strong>：</p>
+<ul>
+<li>⭐ REST = 以"资源"为中心建模：URL 定位资源，HTTP 方法表达动作，状态码表达结果</li>
+<li>⭐ URL 用名词复数、层级表达从属关系；动作用方法不用动词</li>
+<li>⭐ 版本控制放 URL 前缀（<code>/api/v1</code>）最直观；幂等性靠方法语义 + 幂等键</li>
+<li>⚠️ REST 不是教条：查询条件复杂时 <code>POST /search</code> 这类"RPC 风"接口完全可接受</li>
+</ul>
 <h3 id="31-url">3.1 URL 设计规则<a class="headerlink" href="#31-url" title="Permanent link">&para;</a></h3>
 <table>
 <thead>
@@ -2003,17 +2011,21 @@
 </ol>
 <hr />
 <h2 id="4">4. 统一异常处理深化<a class="headerlink" href="#4" title="Permanent link">&para;</a></h2>
-<p><strong>知识点</strong>：
-- ⭐ 业务异常码设计：<code>模块 + 类型 + 序号</code> 的枚举（如 <code>USER_40001</code>），业务码与 HTTP 状态码解耦
-- ⭐ 异常链：自定义异常必须支持 <code>cause</code> 传递，<code>throw new BizException(..., e)</code>，否则排查断链
-- ⭐ Spring 6 / Boot 3 原生支持 <strong>RFC 7807 ProblemDetail</strong>：<code>ResponseEntityExceptionHandler</code> 基类 + <code>spring.mvc.problemdetails.enabled=true</code>
-- ⚠️ 兜底 <code>Exception</code> 处理器必须打日志（带 traceId 更佳），且绝不向前端暴露堆栈</p>
+<p><strong>知识点</strong>：</p>
+<ul>
+<li>⭐ 业务异常码设计：<code>模块 + 类型 + 序号</code> 的枚举（如 <code>USER_40001</code>），业务码与 HTTP 状态码解耦</li>
+<li>⭐ 异常链：自定义异常必须支持 <code>cause</code> 传递，<code>throw new BizException(..., e)</code>，否则排查断链</li>
+<li>⭐ Spring 6 / Boot 3 原生支持 <strong>RFC 7807 ProblemDetail</strong>：<code>ResponseEntityExceptionHandler</code> 基类 + <code>spring.mvc.problemdetails.enabled=true</code></li>
+<li>⚠️ 兜底 <code>Exception</code> 处理器必须打日志（带 traceId 更佳），且绝不向前端暴露堆栈</li>
+</ul>
 <h3 id="41">4.1 业务异常码设计<a class="headerlink" href="#41" title="Permanent link">&para;</a></h3>
-<p><strong>设计原则</strong>：
-- 用<strong>枚举</strong>集中管理，禁止代码里散落魔法数字
-- 编码规则示例：<code>模块(2位) + 错误类型(1位) + 序号(2位)</code>，或直接分段数字（10001 用户模块、20001 订单模块）
-- 每个错误码配一个<strong>面向用户的 message</strong>（可直接展示）和可选的面向开发的 detail
-- HTTP 状态码与业务码<strong>分离</strong>：HTTP 码给基础设施看（网关/监控），业务码给前端展示</p>
+<p><strong>设计原则</strong>：</p>
+<ul>
+<li>用<strong>枚举</strong>集中管理，禁止代码里散落魔法数字</li>
+<li>编码规则示例：<code>模块(2位) + 错误类型(1位) + 序号(2位)</code>，或直接分段数字（10001 用户模块、20001 订单模块）</li>
+<li>每个错误码配一个<strong>面向用户的 message</strong>（可直接展示）和可选的面向开发的 detail</li>
+<li>HTTP 状态码与业务码<strong>分离</strong>：HTTP 码给基础设施看（网关/监控），业务码给前端展示</li>
+</ul>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-23-1" name="__codelineno-23-1" href="#__codelineno-23-1"></a><span class="cm">/** 错误码枚举：集中定义，一码一义 */</span>
 <a id="__codelineno-23-2" name="__codelineno-23-2" href="#__codelineno-23-2"></a><span class="nd">@Getter</span>
 <a id="__codelineno-23-3" name="__codelineno-23-3" href="#__codelineno-23-3"></a><span class="kd">public</span><span class="w"> </span><span class="kd">enum</span><span class="w"> </span><span class="n">ErrorCode</span><span class="w"> </span><span class="p">{</span>
@@ -2243,11 +2255,13 @@
 </ol>
 <hr />
 <h2 id="5">5. 拦截器实战<a class="headerlink" href="#5" title="Permanent link">&para;</a></h2>
-<p><strong>知识点</strong>：
-- ⭐ 三方法执行顺序：<code>preHandle</code>（true 才继续）→ Controller → <code>postHandle</code> → <code>afterCompletion</code>；<strong>preHandle=false 时只有更早的拦截器的 afterCompletion 会执行</strong>
-- ⭐ 用户态在拦截器存 ThreadLocal，<strong>afterCompletion 必须 remove</strong>（Tomcat 线程复用导致数据串号/内存泄漏）
-- ⭐ 防重复提交：自定义注解 + 拦截器 + Redis SETNX 是标准实现
-- ⚠️ 耗时统计放 <code>afterCompletion</code> 而不是 <code>postHandle</code>——postHandle 不含视图渲染/异常场景，异常时不会执行</p>
+<p><strong>知识点</strong>：</p>
+<ul>
+<li>⭐ 三方法执行顺序：<code>preHandle</code>（true 才继续）→ Controller → <code>postHandle</code> → <code>afterCompletion</code>；<strong>preHandle=false 时只有更早的拦截器的 afterCompletion 会执行</strong></li>
+<li>⭐ 用户态在拦截器存 ThreadLocal，<strong>afterCompletion 必须 remove</strong>（Tomcat 线程复用导致数据串号/内存泄漏）</li>
+<li>⭐ 防重复提交：自定义注解 + 拦截器 + Redis SETNX 是标准实现</li>
+<li>⚠️ 耗时统计放 <code>afterCompletion</code> 而不是 <code>postHandle</code>——postHandle 不含视图渲染/异常场景，异常时不会执行</li>
+</ul>
 <p><strong>执行顺序速记</strong>（多拦截器时是"栈式"）：</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-30-1" name="__codelineno-30-1" href="#__codelineno-30-1"></a>请求 → A.pre → B.pre → Controller → B.post → A.post → A.after → B.after → 响应
 <a id="__codelineno-30-2" name="__codelineno-30-2" href="#__codelineno-30-2"></a>        （false 短路点）                        （异常时 post 跳过，after 仍执行）
@@ -2481,11 +2495,13 @@
 </ol>
 <hr />
 <h2 id="6-handlermethodargumentresolver">6. 参数解析器扩展（HandlerMethodArgumentResolver）<a class="headerlink" href="#6-handlermethodargumentresolver" title="Permanent link">&para;</a></h2>
-<p><strong>知识点</strong>：
-- ⭐ <code>HandlerMethodArgumentResolver</code> 决定"某个 Controller 参数怎么被赋值"；内置解析器处理 <code>@PathVariable</code>、<code>@RequestBody</code> 等，自定义解析器处理你自己的约定
-- ⭐ 两方法契约：<code>supportsParameter</code>（认不认这个参数）+ <code>resolveArgument</code>（怎么取值）
-- ⭐ 经典案例：<code>@LoginUser LoginUserVO user</code> 直接注入当前登录用户，Controller 不再碰 ThreadLocal/HttpServletRequest
-- ⚠️ 自定义解析器优先级<strong>低于</strong>内置解析器；参数类型/注解必须足够独特，避免与内置规则冲突</p>
+<p><strong>知识点</strong>：</p>
+<ul>
+<li>⭐ <code>HandlerMethodArgumentResolver</code> 决定"某个 Controller 参数怎么被赋值"；内置解析器处理 <code>@PathVariable</code>、<code>@RequestBody</code> 等，自定义解析器处理你自己的约定</li>
+<li>⭐ 两方法契约：<code>supportsParameter</code>（认不认这个参数）+ <code>resolveArgument</code>（怎么取值）</li>
+<li>⭐ 经典案例：<code>@LoginUser LoginUserVO user</code> 直接注入当前登录用户，Controller 不再碰 ThreadLocal/HttpServletRequest</li>
+<li>⚠️ 自定义解析器优先级<strong>低于</strong>内置解析器；参数类型/注解必须足够独特，避免与内置规则冲突</li>
+</ul>
 <h3 id="61">6.1 解析器接口与执行时机<a class="headerlink" href="#61" title="Permanent link">&para;</a></h3>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-38-1" name="__codelineno-38-1" href="#__codelineno-38-1"></a><span class="kd">public</span><span class="w"> </span><span class="kd">interface</span> <span class="nc">HandlerMethodArgumentResolver</span><span class="w"> </span><span class="p">{</span>
 <a id="__codelineno-38-2" name="__codelineno-38-2" href="#__codelineno-38-2"></a><span class="w">    </span><span class="cm">/** 是否支持该参数（按注解/类型判断），返回 true 则用本解析器 */</span>

@@ -1044,31 +1044,30 @@
 <td>流用过即废；无终端操作不执行 ⚠️</td>
 <td>⭐⭐⭐</td>
 </tr>
-<tr>
-<td>---</td>
-<td></td>
-<td></td>
-<td></td>
-</tr>
 </tbody>
 </table>
+<hr />
 <h2 id="1-stream">1. Stream 概述<a class="headerlink" href="#1-stream" title="Permanent link">&para;</a></h2>
-<p><strong>知识点</strong>：
-- Stream 是数据渠道：对数据源（集合、数组）做声明式、可组合的管道处理
-- ⭐ 不存储数据、不修改源、一次性消费、惰性求值
-- 处理管道：数据源 → 中间操作（链式）→ 终端操作（触发执行）</p>
+<p><strong>知识点</strong>：</p>
+<ul>
+<li>Stream 是数据渠道：对数据源（集合、数组）做声明式、可组合的管道处理</li>
+<li>⭐ 不存储数据、不修改源、一次性消费、惰性求值</li>
+<li>处理管道：数据源 → 中间操作（链式）→ 终端操作（触发执行）</li>
+</ul>
 <h3 id="11-stream">1.1 什么是 Stream<a class="headerlink" href="#11-stream" title="Permanent link">&para;</a></h3>
 <p><strong>Stream</strong>（流）是数据渠道，用于操作数据源（集合、数组等）产生的元素。</p>
 <blockquote>
 <p><strong>Stream 流 vs IO 流</strong>：两者毫无关系！IO 流是字节/字符的传输通道；Stream 是<strong>集合元素的处理管道</strong>，位于 java.util.stream 包，Java 8 引入。</p>
 <p><strong>⭐ Stream 与传统循环的本质区别（考点）</strong>：传统 for 循环是<strong>命令式</strong>——你指挥"怎么一步步做"（外部迭代）；Stream 是<strong>声明式</strong>——你描述"要什么"，迭代由框架完成（内部迭代），因此才能透明地并行化。</p>
 </blockquote>
-<p><strong>特点</strong>：
-- ✅ <strong>声明式</strong>：关注做什么，而非怎么做
-- ✅ <strong>可组合</strong>：多个操作链式调用
-- ✅ <strong>可并行</strong>：轻松实现并行处理
-- ✅ <strong>不存储</strong>：Stream 不存储数据
-- ✅ <strong>不修改源</strong>：不会修改原始数据源</p>
+<p><strong>特点</strong>：</p>
+<ul>
+<li>✅ <strong>声明式</strong>：关注做什么，而非怎么做</li>
+<li>✅ <strong>可组合</strong>：多个操作链式调用</li>
+<li>✅ <strong>可并行</strong>：轻松实现并行处理</li>
+<li>✅ <strong>不存储</strong>：Stream 不存储数据</li>
+<li>✅ <strong>不修改源</strong>：不会修改原始数据源</li>
+</ul>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>数据源 → Stream → 中间操作 → 终端操作 → 结果
 <a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>
 <a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>        ┌─────────────────────────┐
@@ -1088,10 +1087,12 @@
 </code></pre></div>
 <hr />
 <h2 id="2-stream">2. 创建 Stream<a class="headerlink" href="#2-stream" title="Permanent link">&para;</a></h2>
-<p><strong>知识点</strong>：
-- ⭐ 四大来源：Collection.stream()、Arrays.stream(数组)、Stream.of(...)、Stream.iterate/generate
-- parallelStream() 得到并行流（底层 ForkJoinPool.commonPool）
-- IntStream/LongStream/DoubleStream 处理基本类型，避免装箱（sum/average 直接可用）</p>
+<p><strong>知识点</strong>：</p>
+<ul>
+<li>⭐ 四大来源：Collection.stream()、Arrays.stream(数组)、Stream.of(...)、Stream.iterate/generate</li>
+<li>parallelStream() 得到并行流（底层 ForkJoinPool.commonPool）</li>
+<li>IntStream/LongStream/DoubleStream 处理基本类型，避免装箱（sum/average 直接可用）</li>
+</ul>
 <h3 id="21">2.1 从集合创建<a class="headerlink" href="#21" title="Permanent link">&para;</a></h3>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="n">List</span><span class="o">&lt;</span><span class="n">String</span><span class="o">&gt;</span><span class="w"> </span><span class="n">list</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">Arrays</span><span class="p">.</span><span class="na">asList</span><span class="p">(</span><span class="s">&quot;Java&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;Python&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;C++&quot;</span><span class="p">);</span>
 <a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>
@@ -1125,10 +1126,12 @@
 </code></pre></div>
 <hr />
 <h2 id="3">3. 中间操作 ⭐⭐⭐<a class="headerlink" href="#3" title="Permanent link">&para;</a></h2>
-<p><strong>知识点</strong>：
-- 中间操作返回新 Stream，可链式调用，<strong>惰性求值</strong>（终端操作才触发执行）
-- ⭐ 常用：filter（过滤）、map（转换）、flatMap（压平）、distinct、sorted、limit/skip
-- 无状态操作（filter/map）可并行友好；有状态操作（sorted）需要处理完前面元素</p>
+<p><strong>知识点</strong>：</p>
+<ul>
+<li>中间操作返回新 Stream，可链式调用，<strong>惰性求值</strong>（终端操作才触发执行）</li>
+<li>⭐ 常用：filter（过滤）、map（转换）、flatMap（压平）、distinct、sorted、limit/skip</li>
+<li>无状态操作（filter/map）可并行友好；有状态操作（sorted）需要处理完前面元素</li>
+</ul>
 <h3 id="31">3.1 筛选与切片<a class="headerlink" href="#31" title="Permanent link">&para;</a></h3>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="n">List</span><span class="o">&lt;</span><span class="n">Integer</span><span class="o">&gt;</span><span class="w"> </span><span class="n">numbers</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">Arrays</span><span class="p">.</span><span class="na">asList</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="mi">2</span><span class="p">,</span><span class="w"> </span><span class="mi">3</span><span class="p">,</span><span class="w"> </span><span class="mi">4</span><span class="p">,</span><span class="w"> </span><span class="mi">5</span><span class="p">,</span><span class="w"> </span><span class="mi">6</span><span class="p">,</span><span class="w"> </span><span class="mi">7</span><span class="p">,</span><span class="w"> </span><span class="mi">8</span><span class="p">,</span><span class="w"> </span><span class="mi">9</span><span class="p">,</span><span class="w"> </span><span class="mi">10</span><span class="p">);</span>
 <a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a>
@@ -1193,10 +1196,12 @@
 </code></pre></div>
 <hr />
 <h2 id="4">4. 终端操作 ⭐⭐⭐<a class="headerlink" href="#4" title="Permanent link">&para;</a></h2>
-<p><strong>知识点</strong>：
-- 终端操作产生结果或副作用，<strong>执行后 Stream 关闭</strong>（一次性）
-- ⭐ 查找匹配：findFirst/anyMatch/allMatch；归约：collect/reduce/count；遍历：forEach
-- ⭐ Collectors 收集器：toList/toMap/groupingBy（分组）/joining（拼接）</p>
+<p><strong>知识点</strong>：</p>
+<ul>
+<li>终端操作产生结果或副作用，<strong>执行后 Stream 关闭</strong>（一次性）</li>
+<li>⭐ 查找匹配：findFirst/anyMatch/allMatch；归约：collect/reduce/count；遍历：forEach</li>
+<li>⭐ Collectors 收集器：toList/toMap/groupingBy（分组）/joining（拼接）</li>
+</ul>
 <h3 id="41">4.1 查找与匹配<a class="headerlink" href="#41" title="Permanent link">&para;</a></h3>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a><span class="n">List</span><span class="o">&lt;</span><span class="n">Integer</span><span class="o">&gt;</span><span class="w"> </span><span class="n">numbers</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">Arrays</span><span class="p">.</span><span class="na">asList</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="mi">2</span><span class="p">,</span><span class="w"> </span><span class="mi">3</span><span class="p">,</span><span class="w"> </span><span class="mi">4</span><span class="p">,</span><span class="w"> </span><span class="mi">5</span><span class="p">);</span>
 <a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a>
@@ -1297,10 +1302,12 @@
 </code></pre></div>
 <hr />
 <h2 id="5">5. 并行流 ⭐<a class="headerlink" href="#5" title="Permanent link">&para;</a></h2>
-<p><strong>知识点</strong>：
-- ⭐ 并行流底层是 ForkJoinPool.commonPool（线程数 = CPU 核数 - 1），分治拆分数组并行处理
-- ⚠️ 四种不适用场景：数据量小、数据源难拆分（LinkedList）、有共享可变状态、操作阻塞 IO
-- 并行下顺序不确定，需要顺序用 forEachOrdered；结果收集用 collect（线程安全）</p>
+<p><strong>知识点</strong>：</p>
+<ul>
+<li>⭐ 并行流底层是 ForkJoinPool.commonPool（线程数 = CPU 核数 - 1），分治拆分数组并行处理</li>
+<li>⚠️ 四种不适用场景：数据量小、数据源难拆分（LinkedList）、有共享可变状态、操作阻塞 IO</li>
+<li>并行下顺序不确定，需要顺序用 forEachOrdered；结果收集用 collect（线程安全）</li>
+</ul>
 <h3 id="51">5.1 创建并行流<a class="headerlink" href="#51" title="Permanent link">&para;</a></h3>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a><span class="n">List</span><span class="o">&lt;</span><span class="n">Integer</span><span class="o">&gt;</span><span class="w"> </span><span class="n">numbers</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">Arrays</span><span class="p">.</span><span class="na">asList</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="mi">2</span><span class="p">,</span><span class="w"> </span><span class="mi">3</span><span class="p">,</span><span class="w"> </span><span class="mi">4</span><span class="p">,</span><span class="w"> </span><span class="mi">5</span><span class="p">,</span><span class="w"> </span><span class="mi">6</span><span class="p">,</span><span class="w"> </span><span class="mi">7</span><span class="p">,</span><span class="w"> </span><span class="mi">8</span><span class="p">,</span><span class="w"> </span><span class="mi">9</span><span class="p">,</span><span class="w"> </span><span class="mi">10</span><span class="p">);</span>
 <a id="__codelineno-13-2" name="__codelineno-13-2" href="#__codelineno-13-2"></a>
@@ -1332,11 +1339,13 @@
 <a id="__codelineno-14-16" name="__codelineno-14-16" href="#__codelineno-14-16"></a><span class="n">numbers</span><span class="p">.</span><span class="na">parallelStream</span><span class="p">()</span>
 <a id="__codelineno-14-17" name="__codelineno-14-17" href="#__codelineno-14-17"></a><span class="w">    </span><span class="p">.</span><span class="na">forEachOrdered</span><span class="p">(</span><span class="n">System</span><span class="p">.</span><span class="na">out</span><span class="p">::</span><span class="n">println</span><span class="p">);</span>
 </code></pre></div>
-<p><strong>⭐ 什么时候不该用并行流？（考点）</strong>：
-1. <strong>数据量小</strong>（几百以内）：线程调度和合并的开销超过收益
-2. <strong>数据源不易拆分</strong>：LinkedList、IO 流迭代，拆分成本高（ArrayList/数组最适合拆分）
-3. <strong>操作有副作用/共享可变状态</strong>：如往普通 ArrayList 里 add
-4. <strong>操作本身是阻塞 IO</strong>：并行流底层用公共的 ForkJoinPool.commonPool，阻塞操作会占满公共池影响其他任务——用 CompletableFuture + 自定义线程池</p>
+<p><strong>⭐ 什么时候不该用并行流？（考点）</strong>：</p>
+<ol>
+<li><strong>数据量小</strong>（几百以内）：线程调度和合并的开销超过收益</li>
+<li><strong>数据源不易拆分</strong>：LinkedList、IO 流迭代，拆分成本高（ArrayList/数组最适合拆分）</li>
+<li><strong>操作有副作用/共享可变状态</strong>：如往普通 ArrayList 里 add</li>
+<li><strong>操作本身是阻塞 IO</strong>：并行流底层用公共的 ForkJoinPool.commonPool，阻塞操作会占满公共池影响其他任务——用 CompletableFuture + 自定义线程池</li>
+</ol>
 <blockquote>
 <p>并行流底层：ForkJoinPool.commonPool（线程数默认 = CPU 核数 - 1），采用分治思想拆分数组并行处理再合并。</p>
 </blockquote>

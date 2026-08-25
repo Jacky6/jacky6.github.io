@@ -1213,17 +1213,23 @@
 </ol>
 <h3 id="q2-kafka">Q2: Kafka 如何保证消息不丢失？<a class="headerlink" href="#q2-kafka" title="Permanent link">&para;</a></h3>
 <p><strong>答：</strong></p>
-<p><strong>Producer 端：</strong>
-- <code>acks=all</code>：等待所有 ISR 副本确认
-- <code>retries &gt; 0</code>：失败自动重试
-- <code>enable.idempotence=true</code>：幂等性，防止重试导致重复</p>
-<p><strong>Broker 端：</strong>
-- <code>replication.factor &gt;= 3</code>：多副本
-- <code>min.insync.replicas &gt;= 2</code>：最少同步副本数
-- <code>unclean.leader.election.enable=false</code>：禁止非 ISR 副本当选 Leader</p>
-<p><strong>Consumer 端：</strong>
-- 手动提交 offset：处理完业务逻辑再提交
-- <code>enable.auto.commit=false</code>：关闭自动提交</p>
+<p><strong>Producer 端：</strong></p>
+<ul>
+<li><code>acks=all</code>：等待所有 ISR 副本确认</li>
+<li><code>retries &gt; 0</code>：失败自动重试</li>
+<li><code>enable.idempotence=true</code>：幂等性，防止重试导致重复</li>
+</ul>
+<p><strong>Broker 端：</strong></p>
+<ul>
+<li><code>replication.factor &gt;= 3</code>：多副本</li>
+<li><code>min.insync.replicas &gt;= 2</code>：最少同步副本数</li>
+<li><code>unclean.leader.election.enable=false</code>：禁止非 ISR 副本当选 Leader</li>
+</ul>
+<p><strong>Consumer 端：</strong></p>
+<ul>
+<li>手动提交 offset：处理完业务逻辑再提交</li>
+<li><code>enable.auto.commit=false</code>：关闭自动提交</li>
+</ul>
 <h3 id="q3-kafka">Q3: Kafka 如何保证消息顺序？<a class="headerlink" href="#q3-kafka" title="Permanent link">&para;</a></h3>
 <p><strong>答：</strong></p>
 <ul>
@@ -1248,32 +1254,56 @@
 <h3 id="q5-kafka-rebalance">Q5: Kafka 的 Rebalance 是什么？会触发什么场景？<a class="headerlink" href="#q5-kafka-rebalance" title="Permanent link">&para;</a></h3>
 <p><strong>答：</strong></p>
 <p>Rebalance 是 Consumer Group 内重新分配 Partition 的过程。</p>
-<p><strong>触发条件：</strong>
-1. 新 Consumer 加入 Group
-2. Consumer 离开 Group（正常关闭或崩溃）
-3. Topic 的 Partition 数量变化
-4. Consumer 心跳超时（<code>session.timeout.ms</code>）
-5. Consumer 处理超时（<code>max.poll.interval.ms</code>）</p>
-<p><strong>影响：</strong>
-- 经典协议（Eager）下 Rebalance 期间 Group 停止消费（Stop-The-World）
-- 需要尽快完成，避免长时间不可用</p>
-<p><strong>Rebalance 会等正在处理的消息处理完吗？</strong>
-- 不会。Kafka 不等业务处理完，rebalance 信号在下一次 <code>poll()</code> 时送达，
-  正在处理的那批消息会继续执行完，但期间整个 Group 不再拉取新消息
-- 未 commit 的 offset 会因分区被重新分配而<strong>重复消费</strong>，推荐在
-  <code>ConsumerRebalanceListener.onPartitionsRevoked()</code> 里 commitSync
-- Cooperative 协议（2.4+，<code>CooperativeStickyAssignor</code>）/ KIP-848 新协议（4.0+）
+<p><strong>触发条件：</strong></p>
+<ol>
+<li>新 Consumer 加入 Group</li>
+<li>Consumer 离开 Group（正常关闭或崩溃）</li>
+<li>Topic 的 Partition 数量变化</li>
+<li>Consumer 心跳超时（<code>session.timeout.ms</code>）</li>
+<li>Consumer 处理超时（<code>max.poll.interval.ms</code>）</li>
+</ol>
+<p><strong>影响：</strong></p>
+<ul>
+<li>经典协议（Eager）下 Rebalance 期间 Group 停止消费（Stop-The-World）</li>
+<li>需要尽快完成，避免长时间不可用</li>
+</ul>
+<p><strong>Rebalance 会等正在处理的消息处理完吗？</strong></p>
+<ul>
+<li>
+<p>不会。Kafka 不等业务处理完，rebalance 信号在下一次 <code>poll()</code> 时送达，
+  正在处理的那批消息会继续执行完，但期间整个 Group 不再拉取新消息</p>
+</li>
+<li>
+<p>未 commit 的 offset 会因分区被重新分配而<strong>重复消费</strong>，推荐在
+  <code>ConsumerRebalanceListener.onPartitionsRevoked()</code> 里 commitSync</p>
+</li>
+<li>
+<p>Cooperative 协议（2.4+，<code>CooperativeStickyAssignor</code>）/ KIP-848 新协议（4.0+）
   是增量式 rebalance，只迁移需要变动的分区，其余消费不受影响</p>
-<p><strong>如何减少 Rebalance 频率？</strong>
-- <strong>静态成员</strong>（KIP-345）：配置 <code>group.instance.id</code>，Consumer 重启在
-  <code>session.timeout.ms</code> 内回来不触发 rebalance，直接拿回原分区
-- 调大 <code>session.timeout.ms</code> / <code>max.poll.interval.ms</code> 避免误判超时
-- 使用 KIP-848 新协议，Broker 端增量协调，成员变化不再全局 Stop-The-World</p>
-<p><strong>扩容时 Consumer 挨个启动会频繁 rebalance 吗？</strong>
-- 会：每个新成员加入触发一轮 rebalance（rebalance 风暴）；但 rebalance
-  进行中的 join 会折叠进同一轮，启动越集中轮数越少
-- <code>group.initial.rebalance.delay.ms</code>（默认 3s）只对新 Group 首次 rebalance 生效
-- 静态成员帮不上扩容（新实例是全新身份），根治靠 Cooperative / KIP-848 协议</p>
+</li>
+</ul>
+<p><strong>如何减少 Rebalance 频率？</strong></p>
+<ul>
+<li>
+<p><strong>静态成员</strong>（KIP-345）：配置 <code>group.instance.id</code>，Consumer 重启在
+  <code>session.timeout.ms</code> 内回来不触发 rebalance，直接拿回原分区</p>
+</li>
+<li>
+<p>调大 <code>session.timeout.ms</code> / <code>max.poll.interval.ms</code> 避免误判超时</p>
+</li>
+<li>使用 KIP-848 新协议，Broker 端增量协调，成员变化不再全局 Stop-The-World</li>
+</ul>
+<p><strong>扩容时 Consumer 挨个启动会频繁 rebalance 吗？</strong></p>
+<ul>
+<li>
+<p>会：每个新成员加入触发一轮 rebalance（rebalance 风暴）；但 rebalance
+  进行中的 join 会折叠进同一轮，启动越集中轮数越少</p>
+</li>
+<li>
+<p><code>group.initial.rebalance.delay.ms</code>（默认 3s）只对新 Group 首次 rebalance 生效</p>
+</li>
+<li>静态成员帮不上扩容（新实例是全新身份），根治靠 Cooperative / KIP-848 协议</li>
+</ul>
 <h2 id="_2">架构设计<a class="headerlink" href="#_2" title="Permanent link">&para;</a></h2>
 <h3 id="q6-kafka-isr">Q6: Kafka 的副本机制是什么？ISR 是什么？<a class="headerlink" href="#q6-kafka-isr" title="Permanent link">&para;</a></h3>
 <p><strong>答：</strong></p>
@@ -1305,9 +1335,11 @@
 <a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a>├── 00000000000000368769.log
 <a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a>└── ...
 </code></pre></div>
-<p>查找 offset=368799：
-1. 二分查找 <code>.index</code>，找到最大的 &lt;= 368799 的 offset
-2. 在 <code>.log</code> 中从该位置顺序扫描</p>
+<p>查找 offset=368799：</p>
+<ol>
+<li>二分查找 <code>.index</code>，找到最大的 &lt;= 368799 的 offset</li>
+<li>在 <code>.log</code> 中从该位置顺序扫描</li>
+</ol>
 <h3 id="q9-kafka">Q9: Kafka 的零拷贝是什么？<a class="headerlink" href="#q9-kafka" title="Permanent link">&para;</a></h3>
 <p><strong>答：</strong></p>
 <p><strong>传统读取（4 次拷贝，4 次上下文切换）：</strong>
@@ -1350,15 +1382,19 @@
 </tr>
 </tbody>
 </table>
-<p>配合 <code>min.insync.replicas</code> 使用：
-- <code>acks=all + min.insync.replicas=2</code>：至少 2 个副本写入成功
-- ISR 不足时返回 <code>NotEnoughReplicasException</code></p>
+<p>配合 <code>min.insync.replicas</code> 使用：</p>
+<ul>
+<li><code>acks=all + min.insync.replicas=2</code>：至少 2 个副本写入成功</li>
+<li>ISR 不足时返回 <code>NotEnoughReplicasException</code></li>
+</ul>
 <h3 id="q11-kafka">Q11: Kafka 的幂等性是什么？<a class="headerlink" href="#q11-kafka" title="Permanent link">&para;</a></h3>
 <p><strong>答：</strong></p>
 <p>防止 Producer 重试导致消息重复。</p>
-<p>开启 <code>enable.idempotence=true</code>（默认开启）：
-- 每条消息分配 <code>Producer ID + Sequence Number</code>
-- Broker 去重，相同 Sequence Number 的消息只接收一次</p>
+<p>开启 <code>enable.idempotence=true</code>（默认开启）：</p>
+<ul>
+<li>每条消息分配 <code>Producer ID + Sequence Number</code></li>
+<li>Broker 去重，相同 Sequence Number 的消息只接收一次</li>
+</ul>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>Producer PID=1:
 <a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>  msg1 (seq=0) → Broker 接收 ✓
 <a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a>  msg1 (seq=0) → 重试 → Broker 发现重复，丢弃 ✓
@@ -1416,26 +1452,34 @@
 <h3 id="q15-kafka-consumer-lag">Q15: Kafka 的 Consumer Lag 是什么？怎么处理？<a class="headerlink" href="#q15-kafka-consumer-lag" title="Permanent link">&para;</a></h3>
 <p><strong>答：</strong></p>
 <p>Consumer Lag = 最新 offset - 已消费 offset，表示消费者延迟。</p>
-<p><strong>处理方案：</strong>
-1. <strong>增加 Consumer</strong>：Consumer 数 = Partition 数
-2. <strong>增加 Partition</strong>：提高并行度
-3. <strong>优化处理逻辑</strong>：异步处理、批量处理
-4. <strong>调优参数</strong>：
+<p><strong>处理方案：</strong></p>
+<ol>
+<li><strong>增加 Consumer</strong>：Consumer 数 = Partition 数</li>
+<li><strong>增加 Partition</strong>：提高并行度</li>
+<li><strong>优化处理逻辑</strong>：异步处理、批量处理</li>
+<li><strong>调优参数</strong>：
    <div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="n">props</span><span class="p">.</span><span class="na">put</span><span class="p">(</span><span class="s">&quot;max.poll.records&quot;</span><span class="p">,</span><span class="w"> </span><span class="mi">1000</span><span class="p">);</span><span class="w">     </span><span class="c1">// 增加每次拉取数量</span>
 <a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a><span class="n">props</span><span class="p">.</span><span class="na">put</span><span class="p">(</span><span class="s">&quot;fetch.min.bytes&quot;</span><span class="p">,</span><span class="w"> </span><span class="mi">1048576</span><span class="p">);</span><span class="w">   </span><span class="c1">// 减少请求次数</span>
-</code></pre></div></p>
+</code></pre></div></li>
+</ol>
 <h2 id="_3">高级特性<a class="headerlink" href="#_3" title="Permanent link">&para;</a></h2>
 <h3 id="q16-kafka-exactly-once">Q16: Kafka 的 Exactly-Once 如何实现？<a class="headerlink" href="#q16-kafka-exactly-once" title="Permanent link">&para;</a></h3>
 <p><strong>答：</strong></p>
-<p><strong>方式 1：幂等性 Producer</strong>
-- 单 Partition 内去重
-- <code>enable.idempotence=true</code></p>
-<p><strong>方式 2：事务</strong>
-- 跨 Partition/Topic 原子性
-- 配合 <code>isolation.level=read_committed</code></p>
-<p><strong>方式 3：Kafka Streams</strong>
-- 内置 EOS 支持
-- <code>processing.guarantee=exactly_once_v2</code>（v1 在 Kafka 4.0 已移除）</p>
+<p><strong>方式 1：幂等性 Producer</strong></p>
+<ul>
+<li>单 Partition 内去重</li>
+<li><code>enable.idempotence=true</code></li>
+</ul>
+<p><strong>方式 2：事务</strong></p>
+<ul>
+<li>跨 Partition/Topic 原子性</li>
+<li>配合 <code>isolation.level=read_committed</code></li>
+</ul>
+<p><strong>方式 3：Kafka Streams</strong></p>
+<ul>
+<li>内置 EOS 支持</li>
+<li><code>processing.guarantee=exactly_once_v2</code>（v1 在 Kafka 4.0 已移除）</li>
+</ul>
 <h3 id="q17-kafka-rabbitmq">Q17: Kafka 和 RabbitMQ 的区别？<a class="headerlink" href="#q17-kafka-rabbitmq" title="Permanent link">&para;</a></h3>
 <p><strong>答：</strong></p>
 <table>
@@ -1493,19 +1537,23 @@
 <a id="__codelineno-9-5" name="__codelineno-9-5" href="#__codelineno-9-5"></a><span class="w">    </span><span class="p">.</span><span class="na">count</span><span class="p">();</span>
 <a id="__codelineno-9-6" name="__codelineno-9-6" href="#__codelineno-9-6"></a><span class="n">wordCounts</span><span class="p">.</span><span class="na">toStream</span><span class="p">().</span><span class="na">to</span><span class="p">(</span><span class="s">&quot;output-topic&quot;</span><span class="p">);</span>
 </code></pre></div>
-<p>特点：
-- 无需独立集群
-- 支持状态存储（RocksDB）
-- 支持窗口操作、聚合、Join</p>
+<p>特点：</p>
+<ul>
+<li>无需独立集群</li>
+<li>支持状态存储（RocksDB）</li>
+<li>支持窗口操作、聚合、Join</li>
+</ul>
 <h3 id="q19-kafka-kafka-connect">Q19: Kafka 的 Kafka Connect 是什么？<a class="headerlink" href="#q19-kafka-kafka-connect" title="Permanent link">&para;</a></h3>
 <p><strong>答：</strong></p>
 <p>数据集成框架，用于在 Kafka 和其他系统之间移动数据：</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a>Source System → Source Connector → Kafka → Sink Connector → Sink System
 </code></pre></div>
-<p>常用 Connector：
-- JDBC Source/Sink：数据库集成
-- Elasticsearch Sink：搜索集成
-- Debezium：CDC（Change Data Capture）</p>
+<p>常用 Connector：</p>
+<ul>
+<li>JDBC Source/Sink：数据库集成</li>
+<li>Elasticsearch Sink：搜索集成</li>
+<li>Debezium：CDC（Change Data Capture）</li>
+</ul>
 <h3 id="q20-kafka-dlq">Q20: Kafka 的死信队列（DLQ）是什么？<a class="headerlink" href="#q20-kafka-dlq" title="Permanent link">&para;</a></h3>
 <p><strong>答：</strong></p>
 <p>处理失败的消息放入死信队列，后续人工处理：</p>
@@ -1520,25 +1568,31 @@
 <h2 id="_4">运维相关<a class="headerlink" href="#_4" title="Permanent link">&para;</a></h2>
 <h3 id="q21-kafka">Q21: Kafka 如何扩缩容？<a class="headerlink" href="#q21-kafka" title="Permanent link">&para;</a></h3>
 <p><strong>答：</strong></p>
-<p><strong>增加 Broker：</strong>
-1. 启动新 Broker
-2. 使用 <code>kafka-reassign-partitions.sh</code> 重新分配分区
-3. 等待数据迁移完成</p>
+<p><strong>增加 Broker：</strong></p>
+<ol>
+<li>启动新 Broker</li>
+<li>使用 <code>kafka-reassign-partitions.sh</code> 重新分配分区</li>
+<li>等待数据迁移完成</li>
+</ol>
 <p><strong>增加 Partition：</strong>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a>kafka-topics.sh<span class="w"> </span>--alter<span class="w"> </span>--topic<span class="w"> </span>orders<span class="w"> </span>--partitions<span class="w"> </span><span class="m">6</span>
 </code></pre></div>
 注意：只能增加，不能减少；已存在的消息不会重新分配。</p>
 <h3 id="q22-kafka">Q22: Kafka 如何监控？<a class="headerlink" href="#q22-kafka" title="Permanent link">&para;</a></h3>
 <p><strong>答：</strong></p>
-<p><strong>关键指标：</strong>
-- <code>UnderReplicatedPartitions</code>：副本落后的分区数
-- <code>OfflinePartitionsCount</code>：离线分区数量
-- <code>ActiveControllerCount</code>：Controller 数量
-- <code>ConsumerLag</code>：消费者延迟</p>
-<p><strong>工具：</strong>
-- JMX + Prometheus + Grafana
-- 开源 UI：AKHQ、Kafbat UI（Yandex 维护的 Kafka Manager 后继）、Conduktor Desktop
-- 商业：Confluent Control Center</p>
+<p><strong>关键指标：</strong></p>
+<ul>
+<li><code>UnderReplicatedPartitions</code>：副本落后的分区数</li>
+<li><code>OfflinePartitionsCount</code>：离线分区数量</li>
+<li><code>ActiveControllerCount</code>：Controller 数量</li>
+<li><code>ConsumerLag</code>：消费者延迟</li>
+</ul>
+<p><strong>工具：</strong></p>
+<ul>
+<li>JMX + Prometheus + Grafana</li>
+<li>开源 UI：AKHQ、Kafbat UI（Yandex 维护的 Kafka Manager 后继）、Conduktor Desktop</li>
+<li>商业：Confluent Control Center</li>
+</ul>
 <h3 id="q23-kafka">Q23: Kafka 的磁盘空间不足怎么办？<a class="headerlink" href="#q23-kafka" title="Permanent link">&para;</a></h3>
 <p><strong>答：</strong></p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a><span class="c1"># 减少保留时间</span>
@@ -1552,14 +1606,18 @@
 普通日志/事件 topic 不能随意切换。真要长期低成本保留，考虑 Tiered Storage。</p>
 <h3 id="q24-kafka-consumer">Q24: Kafka 的 Consumer 重复消费怎么办？<a class="headerlink" href="#q24-kafka-consumer" title="Permanent link">&para;</a></h3>
 <p><strong>答：</strong></p>
-<p><strong>原因：</strong>
-1. Offset 提交失败
-2. Rebalance 导致重复分配
-3. Consumer 崩溃，offset 未提交</p>
-<p><strong>解决方案：</strong>
-1. 幂等性处理（数据库唯一约束）
-2. Kafka 事务
-3. 业务层去重（Redis 缓存已处理的 message id）</p>
+<p><strong>原因：</strong></p>
+<ol>
+<li>Offset 提交失败</li>
+<li>Rebalance 导致重复分配</li>
+<li>Consumer 崩溃，offset 未提交</li>
+</ol>
+<p><strong>解决方案：</strong></p>
+<ol>
+<li>幂等性处理（数据库唯一约束）</li>
+<li>Kafka 事务</li>
+<li>业务层去重（Redis 缓存已处理的 message id）</li>
+</ol>
 <h2 id="_5">场景设计题<a class="headerlink" href="#_5" title="Permanent link">&para;</a></h2>
 <h3 id="q25-kafka">Q25: 如何保证 Kafka 的高可用？<a class="headerlink" href="#q25-kafka" title="Permanent link">&para;</a></h3>
 <p><strong>答：</strong></p>
@@ -1577,34 +1635,42 @@
 <a id="__codelineno-14-3" name="__codelineno-14-3" href="#__codelineno-14-3"></a>                              ├─ 支付服务（创建支付单）
 <a id="__codelineno-14-4" name="__codelineno-14-4" href="#__codelineno-14-4"></a>                              └─ 通知服务（发送短信）
 </code></pre></div>
-<p><strong>设计要点：</strong>
-1. <strong>Topic 设计</strong>：按业务拆分 Topic（orders、payments、notifications）
-2. <strong>Partition 策略</strong>：按 order_id 分区，保证同一订单的消息有序
-3. <strong>Consumer Group</strong>：每个服务一个 Group，独立消费
-4. <strong>幂等性</strong>：数据库唯一约束，防止重复处理
-5. <strong>事务</strong>：跨服务使用 Saga 模式或 TCC</p>
+<p><strong>设计要点：</strong></p>
+<ol>
+<li><strong>Topic 设计</strong>：按业务拆分 Topic（orders、payments、notifications）</li>
+<li><strong>Partition 策略</strong>：按 order_id 分区，保证同一订单的消息有序</li>
+<li><strong>Consumer Group</strong>：每个服务一个 Group，独立消费</li>
+<li><strong>幂等性</strong>：数据库唯一约束，防止重复处理</li>
+<li><strong>事务</strong>：跨服务使用 Saga 模式或 TCC</li>
+</ol>
 <h3 id="q27-kafka">Q27: 如何处理 Kafka 的消息积压？<a class="headerlink" href="#q27-kafka" title="Permanent link">&para;</a></h3>
 <p><strong>答：</strong></p>
-<p><strong>临时方案：</strong>
-1. 增加 Partition
-2. 创建临时 Topic，用临时 Consumer 快速消费</p>
-<p><strong>根本方案：</strong>
-1. 优化处理逻辑（异步、批量）
-2. 增加 Consumer（Consumer 数 = Partition 数）
-3. 调优参数：
+<p><strong>临时方案：</strong></p>
+<ol>
+<li>增加 Partition</li>
+<li>创建临时 Topic，用临时 Consumer 快速消费</li>
+</ol>
+<p><strong>根本方案：</strong></p>
+<ol>
+<li>优化处理逻辑（异步、批量）</li>
+<li>增加 Consumer（Consumer 数 = Partition 数）</li>
+<li>调优参数：
    <div class="highlight"><pre><span></span><code><a id="__codelineno-15-1" name="__codelineno-15-1" href="#__codelineno-15-1"></a><span class="n">props</span><span class="p">.</span><span class="na">put</span><span class="p">(</span><span class="s">&quot;max.poll.records&quot;</span><span class="p">,</span><span class="w"> </span><span class="mi">1000</span><span class="p">);</span>
 <a id="__codelineno-15-2" name="__codelineno-15-2" href="#__codelineno-15-2"></a><span class="n">props</span><span class="p">.</span><span class="na">put</span><span class="p">(</span><span class="s">&quot;fetch.min.bytes&quot;</span><span class="p">,</span><span class="w"> </span><span class="mi">1048576</span><span class="p">);</span>
-</code></pre></div></p>
+</code></pre></div></li>
+</ol>
 <h3 id="q28-kafka">Q28: 如何设计一个日志收集系统，使用 Kafka？<a class="headerlink" href="#q28-kafka" title="Permanent link">&para;</a></h3>
 <p><strong>答：</strong></p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-16-1" name="__codelineno-16-1" href="#__codelineno-16-1"></a>应用服务器 → Filebeat/Fluentd → Kafka → Logstash → Elasticsearch → Kibana
 </code></pre></div>
-<p><strong>设计要点：</strong>
-1. <strong>Topic 设计</strong>：按应用/日志级别拆分
-2. <strong>压缩</strong>：使用 lz4/zstd 压缩，减少存储
-3. <strong>保留策略</strong>：<code>log.retention.hours=168</code>（7 天）
-4. <strong>批量写入</strong>：提高吞吐
-5. <strong>监控</strong>：Consumer Lag、磁盘使用率</p>
+<p><strong>设计要点：</strong></p>
+<ol>
+<li><strong>Topic 设计</strong>：按应用/日志级别拆分</li>
+<li><strong>压缩</strong>：使用 lz4/zstd 压缩，减少存储</li>
+<li><strong>保留策略</strong>：<code>log.retention.hours=168</code>（7 天）</li>
+<li><strong>批量写入</strong>：提高吞吐</li>
+<li><strong>监控</strong>：Consumer Lag、磁盘使用率</li>
+</ol>
 <h3 id="q29-kafka">Q29: 如何实现 Kafka 的跨集群同步？<a class="headerlink" href="#q29-kafka" title="Permanent link">&para;</a></h3>
 <p><strong>答：</strong></p>
 <p><strong>MirrorMaker 2（唯一官方方案，MirrorMaker 1 已在 4.0 移除）：</strong>
@@ -1646,9 +1712,13 @@
 <p><strong>答：</strong></p>
 <ol>
 <li><strong>ZooKeeper 彻底移除</strong>：只支持 KRaft 模式，4.0 之前必须先完成 ZK→KRaft 迁移</li>
-<li><strong>KIP-848 新 Consumer Rebalance 协议</strong>：<code>group.protocol=consumer</code>，
-   Broker 端增量协调，去掉 Stop-The-World，官方实测最高 20x 更快</li>
-<li><strong>Share Groups 早期访问</strong>（KIP-932，队列语义，4.2 GA）</li>
+<li>
+<p><strong>KIP-848 新 Consumer Rebalance 协议</strong>：<code>group.protocol=consumer</code>，
+   Broker 端增量协调，去掉 Stop-The-World，官方实测最高 20x 更快</p>
+</li>
+<li>
+<p><strong>Share Groups 早期访问</strong>（KIP-932，队列语义，4.2 GA）</p>
+</li>
 <li><strong>Java 版本要求提高</strong>：Broker/工具要求 Java 17+（KIP-1013 移除 Java 11），客户端库要求 Java 11+（KIP-750 移除 Java 8），Scala 2.12 移除</li>
 <li><strong>MirrorMaker 1 移除</strong>，<code>inter.broker.protocol.version</code> 移除（改用 metadata.version）</li>
 </ol>
@@ -1694,9 +1764,13 @@
 <p>要点：</p>
 <ul>
 <li>开启：<code>group.protocol=consumer</code>（需 broker 4.0+ / KRaft 模式）</li>
-<li>客户端的 <code>session.timeout.ms</code>、<code>heartbeat.interval.ms</code>、
-  <code>partition.assignment.strategy</code> 改由 broker 端控制，客户端再配会被拒绝</li>
-<li>支持滚动迁移：第一个新协议 Consumer 加入时 Coordinator 自动切换整组</li>
+<li>
+<p>客户端的 <code>session.timeout.ms</code>、<code>heartbeat.interval.ms</code>、
+  <code>partition.assignment.strategy</code> 改由 broker 端控制，客户端再配会被拒绝</p>
+</li>
+<li>
+<p>支持滚动迁移：第一个新协议 Consumer 加入时 Coordinator 自动切换整组</p>
+</li>
 <li>4.3 起分阶段弃用经典协议（KIP-1274），新项目建议直接用新协议</li>
 </ul>
 <h3 id="q33-tiered-storage">Q33: Tiered Storage（分层存储）是什么？<a class="headerlink" href="#q33-tiered-storage" title="Permanent link">&para;</a></h3>
@@ -1810,21 +1884,25 @@
 <a id="__codelineno-20-17" name="__codelineno-20-17" href="#__codelineno-20-17"></a><span class="p">}</span>
 </code></pre></div>
 <h2 id="_7">总结<a class="headerlink" href="#_7" title="Permanent link">&para;</a></h2>
-<p><strong>高频考点：</strong>
-1. Kafka 为什么快（顺序写、零拷贝、批量、压缩）
-2. 如何保证消息不丢失（acks、副本、手动提交）
-3. 如何保证消息顺序（相同 Key、单 Partition）
-4. Consumer Group 和 Rebalance（含 KIP-848 新协议、Cooperative 增量 rebalance）
-5. Offset 管理
-6. Exactly-Once 实现
-7. 消息积压处理
-8. KRaft 架构（4.x 必问，取代 ZooKeeper）
-9. Tiered Storage、Share Groups（4.x 加分项）</p>
-<p><strong>准备建议：</strong>
-- 理解核心概念和架构（按 4.x 口径准备，ZK 相关内容作为历史对比）
-- 熟悉常用配置参数
-- 准备 1-2 个实际项目经验
-- 练习代码题（Producer、Consumer、事务）</p>
+<p><strong>高频考点：</strong></p>
+<ol>
+<li>Kafka 为什么快（顺序写、零拷贝、批量、压缩）</li>
+<li>如何保证消息不丢失（acks、副本、手动提交）</li>
+<li>如何保证消息顺序（相同 Key、单 Partition）</li>
+<li>Consumer Group 和 Rebalance（含 KIP-848 新协议、Cooperative 增量 rebalance）</li>
+<li>Offset 管理</li>
+<li>Exactly-Once 实现</li>
+<li>消息积压处理</li>
+<li>KRaft 架构（4.x 必问，取代 ZooKeeper）</li>
+<li>Tiered Storage、Share Groups（4.x 加分项）</li>
+</ol>
+<p><strong>准备建议：</strong></p>
+<ul>
+<li>理解核心概念和架构（按 4.x 口径准备，ZK 相关内容作为历史对比）</li>
+<li>熟悉常用配置参数</li>
+<li>准备 1-2 个实际项目经验</li>
+<li>练习代码题（Producer、Consumer、事务）</li>
+</ul>
 
 
 
