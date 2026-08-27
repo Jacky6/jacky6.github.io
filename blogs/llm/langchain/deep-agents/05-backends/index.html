@@ -708,6 +708,17 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        实战案例：恒等挂载（让文件工具访问宿主真实目录）
+      
+    </span>
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -765,7 +776,7 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#_2" class="md-nav__link">
+  <a href="#_3" class="md-nav__link">
     <span class="md-ellipsis">
       
         为什么用沙箱？
@@ -798,7 +809,7 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#_3" class="md-nav__link">
+  <a href="#_4" class="md-nav__link">
     <span class="md-ellipsis">
       
         生命周期与作用域
@@ -809,7 +820,7 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#_4" class="md-nav__link">
+  <a href="#_5" class="md-nav__link">
     <span class="md-ellipsis">
       
         两种集成架构
@@ -831,7 +842,7 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#_5" class="md-nav__link">
+  <a href="#_6" class="md-nav__link">
     <span class="md-ellipsis">
       
         文件进出沙箱的两个平面
@@ -842,7 +853,7 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#_6" class="md-nav__link">
+  <a href="#_7" class="md-nav__link">
     <span class="md-ellipsis">
       
         安全注意事项
@@ -881,7 +892,7 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#_7" class="md-nav__link">
+  <a href="#_8" class="md-nav__link">
     <span class="md-ellipsis">
       
         关键要点
@@ -892,7 +903,7 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#_8" class="md-nav__link">
+  <a href="#_9" class="md-nav__link">
     <span class="md-ellipsis">
       
         下一章预告
@@ -1119,6 +1130,26 @@
 <blockquote>
 <p>💡 Deep Agents 会把内部数据（卸载的工具结果、对话历史）写到<strong>默认后端</strong>。官方建议默认后端用 <code>StateBackend</code>，让这些临时产物不落盘/不进持久存储——尤其当其他路由指向本地磁盘或持久 store 时。</p>
 </blockquote>
+<h3 id="_2">实战案例：恒等挂载（让文件工具访问宿主真实目录）<a class="headerlink" href="#_2" title="Permanent link">&para;</a></h3>
+<p>MyCoder（基于 deepagents 的编码代理产品）用 CompositeBackend 实现"会话沙箱 + 挂载宿主目录"：</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">deepagents.backends</span><span class="w"> </span><span class="kn">import</span> <span class="n">CompositeBackend</span><span class="p">,</span> <span class="n">FilesystemBackend</span><span class="p">,</span> <span class="n">LocalShellBackend</span>
+<a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a>
+<a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a><span class="n">backend</span> <span class="o">=</span> <span class="n">CompositeBackend</span><span class="p">(</span>
+<a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a>    <span class="n">default</span><span class="o">=</span><span class="n">LocalShellBackend</span><span class="p">(</span><span class="n">root_dir</span><span class="o">=</span><span class="n">sandbox_dir</span><span class="p">),</span>   <span class="c1"># 沙箱 + shell 保持现状</span>
+<a id="__codelineno-8-5" name="__codelineno-8-5" href="#__codelineno-8-5"></a>    <span class="n">routes</span><span class="o">=</span><span class="p">{</span>
+<a id="__codelineno-8-6" name="__codelineno-8-6" href="#__codelineno-8-6"></a>        <span class="c1"># 恒等挂载：虚拟前缀 == 真实路径，模型直接用真实绝对路径</span>
+<a id="__codelineno-8-7" name="__codelineno-8-7" href="#__codelineno-8-7"></a>        <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">host_dir</span><span class="si">}</span><span class="s2">/&quot;</span><span class="p">:</span> <span class="n">FilesystemBackend</span><span class="p">(</span><span class="n">root_dir</span><span class="o">=</span><span class="n">host_dir</span><span class="p">),</span>  <span class="c1"># virtual_mode=True</span>
+<a id="__codelineno-8-8" name="__codelineno-8-8" href="#__codelineno-8-8"></a>    <span class="p">},</span>
+<a id="__codelineno-8-9" name="__codelineno-8-9" href="#__codelineno-8-9"></a><span class="p">)</span>
+</code></pre></div>
+<p>关键机制（源码行为）：</p>
+<ol>
+<li><strong>前缀剥离 = 恒等映射</strong>：<code>read_file("/home/u/proj/main.py")</code> 命中路由 <code>/home/u/proj/</code> → 剥前缀得 <code>/main.py</code> → 在 <code>FilesystemBackend(root_dir="/home/u/proj")</code> 下解析，正好落回同名真实文件。<strong>不需要维护别名表</strong>。</li>
+<li><strong>沙箱是 default，不参与前缀匹配</strong>——挂载不可能吞掉沙箱；<code>execute</code> 工具只走 default（shell 仍在沙箱执行）。</li>
+<li><strong>路由后端各自路径锁定</strong>：<code>virtual_mode=True</code> 阻止 <code>..</code>/<code>~</code>/越界——模型能读写挂载目录，但出不了那个目录；读挂载外路径返回 <code>not found</code> 而非泄露。</li>
+<li><strong>最长前缀优先</strong>：多个挂载目录互为前缀时天然正确。</li>
+</ol>
+<p>适用场景：沙箱管"临时产物 + 检查点快照"，挂载管"用户的真实项目"，两者并存且互不污染。注意：文件工具的路径锁 ≠ 完整沙箱——<code>execute</code> 走 <code>subprocess.run(shell=True)</code> 不受 <code>virtual_mode</code> 约束，宿主机全机可达，安全边界要靠审批/命令策略（见本章 5.5/5.6）。</p>
 <hr />
 <h2 id="54">5.4 自定义后端<a class="headerlink" href="#54" title="Permanent link">&para;</a></h2>
 <p>实现 <code>BackendProtocol</code> 的方法（返回结构化结果，<strong>不要抛异常</strong>，失败放 <code>error</code> 字段）：</p>
@@ -1177,7 +1208,7 @@
 <p>声明式文件系统权限（第 6 章）作用于内置文件工具，但<strong>不适用于沙箱后端</strong>——沙箱通过 <code>execute</code> 能执行任意命令，路径级权限拦不住。需要自定义校验逻辑时用 backend policy hooks（<code>Backends</code> 文档的 "Add policy hooks" 节）。</p>
 <hr />
 <h2 id="56-sandboxes">5.6 沙箱 (Sandboxes)<a class="headerlink" href="#56-sandboxes" title="Permanent link">&para;</a></h2>
-<h3 id="_2">为什么用沙箱？<a class="headerlink" href="#_2" title="Permanent link">&para;</a></h3>
+<h3 id="_3">为什么用沙箱？<a class="headerlink" href="#_3" title="Permanent link">&para;</a></h3>
 <p>让 Agent 执行任意代码、访问文件、使用网络，而不危及你的凭证、本地文件和宿主机。特别适合：</p>
 <ul>
 <li><strong>编码 Agent</strong>：自主跑 shell/git、clone 仓库、Docker-in-Docker 构建测试</li>
@@ -1187,31 +1218,31 @@
 <p>LangSmith 提供一方托管沙箱（无需第三方账号），见 LangSmith Sandboxes 文档。Deep Agents Code 用 <code>--sandbox</code> flag 内置沙箱支持。</p>
 </blockquote>
 <h3 id="langsmith-sandbox">基本用法（以 LangSmith Sandbox 为例）<a class="headerlink" href="#langsmith-sandbox" title="Permanent link">&para;</a></h3>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">deepagents</span><span class="w"> </span><span class="kn">import</span> <span class="n">create_deep_agent</span>
-<a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a><span class="kn">from</span><span class="w"> </span><span class="nn">deepagents.backends</span><span class="w"> </span><span class="kn">import</span> <span class="n">LangSmithSandbox</span>
-<a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a><span class="kn">from</span><span class="w"> </span><span class="nn">langsmith.sandbox</span><span class="w"> </span><span class="kn">import</span> <span class="n">SandboxClient</span>
-<a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a>
-<a id="__codelineno-8-5" name="__codelineno-8-5" href="#__codelineno-8-5"></a><span class="n">client</span> <span class="o">=</span> <span class="n">SandboxClient</span><span class="p">()</span>
-<a id="__codelineno-8-6" name="__codelineno-8-6" href="#__codelineno-8-6"></a><span class="n">ls_sandbox</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">create_sandbox</span><span class="p">()</span>
-<a id="__codelineno-8-7" name="__codelineno-8-7" href="#__codelineno-8-7"></a><span class="n">backend</span> <span class="o">=</span> <span class="n">LangSmithSandbox</span><span class="p">(</span><span class="n">sandbox</span><span class="o">=</span><span class="n">ls_sandbox</span><span class="p">)</span>
-<a id="__codelineno-8-8" name="__codelineno-8-8" href="#__codelineno-8-8"></a>
-<a id="__codelineno-8-9" name="__codelineno-8-9" href="#__codelineno-8-9"></a><span class="n">agent</span> <span class="o">=</span> <span class="n">create_deep_agent</span><span class="p">(</span>
-<a id="__codelineno-8-10" name="__codelineno-8-10" href="#__codelineno-8-10"></a>    <span class="n">model</span><span class="o">=</span><span class="s2">&quot;anthropic:claude-sonnet-4-6&quot;</span><span class="p">,</span>
-<a id="__codelineno-8-11" name="__codelineno-8-11" href="#__codelineno-8-11"></a>    <span class="n">system_prompt</span><span class="o">=</span><span class="s2">&quot;You are a Python coding assistant with sandbox access.&quot;</span><span class="p">,</span>
-<a id="__codelineno-8-12" name="__codelineno-8-12" href="#__codelineno-8-12"></a>    <span class="n">backend</span><span class="o">=</span><span class="n">backend</span><span class="p">,</span>
-<a id="__codelineno-8-13" name="__codelineno-8-13" href="#__codelineno-8-13"></a><span class="p">)</span>
-<a id="__codelineno-8-14" name="__codelineno-8-14" href="#__codelineno-8-14"></a><span class="k">try</span><span class="p">:</span>
-<a id="__codelineno-8-15" name="__codelineno-8-15" href="#__codelineno-8-15"></a>    <span class="n">result</span> <span class="o">=</span> <span class="n">agent</span><span class="o">.</span><span class="n">invoke</span><span class="p">(</span>
-<a id="__codelineno-8-16" name="__codelineno-8-16" href="#__codelineno-8-16"></a>        <span class="p">{</span><span class="s2">&quot;messages&quot;</span><span class="p">:</span> <span class="p">[{</span><span class="s2">&quot;role&quot;</span><span class="p">:</span> <span class="s2">&quot;user&quot;</span><span class="p">,</span> <span class="s2">&quot;content&quot;</span><span class="p">:</span> <span class="s2">&quot;Create a small Python package and run pytest&quot;</span><span class="p">}]}</span>
-<a id="__codelineno-8-17" name="__codelineno-8-17" href="#__codelineno-8-17"></a>    <span class="p">)</span>
-<a id="__codelineno-8-18" name="__codelineno-8-18" href="#__codelineno-8-18"></a><span class="k">finally</span><span class="p">:</span>
-<a id="__codelineno-8-19" name="__codelineno-8-19" href="#__codelineno-8-19"></a>    <span class="n">client</span><span class="o">.</span><span class="n">delete_sandbox</span><span class="p">(</span><span class="n">ls_sandbox</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>   <span class="c1"># 沙箱按时计费，用完必须销毁</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">deepagents</span><span class="w"> </span><span class="kn">import</span> <span class="n">create_deep_agent</span>
+<a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a><span class="kn">from</span><span class="w"> </span><span class="nn">deepagents.backends</span><span class="w"> </span><span class="kn">import</span> <span class="n">LangSmithSandbox</span>
+<a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a><span class="kn">from</span><span class="w"> </span><span class="nn">langsmith.sandbox</span><span class="w"> </span><span class="kn">import</span> <span class="n">SandboxClient</span>
+<a id="__codelineno-9-4" name="__codelineno-9-4" href="#__codelineno-9-4"></a>
+<a id="__codelineno-9-5" name="__codelineno-9-5" href="#__codelineno-9-5"></a><span class="n">client</span> <span class="o">=</span> <span class="n">SandboxClient</span><span class="p">()</span>
+<a id="__codelineno-9-6" name="__codelineno-9-6" href="#__codelineno-9-6"></a><span class="n">ls_sandbox</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">create_sandbox</span><span class="p">()</span>
+<a id="__codelineno-9-7" name="__codelineno-9-7" href="#__codelineno-9-7"></a><span class="n">backend</span> <span class="o">=</span> <span class="n">LangSmithSandbox</span><span class="p">(</span><span class="n">sandbox</span><span class="o">=</span><span class="n">ls_sandbox</span><span class="p">)</span>
+<a id="__codelineno-9-8" name="__codelineno-9-8" href="#__codelineno-9-8"></a>
+<a id="__codelineno-9-9" name="__codelineno-9-9" href="#__codelineno-9-9"></a><span class="n">agent</span> <span class="o">=</span> <span class="n">create_deep_agent</span><span class="p">(</span>
+<a id="__codelineno-9-10" name="__codelineno-9-10" href="#__codelineno-9-10"></a>    <span class="n">model</span><span class="o">=</span><span class="s2">&quot;anthropic:claude-sonnet-4-6&quot;</span><span class="p">,</span>
+<a id="__codelineno-9-11" name="__codelineno-9-11" href="#__codelineno-9-11"></a>    <span class="n">system_prompt</span><span class="o">=</span><span class="s2">&quot;You are a Python coding assistant with sandbox access.&quot;</span><span class="p">,</span>
+<a id="__codelineno-9-12" name="__codelineno-9-12" href="#__codelineno-9-12"></a>    <span class="n">backend</span><span class="o">=</span><span class="n">backend</span><span class="p">,</span>
+<a id="__codelineno-9-13" name="__codelineno-9-13" href="#__codelineno-9-13"></a><span class="p">)</span>
+<a id="__codelineno-9-14" name="__codelineno-9-14" href="#__codelineno-9-14"></a><span class="k">try</span><span class="p">:</span>
+<a id="__codelineno-9-15" name="__codelineno-9-15" href="#__codelineno-9-15"></a>    <span class="n">result</span> <span class="o">=</span> <span class="n">agent</span><span class="o">.</span><span class="n">invoke</span><span class="p">(</span>
+<a id="__codelineno-9-16" name="__codelineno-9-16" href="#__codelineno-9-16"></a>        <span class="p">{</span><span class="s2">&quot;messages&quot;</span><span class="p">:</span> <span class="p">[{</span><span class="s2">&quot;role&quot;</span><span class="p">:</span> <span class="s2">&quot;user&quot;</span><span class="p">,</span> <span class="s2">&quot;content&quot;</span><span class="p">:</span> <span class="s2">&quot;Create a small Python package and run pytest&quot;</span><span class="p">}]}</span>
+<a id="__codelineno-9-17" name="__codelineno-9-17" href="#__codelineno-9-17"></a>    <span class="p">)</span>
+<a id="__codelineno-9-18" name="__codelineno-9-18" href="#__codelineno-9-18"></a><span class="k">finally</span><span class="p">:</span>
+<a id="__codelineno-9-19" name="__codelineno-9-19" href="#__codelineno-9-19"></a>    <span class="n">client</span><span class="o">.</span><span class="n">delete_sandbox</span><span class="p">(</span><span class="n">ls_sandbox</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>   <span class="c1"># 沙箱按时计费，用完必须销毁</span>
 </code></pre></div>
 <p>安装：<code>pip install "langsmith[sandbox]"</code>。</p>
 <h3 id="provider">支持的 Provider<a class="headerlink" href="#provider" title="Permanent link">&para;</a></h3>
 <p>官方沙箱集成（各自注册/认证/生命周期细节见 integrations/sandboxes）：</p>
 <p><strong>LangSmith（一方托管）、AWS AgentCore、Daytona、Deno、E2B、Modal、Runloop、本地 VFS</strong>。没有你要的 Provider 可以自己实现（只需实现 <code>execute()</code>，见下文架构）。</p>
-<h3 id="_3">生命周期与作用域<a class="headerlink" href="#_3" title="Permanent link">&para;</a></h3>
+<h3 id="_4">生命周期与作用域<a class="headerlink" href="#_4" title="Permanent link">&para;</a></h3>
 <p>多数应用二选一：</p>
 <ul>
 <li><strong>Thread-scoped（默认）</strong>：每个会话一个沙箱。首轮创建，同 thread 后续轮次复用；thread 结束或 TTL 过期后销毁。用沙箱名/元数据存映射，保证每轮解析到同一个沙箱。用户可能长时间不活跃时，配置 TTL 让 Provider 自动清理</li>
@@ -1220,7 +1251,7 @@
 <blockquote>
 <p>⚠️ 沙箱在销毁前持续消耗资源和费用——不用了一定要关。完整生命周期表、TTL 行为、LangGraph Deployment 接线见 Going to production 文档。</p>
 </blockquote>
-<h3 id="_4">两种集成架构<a class="headerlink" href="#_4" title="Permanent link">&para;</a></h3>
+<h3 id="_5">两种集成架构<a class="headerlink" href="#_5" title="Permanent link">&para;</a></h3>
 <table>
 <thead>
 <tr>
@@ -1255,7 +1286,7 @@
 <li><code>execute</code> 工具<strong>条件可用</strong>：每次模型调用时 harness 检查后端是否实现 <code>SandboxBackendProtocol</code>，没有就过滤掉该工具，模型永远看不到</li>
 </ul>
 <p>Agent 调用 <code>execute</code> 工具时传 <code>command</code> 字符串，拿回合并的 stdout/stderr、退出码，输出过大会带截断提示。</p>
-<h3 id="_5">文件进出沙箱的两个平面<a class="headerlink" href="#_5" title="Permanent link">&para;</a></h3>
+<h3 id="_6">文件进出沙箱的两个平面<a class="headerlink" href="#_6" title="Permanent link">&para;</a></h3>
 <table>
 <thead>
 <tr>
@@ -1282,7 +1313,7 @@
 </table>
 <p><strong>Seed 沙箱</strong>：运行前用 <code>upload_files()</code> 预置源码/配置/数据（路径必须绝对路径，内容为 bytes）。</p>
 <p><strong>取回产物</strong>：运行后用 <code>download_files()</code> 拿到生成的代码、构建输出、报告。</p>
-<h3 id="_6">安全注意事项<a class="headerlink" href="#_6" title="Permanent link">&para;</a></h3>
+<h3 id="_7">安全注意事项<a class="headerlink" href="#_7" title="Permanent link">&para;</a></h3>
 <p>沙箱保护宿主机不被 Agent 的文件/shell 操作影响，但<strong>不防</strong>：</p>
 <ul>
 <li><strong>上下文注入</strong>：控制 Agent 输入的攻击者可以指挥它在沙箱内执行任意命令——沙箱隔离了，但 Agent 在沙箱内是全能</li>
@@ -1333,7 +1364,7 @@
 </table>
 <hr />
 <h2 id="58">5.8 本章小结<a class="headerlink" href="#58" title="Permanent link">&para;</a></h2>
-<h3 id="_7">关键要点<a class="headerlink" href="#_7" title="Permanent link">&para;</a></h3>
+<h3 id="_8">关键要点<a class="headerlink" href="#_8" title="Permanent link">&para;</a></h3>
 <ol>
 <li>后端 = 文件工具背后的存储层，<code>backend=</code> 传入，默认 <code>StateBackend</code></li>
 <li>内置数据（卸载结果、对话历史）写默认后端——生产配置用 Composite + StateBackend 做默认</li>
@@ -1342,7 +1373,7 @@
 <li>沙箱 ≠ 防注入/防外泄——密钥放沙箱外，能断网就断网</li>
 <li>权限系统管不住沙箱（能执行任意命令）</li>
 </ol>
-<h3 id="_8">下一章预告<a class="headerlink" href="#_8" title="Permanent link">&para;</a></h3>
+<h3 id="_9">下一章预告<a class="headerlink" href="#_9" title="Permanent link">&para;</a></h3>
 <p>第六章讲执行环境进阶：文件系统权限、多模态、Interpreters（QuickJS）、流式与事件流。</p>
 
 
