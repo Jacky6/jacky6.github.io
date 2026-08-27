@@ -973,12 +973,23 @@
   <a href="#9" class="md-nav__link">
     <span class="md-ellipsis">
       
-        9. 本章小结
+        9. 高频面试题
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="9. 本章小结">
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#10" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10. 本章小结
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="10. 本章小结">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
@@ -1485,7 +1496,29 @@
 <a id="__codelineno-18-39" name="__codelineno-18-39" href="#__codelineno-18-39"></a><span class="p">}</span>
 </code></pre></div>
 <hr />
-<h2 id="9">9. 本章小结<a class="headerlink" href="#9" title="Permanent link">&para;</a></h2>
+<h2 id="9">9. 高频面试题<a class="headerlink" href="#9" title="Permanent link">&para;</a></h2>
+<p><strong>Q1：CompletableFuture 比 Future 强在哪？</strong></p>
+<blockquote>
+<p>Future 只能阻塞 <code>get()</code> 或轮询 <code>isDone()</code>，无法表达任务间依赖；CompletableFuture 支持链式回调（thenApply/thenCompose）、组合（allOf/anyOf）、异常处理（exceptionally），真正的异步编排。底层默认用 ForkJoinPool.commonPool，建议显式传入自定义线程池。</p>
+</blockquote>
+<p><strong>Q2：thenApply 和 thenCompose 的区别？</strong></p>
+<blockquote>
+<p>thenApply：结果转换，<code>CompletableFuture&lt;T&gt;</code> → <code>CompletableFuture&lt;R&gt;</code>（类似 map）；thenCompose：任务串联，扁平化嵌套的 <code>CompletableFuture&lt;CompletableFuture&lt;R&gt;&gt;</code> → <code>CompletableFuture&lt;R&gt;</code>（类似 flatMap）。下一个任务也是异步时用 thenCompose，否则套娃。</p>
+</blockquote>
+<p><strong>Q3：allOf 和 anyOf 的语义？</strong></p>
+<blockquote>
+<p>allOf：等所有任务完成（返回 <code>CompletableFuture&lt;Void&gt;</code>，结果要自己从各任务取）；anyOf：任一任务完成即返回其结果。批量并发调用后聚合用 allOf，竞速/降级用 anyOf。</p>
+</blockquote>
+<p><strong>Q4：CompletableFuture 的异常怎么处理？</strong></p>
+<blockquote>
+<p>链上抛异常会沿着链传播到下游。处理方式：① <code>exceptionally(e -&gt; fallback)</code> 兜底；② <code>handle((r, e) -&gt; ...)</code> 无论成败都处理；③ <code>whenComplete</code> 只观察不改变结果。注意：异常不会打印，不处理会被吞——生产必须显式处理。</p>
+</blockquote>
+<p><strong>Q5：thenApply 和 thenApplyAsync 的区别？</strong></p>
+<blockquote>
+<p>不带 Async 的回调在上一个任务完成的线程（或调用线程）执行；带 Async 的提交到线程池执行。CPU 密集的后续计算用 Async + 自定义池隔离，避免占用公共池。</p>
+</blockquote>
+<hr />
+<h2 id="10">10. 本章小结<a class="headerlink" href="#10" title="Permanent link">&para;</a></h2>
 <h3 id="_3">核心知识点<a class="headerlink" href="#_3" title="Permanent link">&para;</a></h3>
 <p>✅ <strong>创建任务</strong>：supplyAsync、runAsync<br />
 ✅ <strong>回调方法</strong>：thenApply、thenAccept、thenCompose<br />
