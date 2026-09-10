@@ -681,6 +681,50 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#vs" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        两个独立的位点：日志位点 vs 消费位点
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        为什么有些分区没有消费位点
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#_5" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        消费者遇到"无消费位点"分区时的行为
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#_6" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        "没消费就提交位点"是不是好实践？
+      
+    </span>
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -776,7 +820,7 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#_4" class="md-nav__link">
+  <a href="#_7" class="md-nav__link">
     <span class="md-ellipsis">
       
         分配策略
@@ -831,7 +875,7 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#_5" class="md-nav__link">
+  <a href="#_8" class="md-nav__link">
     <span class="md-ellipsis">
       
         消息处理超时
@@ -842,7 +886,7 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#_6" class="md-nav__link">
+  <a href="#_9" class="md-nav__link">
     <span class="md-ellipsis">
       
         代码示例
@@ -864,7 +908,7 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#_7" class="md-nav__link">
+  <a href="#_10" class="md-nav__link">
     <span class="md-ellipsis">
       
         常见配置速查
@@ -948,6 +992,104 @@
 <li>Kafka 0.9 之前：存在 ZooKeeper</li>
 <li>Kafka 0.9+：存在 <code>__consumer_offsets</code> Topic（内部 Topic）</li>
 </ul>
+<h3 id="vs">两个独立的位点：日志位点 vs 消费位点<a class="headerlink" href="#vs" title="Permanent link">&para;</a></h3>
+<p>很多"位点疑难杂症"的根源是混淆了两类完全独立的 offset：</p>
+<table>
+<thead>
+<tr>
+<th>概念</th>
+<th>英文</th>
+<th>存储位置</th>
+<th>由谁维护</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>日志位点</td>
+<td>Log End Offset (LEO)</td>
+<td>分区日志元数据</td>
+<td>Broker（随生产者写入推进）</td>
+<td>分区中下一条消息的写入位置</td>
+</tr>
+<tr>
+<td>消费位点</td>
+<td>Committed Offset</td>
+<td>内部 Topic <code>__consumer_offsets</code></td>
+<td>消费者主动提交</td>
+<td>消费组"已消费到哪里"的声明</td>
+</tr>
+</tbody>
+</table>
+<p>两者互不影响：生产者写消息<strong>完全不关心</strong>消费位点；消费者提交位点也<strong>不改变</strong>日志内容。唯一的交汇点是堆积量计算：</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>lag = log end offset − committed offset
+</code></pre></div>
+<p><strong>推论</strong>：lag 依赖 committed offset。某分区没有消费位点，lag 就无从计算——<code>kafka-consumer-groups.sh --describe</code> 中 CURRENT-OFFSET 和 LAG 列显示 <code>-</code>（云厂商控制台一般显示 <code>--</code>，并提示"位点未提交或过期时不统计堆积量"）。这是<strong>信息缺失</strong>，不是数据异常。</p>
+<h3 id="_4">为什么有些分区没有消费位点<a class="headerlink" href="#_4" title="Permanent link">&para;</a></h3>
+<p>committed offset 只在消费者<strong>主动提交</strong>时产生。以下情况都不会有提交记录：</p>
+<ol>
+<li><strong>分区是空的</strong>：没有消息可拉取、没有处理动作，手动提交模式自然不会触发提交；</li>
+<li><strong>消费组刚创建</strong>：还没运行到提交逻辑；</li>
+<li><strong>位点过期</strong>：满足过期条件后被 Broker 清理（见下文）。</li>
+</ol>
+<p>⚠️ <strong>分区分配 ≠ 位点提交</strong>。Rebalance 后消费者会被分配到全部分区（<code>--describe --members --verbose</code> 能看到每个分区都有 memberId），但"被分配"只是获得消费资格，不会自动产生 committed offset。</p>
+<p><strong>提交模式决定空分区是否会有位点：</strong></p>
+<table>
+<thead>
+<tr>
+<th>提交模式</th>
+<th>空分区是否有消费位点</th>
+<th>原因</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>自动提交（<code>enable.auto.commit=true</code>）</td>
+<td>通常<strong>会有</strong></td>
+<td>已分配分区的 position 按 <code>auto.offset.reset</code> 初始化后，下个自动提交周期会把<strong>所有</strong>有效 position 提交出去——包括一条消息都没消费的空分区</td>
+</tr>
+<tr>
+<td>手动提交（处理成功后才提交）</td>
+<td><strong>不会有</strong></td>
+<td>没消息 → 没处理 → 没提交，空分区永远显示 <code>-</code></td>
+</tr>
+</tbody>
+</table>
+<p><strong>位点过期的精确语义</strong>（broker 端 <code>offsets.retention.minutes</code>，默认 10080 分钟即 7 天；KIP-211 之后）：</p>
+<ul>
+<li><strong>订阅模式</strong>（subscribe）的消费者：位点过期需满足其一——① 消费组失去全部成员（组变空）后超过保留期；② 组不再订阅该 Topic，且该分区自最后一次提交起超过保留期。<strong>只要组非空且仍订阅该 Topic，位点就不会过期</strong>，哪怕某分区长期没有新提交；</li>
+<li><strong>手动 assign</strong>（standalone）的消费者：从最后一次提交时间起算保留期；</li>
+<li>删除消费组（delete-group）或删除 Topic：对应 committed offset <strong>立即删除</strong>，不等保留期。</li>
+</ul>
+<h3 id="_5">消费者遇到"无消费位点"分区时的行为<a class="headerlink" href="#_5" title="Permanent link">&para;</a></h3>
+<p>由 <code>auto.offset.reset</code> 决定起点（详见下文专门章节）：<code>earliest</code> 从最早消息开始；<code>latest</code> 从 log end 开始（<strong>存量消息被静默跳过</strong>）；<code>none</code> 直接抛异常。</p>
+<h3 id="_6">"没消费就提交位点"是不是好实践？<a class="headerlink" href="#_6" title="Permanent link">&para;</a></h3>
+<p><strong>结论：不应把提交位点当作消费端义务，两种提交模式都是合法的。</strong></p>
+<ul>
+<li>手动提交模式下空分区没有位点，是 at-least-once 语义的自然结果，属于正常设计；</li>
+<li>强行"一接入就提交"有真实风险：若分区有存量消息且 <code>auto.offset.reset=latest</code>，接入即提交 position = log end，<strong>存量消息被永久跳过</strong>；</li>
+<li>committed offset 的语义是"我已消费到这里"，没消费就提交属于语义造假，会干扰后续基于位点的故障排查。</li>
+</ul>
+<p>如果确实需要全分区 lag 可观测，可以在 <code>ConsumerRebalanceListener.onPartitionsAssigned</code> 中对分配到的分区提交当前 position——<strong>前提是确认 <code>auto.offset.reset=earliest</code></strong>：</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="n">consumer</span><span class="p">.</span><span class="na">subscribe</span><span class="p">(</span><span class="n">topics</span><span class="p">,</span><span class="w"> </span><span class="k">new</span><span class="w"> </span><span class="n">ConsumerRebalanceListener</span><span class="p">()</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="w">    </span><span class="nd">@Override</span>
+<a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a><span class="w">    </span><span class="kd">public</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="nf">onPartitionsRevoked</span><span class="p">(</span><span class="n">Collection</span><span class="o">&lt;</span><span class="n">TopicPartition</span><span class="o">&gt;</span><span class="w"> </span><span class="n">partitions</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="p">}</span>
+<a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a>
+<a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a><span class="w">    </span><span class="nd">@Override</span>
+<a id="__codelineno-5-6" name="__codelineno-5-6" href="#__codelineno-5-6"></a><span class="w">    </span><span class="kd">public</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="nf">onPartitionsAssigned</span><span class="p">(</span><span class="n">Collection</span><span class="o">&lt;</span><span class="n">TopicPartition</span><span class="o">&gt;</span><span class="w"> </span><span class="n">partitions</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-5-7" name="__codelineno-5-7" href="#__codelineno-5-7"></a><span class="w">        </span><span class="c1">// Only safe when auto.offset.reset=earliest.</span>
+<a id="__codelineno-5-8" name="__codelineno-5-8" href="#__codelineno-5-8"></a><span class="w">        </span><span class="c1">// Committing position for empty partitions makes lag observable</span>
+<a id="__codelineno-5-9" name="__codelineno-5-9" href="#__codelineno-5-9"></a><span class="w">        </span><span class="c1">// for all partitions; for partitions with backlog the position is</span>
+<a id="__codelineno-5-10" name="__codelineno-5-10" href="#__codelineno-5-10"></a><span class="w">        </span><span class="c1">// decided by the reset strategy, so verify semantics first.</span>
+<a id="__codelineno-5-11" name="__codelineno-5-11" href="#__codelineno-5-11"></a><span class="w">        </span><span class="n">Map</span><span class="o">&lt;</span><span class="n">TopicPartition</span><span class="p">,</span><span class="w"> </span><span class="n">OffsetAndMetadata</span><span class="o">&gt;</span><span class="w"> </span><span class="n">offsets</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">new</span><span class="w"> </span><span class="n">HashMap</span><span class="o">&lt;&gt;</span><span class="p">();</span>
+<a id="__codelineno-5-12" name="__codelineno-5-12" href="#__codelineno-5-12"></a><span class="w">        </span><span class="k">for</span><span class="w"> </span><span class="p">(</span><span class="n">TopicPartition</span><span class="w"> </span><span class="n">tp</span><span class="w"> </span><span class="p">:</span><span class="w"> </span><span class="n">partitions</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-5-13" name="__codelineno-5-13" href="#__codelineno-5-13"></a><span class="w">            </span><span class="n">offsets</span><span class="p">.</span><span class="na">put</span><span class="p">(</span><span class="n">tp</span><span class="p">,</span><span class="w"> </span><span class="k">new</span><span class="w"> </span><span class="n">OffsetAndMetadata</span><span class="p">(</span><span class="n">consumer</span><span class="p">.</span><span class="na">position</span><span class="p">(</span><span class="n">tp</span><span class="p">)));</span>
+<a id="__codelineno-5-14" name="__codelineno-5-14" href="#__codelineno-5-14"></a><span class="w">        </span><span class="p">}</span>
+<a id="__codelineno-5-15" name="__codelineno-5-15" href="#__codelineno-5-15"></a><span class="w">        </span><span class="n">consumer</span><span class="p">.</span><span class="na">commitSync</span><span class="p">(</span><span class="n">offsets</span><span class="p">);</span>
+<a id="__codelineno-5-16" name="__codelineno-5-16" href="#__codelineno-5-16"></a><span class="w">    </span><span class="p">}</span>
+<a id="__codelineno-5-17" name="__codelineno-5-17" href="#__codelineno-5-17"></a><span class="p">});</span>
+</code></pre></div>
+<p>监控/调度系统侧的兜底设计（分区数取元数据、三态判定）见 <a href="../06-operations/">06-operations.md</a> 的「Lag 监控设计」一节。</p>
 <h2 id="consumer-group-rebalance">Consumer Group &amp; Rebalance<a class="headerlink" href="#consumer-group-rebalance" title="Permanent link">&para;</a></h2>
 <h3 id="rebalance">Rebalance 触发条件<a class="headerlink" href="#rebalance" title="Permanent link">&para;</a></h3>
 <ol>
@@ -958,14 +1100,14 @@
 <li>Consumer 处理超时（<code>max.poll.interval.ms</code>）</li>
 </ol>
 <h3 id="rebalance_1">Rebalance 过程（经典协议）<a class="headerlink" href="#rebalance_1" title="Permanent link">&para;</a></h3>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>1. Coordinator（Group Coordinator，某个 Broker）发起 Rebalance，
-<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>   向所有 Consumer 返回 REBALANCE_IN_PROGRESS
-<a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a>2. 所有 Consumer 撤销全部分区（onPartitionsRevoked），发送 JoinGroup 请求
-<a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a>3. Coordinator 选择一个 Consumer 作为 Leader
-<a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a>4. Leader 制定分配方案（Range/RoundRobin/Sticky）
-<a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a>5. Leader 将方案发给 Coordinator（SyncGroup）
-<a id="__codelineno-4-7" name="__codelineno-4-7" href="#__codelineno-4-7"></a>6. Coordinator 广播给所有 Consumer
-<a id="__codelineno-4-8" name="__codelineno-4-8" href="#__codelineno-4-8"></a>7. 所有 Consumer 按新方案消费（onPartitionsAssigned）
+<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>1. Coordinator（Group Coordinator，某个 Broker）发起 Rebalance，
+<a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a>   向所有 Consumer 返回 REBALANCE_IN_PROGRESS
+<a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a>2. 所有 Consumer 撤销全部分区（onPartitionsRevoked），发送 JoinGroup 请求
+<a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a>3. Coordinator 选择一个 Consumer 作为 Leader
+<a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a>4. Leader 制定分配方案（Range/RoundRobin/Sticky）
+<a id="__codelineno-6-6" name="__codelineno-6-6" href="#__codelineno-6-6"></a>5. Leader 将方案发给 Coordinator（SyncGroup）
+<a id="__codelineno-6-7" name="__codelineno-6-7" href="#__codelineno-6-7"></a>6. Coordinator 广播给所有 Consumer
+<a id="__codelineno-6-8" name="__codelineno-6-8" href="#__codelineno-6-8"></a>7. 所有 Consumer 按新方案消费（onPartitionsAssigned）
 </code></pre></div>
 <p>整个过程中 <code>poll()</code> 被阻塞，<strong>Group 内所有 Consumer 停止消费</strong>（Stop-The-World）。
 超时由 <code>rebalance.timeout.ms</code>（默认 5 分钟）控制：某个 Consumer 在此时间内
@@ -994,18 +1136,18 @@
 <li>推荐实现：在 <code>ConsumerRebalanceListener.onPartitionsRevoked()</code> 中提交 offset，
   保证分区交出去之前进度已持久化：</li>
 </ul>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="n">consumer</span><span class="p">.</span><span class="na">subscribe</span><span class="p">(</span><span class="n">topics</span><span class="p">,</span><span class="w"> </span><span class="k">new</span><span class="w"> </span><span class="n">ConsumerRebalanceListener</span><span class="p">()</span><span class="w"> </span><span class="p">{</span>
-<a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="w">    </span><span class="nd">@Override</span>
-<a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a><span class="w">    </span><span class="kd">public</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="nf">onPartitionsRevoked</span><span class="p">(</span><span class="n">Collection</span><span class="o">&lt;</span><span class="n">TopicPartition</span><span class="o">&gt;</span><span class="w"> </span><span class="n">partitions</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
-<a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a><span class="w">        </span><span class="c1">// Rebalance 前最后的机会：处理完 + 提交，避免重复消费</span>
-<a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a><span class="w">        </span><span class="n">consumer</span><span class="p">.</span><span class="na">commitSync</span><span class="p">();</span>
-<a id="__codelineno-5-6" name="__codelineno-5-6" href="#__codelineno-5-6"></a><span class="w">    </span><span class="p">}</span>
-<a id="__codelineno-5-7" name="__codelineno-5-7" href="#__codelineno-5-7"></a>
-<a id="__codelineno-5-8" name="__codelineno-5-8" href="#__codelineno-5-8"></a><span class="w">    </span><span class="nd">@Override</span>
-<a id="__codelineno-5-9" name="__codelineno-5-9" href="#__codelineno-5-9"></a><span class="w">    </span><span class="kd">public</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="nf">onPartitionsAssigned</span><span class="p">(</span><span class="n">Collection</span><span class="o">&lt;</span><span class="n">TopicPartition</span><span class="o">&gt;</span><span class="w"> </span><span class="n">partitions</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
-<a id="__codelineno-5-10" name="__codelineno-5-10" href="#__codelineno-5-10"></a><span class="w">        </span><span class="c1">// 可在此初始化新分区的本地状态</span>
-<a id="__codelineno-5-11" name="__codelineno-5-11" href="#__codelineno-5-11"></a><span class="w">    </span><span class="p">}</span>
-<a id="__codelineno-5-12" name="__codelineno-5-12" href="#__codelineno-5-12"></a><span class="p">});</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="n">consumer</span><span class="p">.</span><span class="na">subscribe</span><span class="p">(</span><span class="n">topics</span><span class="p">,</span><span class="w"> </span><span class="k">new</span><span class="w"> </span><span class="n">ConsumerRebalanceListener</span><span class="p">()</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a><span class="w">    </span><span class="nd">@Override</span>
+<a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a><span class="w">    </span><span class="kd">public</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="nf">onPartitionsRevoked</span><span class="p">(</span><span class="n">Collection</span><span class="o">&lt;</span><span class="n">TopicPartition</span><span class="o">&gt;</span><span class="w"> </span><span class="n">partitions</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a><span class="w">        </span><span class="c1">// Rebalance 前最后的机会：处理完 + 提交，避免重复消费</span>
+<a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a><span class="w">        </span><span class="n">consumer</span><span class="p">.</span><span class="na">commitSync</span><span class="p">();</span>
+<a id="__codelineno-7-6" name="__codelineno-7-6" href="#__codelineno-7-6"></a><span class="w">    </span><span class="p">}</span>
+<a id="__codelineno-7-7" name="__codelineno-7-7" href="#__codelineno-7-7"></a>
+<a id="__codelineno-7-8" name="__codelineno-7-8" href="#__codelineno-7-8"></a><span class="w">    </span><span class="nd">@Override</span>
+<a id="__codelineno-7-9" name="__codelineno-7-9" href="#__codelineno-7-9"></a><span class="w">    </span><span class="kd">public</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="nf">onPartitionsAssigned</span><span class="p">(</span><span class="n">Collection</span><span class="o">&lt;</span><span class="n">TopicPartition</span><span class="o">&gt;</span><span class="w"> </span><span class="n">partitions</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-7-10" name="__codelineno-7-10" href="#__codelineno-7-10"></a><span class="w">        </span><span class="c1">// 可在此初始化新分区的本地状态</span>
+<a id="__codelineno-7-11" name="__codelineno-7-11" href="#__codelineno-7-11"></a><span class="w">    </span><span class="p">}</span>
+<a id="__codelineno-7-12" name="__codelineno-7-12" href="#__codelineno-7-12"></a><span class="p">});</span>
 </code></pre></div>
 <blockquote>
 <p>注意：<code>onPartitionsRevoked</code> 是在 <code>poll()</code> 内部被调用的。如果你的业务处理
@@ -1050,13 +1192,13 @@ rebalance，持有它们的 Consumer 完全不受影响</strong>，只有被迁�
 一次到位——任何成员变化都要所有人停下重新集合（Stop-The-World）。</p>
 <p><strong>KIP-848</strong>：没有 leader。Coordinator 就是专职"项目经理"，持有全局视图，
 持续增量地把成员往"目标分配"上调谐（reconcile）：</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>每个 Consumer 定期发 ConsumerGroupHeartbeat：
-<a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a>  &quot;我当前持有分区 [P0, P1, P2]&quot;
-<a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a>Coordinator：
-<a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a>  1. 更新成员视图
-<a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a>  2. 用服务端 assignor 重新计算目标分配（如 [P0, P3]）
-<a id="__codelineno-6-6" name="__codelineno-6-6" href="#__codelineno-6-6"></a>  3. 通过心跳响应通知：&quot;请交出 P1/P2，接管 P3&quot;
-<a id="__codelineno-6-7" name="__codelineno-6-7" href="#__codelineno-6-7"></a>成员收到后异步执行，其他成员全程无感、继续消费
+<div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a>每个 Consumer 定期发 ConsumerGroupHeartbeat：
+<a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a>  &quot;我当前持有分区 [P0, P1, P2]&quot;
+<a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a>Coordinator：
+<a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a>  1. 更新成员视图
+<a id="__codelineno-8-5" name="__codelineno-8-5" href="#__codelineno-8-5"></a>  2. 用服务端 assignor 重新计算目标分配（如 [P0, P3]）
+<a id="__codelineno-8-6" name="__codelineno-8-6" href="#__codelineno-8-6"></a>  3. 通过心跳响应通知：&quot;请交出 P1/P2，接管 P3&quot;
+<a id="__codelineno-8-7" name="__codelineno-8-7" href="#__codelineno-8-7"></a>成员收到后异步执行，其他成员全程无感、继续消费
 </code></pre></div>
 <p>关键变化：<strong>没有"等所有成员到齐"的环节</strong>。新成员加入 → Coordinator 后台
 算好新分配，从现有成员手里匀分区给它；成员离开 → 分区回收再分配。
@@ -1093,19 +1235,19 @@ rebalance，持有它们的 Consumer 完全不受影响</strong>，只有被迁�
 </tbody>
 </table>
 <p><strong>配置方式：</strong></p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="c1"># Consumer 端：开启新协议</span>
-<a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a><span class="na">group.protocol</span><span class="o">=</span><span class="s">consumer</span>
-<a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a><span class="c1"># 可选：选择服务端 assignor（uniform 或 range）</span>
-<a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a><span class="na">group.remote.assignor</span><span class="o">=</span><span class="s">uniform</span>
-<a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a>
-<a id="__codelineno-7-6" name="__codelineno-7-6" href="#__codelineno-7-6"></a><span class="c1"># ⚠️ 以下配置已改为 broker 端控制，客户端再配会被拒绝：</span>
-<a id="__codelineno-7-7" name="__codelineno-7-7" href="#__codelineno-7-7"></a><span class="c1"># session.timeout.ms / heartbeat.interval.ms</span>
-<a id="__codelineno-7-8" name="__codelineno-7-8" href="#__codelineno-7-8"></a><span class="c1"># partition.assignment.strategy / rebalance.timeout.ms</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a><span class="c1"># Consumer 端：开启新协议</span>
+<a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a><span class="na">group.protocol</span><span class="o">=</span><span class="s">consumer</span>
+<a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a><span class="c1"># 可选：选择服务端 assignor（uniform 或 range）</span>
+<a id="__codelineno-9-4" name="__codelineno-9-4" href="#__codelineno-9-4"></a><span class="na">group.remote.assignor</span><span class="o">=</span><span class="s">uniform</span>
+<a id="__codelineno-9-5" name="__codelineno-9-5" href="#__codelineno-9-5"></a>
+<a id="__codelineno-9-6" name="__codelineno-9-6" href="#__codelineno-9-6"></a><span class="c1"># ⚠️ 以下配置已改为 broker 端控制，客户端再配会被拒绝：</span>
+<a id="__codelineno-9-7" name="__codelineno-9-7" href="#__codelineno-9-7"></a><span class="c1"># session.timeout.ms / heartbeat.interval.ms</span>
+<a id="__codelineno-9-8" name="__codelineno-9-8" href="#__codelineno-9-8"></a><span class="c1"># partition.assignment.strategy / rebalance.timeout.ms</span>
 </code></pre></div>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="c1"># Broker 端（组级配置，可按组调）</span>
-<a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a><span class="na">group.consumer.session.timeout.ms</span><span class="o">=</span><span class="s">45000        # 默认 45s</span>
-<a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a><span class="na">group.consumer.heartbeat.interval.ms</span><span class="o">=</span><span class="s">5000      # 默认 5s</span>
-<a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a><span class="na">group.consumer.assignors</span><span class="o">=</span><span class="s">uniform,range         # 服务端 assignor，默认 uniform 优先</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a><span class="c1"># Broker 端（组级配置，可按组调）</span>
+<a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a><span class="na">group.consumer.session.timeout.ms</span><span class="o">=</span><span class="s">45000        # 默认 45s</span>
+<a id="__codelineno-10-3" name="__codelineno-10-3" href="#__codelineno-10-3"></a><span class="na">group.consumer.heartbeat.interval.ms</span><span class="o">=</span><span class="s">5000      # 默认 5s</span>
+<a id="__codelineno-10-4" name="__codelineno-10-4" href="#__codelineno-10-4"></a><span class="na">group.consumer.assignors</span><span class="o">=</span><span class="s">uniform,range         # 服务端 assignor，默认 uniform 优先</span>
 </code></pre></div>
 <p>客户端侧 assignor 到新协议的映射：<code>RangeAssignor→range</code>，
 <code>CooperativeStickyAssignor / StickyAssignor / RoundRobinAssignor → uniform</code>。</p>
@@ -1132,9 +1274,9 @@ rebalance，持有它们的 Consumer 完全不受影响</strong>，只有被迁�
 <h3 id="static-membershipkip-345">静态成员（Static Membership，KIP-345）<a class="headerlink" href="#static-membershipkip-345" title="Permanent link">&para;</a></h3>
 <p>减少 rebalance 的另一个重要手段。默认情况下 Consumer 重启 = 新成员加入，
 必然触发一次 rebalance；给 Consumer 配置一个<strong>稳定身份</strong>后就不是了：</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a><span class="c1">// 每个实例一个固定、组内唯一的 ID</span>
-<a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a><span class="n">props</span><span class="p">.</span><span class="na">put</span><span class="p">(</span><span class="s">&quot;group.instance.id&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;order-service-&quot;</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">System</span><span class="p">.</span><span class="na">getenv</span><span class="p">(</span><span class="s">&quot;HOSTNAME&quot;</span><span class="p">));</span>
-<a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a><span class="n">props</span><span class="p">.</span><span class="na">put</span><span class="p">(</span><span class="s">&quot;session.timeout.ms&quot;</span><span class="p">,</span><span class="w"> </span><span class="mi">300000</span><span class="p">);</span><span class="w">  </span><span class="c1">// 5 分钟，覆盖重启耗时</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a><span class="c1">// 每个实例一个固定、组内唯一的 ID</span>
+<a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a><span class="n">props</span><span class="p">.</span><span class="na">put</span><span class="p">(</span><span class="s">&quot;group.instance.id&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;order-service-&quot;</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">System</span><span class="p">.</span><span class="na">getenv</span><span class="p">(</span><span class="s">&quot;HOSTNAME&quot;</span><span class="p">));</span>
+<a id="__codelineno-11-3" name="__codelineno-11-3" href="#__codelineno-11-3"></a><span class="n">props</span><span class="p">.</span><span class="na">put</span><span class="p">(</span><span class="s">&quot;session.timeout.ms&quot;</span><span class="p">,</span><span class="w"> </span><span class="mi">300000</span><span class="p">);</span><span class="w">  </span><span class="c1">// 5 分钟，覆盖重启耗时</span>
 </code></pre></div>
 <p><strong>工作原理：</strong></p>
 <ol>
@@ -1239,7 +1381,7 @@ Streams / Connect 中静态成员的用法见 05 章对应小节。</p>
 rebalance——先加分区再加机器。</p>
 <p>缩容同理：优雅关闭的 Consumer 触发一轮 rebalance；"下线后分区先不动、等原实例
 回来"靠的是静态成员 + 足够长的 <code>session.timeout.ms</code>，属于重启场景，不是永久下线。</p>
-<h3 id="_4">分配策略<a class="headerlink" href="#_4" title="Permanent link">&para;</a></h3>
+<h3 id="_7">分配策略<a class="headerlink" href="#_7" title="Permanent link">&para;</a></h3>
 <blockquote>
 <p>客户端默认配置是 <code>[RangeAssignor, CooperativeStickyAssignor]</code> 列表：
 组内所有 Consumer 都 ≥ 2.4 时自动使用 CooperativeStickyAssignor（增量 rebalance），
@@ -1247,43 +1389,43 @@ rebalance——先加分区再加机器。</p>
 </blockquote>
 <h4 id="range-topic">Range（最经典，多 Topic 时可能不均）<a class="headerlink" href="#range-topic" title="Permanent link">&para;</a></h4>
 <p>按 Partition 范围分配：</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a>Topic: t0 (P0, P1, P2, P3)
-<a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a>Consumer: C0, C1
-<a id="__codelineno-10-3" name="__codelineno-10-3" href="#__codelineno-10-3"></a>
-<a id="__codelineno-10-4" name="__codelineno-10-4" href="#__codelineno-10-4"></a>C0: P0, P1
-<a id="__codelineno-10-5" name="__codelineno-10-5" href="#__codelineno-10-5"></a>C1: P2, P3
+<div class="highlight"><pre><span></span><code><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a>Topic: t0 (P0, P1, P2, P3)
+<a id="__codelineno-12-2" name="__codelineno-12-2" href="#__codelineno-12-2"></a>Consumer: C0, C1
+<a id="__codelineno-12-3" name="__codelineno-12-3" href="#__codelineno-12-3"></a>
+<a id="__codelineno-12-4" name="__codelineno-12-4" href="#__codelineno-12-4"></a>C0: P0, P1
+<a id="__codelineno-12-5" name="__codelineno-12-5" href="#__codelineno-12-5"></a>C1: P2, P3
 </code></pre></div>
 <p>问题：多个 Topic 时可能导致某个 Consumer 负载不均。</p>
 <h4 id="roundrobin">RoundRobin<a class="headerlink" href="#roundrobin" title="Permanent link">&para;</a></h4>
 <p>轮询分配：</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a>Topic: t0 (P0, P1, P2, P3)
-<a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a>Consumer: C0, C1
-<a id="__codelineno-11-3" name="__codelineno-11-3" href="#__codelineno-11-3"></a>
-<a id="__codelineno-11-4" name="__codelineno-11-4" href="#__codelineno-11-4"></a>C0: P0, P2
-<a id="__codelineno-11-5" name="__codelineno-11-5" href="#__codelineno-11-5"></a>C1: P1, P3
+<div class="highlight"><pre><span></span><code><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a>Topic: t0 (P0, P1, P2, P3)
+<a id="__codelineno-13-2" name="__codelineno-13-2" href="#__codelineno-13-2"></a>Consumer: C0, C1
+<a id="__codelineno-13-3" name="__codelineno-13-3" href="#__codelineno-13-3"></a>
+<a id="__codelineno-13-4" name="__codelineno-13-4" href="#__codelineno-13-4"></a>C0: P0, P2
+<a id="__codelineno-13-5" name="__codelineno-13-5" href="#__codelineno-13-5"></a>C1: P1, P3
 </code></pre></div>
 <h4 id="sticky011kip-54">Sticky（0.11+，KIP-54）<a class="headerlink" href="#sticky011kip-54" title="Permanent link">&para;</a></h4>
 <p>尽量保持原有分配，减少 Rebalance 时的变动：</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a>Rebalance 前:
-<a id="__codelineno-12-2" name="__codelineno-12-2" href="#__codelineno-12-2"></a>C0: P0, P1
-<a id="__codelineno-12-3" name="__codelineno-12-3" href="#__codelineno-12-3"></a>C1: P2, P3
-<a id="__codelineno-12-4" name="__codelineno-12-4" href="#__codelineno-12-4"></a>
-<a id="__codelineno-12-5" name="__codelineno-12-5" href="#__codelineno-12-5"></a>C0 挂了，Rebalance 后:
-<a id="__codelineno-12-6" name="__codelineno-12-6" href="#__codelineno-12-6"></a>C1: P0, P1, P2, P3  (尽量保持 C1 原有的 P2, P3)
+<div class="highlight"><pre><span></span><code><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a>Rebalance 前:
+<a id="__codelineno-14-2" name="__codelineno-14-2" href="#__codelineno-14-2"></a>C0: P0, P1
+<a id="__codelineno-14-3" name="__codelineno-14-3" href="#__codelineno-14-3"></a>C1: P2, P3
+<a id="__codelineno-14-4" name="__codelineno-14-4" href="#__codelineno-14-4"></a>
+<a id="__codelineno-14-5" name="__codelineno-14-5" href="#__codelineno-14-5"></a>C0 挂了，Rebalance 后:
+<a id="__codelineno-14-6" name="__codelineno-14-6" href="#__codelineno-14-6"></a>C1: P0, P1, P2, P3  (尽量保持 C1 原有的 P2, P3)
 </code></pre></div>
 <blockquote>
 <p>注意区分两个容易混的概念：
 - <code>StickyAssignor</code>（0.11+）：分配结果 sticky，但 rebalance 仍是 <strong>Eager</strong>（Stop-The-World）
 - <code>CooperativeStickyAssignor</code>（2.4+，KIP-429）：sticky + <strong>增量 rebalance</strong>，生产环境推荐</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a><span class="n">props</span><span class="p">.</span><span class="na">put</span><span class="p">(</span><span class="s">&quot;partition.assignment.strategy&quot;</span><span class="p">,</span>
-<a id="__codelineno-13-2" name="__codelineno-13-2" href="#__codelineno-13-2"></a><span class="w">    </span><span class="s">&quot;org.apache.kafka.clients.consumer.CooperativeStickyAssignor&quot;</span><span class="p">);</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-15-1" name="__codelineno-15-1" href="#__codelineno-15-1"></a><span class="n">props</span><span class="p">.</span><span class="na">put</span><span class="p">(</span><span class="s">&quot;partition.assignment.strategy&quot;</span><span class="p">,</span>
+<a id="__codelineno-15-2" name="__codelineno-15-2" href="#__codelineno-15-2"></a><span class="w">    </span><span class="s">&quot;org.apache.kafka.clients.consumer.CooperativeStickyAssignor&quot;</span><span class="p">);</span>
 </code></pre></div>
 <p>从 Eager 迁到 Cooperative 需要滚动升级（新旧客户端混跑时先同时配置两种策略），
 不能一把全切，否则会触发异常。</p>
 </blockquote>
-<h2 id="_5">消息处理超时<a class="headerlink" href="#_5" title="Permanent link">&para;</a></h2>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a><span class="n">props</span><span class="p">.</span><span class="na">put</span><span class="p">(</span><span class="s">&quot;max.poll.records&quot;</span><span class="p">,</span><span class="w"> </span><span class="mi">500</span><span class="p">);</span><span class="w">         </span><span class="c1">// 一次 poll 最大记录数</span>
-<a id="__codelineno-14-2" name="__codelineno-14-2" href="#__codelineno-14-2"></a><span class="n">props</span><span class="p">.</span><span class="na">put</span><span class="p">(</span><span class="s">&quot;max.poll.interval.ms&quot;</span><span class="p">,</span><span class="w"> </span><span class="mi">300000</span><span class="p">);</span><span class="w">  </span><span class="c1">// 两次 poll 最大间隔</span>
+<h2 id="_8">消息处理超时<a class="headerlink" href="#_8" title="Permanent link">&para;</a></h2>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-16-1" name="__codelineno-16-1" href="#__codelineno-16-1"></a><span class="n">props</span><span class="p">.</span><span class="na">put</span><span class="p">(</span><span class="s">&quot;max.poll.records&quot;</span><span class="p">,</span><span class="w"> </span><span class="mi">500</span><span class="p">);</span><span class="w">         </span><span class="c1">// 一次 poll 最大记录数</span>
+<a id="__codelineno-16-2" name="__codelineno-16-2" href="#__codelineno-16-2"></a><span class="n">props</span><span class="p">.</span><span class="na">put</span><span class="p">(</span><span class="s">&quot;max.poll.interval.ms&quot;</span><span class="p">,</span><span class="w"> </span><span class="mi">300000</span><span class="p">);</span><span class="w">  </span><span class="c1">// 两次 poll 最大间隔</span>
 </code></pre></div>
 <p>如果处理时间超过 <code>max.poll.interval.ms</code>：</p>
 <ul>
@@ -1297,26 +1439,26 @@ rebalance——先加分区再加机器。</p>
 <li>增大 <code>max.poll.interval.ms</code></li>
 <li>异步处理（但要小心 offset 提交顺序）</li>
 </ul>
-<h2 id="_6">代码示例<a class="headerlink" href="#_6" title="Permanent link">&para;</a></h2>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-15-1" name="__codelineno-15-1" href="#__codelineno-15-1"></a><span class="n">Properties</span><span class="w"> </span><span class="n">props</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">new</span><span class="w"> </span><span class="n">Properties</span><span class="p">();</span>
-<a id="__codelineno-15-2" name="__codelineno-15-2" href="#__codelineno-15-2"></a><span class="n">props</span><span class="p">.</span><span class="na">put</span><span class="p">(</span><span class="s">&quot;bootstrap.servers&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;broker1:9092,broker2:9092&quot;</span><span class="p">);</span>
-<a id="__codelineno-15-3" name="__codelineno-15-3" href="#__codelineno-15-3"></a><span class="n">props</span><span class="p">.</span><span class="na">put</span><span class="p">(</span><span class="s">&quot;group.id&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;order-service&quot;</span><span class="p">);</span>
-<a id="__codelineno-15-4" name="__codelineno-15-4" href="#__codelineno-15-4"></a><span class="n">props</span><span class="p">.</span><span class="na">put</span><span class="p">(</span><span class="s">&quot;key.deserializer&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;org.apache.kafka.common.serialization.StringDeserializer&quot;</span><span class="p">);</span>
-<a id="__codelineno-15-5" name="__codelineno-15-5" href="#__codelineno-15-5"></a><span class="n">props</span><span class="p">.</span><span class="na">put</span><span class="p">(</span><span class="s">&quot;value.deserializer&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;org.apache.kafka.common.serialization.StringDeserializer&quot;</span><span class="p">);</span>
-<a id="__codelineno-15-6" name="__codelineno-15-6" href="#__codelineno-15-6"></a><span class="n">props</span><span class="p">.</span><span class="na">put</span><span class="p">(</span><span class="s">&quot;enable.auto.commit&quot;</span><span class="p">,</span><span class="w"> </span><span class="kc">false</span><span class="p">);</span>
-<a id="__codelineno-15-7" name="__codelineno-15-7" href="#__codelineno-15-7"></a><span class="n">props</span><span class="p">.</span><span class="na">put</span><span class="p">(</span><span class="s">&quot;auto.offset.reset&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;earliest&quot;</span><span class="p">);</span><span class="w">  </span><span class="c1">// 新 Group 从哪开始</span>
-<a id="__codelineno-15-8" name="__codelineno-15-8" href="#__codelineno-15-8"></a>
-<a id="__codelineno-15-9" name="__codelineno-15-9" href="#__codelineno-15-9"></a><span class="k">try</span><span class="w"> </span><span class="p">(</span><span class="n">KafkaConsumer</span><span class="o">&lt;</span><span class="n">String</span><span class="p">,</span><span class="w"> </span><span class="n">String</span><span class="o">&gt;</span><span class="w"> </span><span class="n">consumer</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">new</span><span class="w"> </span><span class="n">KafkaConsumer</span><span class="o">&lt;&gt;</span><span class="p">(</span><span class="n">props</span><span class="p">))</span><span class="w"> </span><span class="p">{</span>
-<a id="__codelineno-15-10" name="__codelineno-15-10" href="#__codelineno-15-10"></a><span class="w">    </span><span class="n">consumer</span><span class="p">.</span><span class="na">subscribe</span><span class="p">(</span><span class="n">Arrays</span><span class="p">.</span><span class="na">asList</span><span class="p">(</span><span class="s">&quot;orders&quot;</span><span class="p">));</span>
-<a id="__codelineno-15-11" name="__codelineno-15-11" href="#__codelineno-15-11"></a>
-<a id="__codelineno-15-12" name="__codelineno-15-12" href="#__codelineno-15-12"></a><span class="w">    </span><span class="k">while</span><span class="w"> </span><span class="p">(</span><span class="kc">true</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
-<a id="__codelineno-15-13" name="__codelineno-15-13" href="#__codelineno-15-13"></a><span class="w">        </span><span class="n">ConsumerRecords</span><span class="o">&lt;</span><span class="n">String</span><span class="p">,</span><span class="w"> </span><span class="n">String</span><span class="o">&gt;</span><span class="w"> </span><span class="n">records</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">consumer</span><span class="p">.</span><span class="na">poll</span><span class="p">(</span><span class="n">Duration</span><span class="p">.</span><span class="na">ofMillis</span><span class="p">(</span><span class="mi">100</span><span class="p">));</span>
-<a id="__codelineno-15-14" name="__codelineno-15-14" href="#__codelineno-15-14"></a><span class="w">        </span><span class="k">for</span><span class="w"> </span><span class="p">(</span><span class="n">ConsumerRecord</span><span class="o">&lt;</span><span class="n">String</span><span class="p">,</span><span class="w"> </span><span class="n">String</span><span class="o">&gt;</span><span class="w"> </span><span class="n">record</span><span class="w"> </span><span class="p">:</span><span class="w"> </span><span class="n">records</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
-<a id="__codelineno-15-15" name="__codelineno-15-15" href="#__codelineno-15-15"></a><span class="w">            </span><span class="n">processOrder</span><span class="p">(</span><span class="n">record</span><span class="p">);</span>
-<a id="__codelineno-15-16" name="__codelineno-15-16" href="#__codelineno-15-16"></a><span class="w">        </span><span class="p">}</span>
-<a id="__codelineno-15-17" name="__codelineno-15-17" href="#__codelineno-15-17"></a><span class="w">        </span><span class="n">consumer</span><span class="p">.</span><span class="na">commitSync</span><span class="p">();</span>
-<a id="__codelineno-15-18" name="__codelineno-15-18" href="#__codelineno-15-18"></a><span class="w">    </span><span class="p">}</span>
-<a id="__codelineno-15-19" name="__codelineno-15-19" href="#__codelineno-15-19"></a><span class="p">}</span>
+<h2 id="_9">代码示例<a class="headerlink" href="#_9" title="Permanent link">&para;</a></h2>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-17-1" name="__codelineno-17-1" href="#__codelineno-17-1"></a><span class="n">Properties</span><span class="w"> </span><span class="n">props</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">new</span><span class="w"> </span><span class="n">Properties</span><span class="p">();</span>
+<a id="__codelineno-17-2" name="__codelineno-17-2" href="#__codelineno-17-2"></a><span class="n">props</span><span class="p">.</span><span class="na">put</span><span class="p">(</span><span class="s">&quot;bootstrap.servers&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;broker1:9092,broker2:9092&quot;</span><span class="p">);</span>
+<a id="__codelineno-17-3" name="__codelineno-17-3" href="#__codelineno-17-3"></a><span class="n">props</span><span class="p">.</span><span class="na">put</span><span class="p">(</span><span class="s">&quot;group.id&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;order-service&quot;</span><span class="p">);</span>
+<a id="__codelineno-17-4" name="__codelineno-17-4" href="#__codelineno-17-4"></a><span class="n">props</span><span class="p">.</span><span class="na">put</span><span class="p">(</span><span class="s">&quot;key.deserializer&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;org.apache.kafka.common.serialization.StringDeserializer&quot;</span><span class="p">);</span>
+<a id="__codelineno-17-5" name="__codelineno-17-5" href="#__codelineno-17-5"></a><span class="n">props</span><span class="p">.</span><span class="na">put</span><span class="p">(</span><span class="s">&quot;value.deserializer&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;org.apache.kafka.common.serialization.StringDeserializer&quot;</span><span class="p">);</span>
+<a id="__codelineno-17-6" name="__codelineno-17-6" href="#__codelineno-17-6"></a><span class="n">props</span><span class="p">.</span><span class="na">put</span><span class="p">(</span><span class="s">&quot;enable.auto.commit&quot;</span><span class="p">,</span><span class="w"> </span><span class="kc">false</span><span class="p">);</span>
+<a id="__codelineno-17-7" name="__codelineno-17-7" href="#__codelineno-17-7"></a><span class="n">props</span><span class="p">.</span><span class="na">put</span><span class="p">(</span><span class="s">&quot;auto.offset.reset&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;earliest&quot;</span><span class="p">);</span><span class="w">  </span><span class="c1">// 新 Group 从哪开始</span>
+<a id="__codelineno-17-8" name="__codelineno-17-8" href="#__codelineno-17-8"></a>
+<a id="__codelineno-17-9" name="__codelineno-17-9" href="#__codelineno-17-9"></a><span class="k">try</span><span class="w"> </span><span class="p">(</span><span class="n">KafkaConsumer</span><span class="o">&lt;</span><span class="n">String</span><span class="p">,</span><span class="w"> </span><span class="n">String</span><span class="o">&gt;</span><span class="w"> </span><span class="n">consumer</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">new</span><span class="w"> </span><span class="n">KafkaConsumer</span><span class="o">&lt;&gt;</span><span class="p">(</span><span class="n">props</span><span class="p">))</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-17-10" name="__codelineno-17-10" href="#__codelineno-17-10"></a><span class="w">    </span><span class="n">consumer</span><span class="p">.</span><span class="na">subscribe</span><span class="p">(</span><span class="n">Arrays</span><span class="p">.</span><span class="na">asList</span><span class="p">(</span><span class="s">&quot;orders&quot;</span><span class="p">));</span>
+<a id="__codelineno-17-11" name="__codelineno-17-11" href="#__codelineno-17-11"></a>
+<a id="__codelineno-17-12" name="__codelineno-17-12" href="#__codelineno-17-12"></a><span class="w">    </span><span class="k">while</span><span class="w"> </span><span class="p">(</span><span class="kc">true</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-17-13" name="__codelineno-17-13" href="#__codelineno-17-13"></a><span class="w">        </span><span class="n">ConsumerRecords</span><span class="o">&lt;</span><span class="n">String</span><span class="p">,</span><span class="w"> </span><span class="n">String</span><span class="o">&gt;</span><span class="w"> </span><span class="n">records</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">consumer</span><span class="p">.</span><span class="na">poll</span><span class="p">(</span><span class="n">Duration</span><span class="p">.</span><span class="na">ofMillis</span><span class="p">(</span><span class="mi">100</span><span class="p">));</span>
+<a id="__codelineno-17-14" name="__codelineno-17-14" href="#__codelineno-17-14"></a><span class="w">        </span><span class="k">for</span><span class="w"> </span><span class="p">(</span><span class="n">ConsumerRecord</span><span class="o">&lt;</span><span class="n">String</span><span class="p">,</span><span class="w"> </span><span class="n">String</span><span class="o">&gt;</span><span class="w"> </span><span class="n">record</span><span class="w"> </span><span class="p">:</span><span class="w"> </span><span class="n">records</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-17-15" name="__codelineno-17-15" href="#__codelineno-17-15"></a><span class="w">            </span><span class="n">processOrder</span><span class="p">(</span><span class="n">record</span><span class="p">);</span>
+<a id="__codelineno-17-16" name="__codelineno-17-16" href="#__codelineno-17-16"></a><span class="w">        </span><span class="p">}</span>
+<a id="__codelineno-17-17" name="__codelineno-17-17" href="#__codelineno-17-17"></a><span class="w">        </span><span class="n">consumer</span><span class="p">.</span><span class="na">commitSync</span><span class="p">();</span>
+<a id="__codelineno-17-18" name="__codelineno-17-18" href="#__codelineno-17-18"></a><span class="w">    </span><span class="p">}</span>
+<a id="__codelineno-17-19" name="__codelineno-17-19" href="#__codelineno-17-19"></a><span class="p">}</span>
 </code></pre></div>
 <h2 id="autooffsetreset">auto.offset.reset<a class="headerlink" href="#autooffsetreset" title="Permanent link">&para;</a></h2>
 <p>新 Consumer Group 第一次消费时，从哪个位置开始？</p>
@@ -1342,7 +1484,14 @@ rebalance——先加分区再加机器。</p>
 </tr>
 </tbody>
 </table>
-<h2 id="_7">常见配置速查<a class="headerlink" href="#_7" title="Permanent link">&para;</a></h2>
+<p>⚠️ <strong>危险组合</strong>：「分区无消费位点」+「<code>auto.offset.reset=latest</code>（默认值）」+「分区有存量消息」= <strong>存量消息被静默跳过</strong>，且没有任何报错。典型触发场景：</p>
+<ul>
+<li>新消费组接入一个已有大量积压数据的 Topic；</li>
+<li>消费组长期停摆后位点过期（<code>offsets.retention.minutes</code>，默认 7 天），重启后位点丢失，直接跳到末尾；</li>
+<li>误用 <code>--reset-offsets --to-latest</code> 重置了位点。</li>
+</ul>
+<p>生产上若不能接受丢存量数据，显式配置 <code>auto.offset.reset=earliest</code>；若需要"无位点即失败告警"，用 <code>none</code>。</p>
+<h2 id="_10">常见配置速查<a class="headerlink" href="#_10" title="Permanent link">&para;</a></h2>
 <table>
 <thead>
 <tr>

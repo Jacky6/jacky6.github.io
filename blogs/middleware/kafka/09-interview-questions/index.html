@@ -1172,6 +1172,34 @@
   <a href="#_7" class="md-nav__link">
     <span class="md-ellipsis">
       
+        生产实战题
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="生产实战题">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#q38-20-3-" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Q38: 消费组 20 个分区只有 3 个有消费位点，其余显示 -，是故障吗？
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_8" class="md-nav__link">
+    <span class="md-ellipsis">
+      
         总结
       
     </span>
@@ -1462,6 +1490,8 @@
 <a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a><span class="n">props</span><span class="p">.</span><span class="na">put</span><span class="p">(</span><span class="s">&quot;fetch.min.bytes&quot;</span><span class="p">,</span><span class="w"> </span><span class="mi">1048576</span><span class="p">);</span><span class="w">   </span><span class="c1">// 减少请求次数</span>
 </code></pre></div></li>
 </ol>
+<p><strong>高频追问：LAG 显示 <code>-</code> 是什么意思？</strong></p>
+<p>lag = LOG-END-OFFSET − CURRENT-OFFSET（committed offset）。消费组从未对某分区提交过位点（或位点已过期）时，CURRENT-OFFSET 缺失，lag 无从计算，显示 <code>-</code>。常见于：手动提交模式下的空分区（正常）、新消费组未运行提交逻辑、位点过期被清理（<code>offsets.retention.minutes</code> 默认 7 天）。注意区分「无位点且分区为空」（正常）和「无位点但分区有数据」（高危：默认 <code>auto.offset.reset=latest</code> 会静默跳过存量消息）。详见 <a href="../04-consumer/">04-consumer.md</a> 和 <a href="../06-operations/">06-operations.md</a>。</p>
 <h2 id="_3">高级特性<a class="headerlink" href="#_3" title="Permanent link">&para;</a></h2>
 <h3 id="q16-kafka-exactly-once">Q16: Kafka 的 Exactly-Once 如何实现？<a class="headerlink" href="#q16-kafka-exactly-once" title="Permanent link">&para;</a></h3>
 <p><strong>答：</strong></p>
@@ -1883,14 +1913,32 @@
 <a id="__codelineno-20-16" name="__codelineno-20-16" href="#__codelineno-20-16"></a><span class="w">    </span><span class="n">producer</span><span class="p">.</span><span class="na">abortTransaction</span><span class="p">();</span>
 <a id="__codelineno-20-17" name="__codelineno-20-17" href="#__codelineno-20-17"></a><span class="p">}</span>
 </code></pre></div>
-<h2 id="_7">总结<a class="headerlink" href="#_7" title="Permanent link">&para;</a></h2>
+<h2 id="_7">生产实战题<a class="headerlink" href="#_7" title="Permanent link">&para;</a></h2>
+<h3 id="q38-20-3-">Q38: 消费组 20 个分区只有 3 个有消费位点，其余显示 <code>-</code>，是故障吗？<a class="headerlink" href="#q38-20-3-" title="Permanent link">&para;</a></h3>
+<p><strong>答：不是故障，是正常现象；但它暴露了监控系统的设计盲区。</strong></p>
+<p><strong>第一步，分清两个位点</strong>：日志位点（log end offset，随生产者写入推进）和消费位点（committed offset，消费者主动提交，存 <code>__consumer_offsets</code>）完全独立。lag = log end − committed，committed 缺失时 lag 无从计算，只能显示 <code>-</code>。</p>
+<p><strong>第二步，判断成因</strong>（本题场景：其余分区 log end = 0，即空分区）：</p>
+<ul>
+<li>消费端是手动提交模式（处理成功后才 commit）→ 空分区没消息、没处理、没提交 → 没有位点，<strong>完全正常</strong>；</li>
+<li>分区分配 ≠ 位点提交：Rebalance 后消费者被分配到全部 20 个分区，但"被分配"不产生 committed offset；</li>
+<li>若是自动提交模式，空分区通常<strong>会</strong>有位点（自动提交周期把所有已分配分区的 position 提交出去）——所以"空分区没有位点"本身就是手动提交的特征。</li>
+</ul>
+<p><strong>第三步，识别真正的危险组合</strong>：「无位点」+「分区有存量数据（log end &gt; 0）」+「<code>auto.offset.reset=latest</code>（默认）」= 存量消息被静默跳过。本题 log end = 0，无此风险。</p>
+<p><strong>第四步，修正监控/调度系统</strong>（本题最有价值的部分）：</p>
+<ol>
+<li>不要用"有位点的分区数"代替"分区数"——分区数是静态元数据，用 <code>AdminClient.describeTopics</code> 获取。反例：某调度系统按 <code>有位点分区数 × 倍数</code> 设熔断阈值，20 分区只有 3 个有位点时阈值被压低近 7 倍，少量排队即误熔断；</li>
+<li>lag 统计对无位点分区要兜底（按重置语义估算，如视为从头消费），不能直接丢弃；</li>
+<li>三态判定：有位点（正常统计）、无位点且分区空（lag=0，正常）、无位点但有数据（高危，告警确认消费方 reset 策略）。</li>
+</ol>
+<p><strong>加分点</strong>：能说出「不应强迫消费端"一接入就提交位点"来让监控好看」——没消费就提交是语义造假，且 <code>latest</code> 下会把存量跳过造成真丢数据；若确需全分区可观测，可在 <code>onPartitionsAssigned</code> 提交 position，但前提是 <code>auto.offset.reset=earliest</code>。</p>
+<h2 id="_8">总结<a class="headerlink" href="#_8" title="Permanent link">&para;</a></h2>
 <p><strong>高频考点：</strong></p>
 <ol>
 <li>Kafka 为什么快（顺序写、零拷贝、批量、压缩）</li>
 <li>如何保证消息不丢失（acks、副本、手动提交）</li>
 <li>如何保证消息顺序（相同 Key、单 Partition）</li>
 <li>Consumer Group 和 Rebalance（含 KIP-848 新协议、Cooperative 增量 rebalance）</li>
-<li>Offset 管理</li>
+<li>Offset 管理（含消费位点缺失 <code>-</code> 的成因与监控兜底，见 Q38）</li>
 <li>Exactly-Once 实现</li>
 <li>消息积压处理</li>
 <li>KRaft 架构（4.x 必问，取代 ZooKeeper）</li>
