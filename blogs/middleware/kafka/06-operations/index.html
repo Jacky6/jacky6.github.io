@@ -690,6 +690,23 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="Consumer Group 管理">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#-describe-current-offset-lag-" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        读懂 --describe 输出：CURRENT-OFFSET / LAG 为 - 的含义
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
         
           <li class="md-nav__item">
@@ -758,6 +775,17 @@
     <span class="md-ellipsis">
       
         关键指标
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#lag-" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Lag 监控设计：位点缺失（-）的兜底
       
     </span>
   </a>
@@ -1202,54 +1230,73 @@
 <a id="__codelineno-4-19" name="__codelineno-4-19" href="#__codelineno-4-19"></a><span class="w">  </span>--execute<span class="w"> </span><span class="se">\</span>
 <a id="__codelineno-4-20" name="__codelineno-4-20" href="#__codelineno-4-20"></a><span class="w">  </span>--bootstrap-server<span class="w"> </span>broker1:9092
 </code></pre></div>
+<h4 id="-describe-current-offset-lag-">读懂 <code>--describe</code> 输出：CURRENT-OFFSET / LAG 为 <code>-</code> 的含义<a class="headerlink" href="#-describe-current-offset-lag-" title="Permanent link">&para;</a></h4>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>GROUP       TOPIC   PARTITION  CURRENT-OFFSET  LOG-END-OFFSET  LAG   CONSUMER-ID  HOST    CLIENT-ID
+<a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>order-svc   orders  0          1523            1523            0     member-1     /10.0.0.1  ...
+<a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a>order-svc   orders  1          -               0               -     member-1     /10.0.0.1  ...
+</code></pre></div>
+<ul>
+<li><strong>CURRENT-OFFSET</strong> 是 committed offset（消费位点），<strong>LOG-END-OFFSET</strong> 是日志位点，两者独立（原理见 <a href="../04-consumer/">04-consumer.md</a> 的「两个独立的位点」）；</li>
+<li>CURRENT-OFFSET 为 <code>-</code> = 该消费组<strong>从未对这个分区提交过位点</strong>（或位点已过期），LAG 依赖 committed offset，因此也只能是 <code>-</code>；</li>
+<li><code>-</code> 不是故障。典型场景：手动提交模式 + 空分区（LOG-END-OFFSET=0）：没消息 → 没处理 → 没提交，完全正常；</li>
+<li>真正要警惕的组合：CURRENT-OFFSET 为 <code>-</code> 且 LOG-END-OFFSET &gt; 0，说明分区有存量消息但无位点——若消费者以默认 <code>auto.offset.reset=latest</code> 接入，这批存量消息会被<strong>静默跳过</strong>；</li>
+<li>想看分区的位点保留/过期配置：broker 端 <code>offsets.retention.minutes</code>（默认 10080 分钟 = 7 天）。</li>
+</ul>
+<p>用 <code>kafka-get-offsets.sh</code> 交叉验证分区是否真有数据（<code>--time -1</code> 最新位点 / <code>--time -2</code> 最早位点）：</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="c1"># 分区级最早/最新位点：earliest == latest 说明分区为空</span>
+<a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a>kafka-get-offsets.sh<span class="w"> </span>--bootstrap-server<span class="w"> </span>broker1:9092<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a><span class="w">  </span>--topic<span class="w"> </span>orders<span class="w"> </span>--time<span class="w"> </span>-1<span class="w">   </span><span class="c1"># 输出形如 orders:0:1523（LOG-END-OFFSET）</span>
+<a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a>kafka-get-offsets.sh<span class="w"> </span>--bootstrap-server<span class="w"> </span>broker1:9092<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a><span class="w">  </span>--topic<span class="w"> </span>orders<span class="w"> </span>--time<span class="w"> </span>-2<span class="w">   </span><span class="c1"># 输出形如 orders:0:0（最早可用位点）</span>
+</code></pre></div>
 <h3 id="_2">生产/消费测试<a class="headerlink" href="#_2" title="Permanent link">&para;</a></h3>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="c1"># 生产消息（命令行）</span>
-<a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>kafka-console-producer.sh<span class="w"> </span>--topic<span class="w"> </span>orders<span class="w"> </span>--bootstrap-server<span class="w"> </span>broker1:9092
-<a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a>
-<a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a><span class="c1"># 消费消息（命令行）</span>
-<a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a>kafka-console-consumer.sh<span class="w"> </span>--topic<span class="w"> </span>orders<span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-5-6" name="__codelineno-5-6" href="#__codelineno-5-6"></a><span class="w">  </span>--from-beginning<span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-5-7" name="__codelineno-5-7" href="#__codelineno-5-7"></a><span class="w">  </span>--bootstrap-server<span class="w"> </span>broker1:9092
-<a id="__codelineno-5-8" name="__codelineno-5-8" href="#__codelineno-5-8"></a>
-<a id="__codelineno-5-9" name="__codelineno-5-9" href="#__codelineno-5-9"></a><span class="c1"># 带 Key 消费</span>
-<a id="__codelineno-5-10" name="__codelineno-5-10" href="#__codelineno-5-10"></a>kafka-console-consumer.sh<span class="w"> </span>--topic<span class="w"> </span>orders<span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-5-11" name="__codelineno-5-11" href="#__codelineno-5-11"></a><span class="w">  </span>--property<span class="w"> </span>print.key<span class="o">=</span><span class="nb">true</span><span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-5-12" name="__codelineno-5-12" href="#__codelineno-5-12"></a><span class="w">  </span>--bootstrap-server<span class="w"> </span>broker1:9092
+<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="c1"># 生产消息（命令行）</span>
+<a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a>kafka-console-producer.sh<span class="w"> </span>--topic<span class="w"> </span>orders<span class="w"> </span>--bootstrap-server<span class="w"> </span>broker1:9092
+<a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a>
+<a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a><span class="c1"># 消费消息（命令行）</span>
+<a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a>kafka-console-consumer.sh<span class="w"> </span>--topic<span class="w"> </span>orders<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-7-6" name="__codelineno-7-6" href="#__codelineno-7-6"></a><span class="w">  </span>--from-beginning<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-7-7" name="__codelineno-7-7" href="#__codelineno-7-7"></a><span class="w">  </span>--bootstrap-server<span class="w"> </span>broker1:9092
+<a id="__codelineno-7-8" name="__codelineno-7-8" href="#__codelineno-7-8"></a>
+<a id="__codelineno-7-9" name="__codelineno-7-9" href="#__codelineno-7-9"></a><span class="c1"># 带 Key 消费</span>
+<a id="__codelineno-7-10" name="__codelineno-7-10" href="#__codelineno-7-10"></a>kafka-console-consumer.sh<span class="w"> </span>--topic<span class="w"> </span>orders<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-7-11" name="__codelineno-7-11" href="#__codelineno-7-11"></a><span class="w">  </span>--property<span class="w"> </span>print.key<span class="o">=</span><span class="nb">true</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-7-12" name="__codelineno-7-12" href="#__codelineno-7-12"></a><span class="w">  </span>--bootstrap-server<span class="w"> </span>broker1:9092
 </code></pre></div>
 <h3 id="_3">副本管理<a class="headerlink" href="#_3" title="Permanent link">&para;</a></h3>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="c1"># 查看副本分布（describe 会显示每个分区的 Leader/Replicas/ISR）</span>
-<a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a>kafka-topics.sh<span class="w"> </span>--describe<span class="w"> </span>--topic<span class="w"> </span>orders<span class="w"> </span>--bootstrap-server<span class="w"> </span>broker1:9092
-<a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a>
-<a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a><span class="c1"># 查看副本落后情况（运维排查 ISR 收缩）</span>
-<a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a>kafka-topics.sh<span class="w"> </span>--describe<span class="w"> </span>--under-replicated-partitions<span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-6-6" name="__codelineno-6-6" href="#__codelineno-6-6"></a><span class="w">  </span>--bootstrap-server<span class="w"> </span>broker1:9092
-<a id="__codelineno-6-7" name="__codelineno-6-7" href="#__codelineno-6-7"></a>
-<a id="__codelineno-6-8" name="__codelineno-6-8" href="#__codelineno-6-8"></a><span class="c1"># 重新分配副本</span>
-<a id="__codelineno-6-9" name="__codelineno-6-9" href="#__codelineno-6-9"></a>kafka-reassign-partitions.sh<span class="w"> </span>--bootstrap-server<span class="w"> </span>broker1:9092<span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-6-10" name="__codelineno-6-10" href="#__codelineno-6-10"></a><span class="w">  </span>--reassignment-json-file<span class="w"> </span>reassign.json<span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-6-11" name="__codelineno-6-11" href="#__codelineno-6-11"></a><span class="w">  </span>--execute
-<a id="__codelineno-6-12" name="__codelineno-6-12" href="#__codelineno-6-12"></a>
-<a id="__codelineno-6-13" name="__codelineno-6-13" href="#__codelineno-6-13"></a><span class="c1"># 验证分配进度</span>
-<a id="__codelineno-6-14" name="__codelineno-6-14" href="#__codelineno-6-14"></a>kafka-reassign-partitions.sh<span class="w"> </span>--bootstrap-server<span class="w"> </span>broker1:9092<span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-6-15" name="__codelineno-6-15" href="#__codelineno-6-15"></a><span class="w">  </span>--reassignment-json-file<span class="w"> </span>reassign.json<span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-6-16" name="__codelineno-6-16" href="#__codelineno-6-16"></a><span class="w">  </span>--verify
+<div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="c1"># 查看副本分布（describe 会显示每个分区的 Leader/Replicas/ISR）</span>
+<a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a>kafka-topics.sh<span class="w"> </span>--describe<span class="w"> </span>--topic<span class="w"> </span>orders<span class="w"> </span>--bootstrap-server<span class="w"> </span>broker1:9092
+<a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a>
+<a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a><span class="c1"># 查看副本落后情况（运维排查 ISR 收缩）</span>
+<a id="__codelineno-8-5" name="__codelineno-8-5" href="#__codelineno-8-5"></a>kafka-topics.sh<span class="w"> </span>--describe<span class="w"> </span>--under-replicated-partitions<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-8-6" name="__codelineno-8-6" href="#__codelineno-8-6"></a><span class="w">  </span>--bootstrap-server<span class="w"> </span>broker1:9092
+<a id="__codelineno-8-7" name="__codelineno-8-7" href="#__codelineno-8-7"></a>
+<a id="__codelineno-8-8" name="__codelineno-8-8" href="#__codelineno-8-8"></a><span class="c1"># 重新分配副本</span>
+<a id="__codelineno-8-9" name="__codelineno-8-9" href="#__codelineno-8-9"></a>kafka-reassign-partitions.sh<span class="w"> </span>--bootstrap-server<span class="w"> </span>broker1:9092<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-8-10" name="__codelineno-8-10" href="#__codelineno-8-10"></a><span class="w">  </span>--reassignment-json-file<span class="w"> </span>reassign.json<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-8-11" name="__codelineno-8-11" href="#__codelineno-8-11"></a><span class="w">  </span>--execute
+<a id="__codelineno-8-12" name="__codelineno-8-12" href="#__codelineno-8-12"></a>
+<a id="__codelineno-8-13" name="__codelineno-8-13" href="#__codelineno-8-13"></a><span class="c1"># 验证分配进度</span>
+<a id="__codelineno-8-14" name="__codelineno-8-14" href="#__codelineno-8-14"></a>kafka-reassign-partitions.sh<span class="w"> </span>--bootstrap-server<span class="w"> </span>broker1:9092<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-8-15" name="__codelineno-8-15" href="#__codelineno-8-15"></a><span class="w">  </span>--reassignment-json-file<span class="w"> </span>reassign.json<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-8-16" name="__codelineno-8-16" href="#__codelineno-8-16"></a><span class="w">  </span>--verify
 </code></pre></div>
 <h3 id="share-group-42">Share Group 管理（4.2+）<a class="headerlink" href="#share-group-42" title="Permanent link">&para;</a></h3>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="c1"># 列出 share groups</span>
-<a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a>kafka-share-groups.sh<span class="w"> </span>--bootstrap-server<span class="w"> </span>broker1:9092<span class="w"> </span>--list
-<a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a>
-<a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a><span class="c1"># 查看 share group 状态（start-offset / members / state）</span>
-<a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a>kafka-share-groups.sh<span class="w"> </span>--bootstrap-server<span class="w"> </span>broker1:9092<span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-7-6" name="__codelineno-7-6" href="#__codelineno-7-6"></a><span class="w">  </span>--describe<span class="w"> </span>--group<span class="w"> </span>task-workers<span class="w"> </span>--members
+<div class="highlight"><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a><span class="c1"># 列出 share groups</span>
+<a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a>kafka-share-groups.sh<span class="w"> </span>--bootstrap-server<span class="w"> </span>broker1:9092<span class="w"> </span>--list
+<a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a>
+<a id="__codelineno-9-4" name="__codelineno-9-4" href="#__codelineno-9-4"></a><span class="c1"># 查看 share group 状态（start-offset / members / state）</span>
+<a id="__codelineno-9-5" name="__codelineno-9-5" href="#__codelineno-9-5"></a>kafka-share-groups.sh<span class="w"> </span>--bootstrap-server<span class="w"> </span>broker1:9092<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-9-6" name="__codelineno-9-6" href="#__codelineno-9-6"></a><span class="w">  </span>--describe<span class="w"> </span>--group<span class="w"> </span>task-workers<span class="w"> </span>--members
 </code></pre></div>
 <h3 id="_4">日志查看<a class="headerlink" href="#_4" title="Permanent link">&para;</a></h3>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="c1"># 查看日志大小（KIP-849 起 JSON 输出还包含磁盘 totalBytes/usableBytes）</span>
-<a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a>kafka-log-dirs.sh<span class="w"> </span>--bootstrap-server<span class="w"> </span>broker1:9092<span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a><span class="w">  </span>--describe<span class="w"> </span>--broker-list<span class="w"> </span><span class="m">0</span>,1,2
-<a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a>
-<a id="__codelineno-8-5" name="__codelineno-8-5" href="#__codelineno-8-5"></a><span class="c1"># 查看 Topic 日志大小</span>
-<a id="__codelineno-8-6" name="__codelineno-8-6" href="#__codelineno-8-6"></a>kafka-log-dirs.sh<span class="w"> </span>--bootstrap-server<span class="w"> </span>broker1:9092<span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-8-7" name="__codelineno-8-7" href="#__codelineno-8-7"></a><span class="w">  </span>--describe<span class="w"> </span>--topic-list<span class="w"> </span>orders
+<div class="highlight"><pre><span></span><code><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a><span class="c1"># 查看日志大小（KIP-849 起 JSON 输出还包含磁盘 totalBytes/usableBytes）</span>
+<a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a>kafka-log-dirs.sh<span class="w"> </span>--bootstrap-server<span class="w"> </span>broker1:9092<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-10-3" name="__codelineno-10-3" href="#__codelineno-10-3"></a><span class="w">  </span>--describe<span class="w"> </span>--broker-list<span class="w"> </span><span class="m">0</span>,1,2
+<a id="__codelineno-10-4" name="__codelineno-10-4" href="#__codelineno-10-4"></a>
+<a id="__codelineno-10-5" name="__codelineno-10-5" href="#__codelineno-10-5"></a><span class="c1"># 查看 Topic 日志大小</span>
+<a id="__codelineno-10-6" name="__codelineno-10-6" href="#__codelineno-10-6"></a>kafka-log-dirs.sh<span class="w"> </span>--bootstrap-server<span class="w"> </span>broker1:9092<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-10-7" name="__codelineno-10-7" href="#__codelineno-10-7"></a><span class="w">  </span>--describe<span class="w"> </span>--topic-list<span class="w"> </span>orders
 </code></pre></div>
 <h2 id="_5">监控指标<a class="headerlink" href="#_5" title="Permanent link">&para;</a></h2>
 <h3 id="_6">关键指标<a class="headerlink" href="#_6" title="Permanent link">&para;</a></h3>
@@ -1299,74 +1346,125 @@
 </tr>
 </tbody>
 </table>
+<h3 id="lag-">Lag 监控设计：位点缺失（<code>-</code>）的兜底<a class="headerlink" href="#lag-" title="Permanent link">&para;</a></h3>
+<p><strong>任何基于 lag 的监控系统，都不应假设"有 committed offset 的分区数 = Topic 的分区数"。</strong></p>
+<p>反模式（真实生产案例）：某调度系统用 <code>熔断阈值 = 有位点的分区数 × 倍数</code> 做熔断。Topic 有 20 个分区、只有 3 个分区提交过位点时，阈值被压低近 7 倍，少量排队即误熔断。</p>
+<p>正确姿势：</p>
+<ol>
+<li><strong>分区数是静态元数据</strong>：通过 <code>AdminClient.describeTopics</code>（或 listOffsets 遍历）获取，它不随消费行为变化；不要拿"有位点的分区数"代替；</li>
+<li><strong>lag 统计要兜底</strong>：对无 committed offset 的分区，按位点重置语义估算（保守做法：视为将从头消费，lag = endOffset − earliestOffset），而不是直接丢弃这些分区；</li>
+<li><strong>区分三种状态</strong>，告警策略各不相同：</li>
+</ol>
+<table>
+<thead>
+<tr>
+<th>状态</th>
+<th>判定</th>
+<th>含义</th>
+<th>处理</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>有位点</td>
+<td>committed offset 存在</td>
+<td>正常</td>
+<td>lag = endOffset − committed，正常统计告警</td>
+</tr>
+<tr>
+<td>无位点且分区为空</td>
+<td>无 committed offset，earliest == latest</td>
+<td>正常（手动提交 + 空分区的典型形态）</td>
+<td>lag = 0，不告警</td>
+</tr>
+<tr>
+<td>无位点但分区有数据</td>
+<td>无 committed offset，latest &gt; earliest</td>
+<td><strong>高危</strong>：新消费组 / 位点过期，且若 <code>auto.offset.reset=latest</code> 存量将被跳过</td>
+<td>按兜底语义估算 lag，主动告警确认消费方重置策略</td>
+</tr>
+</tbody>
+</table>
+<p>判定流程图：</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a>                分区是否有 committed offset?
+<a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a>                      /            \
+<a id="__codelineno-11-3" name="__codelineno-11-3" href="#__codelineno-11-3"></a>                    是              否
+<a id="__codelineno-11-4" name="__codelineno-11-4" href="#__codelineno-11-4"></a>                    /                \
+<a id="__codelineno-11-5" name="__codelineno-11-5" href="#__codelineno-11-5"></a>          lag = end - committed    分区为空（earliest == latest）?
+<a id="__codelineno-11-6" name="__codelineno-11-6" href="#__codelineno-11-6"></a>          （正常统计）               /        \
+<a id="__codelineno-11-7" name="__codelineno-11-7" href="#__codelineno-11-7"></a>                                 是          否
+<a id="__codelineno-11-8" name="__codelineno-11-8" href="#__codelineno-11-8"></a>                                 /            \
+<a id="__codelineno-11-9" name="__codelineno-11-9" href="#__codelineno-11-9"></a>                          lag = 0         按 auto.offset.reset 语义兜底
+<a id="__codelineno-11-10" name="__codelineno-11-10" href="#__codelineno-11-10"></a>                          （- 是正常状态）  （监控盲区，需主动处理）
+</code></pre></div>
 <h3 id="jmx">JMX 监控<a class="headerlink" href="#jmx" title="Permanent link">&para;</a></h3>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a><span class="c1"># 启动 Broker 时开启 JMX</span>
-<a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a><span class="nb">export</span><span class="w"> </span><span class="nv">KAFKA_JMX_OPTS</span><span class="o">=</span><span class="s2">&quot;-Dcom.sun.management.jmxremote \</span>
-<a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a><span class="s2">  -Dcom.sun.management.jmxremote.port=9999 \</span>
-<a id="__codelineno-9-4" name="__codelineno-9-4" href="#__codelineno-9-4"></a><span class="s2">  -Dcom.sun.management.jmxremote.authenticate=false \</span>
-<a id="__codelineno-9-5" name="__codelineno-9-5" href="#__codelineno-9-5"></a><span class="s2">  -Dcom.sun.management.jmxremote.ssl=false&quot;</span>
-<a id="__codelineno-9-6" name="__codelineno-9-6" href="#__codelineno-9-6"></a>
-<a id="__codelineno-9-7" name="__codelineno-9-7" href="#__codelineno-9-7"></a>kafka-server-start.sh<span class="w"> </span>config/server.properties
+<div class="highlight"><pre><span></span><code><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a><span class="c1"># 启动 Broker 时开启 JMX</span>
+<a id="__codelineno-12-2" name="__codelineno-12-2" href="#__codelineno-12-2"></a><span class="nb">export</span><span class="w"> </span><span class="nv">KAFKA_JMX_OPTS</span><span class="o">=</span><span class="s2">&quot;-Dcom.sun.management.jmxremote \</span>
+<a id="__codelineno-12-3" name="__codelineno-12-3" href="#__codelineno-12-3"></a><span class="s2">  -Dcom.sun.management.jmxremote.port=9999 \</span>
+<a id="__codelineno-12-4" name="__codelineno-12-4" href="#__codelineno-12-4"></a><span class="s2">  -Dcom.sun.management.jmxremote.authenticate=false \</span>
+<a id="__codelineno-12-5" name="__codelineno-12-5" href="#__codelineno-12-5"></a><span class="s2">  -Dcom.sun.management.jmxremote.ssl=false&quot;</span>
+<a id="__codelineno-12-6" name="__codelineno-12-6" href="#__codelineno-12-6"></a>
+<a id="__codelineno-12-7" name="__codelineno-12-7" href="#__codelineno-12-7"></a>kafka-server-start.sh<span class="w"> </span>config/server.properties
 </code></pre></div>
 <h3 id="prometheus-grafana">Prometheus + Grafana<a class="headerlink" href="#prometheus-grafana" title="Permanent link">&para;</a></h3>
 <p>使用 JMX Exporter 暴露指标：</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a><span class="c1"># jmx_exporter.yaml</span>
-<a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a><span class="nt">jmxUrl</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;service:jmx:rmi:///jndi/rmi://localhost:9999/jmxrmi&quot;</span>
-<a id="__codelineno-10-3" name="__codelineno-10-3" href="#__codelineno-10-3"></a><span class="nt">ssl</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">false</span>
-<a id="__codelineno-10-4" name="__codelineno-10-4" href="#__codelineno-10-4"></a><span class="nt">lowercaseOutputName</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
-<a id="__codelineno-10-5" name="__codelineno-10-5" href="#__codelineno-10-5"></a><span class="nt">lowercaseOutputLabelNames</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
-<a id="__codelineno-10-6" name="__codelineno-10-6" href="#__codelineno-10-6"></a><span class="nt">rules</span><span class="p">:</span>
-<a id="__codelineno-10-7" name="__codelineno-10-7" href="#__codelineno-10-7"></a><span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">pattern</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;kafka.server&lt;type=(.+),</span><span class="nv"> </span><span class="s">name=(.+)&gt;&lt;&gt;Value&quot;</span>
-<a id="__codelineno-10-8" name="__codelineno-10-8" href="#__codelineno-10-8"></a><span class="w">    </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">kafka_$1_$2</span>
-<a id="__codelineno-10-9" name="__codelineno-10-9" href="#__codelineno-10-9"></a><span class="w">    </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">GAUGE</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a><span class="c1"># jmx_exporter.yaml</span>
+<a id="__codelineno-13-2" name="__codelineno-13-2" href="#__codelineno-13-2"></a><span class="nt">jmxUrl</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;service:jmx:rmi:///jndi/rmi://localhost:9999/jmxrmi&quot;</span>
+<a id="__codelineno-13-3" name="__codelineno-13-3" href="#__codelineno-13-3"></a><span class="nt">ssl</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">false</span>
+<a id="__codelineno-13-4" name="__codelineno-13-4" href="#__codelineno-13-4"></a><span class="nt">lowercaseOutputName</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+<a id="__codelineno-13-5" name="__codelineno-13-5" href="#__codelineno-13-5"></a><span class="nt">lowercaseOutputLabelNames</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+<a id="__codelineno-13-6" name="__codelineno-13-6" href="#__codelineno-13-6"></a><span class="nt">rules</span><span class="p">:</span>
+<a id="__codelineno-13-7" name="__codelineno-13-7" href="#__codelineno-13-7"></a><span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">pattern</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;kafka.server&lt;type=(.+),</span><span class="nv"> </span><span class="s">name=(.+)&gt;&lt;&gt;Value&quot;</span>
+<a id="__codelineno-13-8" name="__codelineno-13-8" href="#__codelineno-13-8"></a><span class="w">    </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">kafka_$1_$2</span>
+<a id="__codelineno-13-9" name="__codelineno-13-9" href="#__codelineno-13-9"></a><span class="w">    </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">GAUGE</span>
 </code></pre></div>
 <h2 id="_7">性能调优<a class="headerlink" href="#_7" title="Permanent link">&para;</a></h2>
 <h3 id="broker">Broker 端<a class="headerlink" href="#broker" title="Permanent link">&para;</a></h3>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a><span class="c1"># 线程数</span>
-<a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a><span class="na">num.network.threads</span><span class="o">=</span><span class="s">3</span>
-<a id="__codelineno-11-3" name="__codelineno-11-3" href="#__codelineno-11-3"></a><span class="na">num.io.threads</span><span class="o">=</span><span class="s">8</span>
-<a id="__codelineno-11-4" name="__codelineno-11-4" href="#__codelineno-11-4"></a>
-<a id="__codelineno-11-5" name="__codelineno-11-5" href="#__codelineno-11-5"></a><span class="c1"># 消息大小</span>
-<a id="__codelineno-11-6" name="__codelineno-11-6" href="#__codelineno-11-6"></a><span class="na">message.max.bytes</span><span class="o">=</span><span class="s">1048576        # 1MB</span>
-<a id="__codelineno-11-7" name="__codelineno-11-7" href="#__codelineno-11-7"></a><span class="na">replica.fetch.max.bytes</span><span class="o">=</span><span class="s">1048576</span>
-<a id="__codelineno-11-8" name="__codelineno-11-8" href="#__codelineno-11-8"></a>
-<a id="__codelineno-11-9" name="__codelineno-11-9" href="#__codelineno-11-9"></a><span class="c1"># 日志刷盘</span>
-<a id="__codelineno-11-10" name="__codelineno-11-10" href="#__codelineno-11-10"></a><span class="c1"># 注意：官方建议不要配置这两项（依赖副本机制保证持久性），</span>
-<a id="__codelineno-11-11" name="__codelineno-11-11" href="#__codelineno-11-11"></a><span class="c1"># 强制刷盘会显著降低吞吐，仅在特殊合规需求下使用</span>
-<a id="__codelineno-11-12" name="__codelineno-11-12" href="#__codelineno-11-12"></a><span class="na">log.flush.interval.messages</span><span class="o">=</span><span class="s">10000</span>
-<a id="__codelineno-11-13" name="__codelineno-11-13" href="#__codelineno-11-13"></a><span class="na">log.flush.interval.ms</span><span class="o">=</span><span class="s">1000</span>
-<a id="__codelineno-11-14" name="__codelineno-11-14" href="#__codelineno-11-14"></a>
-<a id="__codelineno-11-15" name="__codelineno-11-15" href="#__codelineno-11-15"></a><span class="c1"># 日志保留</span>
-<a id="__codelineno-11-16" name="__codelineno-11-16" href="#__codelineno-11-16"></a><span class="na">log.retention.hours</span><span class="o">=</span><span class="s">168          # 7 天</span>
-<a id="__codelineno-11-17" name="__codelineno-11-17" href="#__codelineno-11-17"></a><span class="na">log.retention.bytes</span><span class="o">=</span><span class="s">1073741824   # 1GB（每个分区）</span>
-<a id="__codelineno-11-18" name="__codelineno-11-18" href="#__codelineno-11-18"></a><span class="na">log.segment.bytes</span><span class="o">=</span><span class="s">1073741824     # 1GB</span>
-<a id="__codelineno-11-19" name="__codelineno-11-19" href="#__codelineno-11-19"></a>
-<a id="__codelineno-11-20" name="__codelineno-11-20" href="#__codelineno-11-20"></a><span class="c1"># 日志压缩（仅对 compact 型 topic 有意义，如 __consumer_offsets；</span>
-<a id="__codelineno-11-21" name="__codelineno-11-21" href="#__codelineno-11-21"></a><span class="c1"># 普通 topic 默认 policy=delete，不要全局改成 compact）</span>
-<a id="__codelineno-11-22" name="__codelineno-11-22" href="#__codelineno-11-22"></a><span class="na">log.cleaner.enable</span><span class="o">=</span><span class="s">true</span>
-<a id="__codelineno-11-23" name="__codelineno-11-23" href="#__codelineno-11-23"></a><span class="c1"># topic 级配置：log.cleanup.policy=compact</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a><span class="c1"># 线程数</span>
+<a id="__codelineno-14-2" name="__codelineno-14-2" href="#__codelineno-14-2"></a><span class="na">num.network.threads</span><span class="o">=</span><span class="s">3</span>
+<a id="__codelineno-14-3" name="__codelineno-14-3" href="#__codelineno-14-3"></a><span class="na">num.io.threads</span><span class="o">=</span><span class="s">8</span>
+<a id="__codelineno-14-4" name="__codelineno-14-4" href="#__codelineno-14-4"></a>
+<a id="__codelineno-14-5" name="__codelineno-14-5" href="#__codelineno-14-5"></a><span class="c1"># 消息大小</span>
+<a id="__codelineno-14-6" name="__codelineno-14-6" href="#__codelineno-14-6"></a><span class="na">message.max.bytes</span><span class="o">=</span><span class="s">1048576        # 1MB</span>
+<a id="__codelineno-14-7" name="__codelineno-14-7" href="#__codelineno-14-7"></a><span class="na">replica.fetch.max.bytes</span><span class="o">=</span><span class="s">1048576</span>
+<a id="__codelineno-14-8" name="__codelineno-14-8" href="#__codelineno-14-8"></a>
+<a id="__codelineno-14-9" name="__codelineno-14-9" href="#__codelineno-14-9"></a><span class="c1"># 日志刷盘</span>
+<a id="__codelineno-14-10" name="__codelineno-14-10" href="#__codelineno-14-10"></a><span class="c1"># 注意：官方建议不要配置这两项（依赖副本机制保证持久性），</span>
+<a id="__codelineno-14-11" name="__codelineno-14-11" href="#__codelineno-14-11"></a><span class="c1"># 强制刷盘会显著降低吞吐，仅在特殊合规需求下使用</span>
+<a id="__codelineno-14-12" name="__codelineno-14-12" href="#__codelineno-14-12"></a><span class="na">log.flush.interval.messages</span><span class="o">=</span><span class="s">10000</span>
+<a id="__codelineno-14-13" name="__codelineno-14-13" href="#__codelineno-14-13"></a><span class="na">log.flush.interval.ms</span><span class="o">=</span><span class="s">1000</span>
+<a id="__codelineno-14-14" name="__codelineno-14-14" href="#__codelineno-14-14"></a>
+<a id="__codelineno-14-15" name="__codelineno-14-15" href="#__codelineno-14-15"></a><span class="c1"># 日志保留</span>
+<a id="__codelineno-14-16" name="__codelineno-14-16" href="#__codelineno-14-16"></a><span class="na">log.retention.hours</span><span class="o">=</span><span class="s">168          # 7 天</span>
+<a id="__codelineno-14-17" name="__codelineno-14-17" href="#__codelineno-14-17"></a><span class="na">log.retention.bytes</span><span class="o">=</span><span class="s">1073741824   # 1GB（每个分区）</span>
+<a id="__codelineno-14-18" name="__codelineno-14-18" href="#__codelineno-14-18"></a><span class="na">log.segment.bytes</span><span class="o">=</span><span class="s">1073741824     # 1GB</span>
+<a id="__codelineno-14-19" name="__codelineno-14-19" href="#__codelineno-14-19"></a>
+<a id="__codelineno-14-20" name="__codelineno-14-20" href="#__codelineno-14-20"></a><span class="c1"># 日志压缩（仅对 compact 型 topic 有意义，如 __consumer_offsets；</span>
+<a id="__codelineno-14-21" name="__codelineno-14-21" href="#__codelineno-14-21"></a><span class="c1"># 普通 topic 默认 policy=delete，不要全局改成 compact）</span>
+<a id="__codelineno-14-22" name="__codelineno-14-22" href="#__codelineno-14-22"></a><span class="na">log.cleaner.enable</span><span class="o">=</span><span class="s">true</span>
+<a id="__codelineno-14-23" name="__codelineno-14-23" href="#__codelineno-14-23"></a><span class="c1"># topic 级配置：log.cleanup.policy=compact</span>
 </code></pre></div>
 <h3 id="producer">Producer 端<a class="headerlink" href="#producer" title="Permanent link">&para;</a></h3>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a><span class="c1"># 提高吞吐</span>
-<a id="__codelineno-12-2" name="__codelineno-12-2" href="#__codelineno-12-2"></a><span class="na">batch.size</span><span class="o">=</span><span class="s">32768                 # 32KB</span>
-<a id="__codelineno-12-3" name="__codelineno-12-3" href="#__codelineno-12-3"></a><span class="na">linger.ms</span><span class="o">=</span><span class="s">10</span>
-<a id="__codelineno-12-4" name="__codelineno-12-4" href="#__codelineno-12-4"></a><span class="na">compression.type</span><span class="o">=</span><span class="s">lz4</span>
-<a id="__codelineno-12-5" name="__codelineno-12-5" href="#__codelineno-12-5"></a><span class="na">buffer.memory</span><span class="o">=</span><span class="s">67108864           # 64MB</span>
-<a id="__codelineno-12-6" name="__codelineno-12-6" href="#__codelineno-12-6"></a>
-<a id="__codelineno-12-7" name="__codelineno-12-7" href="#__codelineno-12-7"></a><span class="c1"># 降低延迟</span>
-<a id="__codelineno-12-8" name="__codelineno-12-8" href="#__codelineno-12-8"></a><span class="na">batch.size</span><span class="o">=</span><span class="s">0</span>
-<a id="__codelineno-12-9" name="__codelineno-12-9" href="#__codelineno-12-9"></a><span class="na">linger.ms</span><span class="o">=</span><span class="s">0</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-15-1" name="__codelineno-15-1" href="#__codelineno-15-1"></a><span class="c1"># 提高吞吐</span>
+<a id="__codelineno-15-2" name="__codelineno-15-2" href="#__codelineno-15-2"></a><span class="na">batch.size</span><span class="o">=</span><span class="s">32768                 # 32KB</span>
+<a id="__codelineno-15-3" name="__codelineno-15-3" href="#__codelineno-15-3"></a><span class="na">linger.ms</span><span class="o">=</span><span class="s">10</span>
+<a id="__codelineno-15-4" name="__codelineno-15-4" href="#__codelineno-15-4"></a><span class="na">compression.type</span><span class="o">=</span><span class="s">lz4</span>
+<a id="__codelineno-15-5" name="__codelineno-15-5" href="#__codelineno-15-5"></a><span class="na">buffer.memory</span><span class="o">=</span><span class="s">67108864           # 64MB</span>
+<a id="__codelineno-15-6" name="__codelineno-15-6" href="#__codelineno-15-6"></a>
+<a id="__codelineno-15-7" name="__codelineno-15-7" href="#__codelineno-15-7"></a><span class="c1"># 降低延迟</span>
+<a id="__codelineno-15-8" name="__codelineno-15-8" href="#__codelineno-15-8"></a><span class="na">batch.size</span><span class="o">=</span><span class="s">0</span>
+<a id="__codelineno-15-9" name="__codelineno-15-9" href="#__codelineno-15-9"></a><span class="na">linger.ms</span><span class="o">=</span><span class="s">0</span>
 </code></pre></div>
 <h3 id="consumer">Consumer 端<a class="headerlink" href="#consumer" title="Permanent link">&para;</a></h3>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a><span class="c1"># 提高吞吐</span>
-<a id="__codelineno-13-2" name="__codelineno-13-2" href="#__codelineno-13-2"></a><span class="na">fetch.min.bytes</span><span class="o">=</span><span class="s">1048576          # 1MB</span>
-<a id="__codelineno-13-3" name="__codelineno-13-3" href="#__codelineno-13-3"></a><span class="na">fetch.max.wait.ms</span><span class="o">=</span><span class="s">500</span>
-<a id="__codelineno-13-4" name="__codelineno-13-4" href="#__codelineno-13-4"></a><span class="na">max.poll.records</span><span class="o">=</span><span class="s">1000</span>
-<a id="__codelineno-13-5" name="__codelineno-13-5" href="#__codelineno-13-5"></a>
-<a id="__codelineno-13-6" name="__codelineno-13-6" href="#__codelineno-13-6"></a><span class="c1"># 降低延迟</span>
-<a id="__codelineno-13-7" name="__codelineno-13-7" href="#__codelineno-13-7"></a><span class="na">fetch.min.bytes</span><span class="o">=</span><span class="s">1</span>
-<a id="__codelineno-13-8" name="__codelineno-13-8" href="#__codelineno-13-8"></a><span class="na">fetch.max.wait.ms</span><span class="o">=</span><span class="s">100</span>
-<a id="__codelineno-13-9" name="__codelineno-13-9" href="#__codelineno-13-9"></a><span class="na">max.poll.records</span><span class="o">=</span><span class="s">100</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-16-1" name="__codelineno-16-1" href="#__codelineno-16-1"></a><span class="c1"># 提高吞吐</span>
+<a id="__codelineno-16-2" name="__codelineno-16-2" href="#__codelineno-16-2"></a><span class="na">fetch.min.bytes</span><span class="o">=</span><span class="s">1048576          # 1MB</span>
+<a id="__codelineno-16-3" name="__codelineno-16-3" href="#__codelineno-16-3"></a><span class="na">fetch.max.wait.ms</span><span class="o">=</span><span class="s">500</span>
+<a id="__codelineno-16-4" name="__codelineno-16-4" href="#__codelineno-16-4"></a><span class="na">max.poll.records</span><span class="o">=</span><span class="s">1000</span>
+<a id="__codelineno-16-5" name="__codelineno-16-5" href="#__codelineno-16-5"></a>
+<a id="__codelineno-16-6" name="__codelineno-16-6" href="#__codelineno-16-6"></a><span class="c1"># 降低延迟</span>
+<a id="__codelineno-16-7" name="__codelineno-16-7" href="#__codelineno-16-7"></a><span class="na">fetch.min.bytes</span><span class="o">=</span><span class="s">1</span>
+<a id="__codelineno-16-8" name="__codelineno-16-8" href="#__codelineno-16-8"></a><span class="na">fetch.max.wait.ms</span><span class="o">=</span><span class="s">100</span>
+<a id="__codelineno-16-9" name="__codelineno-16-9" href="#__codelineno-16-9"></a><span class="na">max.poll.records</span><span class="o">=</span><span class="s">100</span>
 </code></pre></div>
 <h2 id="_8">集群扩缩容<a class="headerlink" href="#_8" title="Permanent link">&para;</a></h2>
 <h3 id="broker_1">增加 Broker<a class="headerlink" href="#broker_1" title="Permanent link">&para;</a></h3>
@@ -1382,9 +1480,9 @@
 <li>停止 Broker</li>
 </ol>
 <h3 id="partition">增加 Partition<a class="headerlink" href="#partition" title="Permanent link">&para;</a></h3>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a>kafka-topics.sh<span class="w"> </span>--alter<span class="w"> </span>--topic<span class="w"> </span>orders<span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-14-2" name="__codelineno-14-2" href="#__codelineno-14-2"></a><span class="w">  </span>--partitions<span class="w"> </span><span class="m">6</span><span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-14-3" name="__codelineno-14-3" href="#__codelineno-14-3"></a><span class="w">  </span>--bootstrap-server<span class="w"> </span>broker1:9092
+<div class="highlight"><pre><span></span><code><a id="__codelineno-17-1" name="__codelineno-17-1" href="#__codelineno-17-1"></a>kafka-topics.sh<span class="w"> </span>--alter<span class="w"> </span>--topic<span class="w"> </span>orders<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-17-2" name="__codelineno-17-2" href="#__codelineno-17-2"></a><span class="w">  </span>--partitions<span class="w"> </span><span class="m">6</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-17-3" name="__codelineno-17-3" href="#__codelineno-17-3"></a><span class="w">  </span>--bootstrap-server<span class="w"> </span>broker1:9092
 </code></pre></div>
 <p>注意：</p>
 <ul>
@@ -1394,95 +1492,95 @@
 </ul>
 <h2 id="_9">故障排查<a class="headerlink" href="#_9" title="Permanent link">&para;</a></h2>
 <h3 id="consumer-lag">Consumer Lag 持续增长<a class="headerlink" href="#consumer-lag" title="Permanent link">&para;</a></h3>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-15-1" name="__codelineno-15-1" href="#__codelineno-15-1"></a><span class="c1"># 查看 Lag</span>
-<a id="__codelineno-15-2" name="__codelineno-15-2" href="#__codelineno-15-2"></a>kafka-consumer-groups.sh<span class="w"> </span>--describe<span class="w"> </span>--group<span class="w"> </span>order-service<span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-15-3" name="__codelineno-15-3" href="#__codelineno-15-3"></a><span class="w">  </span>--bootstrap-server<span class="w"> </span>broker1:9092
-<a id="__codelineno-15-4" name="__codelineno-15-4" href="#__codelineno-15-4"></a>
-<a id="__codelineno-15-5" name="__codelineno-15-5" href="#__codelineno-15-5"></a><span class="c1"># 原因：</span>
-<a id="__codelineno-15-6" name="__codelineno-15-6" href="#__codelineno-15-6"></a><span class="c1"># 1. Consumer 处理太慢 → 优化处理逻辑</span>
-<a id="__codelineno-15-7" name="__codelineno-15-7" href="#__codelineno-15-7"></a><span class="c1"># 2. Consumer 数量不够 → 增加 Consumer</span>
-<a id="__codelineno-15-8" name="__codelineno-15-8" href="#__codelineno-15-8"></a><span class="c1"># 3. Partition 太少 → 增加 Partition</span>
-<a id="__codelineno-15-9" name="__codelineno-15-9" href="#__codelineno-15-9"></a>
-<a id="__codelineno-15-10" name="__codelineno-15-10" href="#__codelineno-15-10"></a><span class="c1"># 临时方案：创建临时 Topic 和 Consumer Group 快速消费</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-18-1" name="__codelineno-18-1" href="#__codelineno-18-1"></a><span class="c1"># 查看 Lag</span>
+<a id="__codelineno-18-2" name="__codelineno-18-2" href="#__codelineno-18-2"></a>kafka-consumer-groups.sh<span class="w"> </span>--describe<span class="w"> </span>--group<span class="w"> </span>order-service<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-18-3" name="__codelineno-18-3" href="#__codelineno-18-3"></a><span class="w">  </span>--bootstrap-server<span class="w"> </span>broker1:9092
+<a id="__codelineno-18-4" name="__codelineno-18-4" href="#__codelineno-18-4"></a>
+<a id="__codelineno-18-5" name="__codelineno-18-5" href="#__codelineno-18-5"></a><span class="c1"># 原因：</span>
+<a id="__codelineno-18-6" name="__codelineno-18-6" href="#__codelineno-18-6"></a><span class="c1"># 1. Consumer 处理太慢 → 优化处理逻辑</span>
+<a id="__codelineno-18-7" name="__codelineno-18-7" href="#__codelineno-18-7"></a><span class="c1"># 2. Consumer 数量不够 → 增加 Consumer</span>
+<a id="__codelineno-18-8" name="__codelineno-18-8" href="#__codelineno-18-8"></a><span class="c1"># 3. Partition 太少 → 增加 Partition</span>
+<a id="__codelineno-18-9" name="__codelineno-18-9" href="#__codelineno-18-9"></a>
+<a id="__codelineno-18-10" name="__codelineno-18-10" href="#__codelineno-18-10"></a><span class="c1"># 临时方案：创建临时 Topic 和 Consumer Group 快速消费</span>
 </code></pre></div>
 <h3 id="broker-full-gc">Broker 频繁 Full GC<a class="headerlink" href="#broker-full-gc" title="Permanent link">&para;</a></h3>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-16-1" name="__codelineno-16-1" href="#__codelineno-16-1"></a><span class="c1"># 调整 JVM 参数</span>
-<a id="__codelineno-16-2" name="__codelineno-16-2" href="#__codelineno-16-2"></a><span class="nb">export</span><span class="w"> </span><span class="nv">KAFKA_HEAP_OPTS</span><span class="o">=</span><span class="s2">&quot;-Xmx6G -Xms6G&quot;</span>
-<a id="__codelineno-16-3" name="__codelineno-16-3" href="#__codelineno-16-3"></a>
-<a id="__codelineno-16-4" name="__codelineno-16-4" href="#__codelineno-16-4"></a><span class="c1"># 检查内存使用</span>
-<a id="__codelineno-16-5" name="__codelineno-16-5" href="#__codelineno-16-5"></a>jstat<span class="w"> </span>-gcutil<span class="w"> </span>&lt;pid&gt;<span class="w"> </span><span class="m">1000</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-19-1" name="__codelineno-19-1" href="#__codelineno-19-1"></a><span class="c1"># 调整 JVM 参数</span>
+<a id="__codelineno-19-2" name="__codelineno-19-2" href="#__codelineno-19-2"></a><span class="nb">export</span><span class="w"> </span><span class="nv">KAFKA_HEAP_OPTS</span><span class="o">=</span><span class="s2">&quot;-Xmx6G -Xms6G&quot;</span>
+<a id="__codelineno-19-3" name="__codelineno-19-3" href="#__codelineno-19-3"></a>
+<a id="__codelineno-19-4" name="__codelineno-19-4" href="#__codelineno-19-4"></a><span class="c1"># 检查内存使用</span>
+<a id="__codelineno-19-5" name="__codelineno-19-5" href="#__codelineno-19-5"></a>jstat<span class="w"> </span>-gcutil<span class="w"> </span>&lt;pid&gt;<span class="w"> </span><span class="m">1000</span>
 </code></pre></div>
 <h3 id="_10">磁盘空间不足<a class="headerlink" href="#_10" title="Permanent link">&para;</a></h3>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-17-1" name="__codelineno-17-1" href="#__codelineno-17-1"></a><span class="c1"># 减少保留时间</span>
-<a id="__codelineno-17-2" name="__codelineno-17-2" href="#__codelineno-17-2"></a><span class="na">log.retention.hours</span><span class="o">=</span><span class="s">24</span>
-<a id="__codelineno-17-3" name="__codelineno-17-3" href="#__codelineno-17-3"></a>
-<a id="__codelineno-17-4" name="__codelineno-17-4" href="#__codelineno-17-4"></a><span class="c1"># 减少保留大小</span>
-<a id="__codelineno-17-5" name="__codelineno-17-5" href="#__codelineno-17-5"></a><span class="na">log.retention.bytes</span><span class="o">=</span><span class="s">10737418240  # 10GB</span>
-<a id="__codelineno-17-6" name="__codelineno-17-6" href="#__codelineno-17-6"></a>
-<a id="__codelineno-17-7" name="__codelineno-17-7" href="#__codelineno-17-7"></a><span class="c1"># 启用日志压缩</span>
-<a id="__codelineno-17-8" name="__codelineno-17-8" href="#__codelineno-17-8"></a><span class="na">log.cleanup.policy</span><span class="o">=</span><span class="s">compact</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-20-1" name="__codelineno-20-1" href="#__codelineno-20-1"></a><span class="c1"># 减少保留时间</span>
+<a id="__codelineno-20-2" name="__codelineno-20-2" href="#__codelineno-20-2"></a><span class="na">log.retention.hours</span><span class="o">=</span><span class="s">24</span>
+<a id="__codelineno-20-3" name="__codelineno-20-3" href="#__codelineno-20-3"></a>
+<a id="__codelineno-20-4" name="__codelineno-20-4" href="#__codelineno-20-4"></a><span class="c1"># 减少保留大小</span>
+<a id="__codelineno-20-5" name="__codelineno-20-5" href="#__codelineno-20-5"></a><span class="na">log.retention.bytes</span><span class="o">=</span><span class="s">10737418240  # 10GB</span>
+<a id="__codelineno-20-6" name="__codelineno-20-6" href="#__codelineno-20-6"></a>
+<a id="__codelineno-20-7" name="__codelineno-20-7" href="#__codelineno-20-7"></a><span class="c1"># 启用日志压缩</span>
+<a id="__codelineno-20-8" name="__codelineno-20-8" href="#__codelineno-20-8"></a><span class="na">log.cleanup.policy</span><span class="o">=</span><span class="s">compact</span>
 </code></pre></div>
 <h3 id="_11">网络瓶颈<a class="headerlink" href="#_11" title="Permanent link">&para;</a></h3>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-18-1" name="__codelineno-18-1" href="#__codelineno-18-1"></a><span class="c1"># 增加网络线程</span>
-<a id="__codelineno-18-2" name="__codelineno-18-2" href="#__codelineno-18-2"></a><span class="na">num.network.threads</span><span class="o">=</span><span class="s">8</span>
-<a id="__codelineno-18-3" name="__codelineno-18-3" href="#__codelineno-18-3"></a>
-<a id="__codelineno-18-4" name="__codelineno-18-4" href="#__codelineno-18-4"></a><span class="c1"># 增加 socket buffer</span>
-<a id="__codelineno-18-5" name="__codelineno-18-5" href="#__codelineno-18-5"></a><span class="na">socket.send.buffer.bytes</span><span class="o">=</span><span class="s">1048576</span>
-<a id="__codelineno-18-6" name="__codelineno-18-6" href="#__codelineno-18-6"></a><span class="na">socket.receive.buffer.bytes</span><span class="o">=</span><span class="s">1048576</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-21-1" name="__codelineno-21-1" href="#__codelineno-21-1"></a><span class="c1"># 增加网络线程</span>
+<a id="__codelineno-21-2" name="__codelineno-21-2" href="#__codelineno-21-2"></a><span class="na">num.network.threads</span><span class="o">=</span><span class="s">8</span>
+<a id="__codelineno-21-3" name="__codelineno-21-3" href="#__codelineno-21-3"></a>
+<a id="__codelineno-21-4" name="__codelineno-21-4" href="#__codelineno-21-4"></a><span class="c1"># 增加 socket buffer</span>
+<a id="__codelineno-21-5" name="__codelineno-21-5" href="#__codelineno-21-5"></a><span class="na">socket.send.buffer.bytes</span><span class="o">=</span><span class="s">1048576</span>
+<a id="__codelineno-21-6" name="__codelineno-21-6" href="#__codelineno-21-6"></a><span class="na">socket.receive.buffer.bytes</span><span class="o">=</span><span class="s">1048576</span>
 </code></pre></div>
 <h2 id="_12">安全配置<a class="headerlink" href="#_12" title="Permanent link">&para;</a></h2>
 <h3 id="sasl">SASL 认证<a class="headerlink" href="#sasl" title="Permanent link">&para;</a></h3>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-19-1" name="__codelineno-19-1" href="#__codelineno-19-1"></a><span class="c1"># server.properties</span>
-<a id="__codelineno-19-2" name="__codelineno-19-2" href="#__codelineno-19-2"></a><span class="na">listeners</span><span class="o">=</span><span class="s">SASL_PLAINTEXT://0.0.0.0:9092</span>
-<a id="__codelineno-19-3" name="__codelineno-19-3" href="#__codelineno-19-3"></a><span class="na">sasl.enabled.mechanisms</span><span class="o">=</span><span class="s">PLAIN</span>
-<a id="__codelineno-19-4" name="__codelineno-19-4" href="#__codelineno-19-4"></a><span class="na">sasl.mechanism.inter.broker.protocol</span><span class="o">=</span><span class="s">PLAIN</span>
-<a id="__codelineno-19-5" name="__codelineno-19-5" href="#__codelineno-19-5"></a>
-<a id="__codelineno-19-6" name="__codelineno-19-6" href="#__codelineno-19-6"></a><span class="c1"># kafka_server_jaas.conf</span>
-<a id="__codelineno-19-7" name="__codelineno-19-7" href="#__codelineno-19-7"></a><span class="na">KafkaServer</span><span class="w"> </span><span class="s">{</span>
-<a id="__codelineno-19-8" name="__codelineno-19-8" href="#__codelineno-19-8"></a><span class="w">    </span><span class="na">org.apache.kafka.common.security.plain.PlainLoginModule</span><span class="w"> </span><span class="s">required</span>
-<a id="__codelineno-19-9" name="__codelineno-19-9" href="#__codelineno-19-9"></a><span class="w">    </span><span class="na">username</span><span class="o">=</span><span class="s">&quot;admin&quot;</span>
-<a id="__codelineno-19-10" name="__codelineno-19-10" href="#__codelineno-19-10"></a><span class="w">    </span><span class="na">password</span><span class="o">=</span><span class="s">&quot;admin-secret&quot;</span>
-<a id="__codelineno-19-11" name="__codelineno-19-11" href="#__codelineno-19-11"></a><span class="w">    </span><span class="na">user_admin</span><span class="o">=</span><span class="s">&quot;admin-secret&quot;</span>
-<a id="__codelineno-19-12" name="__codelineno-19-12" href="#__codelineno-19-12"></a><span class="w">    </span><span class="na">user_alice</span><span class="o">=</span><span class="s">&quot;alice-secret&quot;;</span>
-<a id="__codelineno-19-13" name="__codelineno-19-13" href="#__codelineno-19-13"></a><span class="na">};</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-22-1" name="__codelineno-22-1" href="#__codelineno-22-1"></a><span class="c1"># server.properties</span>
+<a id="__codelineno-22-2" name="__codelineno-22-2" href="#__codelineno-22-2"></a><span class="na">listeners</span><span class="o">=</span><span class="s">SASL_PLAINTEXT://0.0.0.0:9092</span>
+<a id="__codelineno-22-3" name="__codelineno-22-3" href="#__codelineno-22-3"></a><span class="na">sasl.enabled.mechanisms</span><span class="o">=</span><span class="s">PLAIN</span>
+<a id="__codelineno-22-4" name="__codelineno-22-4" href="#__codelineno-22-4"></a><span class="na">sasl.mechanism.inter.broker.protocol</span><span class="o">=</span><span class="s">PLAIN</span>
+<a id="__codelineno-22-5" name="__codelineno-22-5" href="#__codelineno-22-5"></a>
+<a id="__codelineno-22-6" name="__codelineno-22-6" href="#__codelineno-22-6"></a><span class="c1"># kafka_server_jaas.conf</span>
+<a id="__codelineno-22-7" name="__codelineno-22-7" href="#__codelineno-22-7"></a><span class="na">KafkaServer</span><span class="w"> </span><span class="s">{</span>
+<a id="__codelineno-22-8" name="__codelineno-22-8" href="#__codelineno-22-8"></a><span class="w">    </span><span class="na">org.apache.kafka.common.security.plain.PlainLoginModule</span><span class="w"> </span><span class="s">required</span>
+<a id="__codelineno-22-9" name="__codelineno-22-9" href="#__codelineno-22-9"></a><span class="w">    </span><span class="na">username</span><span class="o">=</span><span class="s">&quot;admin&quot;</span>
+<a id="__codelineno-22-10" name="__codelineno-22-10" href="#__codelineno-22-10"></a><span class="w">    </span><span class="na">password</span><span class="o">=</span><span class="s">&quot;admin-secret&quot;</span>
+<a id="__codelineno-22-11" name="__codelineno-22-11" href="#__codelineno-22-11"></a><span class="w">    </span><span class="na">user_admin</span><span class="o">=</span><span class="s">&quot;admin-secret&quot;</span>
+<a id="__codelineno-22-12" name="__codelineno-22-12" href="#__codelineno-22-12"></a><span class="w">    </span><span class="na">user_alice</span><span class="o">=</span><span class="s">&quot;alice-secret&quot;;</span>
+<a id="__codelineno-22-13" name="__codelineno-22-13" href="#__codelineno-22-13"></a><span class="na">};</span>
 </code></pre></div>
 <h3 id="ssl">SSL 加密<a class="headerlink" href="#ssl" title="Permanent link">&para;</a></h3>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-20-1" name="__codelineno-20-1" href="#__codelineno-20-1"></a><span class="c1"># server.properties（KRaft 部署下 9093 通常留给 CONTROLLER listener，SSL 用 9094）</span>
-<a id="__codelineno-20-2" name="__codelineno-20-2" href="#__codelineno-20-2"></a><span class="na">listeners</span><span class="o">=</span><span class="s">SSL://0.0.0.0:9094</span>
-<a id="__codelineno-20-3" name="__codelineno-20-3" href="#__codelineno-20-3"></a><span class="na">ssl.keystore.location</span><span class="o">=</span><span class="s">/var/ssl/private/kafka.keystore.jks</span>
-<a id="__codelineno-20-4" name="__codelineno-20-4" href="#__codelineno-20-4"></a><span class="na">ssl.keystore.password</span><span class="o">=</span><span class="s">keystore-password</span>
-<a id="__codelineno-20-5" name="__codelineno-20-5" href="#__codelineno-20-5"></a><span class="na">ssl.truststore.location</span><span class="o">=</span><span class="s">/var/ssl/private/kafka.truststore.jks</span>
-<a id="__codelineno-20-6" name="__codelineno-20-6" href="#__codelineno-20-6"></a><span class="na">ssl.truststore.password</span><span class="o">=</span><span class="s">truststore-password</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-23-1" name="__codelineno-23-1" href="#__codelineno-23-1"></a><span class="c1"># server.properties（KRaft 部署下 9093 通常留给 CONTROLLER listener，SSL 用 9094）</span>
+<a id="__codelineno-23-2" name="__codelineno-23-2" href="#__codelineno-23-2"></a><span class="na">listeners</span><span class="o">=</span><span class="s">SSL://0.0.0.0:9094</span>
+<a id="__codelineno-23-3" name="__codelineno-23-3" href="#__codelineno-23-3"></a><span class="na">ssl.keystore.location</span><span class="o">=</span><span class="s">/var/ssl/private/kafka.keystore.jks</span>
+<a id="__codelineno-23-4" name="__codelineno-23-4" href="#__codelineno-23-4"></a><span class="na">ssl.keystore.password</span><span class="o">=</span><span class="s">keystore-password</span>
+<a id="__codelineno-23-5" name="__codelineno-23-5" href="#__codelineno-23-5"></a><span class="na">ssl.truststore.location</span><span class="o">=</span><span class="s">/var/ssl/private/kafka.truststore.jks</span>
+<a id="__codelineno-23-6" name="__codelineno-23-6" href="#__codelineno-23-6"></a><span class="na">ssl.truststore.password</span><span class="o">=</span><span class="s">truststore-password</span>
 </code></pre></div>
 <h3 id="acl">ACL 授权<a class="headerlink" href="#acl" title="Permanent link">&para;</a></h3>
 <p>Kafka 4.x 使用 <code>--bootstrap-server</code>（ZooKeeper 授权方式已随 ZK 一起移除），
 需要 broker 配置了 <code>KafkaAuthorizer</code>（如 <code>org.apache.kafka.metadata.authorizer.StandardAuthorizer</code>）：</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-21-1" name="__codelineno-21-1" href="#__codelineno-21-1"></a><span class="c1"># server.properties</span>
-<a id="__codelineno-21-2" name="__codelineno-21-2" href="#__codelineno-21-2"></a><span class="na">authorizer.class.name</span><span class="o">=</span><span class="s">org.apache.kafka.metadata.authorizer.StandardAuthorizer</span>
-<a id="__codelineno-21-3" name="__codelineno-21-3" href="#__codelineno-21-3"></a><span class="na">super.users</span><span class="o">=</span><span class="s">User:admin</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-24-1" name="__codelineno-24-1" href="#__codelineno-24-1"></a><span class="c1"># server.properties</span>
+<a id="__codelineno-24-2" name="__codelineno-24-2" href="#__codelineno-24-2"></a><span class="na">authorizer.class.name</span><span class="o">=</span><span class="s">org.apache.kafka.metadata.authorizer.StandardAuthorizer</span>
+<a id="__codelineno-24-3" name="__codelineno-24-3" href="#__codelineno-24-3"></a><span class="na">super.users</span><span class="o">=</span><span class="s">User:admin</span>
 </code></pre></div>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-22-1" name="__codelineno-22-1" href="#__codelineno-22-1"></a><span class="c1"># 给用户授权</span>
-<a id="__codelineno-22-2" name="__codelineno-22-2" href="#__codelineno-22-2"></a>kafka-acls.sh<span class="w"> </span>--bootstrap-server<span class="w"> </span>broker1:9092<span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-22-3" name="__codelineno-22-3" href="#__codelineno-22-3"></a><span class="w">  </span>--add<span class="w"> </span>--allow-principal<span class="w"> </span>User:alice<span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-22-4" name="__codelineno-22-4" href="#__codelineno-22-4"></a><span class="w">  </span>--operation<span class="w"> </span>Read<span class="w"> </span>--operation<span class="w"> </span>Write<span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-22-5" name="__codelineno-22-5" href="#__codelineno-22-5"></a><span class="w">  </span>--topic<span class="w"> </span>orders
-<a id="__codelineno-22-6" name="__codelineno-22-6" href="#__codelineno-22-6"></a>
-<a id="__codelineno-22-7" name="__codelineno-22-7" href="#__codelineno-22-7"></a><span class="c1"># 查看授权</span>
-<a id="__codelineno-22-8" name="__codelineno-22-8" href="#__codelineno-22-8"></a>kafka-acls.sh<span class="w"> </span>--bootstrap-server<span class="w"> </span>broker1:9092<span class="w"> </span>--list<span class="w"> </span>--topic<span class="w"> </span>orders
+<div class="highlight"><pre><span></span><code><a id="__codelineno-25-1" name="__codelineno-25-1" href="#__codelineno-25-1"></a><span class="c1"># 给用户授权</span>
+<a id="__codelineno-25-2" name="__codelineno-25-2" href="#__codelineno-25-2"></a>kafka-acls.sh<span class="w"> </span>--bootstrap-server<span class="w"> </span>broker1:9092<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-25-3" name="__codelineno-25-3" href="#__codelineno-25-3"></a><span class="w">  </span>--add<span class="w"> </span>--allow-principal<span class="w"> </span>User:alice<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-25-4" name="__codelineno-25-4" href="#__codelineno-25-4"></a><span class="w">  </span>--operation<span class="w"> </span>Read<span class="w"> </span>--operation<span class="w"> </span>Write<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-25-5" name="__codelineno-25-5" href="#__codelineno-25-5"></a><span class="w">  </span>--topic<span class="w"> </span>orders
+<a id="__codelineno-25-6" name="__codelineno-25-6" href="#__codelineno-25-6"></a>
+<a id="__codelineno-25-7" name="__codelineno-25-7" href="#__codelineno-25-7"></a><span class="c1"># 查看授权</span>
+<a id="__codelineno-25-8" name="__codelineno-25-8" href="#__codelineno-25-8"></a>kafka-acls.sh<span class="w"> </span>--bootstrap-server<span class="w"> </span>broker1:9092<span class="w"> </span>--list<span class="w"> </span>--topic<span class="w"> </span>orders
 </code></pre></div>
 <h2 id="_13">备份与恢复<a class="headerlink" href="#_13" title="Permanent link">&para;</a></h2>
 <h3 id="_14">备份<a class="headerlink" href="#_14" title="Permanent link">&para;</a></h3>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-23-1" name="__codelineno-23-1" href="#__codelineno-23-1"></a><span class="c1"># 使用 MirrorMaker 2 跨集群复制（注意：MirrorMaker 1 已在 Kafka 4.0 移除）</span>
-<a id="__codelineno-23-2" name="__codelineno-23-2" href="#__codelineno-23-2"></a>mm2.properties:
-<a id="__codelineno-23-3" name="__codelineno-23-3" href="#__codelineno-23-3"></a>A-&gt;B.enabled<span class="o">=</span><span class="nb">true</span>
-<a id="__codelineno-23-4" name="__codelineno-23-4" href="#__codelineno-23-4"></a>A-&gt;B.topics<span class="o">=</span>.*
-<a id="__codelineno-23-5" name="__codelineno-23-5" href="#__codelineno-23-5"></a>
-<a id="__codelineno-23-6" name="__codelineno-23-6" href="#__codelineno-23-6"></a><span class="c1"># 使用 kafka-connect 导出到文件系统</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-26-1" name="__codelineno-26-1" href="#__codelineno-26-1"></a><span class="c1"># 使用 MirrorMaker 2 跨集群复制（注意：MirrorMaker 1 已在 Kafka 4.0 移除）</span>
+<a id="__codelineno-26-2" name="__codelineno-26-2" href="#__codelineno-26-2"></a>mm2.properties:
+<a id="__codelineno-26-3" name="__codelineno-26-3" href="#__codelineno-26-3"></a>A-&gt;B.enabled<span class="o">=</span><span class="nb">true</span>
+<a id="__codelineno-26-4" name="__codelineno-26-4" href="#__codelineno-26-4"></a>A-&gt;B.topics<span class="o">=</span>.*
+<a id="__codelineno-26-5" name="__codelineno-26-5" href="#__codelineno-26-5"></a>
+<a id="__codelineno-26-6" name="__codelineno-26-6" href="#__codelineno-26-6"></a><span class="c1"># 使用 kafka-connect 导出到文件系统</span>
 </code></pre></div>
 <h3 id="_15">恢复<a class="headerlink" href="#_15" title="Permanent link">&para;</a></h3>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-24-1" name="__codelineno-24-1" href="#__codelineno-24-1"></a><span class="c1"># 从备份导入</span>
-<a id="__codelineno-24-2" name="__codelineno-24-2" href="#__codelineno-24-2"></a>kafka-console-producer.sh<span class="w"> </span>--topic<span class="w"> </span>orders<span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-24-3" name="__codelineno-24-3" href="#__codelineno-24-3"></a><span class="w">  </span>--bootstrap-server<span class="w"> </span>broker1:9092<span class="w"> </span>&lt;<span class="w"> </span>backup.txt
+<div class="highlight"><pre><span></span><code><a id="__codelineno-27-1" name="__codelineno-27-1" href="#__codelineno-27-1"></a><span class="c1"># 从备份导入</span>
+<a id="__codelineno-27-2" name="__codelineno-27-2" href="#__codelineno-27-2"></a>kafka-console-producer.sh<span class="w"> </span>--topic<span class="w"> </span>orders<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-27-3" name="__codelineno-27-3" href="#__codelineno-27-3"></a><span class="w">  </span>--bootstrap-server<span class="w"> </span>broker1:9092<span class="w"> </span>&lt;<span class="w"> </span>backup.txt
 </code></pre></div>
 <h2 id="_16">版本升级<a class="headerlink" href="#_16" title="Permanent link">&para;</a></h2>
 <h3 id="kafka-4x-kraft">Kafka 4.x 滚动升级（KRaft）<a class="headerlink" href="#kafka-4x-kraft" title="Permanent link">&para;</a></h3>
@@ -1493,13 +1591,13 @@
 <li>等待 ISR 恢复、<code>UnderReplicatedPartitions == 0</code></li>
 <li>所有节点升级完成后，finalize 升级（提升 metadata.version）：</li>
 </ol>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-25-1" name="__codelineno-25-1" href="#__codelineno-25-1"></a><span class="c1"># 查看当前特性 / 元数据版本</span>
-<a id="__codelineno-25-2" name="__codelineno-25-2" href="#__codelineno-25-2"></a>kafka-features.sh<span class="w"> </span>--bootstrap-server<span class="w"> </span>broker1:9092<span class="w"> </span>describe
-<a id="__codelineno-25-3" name="__codelineno-25-3" href="#__codelineno-25-3"></a>
-<a id="__codelineno-25-4" name="__codelineno-25-4" href="#__codelineno-25-4"></a><span class="c1"># finalize 升级（KRaft 时代用 metadata.version 取代了旧的</span>
-<a id="__codelineno-25-5" name="__codelineno-25-5" href="#__codelineno-25-5"></a><span class="c1"># inter.broker.protocol.version，后者已在 4.0 移除）</span>
-<a id="__codelineno-25-6" name="__codelineno-25-6" href="#__codelineno-25-6"></a>kafka-features.sh<span class="w"> </span>--bootstrap-server<span class="w"> </span>broker1:9092<span class="w"> </span>upgrade<span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-25-7" name="__codelineno-25-7" href="#__codelineno-25-7"></a><span class="w">  </span>--release-version<span class="w"> </span><span class="m">4</span>.2
+<div class="highlight"><pre><span></span><code><a id="__codelineno-28-1" name="__codelineno-28-1" href="#__codelineno-28-1"></a><span class="c1"># 查看当前特性 / 元数据版本</span>
+<a id="__codelineno-28-2" name="__codelineno-28-2" href="#__codelineno-28-2"></a>kafka-features.sh<span class="w"> </span>--bootstrap-server<span class="w"> </span>broker1:9092<span class="w"> </span>describe
+<a id="__codelineno-28-3" name="__codelineno-28-3" href="#__codelineno-28-3"></a>
+<a id="__codelineno-28-4" name="__codelineno-28-4" href="#__codelineno-28-4"></a><span class="c1"># finalize 升级（KRaft 时代用 metadata.version 取代了旧的</span>
+<a id="__codelineno-28-5" name="__codelineno-28-5" href="#__codelineno-28-5"></a><span class="c1"># inter.broker.protocol.version，后者已在 4.0 移除）</span>
+<a id="__codelineno-28-6" name="__codelineno-28-6" href="#__codelineno-28-6"></a>kafka-features.sh<span class="w"> </span>--bootstrap-server<span class="w"> </span>broker1:9092<span class="w"> </span>upgrade<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-28-7" name="__codelineno-28-7" href="#__codelineno-28-7"></a><span class="w">  </span>--release-version<span class="w"> </span><span class="m">4</span>.2
 </code></pre></div>
 <blockquote>
 <p>注意：finalize 之前集群以旧 metadata.version 运行；finalize 之后
