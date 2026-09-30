@@ -1262,18 +1262,20 @@
 <a id="__codelineno-1-26" name="__codelineno-1-26" href="#__codelineno-1-26"></a><span class="p">}</span>
 </code></pre></div>
 <p><strong>⚠️ 两个易错点</strong>：</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="c1">// 1. 枚举用于 switch 时，case 里不能带枚举类名</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="c1">// 1. 枚举用于 switch 时，case 常量的写法与版本有关</span>
 <a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="k">switch</span><span class="w"> </span><span class="p">(</span><span class="n">today</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
-<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="w">    </span><span class="k">case</span><span class="w"> </span><span class="n">MONDAY</span><span class="p">:</span><span class="w">    </span><span class="c1">// ✅</span>
-<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="w">    </span><span class="c1">// case DayOfWeek.MONDAY:  // ❌ 编译错误</span>
+<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="w">    </span><span class="k">case</span><span class="w"> </span><span class="n">MONDAY</span><span class="p">:</span><span class="w">            </span><span class="c1">// ✅ 所有版本都支持简单名</span>
+<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="w">    </span><span class="k">case</span><span class="w"> </span><span class="n">DayOfWeek</span><span class="p">.</span><span class="na">MONDAY</span><span class="p">:</span><span class="w">  </span><span class="c1">// ✅ Java 21+（JEP 441）支持限定名；Java 8/11/17 编译错误</span>
 <a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a><span class="p">}</span>
-<a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a>
-<a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a><span class="c1">// 2. valueOf 找不到时抛异常（不是返回 null）</span>
-<a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a><span class="n">Status</span><span class="w"> </span><span class="n">s</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">Status</span><span class="p">.</span><span class="na">valueOf</span><span class="p">(</span><span class="s">&quot;PENDING&quot;</span><span class="p">);</span><span class="w">      </span><span class="c1">// ✅</span>
-<a id="__codelineno-2-9" name="__codelineno-2-9" href="#__codelineno-2-9"></a><span class="c1">// Status x = Status.valueOf(&quot;UNKNOWN&quot;);   // ❌ IllegalArgumentException</span>
-<a id="__codelineno-2-10" name="__codelineno-2-10" href="#__codelineno-2-10"></a><span class="c1">// 安全写法：先遍历 values() 或用 try-catch</span>
-<a id="__codelineno-2-11" name="__codelineno-2-11" href="#__codelineno-2-11"></a>
-<a id="__codelineno-2-12" name="__codelineno-2-12" href="#__codelineno-2-12"></a><span class="c1">// 3. name() 不可重写，toString() 可以重写——需要自定义展示文本时重写 toString()</span>
+<a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a><span class="c1">// 说明：选择器类型是枚举本身时，Java 21 之前只能用简单名；</span>
+<a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a><span class="c1">// Java 21 起简单名和限定名都可以。当选择器是多个枚举的公共父类型时，必须用限定名。</span>
+<a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a>
+<a id="__codelineno-2-9" name="__codelineno-2-9" href="#__codelineno-2-9"></a><span class="c1">// 2. valueOf 找不到时抛异常（不是返回 null）</span>
+<a id="__codelineno-2-10" name="__codelineno-2-10" href="#__codelineno-2-10"></a><span class="n">Status</span><span class="w"> </span><span class="n">s</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">Status</span><span class="p">.</span><span class="na">valueOf</span><span class="p">(</span><span class="s">&quot;PENDING&quot;</span><span class="p">);</span><span class="w">      </span><span class="c1">// ✅</span>
+<a id="__codelineno-2-11" name="__codelineno-2-11" href="#__codelineno-2-11"></a><span class="c1">// Status x = Status.valueOf(&quot;UNKNOWN&quot;);   // ❌ IllegalArgumentException</span>
+<a id="__codelineno-2-12" name="__codelineno-2-12" href="#__codelineno-2-12"></a><span class="c1">// 安全写法：先遍历 values() 或用 try-catch</span>
+<a id="__codelineno-2-13" name="__codelineno-2-13" href="#__codelineno-2-13"></a>
+<a id="__codelineno-2-14" name="__codelineno-2-14" href="#__codelineno-2-14"></a><span class="c1">// 3. name() 不可重写，toString() 可以重写——需要自定义展示文本时重写 toString()</span>
 </code></pre></div>
 <h3 id="23">2.3 常用方法<a class="headerlink" href="#23" title="Permanent link">&para;</a></h3>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="kd">public</span><span class="w"> </span><span class="kd">enum</span><span class="w"> </span><span class="n">Status</span><span class="w"> </span><span class="p">{</span>

@@ -1961,14 +1961,19 @@
 <h3 id="54">5.4 配置优先级 ⭐<a class="headerlink" href="#54" title="Permanent link">&para;</a></h3>
 <p>同一个配置项出现在多处时，<strong>从高到低</strong>（高的覆盖低的）：</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-16-1" name="__codelineno-16-1" href="#__codelineno-16-1"></a>1. 命令行参数            --server.port=9090          ← 最高
-<a id="__codelineno-16-2" name="__codelineno-16-2" href="#__codelineno-16-2"></a>2. Java 系统属性          -Dserver.port=9090
+<a id="__codelineno-16-2" name="__codelineno-16-2" href="#__codelineno-16-2"></a>2. Java 系统属性          -Dserver.port=9090          （高于 OS 环境变量）
 <a id="__codelineno-16-3" name="__codelineno-16-3" href="#__codelineno-16-3"></a>3. OS 环境变量            SERVER_PORT=9090
-<a id="__codelineno-16-4" name="__codelineno-16-4" href="#__codelineno-16-4"></a>4. application-{profile}.yml（jar 包外）
-<a id="__codelineno-16-5" name="__codelineno-16-5" href="#__codelineno-16-5"></a>5. application-{profile}.yml（jar 包内）
-<a id="__codelineno-16-6" name="__codelineno-16-6" href="#__codelineno-16-6"></a>6. application.yml（jar 包外，如 ./config/）
-<a id="__codelineno-16-7" name="__codelineno-16-7" href="#__codelineno-16-7"></a>7. application.yml（jar 包内 classpath）              ← 最低
+<a id="__codelineno-16-4" name="__codelineno-16-4" href="#__codelineno-16-4"></a>4. jar 包外 application-{profile}.yml
+<a id="__codelineno-16-5" name="__codelineno-16-5" href="#__codelineno-16-5"></a>5. jar 包外 application.yml（如 ./config/）
+<a id="__codelineno-16-6" name="__codelineno-16-6" href="#__codelineno-16-6"></a>6. jar 包内 application-{profile}.yml
+<a id="__codelineno-16-7" name="__codelineno-16-7" href="#__codelineno-16-7"></a>7. jar 包内 application.yml（classpath）              ← 最低
 </code></pre></div>
-<p><strong>外部配置位置</strong>（jar 外，前覆盖后）：<code>./config/</code> → <code>./config/*/</code> → <code>./</code> → <code>classpath:/config/</code> → <code>classpath:/</code></p>
+<blockquote>
+<p>⚠️ 两个易错点（按 Spring Boot 官方 Config Data 顺序）：
+① <strong>jar 外的通用配置高于 jar 内的 profile 配置</strong>——外部文件整体优先于打包进 jar 的文件，profile 后缀只在同一位置内部提升优先级；
+② <strong>系统属性高于环境变量</strong>，不要记反。</p>
+</blockquote>
+<p><strong>外部配置位置</strong>（jar 外，前覆盖后）：<code>./config/*/</code> → <code>./config/</code> → <code>./</code> → <code>classpath:/config/</code> → <code>classpath:/</code></p>
 <p>💡 典型用法：jar 里带默认配置，运维在 <code>./config/application.yml</code> 覆盖，发布时用命令行参数做最终调整——<strong>三层都不需要重新打包</strong>。</p>
 <hr />
 <h2 id="6-profile">6. 多环境 Profile<a class="headerlink" href="#6-profile" title="Permanent link">&para;</a></h2>
@@ -2502,7 +2507,7 @@
 <li><strong>环境差异交给 Profile 与外部配置</strong>，不要把密码写死在 jar 里</li>
 <li><strong>Controller 测试用 <code>@WebMvcTest</code></strong>，比全容器测试快一个量级</li>
 <li><strong>Actuator 只暴露必要端点</strong>，生产环境配合 Security 保护</li>
-<li><strong>升级到 SpringBoot 3 前先全局替换 javax → jakarta</strong>，确认 JDK 17</li>
+<li><strong>升级到 SpringBoot 3 时按清单迁移 Java EE 的 javax → jakarta</strong>（<code>javax.servlet</code>、<code>javax.persistence</code>、<code>javax.validation</code>、<code>javax.annotation</code> 等），⚠️ <strong>不要文本级全局替换</strong>：<code>javax.sql</code>、<code>javax.crypto</code>、<code>javax.net</code> 等 Java SE 包不迁移，全局替换会破坏代码。确认 JDK 17+</li>
 </ol>
 <hr />
 <p>🎉 <strong>恭喜完成 SpringBoot 学习！继续学习 <a href="../06_SpringBoot%20%E8%BF%9B%E9%98%B6/">SpringBoot 进阶</a>。完整教程目录见 <a href="../../">顶层 README</a>。</strong></p>

@@ -1225,8 +1225,8 @@
 <h2 id="2">2. 元注解<a class="headerlink" href="#2" title="Permanent link">&para;</a></h2>
 <p><strong>知识点</strong>：</p>
 <ul>
-<li>元注解 = 定义注解的注解，四个：@Target（贴哪）、@Retention（活多久）、@Documented、@Inherited</li>
-<li>⭐ Retention 三档：SOURCE（编译器看）/ CLASS（默认）/ RUNTIME（反射可读，自定义注解必选）</li>
+<li>元注解 = 定义注解的注解，五个：@Target（贴哪）、@Retention（活多久）、@Documented、@Inherited、@Repeatable</li>
+<li>⭐ Retention 三档：SOURCE（编译器看）/ CLASS（默认）/ RUNTIME（反射可读）。⚠️ Retention 决定的是注解在哪个阶段可见，不是“只能被谁处理”——编译期注解处理器（APT）可以处理任何 Retention 的注解，RUNTIME 只是运行时反射可读的必要条件</li>
 </ul>
 <h3 id="21">2.1 元注解类型<a class="headerlink" href="#21" title="Permanent link">&para;</a></h3>
 <p>元注解是用于<strong>定义注解的注解</strong>。</p>
@@ -1268,13 +1268,19 @@
 <a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a><span class="nd">@interface</span><span class="w"> </span><span class="n">MyAnnotation</span><span class="w"> </span><span class="p">{</span>
 <a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a><span class="p">}</span>
 <a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a>
-<a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a><span class="c1">// 可用目标</span>
-<a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a><span class="n">ElementType</span><span class="p">.</span><span class="na">TYPE</span><span class="w">           </span><span class="c1">// 类、接口、枚举</span>
+<a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a><span class="c1">// 可用目标（Java 21 全部 12 个）</span>
+<a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a><span class="n">ElementType</span><span class="p">.</span><span class="na">TYPE</span><span class="w">           </span><span class="c1">// 类、接口、枚举、注解、record</span>
 <a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a><span class="n">ElementType</span><span class="p">.</span><span class="na">METHOD</span><span class="w">         </span><span class="c1">// 方法</span>
-<a id="__codelineno-1-11" name="__codelineno-1-11" href="#__codelineno-1-11"></a><span class="n">ElementType</span><span class="p">.</span><span class="na">FIELD</span><span class="w">          </span><span class="c1">// 字段</span>
+<a id="__codelineno-1-11" name="__codelineno-1-11" href="#__codelineno-1-11"></a><span class="n">ElementType</span><span class="p">.</span><span class="na">FIELD</span><span class="w">          </span><span class="c1">// 字段（含枚举常量）</span>
 <a id="__codelineno-1-12" name="__codelineno-1-12" href="#__codelineno-1-12"></a><span class="n">ElementType</span><span class="p">.</span><span class="na">PARAMETER</span><span class="w">      </span><span class="c1">// 参数</span>
 <a id="__codelineno-1-13" name="__codelineno-1-13" href="#__codelineno-1-13"></a><span class="n">ElementType</span><span class="p">.</span><span class="na">CONSTRUCTOR</span><span class="w">    </span><span class="c1">// 构造方法</span>
 <a id="__codelineno-1-14" name="__codelineno-1-14" href="#__codelineno-1-14"></a><span class="n">ElementType</span><span class="p">.</span><span class="na">LOCAL_VARIABLE</span><span class="w"> </span><span class="c1">// 局部变量</span>
+<a id="__codelineno-1-15" name="__codelineno-1-15" href="#__codelineno-1-15"></a><span class="n">ElementType</span><span class="p">.</span><span class="na">ANNOTATION_TYPE</span><span class="w"> </span><span class="c1">// 注解类型（Java 8）</span>
+<a id="__codelineno-1-16" name="__codelineno-1-16" href="#__codelineno-1-16"></a><span class="n">ElementType</span><span class="p">.</span><span class="na">PACKAGE</span><span class="w">        </span><span class="c1">// 包（Java 8）</span>
+<a id="__codelineno-1-17" name="__codelineno-1-17" href="#__codelineno-1-17"></a><span class="n">ElementType</span><span class="p">.</span><span class="na">TYPE_PARAMETER</span><span class="w"> </span><span class="c1">// 类型参数 &lt;T&gt;（Java 8）</span>
+<a id="__codelineno-1-18" name="__codelineno-1-18" href="#__codelineno-1-18"></a><span class="n">ElementType</span><span class="p">.</span><span class="na">TYPE_USE</span><span class="w">       </span><span class="c1">// 类型使用位置（Java 8）</span>
+<a id="__codelineno-1-19" name="__codelineno-1-19" href="#__codelineno-1-19"></a><span class="n">ElementType</span><span class="p">.</span><span class="na">MODULE</span><span class="w">         </span><span class="c1">// 模块（Java 9）</span>
+<a id="__codelineno-1-20" name="__codelineno-1-20" href="#__codelineno-1-20"></a><span class="n">ElementType</span><span class="p">.</span><span class="na">RECORD_COMPONENT</span><span class="w"> </span><span class="c1">// record 组件（Java 16）</span>
 </code></pre></div>
 <h3 id="23-retention">2.3 @Retention<a class="headerlink" href="#23-retention" title="Permanent link">&para;</a></h3>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="c1">// 保留策略</span>
