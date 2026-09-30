@@ -1389,6 +1389,124 @@
 </tr>
 </tbody>
 </table>
+<hr />
+<h1 id="2026-09-29-v22">🔧 2026-09-29 全量复查与错误修复（v2.2）<a class="headerlink" href="#2026-09-29-v22" title="Permanent link">&para;</a></h1>
+<h2 id="_18">修复的错误（均经实机运行验证）<a class="headerlink" href="#_18" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>文件</th>
+<th>问题</th>
+<th>修复</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>05-高级特性/01-迭代器与生成器.md</code></td>
+<td>练习答案 <code>my_zip</code> 把 <code>next()</code> 放在生成器表达式内再外层捕获 StopIteration——PEP 479 会将其转为 <code>RuntimeError</code>，示例直接崩溃；且空参数时死循环</td>
+<td>改为普通循环逐个 <code>next()</code> 就地捕获；补 <code>if not iterables: return</code> 边界；附 PEP 479 警示说明</td>
+</tr>
+<tr>
+<td><code>03-函数与模块/05-标准库简介.md</code></td>
+<td><code>math.round(3.6)</code> 不存在（round 是内置函数）；<code>dt1</code>/<code>dt2</code> 未定义</td>
+<td>改为 <code>round(3.6)</code> 并注明；补定义 <code>later</code> 变量</td>
+</tr>
+<tr>
+<td><code>04-面向对象/03-特殊方法.md</code></td>
+<td><code>__setattr__</code> 示例写 <code>self._data[name] = value</code>，<code>__init__</code> 中 <code>self._data = {}</code> 触发 <code>__getattr__</code> 返回字符串后崩溃（TypeError）</td>
+<td><code>__init__</code> 与 <code>__setattr__</code> 均改用 <code>self.__dict__</code>，并加注释说明递归陷阱</td>
+</tr>
+<tr>
+<td><code>05-高级特性/02-装饰器.md</code></td>
+<td><code>type_check</code> 用 <code>enumerate(annotations.items())</code> 索引对位：关键字参数完全绕过检查</td>
+<td>改用 <code>inspect.signature().bind()</code> 绑定实际参数后逐项检查</td>
+</tr>
+<tr>
+<td><code>05-高级特性/02-装饰器.md</code></td>
+<td><code>good_decorator</code> 的 <code>return</code> 后有死代码 <code>print("after")</code></td>
+<td>先存 <code>result</code> 再打印后返回</td>
+</tr>
+<tr>
+<td><code>03-函数与模块/02-高级参数.md</code></td>
+<td><code>timer</code> 装饰器在函数内 <code>import time</code>，被装饰的 <code>slow_function</code> 中 <code>time</code> 未定义（NameError）</td>
+<td>统一改为顶部 <code>import time</code></td>
+</tr>
+<tr>
+<td><code>02-基础语法/06-控制流.md</code></td>
+<td><code>find_item</code> 的 <code>return</code> 后有死代码 <code>break</code>；计算器示例 <code>eval</code> 无安全警示</td>
+<td>删除死代码；补 eval 风险与 <code>ast.literal_eval</code> 提示</td>
+</tr>
+<tr>
+<td><code>02-基础语法/07-类型提示.md</code></td>
+<td>3 处误用小写 <code>any</code>（应为 <code>typing.Any</code>）；VS Code 配置使用已废弃的 <code>python.linting.*</code></td>
+<td>改为 <code>Any</code> 并补导入；更新为 <code>python.analysis.typeCheckingMode</code> + Mypy 扩展说明</td>
+</tr>
+<tr>
+<td><code>02-基础语法/02-运算符.md</code></td>
+<td>小整数缓存断言 <code>257 is 257</code> 为 False——同一编译单元内实测为 True，表述不准确</td>
+<td>改为"范围外结果依赖实现细节，不要用 is 比较数值"</td>
+</tr>
+<tr>
+<td><code>04-面向对象/04-属性与描述符.md</code></td>
+<td><code>ValidatedString</code> 描述符使用未定义的 <code>self._name</code></td>
+<td>补 <code>__set_name__</code>（3.6+）自动获取属性名</td>
+</tr>
+<tr>
+<td><code>04-面向对象/02-继承与多态.md</code></td>
+<td><code>Shape.area</code> 基类 <code>pass</code> 返回 None，实例化基类后格式化输出崩溃</td>
+<td>改为 <code>raise NotImplementedError</code>（两处）</td>
+</tr>
+<tr>
+<td><code>05-高级特性/06-并发编程.md</code></td>
+<td>进程通信示例的 <code>Queue</code> 用法无 <code>if __name__ == "__main__"</code> 保护（与本章自己的警告矛盾）；导入了未使用的 <code>Pipe</code></td>
+<td>补保护块；删除多余导入</td>
+</tr>
+<tr>
+<td><code>06-实践项目/02-网络请求.md</code></td>
+<td>文件上传示例 <code>open()</code> 不用 with，文件句柄泄漏</td>
+<td>改为 with 上下文</td>
+</tr>
+<tr>
+<td><code>06-实践项目/03-小型项目.md</code></td>
+<td>博客项目 <code>Dict</code> 未在 typing 导入列表中</td>
+<td>补导入</td>
+</tr>
+<tr>
+<td><code>05-高级特性/03-上下文管理器.md</code></td>
+<td><code>nullcontext</code> 示例引用未定义的 <code>temporary_file()</code></td>
+<td>改为引用同章已定义的 <code>temporary_directory()</code></td>
+</tr>
+<tr>
+<td><code>02-基础语法/04-列表与元组.md</code></td>
+<td>拷贝示例注释格式混乱（行内长注释、<code>#(引用)</code>）</td>
+<td>重写为规范注释块</td>
+</tr>
+</tbody>
+</table>
+<h2 id="_19">验证方式<a class="headerlink" href="#_19" title="Permanent link">&para;</a></h2>
+<ul>
+<li>所有修复均在 Python 3.12.3 实机运行验证（含崩溃复现 → 修复 → 通过的完整流程）</li>
+<li>修复后 <code>my_zip</code>、<code>type_check</code>、<code>__setattr__</code> 示例均通过正反用例测试</li>
+</ul>
+<h2 id="_20">当前规模<a class="headerlink" href="#_20" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>指标</th>
+<th>数值</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Markdown 文件</td>
+<td>43 个</td>
+</tr>
+<tr>
+<td>总行数</td>
+<td>~16,800 行</td>
+</tr>
+</tbody>
+</table>
 
 
 

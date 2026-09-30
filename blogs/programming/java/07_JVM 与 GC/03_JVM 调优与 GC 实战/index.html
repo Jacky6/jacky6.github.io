@@ -1041,13 +1041,41 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#8" class="md-nav__link">
+  <a href="#8-dockerk8s-jvm" class="md-nav__link">
     <span class="md-ellipsis">
       
-        8. 高频面试题 ⭐
+        8. 容器（Docker/K8s）中的 JVM ⭐
       
     </span>
   </a>
+  
+    <nav class="md-nav" aria-label="8. 容器（Docker/K8s）中的 JVM ⭐">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#81" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8.1 关键参数
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#82-oomkilled" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8.2 经典事故：容器 OOMKilled
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
   
 </li>
       
@@ -1055,12 +1083,23 @@
   <a href="#9" class="md-nav__link">
     <span class="md-ellipsis">
       
-        9. 练习题
+        9. 高频面试题 ⭐
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="9. 练习题">
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#10" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10. 练习题
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="10. 练习题">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
@@ -1080,10 +1119,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#10" class="md-nav__link">
+  <a href="#11" class="md-nav__link">
     <span class="md-ellipsis">
       
-        10. 本章小结
+        11. 本章小结
       
     </span>
   </a>
@@ -1281,8 +1320,11 @@
 <p>ZGC（JDK 15 转正）目标：<strong>停顿 ≤1ms，且不随堆大小增长</strong>——TB 级堆也一样。JDK 16 起实际做到亚毫秒。</p>
 <h3 id="41">4.1 着色指针与读屏障 ⭐<a class="headerlink" href="#41" title="Permanent link">&para;</a></h3>
 <p>传统 GC 要在 STW 里标记和移动对象；ZGC 把状态信息塞进指针本身：</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>64 位指针：[ 元数据位 Marked0/Marked1/Remapped/Finalizable ][──── 42 位地址（4TB）────]
+<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>64 位指针：[ 元数据位 Marked0/Marked1/Remapped/Finalizable ][──── 44 位地址（16TB，JDK 13 起）────]
 </code></pre></div>
+<blockquote>
+<p>📌 地址空间演进：JDK 11/12 为 42 位（4TB）；JDK 13 起扩到 44 位（16TB）。JDK 21 实测 <code>-Xmx16t</code> 可正常启动。</p>
+</blockquote>
 <ul>
 <li><strong>着色指针（Colored Pointers）</strong>：对象标记状态直接写在指针高位 bit，标记对象只需改指针颜色，不用改对象头；</li>
 <li><strong>读屏障（Load Barrier）</strong>：每次从堆读引用时插一小段检查代码，发现指针"颜色不对"（对象已被并发移动）就顺手修正——把移动对象的开销摊到应用线程的每次读取上；</li>
@@ -1438,7 +1480,59 @@
 <li>一次只改一个变量，压测对比；上线灰度观察一天再全量。</li>
 </ol>
 <hr />
-<h2 id="8">8. 高频面试题 ⭐<a class="headerlink" href="#8" title="Permanent link">&para;</a></h2>
+<h2 id="8-dockerk8s-jvm">8. 容器（Docker/K8s）中的 JVM ⭐<a class="headerlink" href="#8-dockerk8s-jvm" title="Permanent link">&para;</a></h2>
+<p><strong>知识点</strong>：</p>
+<ul>
+<li>⭐ JDK 10+ 默认开启容器感知（<code>-XX:+UseContainerSupport</code>）：JVM 能看到容器的内存/CPU 限制，而不是宿主机的</li>
+<li>⭐ 堆上限用 <code>-XX:MaxRAMPercentage</code>（百分比）优于写死 <code>-Xmx</code>，同一镜像可适配不同规格</li>
+<li>⚠️ 容器内存 ≠ 堆内存：堆 + Metaspace + 线程栈 + CodeCache + DirectMemory + GC 开销都要装进容器限额，堆占比一般留 50%~75%</li>
+</ul>
+<h3 id="81">8.1 关键参数<a class="headerlink" href="#81" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a><span class="c1"># 容器限额 2GB 的场景</span>
+<a id="__codelineno-13-2" name="__codelineno-13-2" href="#__codelineno-13-2"></a>java<span class="w"> </span>-XX:MaxRAMPercentage<span class="o">=</span><span class="m">70</span>.0<span class="w"> </span><span class="se">\ </span><span class="w">       </span><span class="c1"># 堆 = 2GB × 70% ≈ 1.4GB</span>
+<a id="__codelineno-13-3" name="__codelineno-13-3" href="#__codelineno-13-3"></a><span class="w">     </span>-XX:InitialRAMPercentage<span class="o">=</span><span class="m">70</span>.0<span class="w"> </span><span class="se">\ </span><span class="w">   </span><span class="c1"># 初始堆同比例（避免启动时堆过小）</span>
+<a id="__codelineno-13-4" name="__codelineno-13-4" href="#__codelineno-13-4"></a><span class="w">     </span>-XX:+UseContainerSupport<span class="w"> </span><span class="se">\ </span><span class="w">         </span><span class="c1"># JDK 10+ 默认开启，显式写出便于排查</span>
+<a id="__codelineno-13-5" name="__codelineno-13-5" href="#__codelineno-13-5"></a><span class="w">     </span>-jar<span class="w"> </span>app.jar
+<a id="__codelineno-13-6" name="__codelineno-13-6" href="#__codelineno-13-6"></a>
+<a id="__codelineno-13-7" name="__codelineno-13-7" href="#__codelineno-13-7"></a><span class="c1"># CPU 限制也会被感知：G1 的 GC 线程数、ForkJoinPool 并行度</span>
+<a id="__codelineno-13-8" name="__codelineno-13-8" href="#__codelineno-13-8"></a><span class="c1"># 都按容器 CPU 配额（而非宿主机核数）计算</span>
+</code></pre></div>
+<table>
+<thead>
+<tr>
+<th>参数</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>MaxRAMPercentage</code></td>
+<td>堆上限 = 容器内存 × 百分比（K8s limits）</td>
+</tr>
+<tr>
+<td><code>InitialRAMPercentage</code></td>
+<td>初始堆同比例，避免启动即扩容</td>
+</tr>
+<tr>
+<td><code>UseContainerSupport</code></td>
+<td>JDK 10+ 默认开；<code>-XX:-UseContainerSupport</code> 关闭后回退宿主机视角</td>
+</tr>
+</tbody>
+</table>
+<h3 id="82-oomkilled">8.2 经典事故：容器 OOMKilled<a class="headerlink" href="#82-oomkilled" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a>现象：Pod 被 K8s 杀掉（exit code 137），但 JVM 日志里没有任何 OOM
+<a id="__codelineno-14-2" name="__codelineno-14-2" href="#__codelineno-14-2"></a>原因：容器内存限额 2G，-Xmx 写了 1.8g —— 堆之外还有 Metaspace(~100M)
+<a id="__codelineno-14-3" name="__codelineno-14-3" href="#__codelineno-14-3"></a>      + 线程栈(每线程1M × 200) + CodeCache + DirectMemory，
+<a id="__codelineno-14-4" name="__codelineno-14-4" href="#__codelineno-14-4"></a>      总用量超 2G → 内核 OOM Killer 直接杀进程，JVM 来不及打日志
+<a id="__codelineno-14-5" name="__codelineno-14-5" href="#__codelineno-14-5"></a>修复：MaxRAMPercentage=70（堆 1.4G），给非堆留 30% 余量
+<a id="__codelineno-14-6" name="__codelineno-14-6" href="#__codelineno-14-6"></a>验证：kubectl describe pod 看 Last State: OOMKilled；
+<a id="__codelineno-14-7" name="__codelineno-14-7" href="#__codelineno-14-7"></a>      容器内 cat /sys/fs/cgroup/memory.max 对照 JVM 实际用量
+</code></pre></div>
+<blockquote>
+<p>💡 面试加分：JDK 8u191+ 也支持容器感知（需 <code>-XX:+UseContainerSupport</code>，部分发行版默认开）；但 JDK 8 的 <code>MaxRAMPercentage</code> 行为与新版有差异，新项目直接用 JDK 17/21 最省心。</p>
+</blockquote>
+<hr />
+<h2 id="9">9. 高频面试题 ⭐<a class="headerlink" href="#9" title="Permanent link">&para;</a></h2>
 <p><strong>Q1：你们线上用什么收集器？怎么调优的？</strong></p>
 <blockquote>
 <p>JDK 17 默认 G1；-Xms=-Xmx=4g，MaxGCPauseMillis 默认 200ms 起步，开 -Xlog:gc* 滚动日志；监控 P99 停顿与 Full GC 次数；只有日志显示 Mixed 追不上分配时才下调 IHOP。答出"基于日志和监控调优"的过程，而不是背参数表。</p>
@@ -1464,35 +1558,35 @@
 <p>都是堆不够用。前者是"GC 拼命跑也回收不动"（&gt;98% 时间回收 &lt;2%），几乎必然是泄漏；后者是分配时直接没空间。排查路径相同：dump + 支配树。</p>
 </blockquote>
 <hr />
-<h2 id="9">9. 练习题<a class="headerlink" href="#9" title="Permanent link">&para;</a></h2>
+<h2 id="10">10. 练习题<a class="headerlink" href="#10" title="Permanent link">&para;</a></h2>
 <p><strong>1.</strong> 写出生产环境开启 GC 日志滚动输出的完整 <code>-Xlog</code> 参数，并说明每段含义。</p>
 <p><strong>2.</strong> 日志连续出现 <code>Pause Full (G1 Compaction Pause) 490M-&gt;470M(512M)</code>，给出你的排查步骤（至少三步）。</p>
 <p><strong>3.</strong> 服务每运行 2 天就 Metaspace OOM，重启即恢复。列出两个最可能的根因与验证手段。</p>
 <p><strong>4.</strong> 业务要求 P99 GC 停顿 &lt;10ms、堆 32GB，G1 和 ZGC 选哪个？说明理由与关键参数。</p>
 <h3 id="_1">参考答案<a class="headerlink" href="#_1" title="Permanent link">&para;</a></h3>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a>1. -Xlog:gc*:file=gc-%t.log:time,uptime,level,tags:filecount=10,filesize=50M
-<a id="__codelineno-13-2" name="__codelineno-13-2" href="#__codelineno-13-2"></a>   gc*=收集 gc 及子 tag 的全量日志；file=输出文件（%t 时间戳防覆盖）；
-<a id="__codelineno-13-3" name="__codelineno-13-3" href="#__codelineno-13-3"></a>   time,uptime,level,tags=装饰器；filecount/filesize=滚动 10 个 50MB 文件。
-<a id="__codelineno-13-4" name="__codelineno-13-4" href="#__codelineno-13-4"></a>
-<a id="__codelineno-13-5" name="__codelineno-13-5" href="#__codelineno-13-5"></a>2. ① 490M-&gt;470M：Full GC 后堆几乎不降，存活对象接近堆上限，高度疑似泄漏；
-<a id="__codelineno-13-6" name="__codelineno-13-6" href="#__codelineno-13-6"></a>   ② 摘流量后 jmap -dump:live,format=b,file=heap.hprof &lt;pid&gt; 导出堆快照；
-<a id="__codelineno-13-7" name="__codelineno-13-7" href="#__codelineno-13-7"></a>   ③ MAT Dominator Tree 找最大对象，Path to GC Roots 找强引用链；
-<a id="__codelineno-13-8" name="__codelineno-13-8" href="#__codelineno-13-8"></a>   ④ 定位代码（常见：static Map 缓存无淘汰、ThreadLocal 未 remove），
-<a id="__codelineno-13-9" name="__codelineno-13-9" href="#__codelineno-13-9"></a>   修复后压测并观察 GC 日志验证。
-<a id="__codelineno-13-10" name="__codelineno-13-10" href="#__codelineno-13-10"></a>
-<a id="__codelineno-13-11" name="__codelineno-13-11" href="#__codelineno-13-11"></a>3. ① 动态生成类失控：CGLIB/反射/Groovy 每次调用都生成新 Class——
-<a id="__codelineno-13-12" name="__codelineno-13-12" href="#__codelineno-13-12"></a>   用 -Xlog:class+load 观察类数量是否持续增长；
-<a id="__codelineno-13-13" name="__codelineno-13-13" href="#__codelineno-13-13"></a>   ② 热部署类加载器泄漏：旧 ClassLoader 被静态引用无法卸载——
-<a id="__codelineno-13-14" name="__codelineno-13-14" href="#__codelineno-13-14"></a>   MAT 里搜已停应用的类仍存活。临时把 -XX:MaxMetaspaceSize 调大只是
-<a id="__codelineno-13-15" name="__codelineno-13-15" href="#__codelineno-13-15"></a>   延后崩溃，必须修根因。
-<a id="__codelineno-13-16" name="__codelineno-13-16" href="#__codelineno-13-16"></a>
-<a id="__codelineno-13-17" name="__codelineno-13-17" href="#__codelineno-13-17"></a>4. 选 ZGC。32GB 堆下 G1 的 Mixed/Full GC 很难稳定压进 10ms，
-<a id="__codelineno-13-18" name="__codelineno-13-18" href="#__codelineno-13-18"></a>   而 ZGC 停顿与堆大小无关（≤1ms）。关键参数：
-<a id="__codelineno-13-19" name="__codelineno-13-19" href="#__codelineno-13-19"></a>   -XX:+UseZGC -Xms32g -Xmx32g -XX:SoftMaxHeapSize=28g -Xlog:gc*。
-<a id="__codelineno-13-20" name="__codelineno-13-20" href="#__codelineno-13-20"></a>   代价：读屏障带来约 5%~15% 吞吐损失，需压测确认业务可接受。
+<div class="highlight"><pre><span></span><code><a id="__codelineno-15-1" name="__codelineno-15-1" href="#__codelineno-15-1"></a>1. -Xlog:gc*:file=gc-%t.log:time,uptime,level,tags:filecount=10,filesize=50M
+<a id="__codelineno-15-2" name="__codelineno-15-2" href="#__codelineno-15-2"></a>   gc*=收集 gc 及子 tag 的全量日志；file=输出文件（%t 时间戳防覆盖）；
+<a id="__codelineno-15-3" name="__codelineno-15-3" href="#__codelineno-15-3"></a>   time,uptime,level,tags=装饰器；filecount/filesize=滚动 10 个 50MB 文件。
+<a id="__codelineno-15-4" name="__codelineno-15-4" href="#__codelineno-15-4"></a>
+<a id="__codelineno-15-5" name="__codelineno-15-5" href="#__codelineno-15-5"></a>2. ① 490M-&gt;470M：Full GC 后堆几乎不降，存活对象接近堆上限，高度疑似泄漏；
+<a id="__codelineno-15-6" name="__codelineno-15-6" href="#__codelineno-15-6"></a>   ② 摘流量后 jmap -dump:live,format=b,file=heap.hprof &lt;pid&gt; 导出堆快照；
+<a id="__codelineno-15-7" name="__codelineno-15-7" href="#__codelineno-15-7"></a>   ③ MAT Dominator Tree 找最大对象，Path to GC Roots 找强引用链；
+<a id="__codelineno-15-8" name="__codelineno-15-8" href="#__codelineno-15-8"></a>   ④ 定位代码（常见：static Map 缓存无淘汰、ThreadLocal 未 remove），
+<a id="__codelineno-15-9" name="__codelineno-15-9" href="#__codelineno-15-9"></a>   修复后压测并观察 GC 日志验证。
+<a id="__codelineno-15-10" name="__codelineno-15-10" href="#__codelineno-15-10"></a>
+<a id="__codelineno-15-11" name="__codelineno-15-11" href="#__codelineno-15-11"></a>3. ① 动态生成类失控：CGLIB/反射/Groovy 每次调用都生成新 Class——
+<a id="__codelineno-15-12" name="__codelineno-15-12" href="#__codelineno-15-12"></a>   用 -Xlog:class+load 观察类数量是否持续增长；
+<a id="__codelineno-15-13" name="__codelineno-15-13" href="#__codelineno-15-13"></a>   ② 热部署类加载器泄漏：旧 ClassLoader 被静态引用无法卸载——
+<a id="__codelineno-15-14" name="__codelineno-15-14" href="#__codelineno-15-14"></a>   MAT 里搜已停应用的类仍存活。临时把 -XX:MaxMetaspaceSize 调大只是
+<a id="__codelineno-15-15" name="__codelineno-15-15" href="#__codelineno-15-15"></a>   延后崩溃，必须修根因。
+<a id="__codelineno-15-16" name="__codelineno-15-16" href="#__codelineno-15-16"></a>
+<a id="__codelineno-15-17" name="__codelineno-15-17" href="#__codelineno-15-17"></a>4. 选 ZGC。32GB 堆下 G1 的 Mixed/Full GC 很难稳定压进 10ms，
+<a id="__codelineno-15-18" name="__codelineno-15-18" href="#__codelineno-15-18"></a>   而 ZGC 停顿与堆大小无关（≤1ms）。关键参数：
+<a id="__codelineno-15-19" name="__codelineno-15-19" href="#__codelineno-15-19"></a>   -XX:+UseZGC -Xms32g -Xmx32g -XX:SoftMaxHeapSize=28g -Xlog:gc*。
+<a id="__codelineno-15-20" name="__codelineno-15-20" href="#__codelineno-15-20"></a>   代价：读屏障带来约 5%~15% 吞吐损失，需压测确认业务可接受。
 </code></pre></div>
 <hr />
-<h2 id="10">10. 本章小结<a class="headerlink" href="#10" title="Permanent link">&para;</a></h2>
+<h2 id="11">11. 本章小结<a class="headerlink" href="#11" title="Permanent link">&para;</a></h2>
 <table>
 <thead>
 <tr>
@@ -1520,6 +1614,10 @@
 <tr>
 <td>OOM</td>
 <td>四种典型报错各有根因；HeapDumpOnOutOfMemoryError 必开</td>
+</tr>
+<tr>
+<td>容器感知</td>
+<td>MaxRAMPercentage 按容器限额配堆；OOMKilled 是内核杀进程，JVM 无日志</td>
 </tr>
 <tr>
 <td>方法论</td>

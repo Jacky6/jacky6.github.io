@@ -1233,7 +1233,7 @@
 <tbody>
 <tr>
 <td>SPI（JDBC/JNDI）</td>
-<td>接口由 Bootstrap 加载，实现在第三方 jar</td>
+<td>接口由高层加载器（JDK 9+ 为 Platform）加载，实现在第三方 jar</td>
 <td>线程上下文类加载器 TCCL</td>
 </tr>
 <tr>
@@ -1253,7 +1253,7 @@
 </tr>
 </tbody>
 </table>
-<p><strong>SPI 与线程上下文类加载器（TCCL）</strong>：<code>java.sql.Driver</code> 接口由 Bootstrap 加载，但 MySQL 驱动实现在 classpath 上——父加载器无法"向下"加载！解法：<code>DriverManager</code> 通过 <code>Thread.currentThread().getContextClassLoader()</code>（默认 AppClassLoader）配合 <code>ServiceLoader.load()</code>，借"子加载器"完成反向加载：</p>
+<p><strong>SPI 与线程上下文类加载器（TCCL）</strong>：<code>java.sql.Driver</code> 接口由<strong>平台类加载器（PlatformClassLoader）</strong>加载（JDK 8 时代为 Bootstrap；JDK 9 模块化后 <code>java.sql</code> 模块归 Platform 层），但 MySQL 驱动实现在 classpath 上——高层加载器无法"向下"加载！解法：<code>DriverManager</code> 通过 <code>Thread.currentThread().getContextClassLoader()</code>（默认 AppClassLoader）配合 <code>ServiceLoader.load()</code>，借"子加载器"完成反向加载：</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="c1">// ServiceLoader.load() 的本质（JDK 源码简化）：</span>
 <a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="c1">// ClassLoader cl = Thread.currentThread().getContextClassLoader(); // 默认 AppClassLoader</span>
 <a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="c1">// return new ServiceLoader&lt;&gt;(cl, service);  // 父接口 + 子实现，打破双亲委派</span>
@@ -1358,13 +1358,13 @@
 </tr>
 <tr>
 <td>invokespecial</td>
-<td>构造器 / private / super</td>
+<td>构造器 / super 调用 / 私有方法（JDK 11 前）</td>
 <td>编译期</td>
 <td><code>super.toString()</code></td>
 </tr>
 <tr>
 <td>invokevirtual</td>
-<td>类实例方法</td>
+<td>类实例方法（含 JDK 11+ 的私有方法，Nestmates）</td>
 <td>运行期动态</td>
 <td><code>obj.toString()</code></td>
 </tr>
@@ -1392,7 +1392,7 @@
 <a id="__codelineno-8-8" name="__codelineno-8-8" href="#__codelineno-8-8"></a><span class="w">        </span><span class="n">staticM</span><span class="p">();</span><span class="w">                          </span><span class="c1">// invokestatic</span>
 <a id="__codelineno-8-9" name="__codelineno-8-9" href="#__codelineno-8-9"></a><span class="w">        </span><span class="n">InvokeDemo</span><span class="w"> </span><span class="n">d</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">new</span><span class="w"> </span><span class="n">InvokeDemo</span><span class="p">();</span><span class="w">    </span><span class="c1">// &lt;init&gt; → invokespecial</span>
 <a id="__codelineno-8-10" name="__codelineno-8-10" href="#__codelineno-8-10"></a><span class="w">        </span><span class="n">d</span><span class="p">.</span><span class="na">virtualM</span><span class="p">();</span><span class="w">                       </span><span class="c1">// invokevirtual</span>
-<a id="__codelineno-8-11" name="__codelineno-8-11" href="#__codelineno-8-11"></a><span class="w">        </span><span class="n">d</span><span class="p">.</span><span class="na">specialM</span><span class="p">();</span><span class="w">                       </span><span class="c1">// private → invokespecial</span>
+<a id="__codelineno-8-11" name="__codelineno-8-11" href="#__codelineno-8-11"></a><span class="w">        </span><span class="n">d</span><span class="p">.</span><span class="na">specialM</span><span class="p">();</span><span class="w">                       </span><span class="c1">// private → JDK 11 前为 invokespecial；JDK 11+（JEP 181 Nestmates）为 invokevirtual</span>
 <a id="__codelineno-8-12" name="__codelineno-8-12" href="#__codelineno-8-12"></a><span class="w">        </span><span class="n">Greeter</span><span class="w"> </span><span class="n">g</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">n</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="s">&quot;hi &quot;</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">n</span><span class="p">;</span><span class="w">         </span><span class="c1">// lambda → invokedynamic</span>
 <a id="__codelineno-8-13" name="__codelineno-8-13" href="#__codelineno-8-13"></a><span class="w">        </span><span class="n">System</span><span class="p">.</span><span class="na">out</span><span class="p">.</span><span class="na">println</span><span class="p">(</span><span class="n">g</span><span class="p">.</span><span class="na">greet</span><span class="p">(</span><span class="s">&quot;Java&quot;</span><span class="p">));</span><span class="c1">// invokeinterface</span>
 <a id="__codelineno-8-14" name="__codelineno-8-14" href="#__codelineno-8-14"></a><span class="w">    </span><span class="p">}</span>
@@ -1423,7 +1423,7 @@
 <h2 id="5">5. 动态代理的字节码原理<a class="headerlink" href="#5" title="Permanent link">&para;</a></h2>
 <p><strong>知识点</strong>：</p>
 <ul>
-<li>⭐ JDK Proxy：运行时生成<strong>实现接口</strong>的 <code>$ProxyN</code>，用 invokevirtual 调 <code>InvocationHandler.invoke</code></li>
+<li>⭐ JDK Proxy：运行时生成<strong>实现接口</strong>的 <code>$ProxyN</code>，用 invokeinterface 调 <code>InvocationHandler.invoke</code></li>
 <li>⭐ CGLIB：生成<strong>目标类的子类</strong>，MethodInterceptor + FastClass 索引调用</li>
 </ul>
 <h3 id="51-jdk-proxy">5.1 JDK Proxy 生成的字节码长什么样<a class="headerlink" href="#51-jdk-proxy" title="Permanent link">&para;</a></h3>
@@ -1439,17 +1439,17 @@
 <a id="__codelineno-11-10" name="__codelineno-11-10" href="#__codelineno-11-10"></a><span class="w">            </span><span class="k">new</span><span class="w"> </span><span class="n">Class</span><span class="o">&lt;?&gt;[]</span><span class="p">{</span><span class="n">Greeting</span><span class="p">.</span><span class="na">class</span><span class="p">},</span>
 <a id="__codelineno-11-11" name="__codelineno-11-11" href="#__codelineno-11-11"></a><span class="w">            </span><span class="p">(</span><span class="n">p</span><span class="p">,</span><span class="w"> </span><span class="n">method</span><span class="p">,</span><span class="w"> </span><span class="n">a</span><span class="p">)</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="s">&quot;Hello, &quot;</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">a</span><span class="o">[</span><span class="mi">0</span><span class="o">]</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="s">&quot; via &quot;</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">method</span><span class="p">.</span><span class="na">getName</span><span class="p">());</span>
 <a id="__codelineno-11-12" name="__codelineno-11-12" href="#__codelineno-11-12"></a><span class="w">        </span><span class="n">System</span><span class="p">.</span><span class="na">out</span><span class="p">.</span><span class="na">println</span><span class="p">(</span><span class="n">proxy</span><span class="p">.</span><span class="na">sayHello</span><span class="p">(</span><span class="s">&quot;World&quot;</span><span class="p">));</span>
-<a id="__codelineno-11-13" name="__codelineno-11-13" href="#__codelineno-11-13"></a><span class="w">        </span><span class="n">System</span><span class="p">.</span><span class="na">out</span><span class="p">.</span><span class="na">println</span><span class="p">(</span><span class="n">proxy</span><span class="p">.</span><span class="na">getClass</span><span class="p">().</span><span class="na">getName</span><span class="p">());</span><span class="w"> </span><span class="c1">// jdk.proxy1.$Proxy0</span>
+<a id="__codelineno-11-13" name="__codelineno-11-13" href="#__codelineno-11-13"></a><span class="w">        </span><span class="n">System</span><span class="p">.</span><span class="na">out</span><span class="p">.</span><span class="na">println</span><span class="p">(</span><span class="n">proxy</span><span class="p">.</span><span class="na">getClass</span><span class="p">().</span><span class="na">getName</span><span class="p">());</span><span class="w"> </span><span class="c1">// $Proxy0（接口在默认包时无包名前缀）</span>
 <a id="__codelineno-11-14" name="__codelineno-11-14" href="#__codelineno-11-14"></a><span class="w">    </span><span class="p">}</span>
 <a id="__codelineno-11-15" name="__codelineno-11-15" href="#__codelineno-11-15"></a><span class="p">}</span>
 </code></pre></div>
-<p>生成的 <code>$Proxy0 extends Proxy implements Greeting</code>，每个接口方法都归结为同一模式——<strong>invokevirtual 调用 handler.invoke</strong>：</p>
+<p>生成的 <code>$Proxy0 extends Proxy implements Greeting</code>，每个接口方法都归结为同一模式——<strong>invokeinterface 调用 handler.invoke</strong>（<code>InvocationHandler</code> 是接口，接口方法调用只能是 <code>invokeinterface</code>；可用 <code>javap -c</code> 验证落盘的 <code>$Proxy0.class</code>）：</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a>public final String sayHello(String);
 <a id="__codelineno-12-2" name="__codelineno-12-2" href="#__codelineno-12-2"></a>  Code:
 <a id="__codelineno-12-3" name="__codelineno-12-3" href="#__codelineno-12-3"></a>     1: getfield      #16   // Field Proxy.h:InvocationHandler
 <a id="__codelineno-12-4" name="__codelineno-12-4" href="#__codelineno-12-4"></a>     5: getstatic     #18   // Field m3:Method（静态块缓存的 sayHello）
 <a id="__codelineno-12-5" name="__codelineno-12-5" href="#__codelineno-12-5"></a>     9: anewarray     #20   // 把参数装进 Object[]
-<a id="__codelineno-12-6" name="__codelineno-12-6" href="#__codelineno-12-6"></a>    16: invokevirtual #22   // InvocationHandler.invoke(Object,Method,Object[])
+<a id="__codelineno-12-6" name="__codelineno-12-6" href="#__codelineno-12-6"></a>    16: invokeinterface #22,  4 // InterfaceMethod InvocationHandler.invoke:(Ljava/lang/Object;Ljava/lang/reflect/Method;[Ljava/lang/Object;)Ljava/lang/Object;
 <a id="__codelineno-12-7" name="__codelineno-12-7" href="#__codelineno-12-7"></a>    22: areturn             // 结果强转 String 后返回
 </code></pre></div>
 <p>✅ 结论：JDK 代理本质是<strong>接口委托 + 反射调用</strong>；Method 对象在静态块里一次缓存，避免每次查找。</p>
@@ -1500,11 +1500,11 @@
 <p><strong>Q2：为什么 static final 常量引用不触发初始化？</strong>
 答：编译期常量被 javac 解析后直接写入<strong>调用方</strong>的常量池（ConstantValue），运行期与定义类再无依赖，属于被动引用。</p>
 <p><strong>Q3：SPI 为什么必须打破双亲委派？</strong>
-答：SPI 接口（如 <code>java.sql.Driver</code>）由 Bootstrap 加载，实现在 classpath 第三方 jar 里——父加载器无法反向加载子路径，于是借 TCCL 让"子加载器"加载实现，本质是接口与实现由不同层级加载器加载。</p>
+答：SPI 接口（如 <code>java.sql.Driver</code>）由平台类加载器加载（JDK 8 时代为 Bootstrap），实现在 classpath 第三方 jar 里——高层加载器无法反向加载子路径，于是借 TCCL 让"子加载器"加载实现，本质是接口与实现由不同层级加载器加载。</p>
 <p><strong>Q4：Tomcat 的类加载体系是怎样的？</strong>
 答：每个 webapp 有独立 WebAppClassLoader，<strong>子优先</strong>先加载应用自身类再向上委派到 Common 加载器；不同应用同名类互相隔离，支撑多版本共存与热部署。</p>
 <p><strong>Q5：JDK 代理和 CGLIB 的字节码级区别？</strong>
-答：JDK 生成接口实现类，核心是 invokevirtual 调 <code>InvocationHandler.invoke</code>（反射）；CGLIB 生成子类，重写方法转发给 MethodInterceptor，靠 FastClass 索引调用避开反射、更快，但不能代理 final 类/方法。</p>
+答：JDK 生成接口实现类，核心是 invokeinterface 调 <code>InvocationHandler.invoke</code>（反射）；CGLIB 生成子类，重写方法转发给 MethodInterceptor，靠 FastClass 索引调用避开反射、更快，但不能代理 final 类/方法。</p>
 <p><strong>Q6：lambda 用哪条指令？为什么不生成匿名内部类？</strong>
 答：invokedynamic。首次执行到 lambda 时引导方法（LambdaMetafactory）才动态生成函数式接口实现类；编译期不产生内部类，后续可自由优化（单例复用、内联）。</p>
 <hr />
@@ -1547,9 +1547,9 @@
 <a id="__codelineno-15-21" name="__codelineno-15-21" href="#__codelineno-15-21"></a><span class="w">    </span><span class="p">}</span>
 <a id="__codelineno-15-22" name="__codelineno-15-22" href="#__codelineno-15-22"></a><span class="p">}</span>
 </code></pre></div>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-16-1" name="__codelineno-16-1" href="#__codelineno-16-1"></a># 练习 3：javap -c InvokeDemo（节选结论）
+<div class="highlight"><pre><span></span><code><a id="__codelineno-16-1" name="__codelineno-16-1" href="#__codelineno-16-1"></a># 练习 3：javap -c InvokeDemo（节选结论，JDK 21 实测）
 <a id="__codelineno-16-2" name="__codelineno-16-2" href="#__codelineno-16-2"></a>   invokespecial   // &quot;&lt;init&gt;&quot;:()V              ← 构造器
-<a id="__codelineno-16-3" name="__codelineno-16-3" href="#__codelineno-16-3"></a>   invokespecial   // specialM:()V              ← private 方法
+<a id="__codelineno-16-3" name="__codelineno-16-3" href="#__codelineno-16-3"></a>   invokevirtual   // specialM:()V              ← private 方法（JDK 11+ Nestmates；JDK 8 为 invokespecial）
 <a id="__codelineno-16-4" name="__codelineno-16-4" href="#__codelineno-16-4"></a>   invokeinterface // Greeter.greet             ← 接口方法
 <a id="__codelineno-16-5" name="__codelineno-16-5" href="#__codelineno-16-5"></a>   invokedynamic   // makeConcatWithConstants   ← &quot;hi &quot; + n（JDK 9+ 字符串拼接）
 <a id="__codelineno-16-6" name="__codelineno-16-6" href="#__codelineno-16-6"></a>   # lambda 表达式本身的生成也是 invokedynamic（LambdaMetafactory）

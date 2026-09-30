@@ -1523,7 +1523,7 @@
 <p><strong>知识点</strong>：</p>
 <ul>
 <li>⭐ 配置绑定首选 <code>@ConfigurationProperties</code>（类型安全、可校验、支持嵌套/列表/Duration）</li>
-<li>配置优先级：命令行 &gt; 环境变量 &gt; 系统属性 &gt; profile 文件 &gt; application 文件 &gt; @PropertySource &gt; 默认值</li>
+<li>⭐ 配置优先级：命令行 &gt; Java 系统属性 &gt; 环境变量 &gt; jar 外配置文件 &gt; jar 内 profile 文件 &gt; jar 内 application 文件 &gt; @PropertySource &gt; 默认值（详见 4.4）</li>
 <li>松散绑定：<code>retry-count</code> ↔ <code>retryCount</code>、<code>APP_NAME</code> ↔ <code>app.name</code></li>
 </ul>
 <h3 id="41-configurationproperties">4.1 @ConfigurationProperties 全解<a class="headerlink" href="#41-configurationproperties" title="Permanent link">&para;</a></h3>
@@ -1626,24 +1626,25 @@
 <a id="__codelineno-21-4" name="__codelineno-21-4" href="#__codelineno-21-4"></a>  ↓
 <a id="__codelineno-21-5" name="__codelineno-21-5" href="#__codelineno-21-5"></a>Servlet 环境（ServletConfig/ServletContext/JNDI）
 <a id="__codelineno-21-6" name="__codelineno-21-6" href="#__codelineno-21-6"></a>  ↓
-<a id="__codelineno-21-7" name="__codelineno-21-7" href="#__codelineno-21-7"></a>Java 系统属性（-Dserver.port=9090）
+<a id="__codelineno-21-7" name="__codelineno-21-7" href="#__codelineno-21-7"></a>Java 系统属性（-Dserver.port=9090）       ⚠️ 系统属性 &gt; 环境变量（官方顺序，别记反）
 <a id="__codelineno-21-8" name="__codelineno-21-8" href="#__codelineno-21-8"></a>  ↓
-<a id="__codelineno-21-9" name="__codelineno-21-9" href="#__codelineno-21-9"></a>操作系统环境变量（SERVER_PORT=9090）     ⚠️ 环境变量 &gt; 系统属性
+<a id="__codelineno-21-9" name="__codelineno-21-9" href="#__codelineno-21-9"></a>操作系统环境变量（SERVER_PORT=9090）
 <a id="__codelineno-21-10" name="__codelineno-21-10" href="#__codelineno-21-10"></a>  ↓
 <a id="__codelineno-21-11" name="__codelineno-21-11" href="#__codelineno-21-11"></a>random.* 随机值
 <a id="__codelineno-21-12" name="__codelineno-21-12" href="#__codelineno-21-12"></a>  ↓
-<a id="__codelineno-21-13" name="__codelineno-21-13" href="#__codelineno-21-13"></a>jar 外的 profile 配置文件（application-{profile}.yml）
+<a id="__codelineno-21-13" name="__codelineno-21-13" href="#__codelineno-21-13"></a>jar 外的 application.yml（含 ./config/）
 <a id="__codelineno-21-14" name="__codelineno-21-14" href="#__codelineno-21-14"></a>  ↓
-<a id="__codelineno-21-15" name="__codelineno-21-15" href="#__codelineno-21-15"></a>jar 内的 profile 配置文件
+<a id="__codelineno-21-15" name="__codelineno-21-15" href="#__codelineno-21-15"></a>jar 内的 application-{profile}.yml
 <a id="__codelineno-21-16" name="__codelineno-21-16" href="#__codelineno-21-16"></a>  ↓
-<a id="__codelineno-21-17" name="__codelineno-21-17" href="#__codelineno-21-17"></a>jar 外的 application.yml
+<a id="__codelineno-21-17" name="__codelineno-21-17" href="#__codelineno-21-17"></a>jar 内的 application.yml
 <a id="__codelineno-21-18" name="__codelineno-21-18" href="#__codelineno-21-18"></a>  ↓
-<a id="__codelineno-21-19" name="__codelineno-21-19" href="#__codelineno-21-19"></a>jar 内的 application.yml
+<a id="__codelineno-21-19" name="__codelineno-21-19" href="#__codelineno-21-19"></a>@PropertySource 注解
 <a id="__codelineno-21-20" name="__codelineno-21-20" href="#__codelineno-21-20"></a>  ↓
-<a id="__codelineno-21-21" name="__codelineno-21-21" href="#__codelineno-21-21"></a>@PropertySource 注解
-<a id="__codelineno-21-22" name="__codelineno-21-22" href="#__codelineno-21-22"></a>  ↓
-<a id="__codelineno-21-23" name="__codelineno-21-23" href="#__codelineno-21-23"></a>SpringApplication.setDefaultProperties()  ← 最低
+<a id="__codelineno-21-21" name="__codelineno-21-21" href="#__codelineno-21-21"></a>SpringApplication.setDefaultProperties()  ← 最低
 </code></pre></div>
+<blockquote>
+<p>⚠️ 按 Spring Boot 官方 PropertySource 顺序：<strong>Java 系统属性高于 OS 环境变量</strong>；Config Data 层面 <strong>jar 外的通用配置高于 jar 内的 profile 配置</strong>（外部文件整体优先）。</p>
+</blockquote>
 <p><strong>三条实战结论</strong>：</p>
 <ol>
 <li>命令行永远最大——<code>java -jar app.jar --server.port=9090</code> 覆盖一切</li>
@@ -1894,7 +1895,7 @@
 </tbody>
 </table>
 <h3 id="72">7.2 事务不生效（回顾清单）<a class="headerlink" href="#72" title="Permanent link">&para;</a></h3>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-34-1" name="__codelineno-34-1" href="#__codelineno-34-1"></a>① 方法是不是 public？
+<div class="highlight"><pre><span></span><code><a id="__codelineno-34-1" name="__codelineno-34-1" href="#__codelineno-34-1"></a>① 方法是不是 public（或 Spring 6 类代理下的 protected/包可见）？
 <a id="__codelineno-34-2" name="__codelineno-34-2" href="#__codelineno-34-2"></a>② 是不是自调用（this.xxx() 绕过代理）？
 <a id="__codelineno-34-3" name="__codelineno-34-3" href="#__codelineno-34-3"></a>③ 异常是不是被 catch 吞了？
 <a id="__codelineno-34-4" name="__codelineno-34-4" href="#__codelineno-34-4"></a>④ 抛的是不是受检异常且没配 rollbackFor？
