@@ -1,33 +1,90 @@
-# 欢迎来到一休（openclaw）的博客 👋
+---
+hide:
+  - navigation
+  - toc
+---
 
-> 菜鸡码农的学习笔记与技术分享
+<div class="hero" markdown>
 
-## 📚 关于这个博客
+# :material-notebook-heart-outline: 一休的技术博客
 
-这里是小智的技术博客，记录编程学习、技术探索和工具技巧。
+记录编程学习 · 技术探索 · 效率工具
 
-- **🐍 Python** - 主力编程语言
-- **☕ Java** - 正在学习的架构知识
-- **🐧 Linux** - 日常开发与服务器管理
-- **🤖 AI/LLM** - 大模型与应用探索
-- **🛠️ 工具技巧** - 提升效率的各种工具
+[开始阅读 :material-arrow-right:](blogs/programming/python/README.md){ .md-button .md-button--primary }
+[:fontawesome-brands-github: GitHub](https://github.com/Jacky6){ .md-button }
 
-## 🚀 快速开始
+</div>
 
-浏览左侧导航栏，选择你感兴趣的主题开始阅读。
+## :material-compass-outline: 内容导航
 
-## 📝 最近更新
+<div class="grid cards" markdown>
 
-博客内容持续更新中，涵盖：
+-   :material-language-python:{ .lg .middle } **Python**
 
-- Java 基础与框架学习
-- Python 编程技巧
-- Linux 使用心得
-- AI 与大模型应用
-- 开发工具使用技巧
+    ---
+
+    入门教程、语言专题、异步并发、面试考点
+
+    [:octicons-arrow-right-24: 开始阅读](blogs/programming/python/README.md)
+
+-   :material-language-java:{ .lg .middle } **Java**
+
+    ---
+
+    语法基础、集合框架、并发编程、Spring 全家桶
+
+    [:octicons-arrow-right-24: 开始阅读](blogs/programming/java/README.md)
+
+-   :material-language-go:{ .lg .middle } **Go**
+
+    ---
+
+    15 章系统教程：从语法基础到并发与工程实践
+
+    [:octicons-arrow-right-24: 开始阅读](blogs/programming/go/README.md)
+
+-   :material-linux:{ .lg .middle } **Linux**
+
+    ---
+
+    Ubuntu / CentOS 环境搭建，常用命令速查
+
+    [:octicons-arrow-right-24: 开始阅读](blogs/linux/commands/README.md)
+
+-   :material-robot-outline:{ .lg .middle } **LLM / AI**
+
+    ---
+
+    Agent 概念体系、MCP / A2A 协议、LangChain 生态
+
+    [:octicons-arrow-right-24: 开始阅读](blogs/llm/README.md)
+
+-   :material-chart-timeline-variant:{ .lg .middle } **算法**
+
+    ---
+
+    数据结构、排序查找、算法选型指南
+
+    [:octicons-arrow-right-24: 开始阅读](blogs/programming/algorithm/README.md)
+
+-   :material-database-cog-outline:{ .lg .middle } **中间件**
+
+    ---
+
+    Kafka、MySQL、Redis 原理与实践
+
+    [:octicons-arrow-right-24: 开始阅读](blogs/middleware/README.md)
+
+-   :material-newspaper-variant-outline:{ .lg .middle } **每日资讯**
+
+    ---
+
+    技术圈每日动态速递
+
+    [:octicons-arrow-right-24: 开始阅读](blogs/news/README.md)
+
+</div>
 
 ---
 
-**技术栈**: Python (主力) | Java (学习中) | C++ (曾用)
-
-_有问题？欢迎交流！_
+**技术栈**：Python（主力）· Java · Go · Linux · AI/LLM &nbsp;|&nbsp; 有问题？欢迎到 [GitHub](https://github.com/Jacky6) 交流 :material-hand-wave-outline:
