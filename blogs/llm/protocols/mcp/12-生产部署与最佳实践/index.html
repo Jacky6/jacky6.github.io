@@ -1,0 +1,2419 @@
+
+<!doctype html>
+<html lang="zh" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="一休的技术博客 - 编程、Linux、AI 与工具技巧">
+      
+      
+        <meta name="author" content="一休">
+      
+      
+      
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../../../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
+    
+    
+      
+        <title>MCP 生产部署与最佳实践 - 一休（openclaw）的博客</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../../../../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../../../../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("../../../../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#mcp" class="md-skip">
+          跳转至
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="页眉">
+    <a href="../../../../.." title="一休（openclaw）的博客" class="md-header__button md-logo" aria-label="一休（openclaw）的博客" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            一休（openclaw）的博客
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              MCP 生产部署与最佳实践
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="切换到深色模式"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="切换到深色模式" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="切换到浅色模式"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="切换到浅色模式" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="搜索" placeholder="搜索" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="查找">
+        
+        <button type="reset" class="md-search__icon md-icon" title="清空当前内容" aria-label="清空当前内容" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            正在初始化搜索引擎
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/jacky6/jacky6.github.io" title="前往仓库" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    jacky6.github.io
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="标签" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../../../.." class="md-tabs__link">
+        
+  
+  
+    
+  
+  首页
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../../../programming/algorithm/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  算法
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../../../programming/go/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  go
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../../../programming/python/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  python
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../../../programming/java/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  java
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../../" class="md-tabs__link">
+          
+  
+  
+    
+  
+  LLM
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../../../linux/commands/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Linux
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../../../middleware/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  中间件
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../../../news/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  资讯
+
+      </a>
+    </li>
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="导航栏" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../../../../.." title="一休（openclaw）的博客" class="md-nav__button md-logo" aria-label="一休（openclaw）的博客" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    一休（openclaw）的博客
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/jacky6/jacky6.github.io" title="前往仓库" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    jacky6.github.io
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    首页
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../programming/algorithm/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    算法
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../programming/go/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    go
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../programming/python/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    python
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../programming/java/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    java
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_6" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../../" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    LLM
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_6" id="__nav_6_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    LLM
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../agent/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Agent
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    协议（MCP/A2A）
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../langchain/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    langchain
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../langchain/deep-agents/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    deep-agents
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../langchain/langgraph/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    langgraph
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_7" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../../../linux/commands/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Linux
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_7" id="__nav_7_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_7">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Linux
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../linux/ubuntu/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Ubuntu
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../linux/centos/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CentOS
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_8" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../../../middleware/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    中间件
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_8" id="__nav_8_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_8_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_8">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    中间件
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../middleware/kafka/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Kafka
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../middleware/mysql/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    MySQL
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../middleware/redis/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Redis
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../news/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    资讯
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="目录">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      目录
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. 部署模式
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="1. 部署模式">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#11-stdio" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1.1 本地 stdio
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#12-streamable-http" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1.2 远程 Streamable HTTP
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. 现代无状态架构
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="2. 现代无状态架构">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#21" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2.1 业务状态
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#22-handle" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2.2 Handle 安全
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-api-tool" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. API 和 Tool 设计
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="3. API 和 Tool 设计">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#31" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.1 小而明确
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#32-schema" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.2 Schema 优先
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#33-tool" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.3 Tool 描述
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. 权限模型
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#5" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5. 幂等与重试
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="5. 幂等与重试">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#51" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.1 分类
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#52" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.2 断线不等于未执行
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#53-circuit-breaker" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.3 Circuit Breaker
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#6-timeout" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6. Timeout 与资源限制
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#7" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7. 缓存
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="7. 缓存">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#71" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7.1 遵循协议提示
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#72-tool" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7.2 Tool 列表稳定性
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#8-tool" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8. 大规模 Tool 管理
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="8. 大规模 Tool 管理">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#81" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8.1 渐进式发现
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#82-code-mode" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8.2 Code Mode
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#9" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        9. 可观测性
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="9. 可观测性">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#91" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        9.1 指标
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#92-trace" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        9.2 Trace
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#93" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        9.3 日志
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#10-stdio" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10. stdio 生产安全
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#11-http" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        11. HTTP 生产安全
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#12-prompt-injection" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        12. Prompt Injection 防御
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#13" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        13. 版本与发布
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="13. 版本与发布">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#131" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        13.1 支持矩阵
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#132-tool-schema" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        13.2 Tool Schema 变更
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#133" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        13.3 灰度
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#14-slo" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        14. 容量与 SLO
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#15" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        15. 故障恢复
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="15. 故障恢复">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#server" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Server 重启
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        下游失败
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#authorization-server" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Authorization Server 故障
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#16" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        16. 代码审查问题
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="16. 代码审查问题">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        协议
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        状态
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        安全
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#_5" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        可靠性
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#17" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        17. 上线清单
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="17. 上线清单">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#server_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Server
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#transport" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Transport
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#host" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Host
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#_6" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        运维
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#18" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        18. 结论
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_7" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        参考
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="mcp">MCP 生产部署与最佳实践<a class="headerlink" href="#mcp" title="Permanent link">&para;</a></h1>
+<blockquote>
+<p>能在 Inspector 中调用 Tool 只是起点。生产系统还需要无状态扩缩容、授权、幂等、缓存、可观测性、沙箱和版本治理。</p>
+</blockquote>
+<h2 id="1">1. 部署模式<a class="headerlink" href="#1" title="Permanent link">&para;</a></h2>
+<h3 id="11-stdio">1.1 本地 stdio<a class="headerlink" href="#11-stdio" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>graph LR
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>    H[Desktop / IDE Host] --&gt;|spawn + stdio| S[Local MCP Server]
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>    S --&gt; F[Local Files / Tools]
+</code></pre></div>
+<p>适合：</p>
+<ul>
+<li>文件和代码；</li>
+<li>Git、编译器、IDE；</li>
+<li>硬件和本地应用；</li>
+<li>单用户环境。</li>
+</ul>
+<p>风险集中在本机代码执行和供应链。</p>
+<h3 id="12-streamable-http">1.2 远程 Streamable HTTP<a class="headerlink" href="#12-streamable-http" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>graph LR
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>    C[MCP Clients] --&gt; G[Gateway / WAF]
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>    G --&gt; S1[MCP Server]
+<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>    G --&gt; S2[MCP Server]
+<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a>    S1 --&gt; D[(Database / API)]
+<a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a>    S2 --&gt; D
+<a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a>    A[Authorization Server] --&gt; C
+</code></pre></div>
+<p>适合：</p>
+<ul>
+<li>SaaS；</li>
+<li>团队共享内部服务；</li>
+<li>统一升级、审计和权限；</li>
+<li>多租户和高可用。</li>
+</ul>
+<p>风险集中在身份、授权、网络、租户隔离和远程内容。</p>
+<h2 id="2">2. 现代无状态架构<a class="headerlink" href="#2" title="Permanent link">&para;</a></h2>
+<p><code>2026-07-28</code> 要求请求自包含：</p>
+<ul>
+<li>Version 和 Client Capabilities 每请求携带；</li>
+<li>不使用 <code>Mcp-Session-Id</code>；</li>
+<li>Server 不能依赖同一连接之前发生的请求；</li>
+<li>同一连接可交错不同用户任务；</li>
+<li>横向扩容不需要协议 Session Sticky Routing。</li>
+</ul>
+<h3 id="21">2.1 业务状态<a class="headerlink" href="#21" title="Permanent link">&para;</a></h3>
+<p>需要跨请求状态时使用显式 Handle：</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>create_workflow → workflow_id
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>workflow_step(workflow_id, input)
+<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>workflow_status(workflow_id)
+</code></pre></div>
+<p>存储选择：</p>
+<ul>
+<li>数据库；</li>
+<li>Redis；</li>
+<li>Durable Workflow Engine；</li>
+<li>对短小状态使用完整性保护的 <code>requestState</code>。</li>
+</ul>
+<p>不要把关键状态只放进单个 Server 进程内存，否则负载均衡或重启后丢失。</p>
+<h3 id="22-handle">2.2 Handle 安全<a class="headerlink" href="#22-handle" title="Permanent link">&para;</a></h3>
+<ul>
+<li>高熵；</li>
+<li>不透明；</li>
+<li>每请求校验主体；</li>
+<li>TTL；</li>
+<li>用途限制；</li>
+<li>不能替代认证；</li>
+<li>不在日志和模型输出中暴露敏感内部结构。</li>
+</ul>
+<h2 id="3-api-tool">3. API 和 Tool 设计<a class="headerlink" href="#3-api-tool" title="Permanent link">&para;</a></h2>
+<h3 id="31">3.1 小而明确<a class="headerlink" href="#31" title="Permanent link">&para;</a></h3>
+<p>好 Tool：</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>orders.get(order_id)
+<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>orders.cancel(order_id, reason, idempotency_key)
+</code></pre></div>
+<p>差 Tool：</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>do_everything(action, payload)
+</code></pre></div>
+<p>过于通用的 Tool：</p>
+<ul>
+<li>Schema 难理解；</li>
+<li>权限粒度粗；</li>
+<li>审计困难；</li>
+<li>模型易选错；</li>
+<li>安全审批无法展示真实副作用。</li>
+</ul>
+<h3 id="32-schema">3.2 Schema 优先<a class="headerlink" href="#32-schema" title="Permanent link">&para;</a></h3>
+<ul>
+<li>使用 JSON Schema 2020-12；</li>
+<li><code>additionalProperties: false</code>；</li>
+<li>枚举代替自由字符串；</li>
+<li>限制长度、范围、数组数量；</li>
+<li>写 Tool 提供 <code>idempotency_key</code>；</li>
+<li>结构化返回提供 <code>outputSchema</code>；</li>
+<li>Client 和 Server 双重校验。</li>
+</ul>
+<h3 id="33-tool">3.3 Tool 描述<a class="headerlink" href="#33-tool" title="Permanent link">&para;</a></h3>
+<p>描述是模型路由信息，应说明：</p>
+<ul>
+<li>做什么；</li>
+<li>何时用；</li>
+<li>何时不要用；</li>
+<li>副作用；</li>
+<li>前置 Tool/Resource；</li>
+<li>参数单位和格式；</li>
+<li>结果上限；</li>
+<li>错误恢复方式。</li>
+</ul>
+<p>同时把描述当作不可信输入。Host 不应允许 Server 描述修改系统权限策略。</p>
+<h2 id="4">4. 权限模型<a class="headerlink" href="#4" title="Permanent link">&para;</a></h2>
+<p>建议将能力映射为细粒度 Scope：</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>orders:read
+<a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>orders:create
+<a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a>orders:cancel
+<a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a>admin:refund
+</code></pre></div>
+<p>每次 Tool Call 都重新验证：</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>Token 有效
+<a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a>∧ Audience 是当前 Server
+<a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a>∧ Scope 足够
+<a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a>∧ Tenant 匹配
+<a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a>∧ Resource 属于该 Principal
+<a id="__codelineno-6-6" name="__codelineno-6-6" href="#__codelineno-6-6"></a>∧ 业务状态允许
+</code></pre></div>
+<p>不要只在 <code>tools/list</code> 过滤一次后信任后续 Call。Tool 列表过滤改善体验，不替代执行时授权。</p>
+<p>高风险操作：</p>
+<ul>
+<li>Human-in-the-Loop；</li>
+<li>展示 Server、Tool、关键参数和影响；</li>
+<li>支持拒绝；</li>
+<li>记录批准人和时间；</li>
+<li>对金额、生产环境、删除等设置策略阈值。</li>
+</ul>
+<h2 id="5">5. 幂等与重试<a class="headerlink" href="#5" title="Permanent link">&para;</a></h2>
+<h3 id="51">5.1 分类<a class="headerlink" href="#51" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>操作</th>
+<th>示例</th>
+<th>重试策略</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>安全读取</td>
+<td>List/Get</td>
+<td>指数退避 + Jitter</td>
+</tr>
+<tr>
+<td>幂等写</td>
+<td>Put/Set with key</td>
+<td>可重试</td>
+</tr>
+<tr>
+<td>非幂等写</td>
+<td>Create/Charge</td>
+<td>必须提供幂等键</td>
+</tr>
+<tr>
+<td>长流程</td>
+<td>Deploy/Import</td>
+<td>返回 Handle，查询状态</td>
+</tr>
+</tbody>
+</table>
+<h3 id="52">5.2 断线不等于未执行<a class="headerlink" href="#52" title="Permanent link">&para;</a></h3>
+<p>HTTP Response 断开可能发生在 Server 已完成写入之后。Client 再次 Call 会重复副作用。</p>
+<p>写 Tool 推荐参数：</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="p">{</span>
+<a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a><span class="w">  </span><span class="nt">&quot;idempotency_key&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;client-generated-uuid&quot;</span><span class="p">,</span>
+<a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a><span class="w">  </span><span class="nt">&quot;order&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="err">...</span><span class="p">}</span>
+<a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a><span class="p">}</span>
+</code></pre></div>
+<p>Server 保存 Key 与结果，并对重复 Key 返回同一业务结果。</p>
+<h3 id="53-circuit-breaker">5.3 Circuit Breaker<a class="headerlink" href="#53-circuit-breaker" title="Permanent link">&para;</a></h3>
+<p>对下游 API：</p>
+<ul>
+<li>只重试瞬时错误；</li>
+<li>指数退避和 Jitter；</li>
+<li>429 尊重 Retry-After；</li>
+<li>设置最大尝试次数和总时长；</li>
+<li>熔断并提供清晰 Tool Execution Error；</li>
+<li>不在模型循环和 SDK 层重复叠加无限重试。</li>
+</ul>
+<h2 id="6-timeout">6. Timeout 与资源限制<a class="headerlink" href="#6-timeout" title="Permanent link">&para;</a></h2>
+<p>分层设置：</p>
+<table>
+<thead>
+<tr>
+<th>层</th>
+<th>示例</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Transport</td>
+<td>Connect/Process Start Timeout</td>
+</tr>
+<tr>
+<td>Protocol</td>
+<td>Request Timeout</td>
+</tr>
+<tr>
+<td>Tool</td>
+<td>Execution Timeout</td>
+</tr>
+<tr>
+<td>Downstream</td>
+<td>HTTP/DB Timeout</td>
+</tr>
+<tr>
+<td>MRTR</td>
+<td>Round Limit + Total Timeout</td>
+</tr>
+<tr>
+<td>SSE</td>
+<td>Idle + Absolute Timeout</td>
+</tr>
+</tbody>
+</table>
+<p>还应限制：</p>
+<ul>
+<li>Request/Response 字节数；</li>
+<li>Tool Result Content 数量；</li>
+<li>图片/音频大小；</li>
+<li>Schema 深度与分支；</li>
+<li>并发 Tool 数；</li>
+<li>每用户/每 Tool QPS；</li>
+<li>stdio 子进程 CPU、内存和进程数。</li>
+</ul>
+<h2 id="7">7. 缓存<a class="headerlink" href="#7" title="Permanent link">&para;</a></h2>
+<h3 id="71">7.1 遵循协议提示<a class="headerlink" href="#71" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a>ttlMs       → 新鲜度
+<a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a>cacheScope  → public/private
+</code></pre></div>
+<ul>
+<li>Public 只能用于非用户特定结果；</li>
+<li>Private 按 Authorization Context 分区；</li>
+<li>List Changed / Resource Updated 立即失效；</li>
+<li>MRTR Retry Result 不缓存；</li>
+<li>每个分页独立缓存；</li>
+<li>Cursor 失效时丢弃所有页并从头拉取。</li>
+</ul>
+<h3 id="72-tool">7.2 Tool 列表稳定性<a class="headerlink" href="#72-tool" title="Permanent link">&para;</a></h3>
+<p>Server：</p>
+<ul>
+<li>Tool 集合没变时保持确定性顺序；</li>
+<li>Tool Name 稳定；</li>
+<li>Schema Breaking Change 使用新 Tool 名或 Server 版本策略；</li>
+<li>权限过滤后正确设置 Private Cache。</li>
+</ul>
+<p>Host：</p>
+<ul>
+<li>缓存定义；</li>
+<li>收到变化通知后刷新索引；</li>
+<li>不在每轮模型请求中无意义重新排序 Tools，以保护 Provider Prompt Cache。</li>
+</ul>
+<h2 id="8-tool">8. 大规模 Tool 管理<a class="headerlink" href="#8-tool" title="Permanent link">&para;</a></h2>
+<h3 id="81">8.1 渐进式发现<a class="headerlink" href="#81" title="Permanent link">&para;</a></h3>
+<p>当 Tool Schema 占据 Context Window 较大比例时：</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a>Catalog → Search → Inspect → Execute
+</code></pre></div>
+<ol>
+<li>Host 拉取并索引全部 Tool，但不全部注入模型；</li>
+<li>暴露轻量 <code>search_tools</code> Meta Tool；</li>
+<li>模型搜索相关 Tool；</li>
+<li>只加载候选完整 Schema；</li>
+<li>执行。</li>
+</ol>
+<p>检索方式：</p>
+<ul>
+<li>BM25/关键词；</li>
+<li>Embedding；</li>
+<li>小模型/Subagent；</li>
+<li>Hybrid。</li>
+</ul>
+<p>Server 动态管理也可渐进：只在任务需要时连接相关 Server。</p>
+<h3 id="82-code-mode">8.2 Code Mode<a class="headerlink" href="#82-code-mode" title="Permanent link">&para;</a></h3>
+<p>多步数据处理可让模型写受限脚本，Host 在 Sandbox 中拦截函数并路由到 MCP：</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a>graph LR
+<a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a>    L[LLM] --&gt;|生成代码| X[Sandbox]
+<a id="__codelineno-10-3" name="__codelineno-10-3" href="#__codelineno-10-3"></a>    X --&gt;|Typed Stub| H[Host Broker]
+<a id="__codelineno-10-4" name="__codelineno-10-4" href="#__codelineno-10-4"></a>    H --&gt; S1[MCP Server A]
+<a id="__codelineno-10-5" name="__codelineno-10-5" href="#__codelineno-10-5"></a>    H --&gt; S2[MCP Server B]
+<a id="__codelineno-10-6" name="__codelineno-10-6" href="#__codelineno-10-6"></a>    X --&gt;|仅最终摘要| L
+</code></pre></div>
+<p>要求：</p>
+<ul>
+<li>Sandbox 无直接网络；</li>
+<li>不暴露 Token；</li>
+<li>Host 对每次 Tool Call 仍做授权；</li>
+<li>设置 CPU/内存/时间限制；</li>
+<li>跨 Server 数据流继续审查；</li>
+<li>输出限长和校验。</li>
+</ul>
+<h2 id="9">9. 可观测性<a class="headerlink" href="#9" title="Permanent link">&para;</a></h2>
+<h3 id="91">9.1 指标<a class="headerlink" href="#91" title="Permanent link">&para;</a></h3>
+<p>按 Server/Tool/Result 统计：</p>
+<ul>
+<li>Request Count；</li>
+<li>Success / Protocol Error / Tool Error；</li>
+<li>P50/P95/P99 Latency；</li>
+<li>Cancellation / Timeout；</li>
+<li>MRTR Rounds；</li>
+<li>Cache Hit；</li>
+<li>Tool List Size 和 Schema Tokens；</li>
+<li>SSE Active Streams / Disconnect；</li>
+<li>OAuth 401/403 和 Step-up；</li>
+<li>Downstream Error Rate。</li>
+</ul>
+<h3 id="92-trace">9.2 Trace<a class="headerlink" href="#92-trace" title="Permanent link">&para;</a></h3>
+<p>使用 <code>_meta</code> 中的：</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a>traceparent
+<a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a>tracestate
+<a id="__codelineno-11-3" name="__codelineno-11-3" href="#__codelineno-11-3"></a>baggage
+</code></pre></div>
+<p>Span 建议：</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a>Host model turn
+<a id="__codelineno-12-2" name="__codelineno-12-2" href="#__codelineno-12-2"></a>└── MCP tools/call
+<a id="__codelineno-12-3" name="__codelineno-12-3" href="#__codelineno-12-3"></a>    └── authorization
+<a id="__codelineno-12-4" name="__codelineno-12-4" href="#__codelineno-12-4"></a>    └── business operation
+<a id="__codelineno-12-5" name="__codelineno-12-5" href="#__codelineno-12-5"></a>        └── downstream HTTP/DB
+</code></pre></div>
+<p>不要把 Tool 参数全文默认放进 Trace Attribute，避免 PII 和高基数。</p>
+<h3 id="93">9.3 日志<a class="headerlink" href="#93" title="Permanent link">&para;</a></h3>
+<p>记录：</p>
+<ul>
+<li>Protocol Era/Version；</li>
+<li>SDK/Server Version；</li>
+<li>Request ID；</li>
+<li>Method/Tool；</li>
+<li>Principal/Tenant 的不可逆标识；</li>
+<li>Scope Decision；</li>
+<li>耗时、结果类型、错误码；</li>
+<li>幂等键摘要；</li>
+<li>取消和重试。</li>
+</ul>
+<p>不记录：Token、Authorization Code、Cookie、密码、完整用户文档和敏感 Tool Result。</p>
+<h2 id="10-stdio">10. stdio 生产安全<a class="headerlink" href="#10-stdio" title="Permanent link">&para;</a></h2>
+<ul>
+<li>Pin Package Version，容器镜像最好 Pin Digest；</li>
+<li>审查 Publisher、SBOM、Signature；</li>
+<li>Server 在容器/沙箱/VM 中运行；</li>
+<li>仅挂载目标项目，优先 Read-only；</li>
+<li>独立 Environment，不继承全局 Secret；</li>
+<li>无需网络则关闭 Egress；</li>
+<li>需要网络则 Allowlist；</li>
+<li>stdout 只允许协议；</li>
+<li>stderr 限流，防止磁盘/管道耗尽；</li>
+<li>Host 能随时终止进程；</li>
+<li>记录启动命令但脱敏环境变量。</li>
+</ul>
+<p>本地 Server 与 Host 同一信任域；Transport 不提供隔离。</p>
+<h2 id="11-http">11. HTTP 生产安全<a class="headerlink" href="#11-http" title="Permanent link">&para;</a></h2>
+<ul>
+<li>HTTPS；</li>
+<li>Origin Allowlist；</li>
+<li>OAuth 2.1；</li>
+<li>Audience、Issuer、Scope；</li>
+<li>禁止 Token Passthrough；</li>
+<li>Protected Resource Metadata；</li>
+<li>PKCE、State、<code>iss</code>；</li>
+<li>Header/Body 一致性；</li>
+<li>SSRF Egress Controls；</li>
+<li>WAF、Body Limit、Rate Limit；</li>
+<li>SSE 禁止代理缓冲；</li>
+<li>多租户行级授权；</li>
+<li>Secrets 使用 KMS/Vault；</li>
+<li>Key Rotation 和 Revocation；</li>
+<li>Admin Tool 单独 Scope 和审批。</li>
+</ul>
+<h2 id="12-prompt-injection">12. Prompt Injection 防御<a class="headerlink" href="#12-prompt-injection" title="Permanent link">&para;</a></h2>
+<p>安全决策不能交给 LLM。采用确定性策略层：</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a>Model proposes tool call
+<a id="__codelineno-13-2" name="__codelineno-13-2" href="#__codelineno-13-2"></a>        ↓
+<a id="__codelineno-13-3" name="__codelineno-13-3" href="#__codelineno-13-3"></a>Policy Engine
+<a id="__codelineno-13-4" name="__codelineno-13-4" href="#__codelineno-13-4"></a>  ├─ server allowlist
+<a id="__codelineno-13-5" name="__codelineno-13-5" href="#__codelineno-13-5"></a>  ├─ tool allowlist
+<a id="__codelineno-13-6" name="__codelineno-13-6" href="#__codelineno-13-6"></a>  ├─ parameter constraints
+<a id="__codelineno-13-7" name="__codelineno-13-7" href="#__codelineno-13-7"></a>  ├─ data classification
+<a id="__codelineno-13-8" name="__codelineno-13-8" href="#__codelineno-13-8"></a>  ├─ user confirmation
+<a id="__codelineno-13-9" name="__codelineno-13-9" href="#__codelineno-13-9"></a>  └─ tenant/resource authorization
+<a id="__codelineno-13-10" name="__codelineno-13-10" href="#__codelineno-13-10"></a>        ↓
+<a id="__codelineno-13-11" name="__codelineno-13-11" href="#__codelineno-13-11"></a>MCP Client executes
+</code></pre></div>
+<p>Tool Result：</p>
+<ul>
+<li>标记来源；</li>
+<li>与系统指令隔离；</li>
+<li>限长；</li>
+<li>过滤不支持 Content Type；</li>
+<li>跨 Server 转发前重新审查；</li>
+<li>不因为结果里写了“已获用户授权”就跳过审批。</li>
+</ul>
+<h2 id="13">13. 版本与发布<a class="headerlink" href="#13" title="Permanent link">&para;</a></h2>
+<h3 id="131">13.1 支持矩阵<a class="headerlink" href="#131" title="Permanent link">&para;</a></h3>
+<p>维护：</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a>Server version → SDK version → Protocol versions → Target Hosts
+</code></pre></div>
+<p>每次发布自动测试：</p>
+<ul>
+<li>Inspector Modern；</li>
+<li>Inspector Legacy（如宣称支持）；</li>
+<li>至少一个目标 Host；</li>
+<li>OAuth / stdio；</li>
+<li>Schema Snapshot；</li>
+<li>Migration Test。</li>
+</ul>
+<h3 id="132-tool-schema">13.2 Tool Schema 变更<a class="headerlink" href="#132-tool-schema" title="Permanent link">&para;</a></h3>
+<p>兼容变更：</p>
+<ul>
+<li>增加非必填字段；</li>
+<li>扩展描述；</li>
+<li>增加可选输出字段。</li>
+</ul>
+<p>可能 Breaking：</p>
+<ul>
+<li>重命名 Tool；</li>
+<li>新增必填参数；</li>
+<li>缩小枚举；</li>
+<li>改变单位；</li>
+<li>改变副作用；</li>
+<li>改变 <code>structuredContent</code> 类型。</li>
+</ul>
+<p>即使 MCP Protocol Version 不变，你自己的 Tool Contract 也需要版本治理。</p>
+<h3 id="133">13.3 灰度<a class="headerlink" href="#133" title="Permanent link">&para;</a></h3>
+<ul>
+<li>新 Tool 先仅对测试 Scope 开放；</li>
+<li>比较旧/新 Schema 调用成功率；</li>
+<li>监控模型选 Tool 准确率；</li>
+<li>支持快速隐藏 Tool；</li>
+<li>高风险写 Tool 使用 Feature Flag；</li>
+<li>保留回滚和凭据吊销路径。</li>
+</ul>
+<h2 id="14-slo">14. 容量与 SLO<a class="headerlink" href="#14-slo" title="Permanent link">&para;</a></h2>
+<p>示例 SLO：</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-15-1" name="__codelineno-15-1" href="#__codelineno-15-1"></a>Availability: 99.9%
+<a id="__codelineno-15-2" name="__codelineno-15-2" href="#__codelineno-15-2"></a>P95 tools/list: &lt; 300 ms
+<a id="__codelineno-15-3" name="__codelineno-15-3" href="#__codelineno-15-3"></a>P95 read-only tools/call: &lt; 2 s
+<a id="__codelineno-15-4" name="__codelineno-15-4" href="#__codelineno-15-4"></a>Protocol error rate: &lt; 0.1%
+<a id="__codelineno-15-5" name="__codelineno-15-5" href="#__codelineno-15-5"></a>Subscription reconnect success: &gt; 99%
+</code></pre></div>
+<p>容量规划考虑：</p>
+<ul>
+<li>Tool Schema 大小；</li>
+<li>并发 SSE；</li>
+<li>MRTR 等待用户时不要占工作线程；</li>
+<li>二进制内容内存峰值；</li>
+<li>下游连接池；</li>
+<li>Per-tenant 限流；</li>
+<li>缓存命中；</li>
+<li>模型重试放大流量。</li>
+</ul>
+<h2 id="15">15. 故障恢复<a class="headerlink" href="#15" title="Permanent link">&para;</a></h2>
+<h3 id="server">Server 重启<a class="headerlink" href="#server" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Modern Request 无 Session 恢复；</li>
+<li>在途请求按幂等性处理；</li>
+<li>Subscription 重建；</li>
+<li>Handle 状态放外部 Durable Store。</li>
+</ul>
+<h3 id="_1">下游失败<a class="headerlink" href="#_1" title="Permanent link">&para;</a></h3>
+<ul>
+<li>返回可行动 Tool Execution Error；</li>
+<li>不暴露内部 Stack/Token；</li>
+<li>降级到缓存需标注陈旧；</li>
+<li>写操作不确定时返回状态查询方法。</li>
+</ul>
+<h3 id="authorization-server">Authorization Server 故障<a class="headerlink" href="#authorization-server" title="Permanent link">&para;</a></h3>
+<ul>
+<li>已签发短期 Token 可按策略继续验证；</li>
+<li>不绕过认证；</li>
+<li>Metadata 和 JWKS 缓存有明确 TTL；</li>
+<li>Key Rotation 支持多 Key 验证窗口。</li>
+</ul>
+<h2 id="16">16. 代码审查问题<a class="headerlink" href="#16" title="Permanent link">&para;</a></h2>
+<h3 id="_2">协议<a class="headerlink" href="#_2" title="Permanent link">&para;</a></h3>
+<ul>
+<li>是否真的支持声明的 Protocol Version？</li>
+<li>是否混用了 Initialize 与 Modern <code>_meta</code>？</li>
+<li>是否正确处理 <code>resultType</code>？</li>
+<li>是否把 Notification 当 Request？</li>
+<li>Cursor 空字符串是否被错误判结束？</li>
+</ul>
+<h3 id="_3">状态<a class="headerlink" href="#_3" title="Permanent link">&para;</a></h3>
+<ul>
+<li>是否依赖连接内隐式状态？</li>
+<li>Handle 是否绑定用户？</li>
+<li><code>requestState</code> 是否可篡改/重放？</li>
+</ul>
+<h3 id="_4">安全<a class="headerlink" href="#_4" title="Permanent link">&para;</a></h3>
+<ul>
+<li>每次 Call 是否重新鉴权？</li>
+<li>Token Audience 是否校验？</li>
+<li>是否存在 Token Passthrough？</li>
+<li>Tool 描述/结果是否被当成可信指令？</li>
+<li>本地 Server 是否拥有过宽权限？</li>
+</ul>
+<h3 id="_5">可靠性<a class="headerlink" href="#_5" title="Permanent link">&para;</a></h3>
+<ul>
+<li>写操作是否幂等？</li>
+<li>Timeout 是否分层？</li>
+<li>Retry 是否叠加？</li>
+<li>Cancellation 后副作用是否清楚？</li>
+<li>stderr 是否持续消费？</li>
+</ul>
+<h2 id="17">17. 上线清单<a class="headerlink" href="#17" title="Permanent link">&para;</a></h2>
+<h3 id="server_1">Server<a class="headerlink" href="#server_1" title="Permanent link">&para;</a></h3>
+<ul class="task-list">
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> <code>server/discover</code>、Capabilities、版本正确</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Tool/Resource/Prompt Contract 有测试</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> 无连接级隐式状态</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> 输入输出 Schema 双向校验</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> 幂等、Timeout、Rate Limit、Circuit Breaker</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Authorization 和租户隔离</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Log/Metric/Trace 脱敏</li>
+</ul>
+<h3 id="transport">Transport<a class="headerlink" href="#transport" title="Permanent link">&para;</a></h3>
+<ul class="task-list">
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> stdio stdout 纯净、进程可终止、运行隔离</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> HTTP TLS、Origin、Headers、OAuth、SSE 代理配置</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> 断线和订阅重建测试</li>
+</ul>
+<h3 id="host">Host<a class="headerlink" href="#host" title="Permanent link">&para;</a></h3>
+<ul class="task-list">
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Server/Tool Allowlist</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Tool 名冲突处理</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Human-in-the-Loop</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Prompt Injection 隔离</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> 渐进式 Tool 发现</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Cache/Notification 一致性</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> MRTR/取消循环上限</li>
+</ul>
+<h3 id="_6">运维<a class="headerlink" href="#_6" title="Permanent link">&para;</a></h3>
+<ul class="task-list">
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> 依赖和镜像 Pin</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> SBOM/漏洞扫描</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Secret Rotation</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> SLO 和告警</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> 灰度、回滚、禁用 Tool</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Incident Runbook</li>
+</ul>
+<h2 id="18">18. 结论<a class="headerlink" href="#18" title="Permanent link">&para;</a></h2>
+<p>生产 MCP 的核心不是“把函数加一个装饰器”，而是建立稳定边界：</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-16-1" name="__codelineno-16-1" href="#__codelineno-16-1"></a>清晰 Contract
+<a id="__codelineno-16-2" name="__codelineno-16-2" href="#__codelineno-16-2"></a>+ 每请求版本/能力/授权
+<a id="__codelineno-16-3" name="__codelineno-16-3" href="#__codelineno-16-3"></a>+ 显式状态句柄
+<a id="__codelineno-16-4" name="__codelineno-16-4" href="#__codelineno-16-4"></a>+ 幂等与取消
+<a id="__codelineno-16-5" name="__codelineno-16-5" href="#__codelineno-16-5"></a>+ 缓存与通知
+<a id="__codelineno-16-6" name="__codelineno-16-6" href="#__codelineno-16-6"></a>+ 沙箱与最小权限
+<a id="__codelineno-16-7" name="__codelineno-16-7" href="#__codelineno-16-7"></a>+ 可观测和版本治理
+</code></pre></div>
+<p>返回教程目录：<a href="../">MCP 独立教程体系</a>。</p>
+<h2 id="_7">参考<a class="headerlink" href="#_7" title="Permanent link">&para;</a></h2>
+<ul>
+<li><a href="https://modelcontextprotocol.io/docs/2026-07-28/develop/clients/client-best-practices">Client Best Practices</a></li>
+<li><a href="https://modelcontextprotocol.io/docs/2026-07-28/tutorials/security/security_best_practices">Security Best Practices</a></li>
+<li><a href="https://modelcontextprotocol.io/specification/2026-07-28/server/utilities/caching">Caching</a></li>
+<li><a href="https://modelcontextprotocol.io/development/roadmap">MCP Roadmap</a></li>
+</ul>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  回到页面顶部
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+    
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../../../../..", "features": ["navigation.tabs", "navigation.sections", "navigation.expand", "navigation.instant", "navigation.top", "navigation.indexes", "navigation.footer", "toc.follow", "search.suggest", "search.highlight", "content.code.copy"], "search": "../../../../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "\u5df2\u590d\u5236", "clipboard.copy": "\u590d\u5236", "search.result.more.one": "\u5728\u8be5\u9875\u4e0a\u8fd8\u6709 1 \u4e2a\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.more.other": "\u5728\u8be5\u9875\u4e0a\u8fd8\u6709 # \u4e2a\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.none": "\u6ca1\u6709\u627e\u5230\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.one": "\u627e\u5230 1 \u4e2a\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.other": "# \u4e2a\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.placeholder": "\u952e\u5165\u4ee5\u5f00\u59cb\u641c\u7d22", "search.result.term.missing": "\u7f3a\u5c11", "select.version": "\u9009\u62e9\u5f53\u524d\u7248\u672c"}, "version": null}</script>
+    
+    
+      <script src="../../../../../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+    
+  </body>
+</html>
