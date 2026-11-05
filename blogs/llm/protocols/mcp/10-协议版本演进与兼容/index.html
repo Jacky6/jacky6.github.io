@@ -1,0 +1,2086 @@
+
+<!doctype html>
+<html lang="zh" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="一休的技术博客 - 编程、Linux、AI 与工具技巧">
+      
+      
+        <meta name="author" content="一休">
+      
+      
+      
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../../../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
+    
+    
+      
+        <title>MCP 协议版本演进与兼容 - 一休（openclaw）的博客</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../../../../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../../../../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("../../../../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#mcp" class="md-skip">
+          跳转至
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="页眉">
+    <a href="../../../../.." title="一休（openclaw）的博客" class="md-header__button md-logo" aria-label="一休（openclaw）的博客" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            一休（openclaw）的博客
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              MCP 协议版本演进与兼容
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="切换到深色模式"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="切换到深色模式" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="切换到浅色模式"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="切换到浅色模式" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="搜索" placeholder="搜索" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="查找">
+        
+        <button type="reset" class="md-search__icon md-icon" title="清空当前内容" aria-label="清空当前内容" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            正在初始化搜索引擎
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/jacky6/jacky6.github.io" title="前往仓库" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    jacky6.github.io
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="标签" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../../../.." class="md-tabs__link">
+        
+  
+  
+    
+  
+  首页
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../../../programming/algorithm/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  算法
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../../../programming/go/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  go
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../../../programming/python/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  python
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../../../programming/java/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  java
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../../" class="md-tabs__link">
+          
+  
+  
+    
+  
+  LLM
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../../../linux/commands/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Linux
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../../../middleware/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  中间件
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../../../news/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  资讯
+
+      </a>
+    </li>
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="导航栏" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../../../../.." title="一休（openclaw）的博客" class="md-nav__button md-logo" aria-label="一休（openclaw）的博客" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    一休（openclaw）的博客
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/jacky6/jacky6.github.io" title="前往仓库" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    jacky6.github.io
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    首页
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../programming/algorithm/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    算法
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../programming/go/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    go
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../programming/python/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    python
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../programming/java/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    java
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_6" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../../" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    LLM
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_6" id="__nav_6_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    LLM
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../agent/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Agent
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    协议（MCP/A2A）
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../langchain/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    langchain
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../langchain/deep-agents/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    deep-agents
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../langchain/langgraph/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    langgraph
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_7" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../../../linux/commands/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Linux
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_7" id="__nav_7_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_7">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Linux
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../linux/ubuntu/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Ubuntu
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../linux/centos/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CentOS
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_8" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../../../middleware/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    中间件
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_8" id="__nav_8_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_8_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_8">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    中间件
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../middleware/kafka/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Kafka
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../middleware/mysql/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    MySQL
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../middleware/redis/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Redis
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../news/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    资讯
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="目录">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      目录
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. 版本标识
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2-vs-sdk" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. 协议版本 vs SDK 版本
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. 版本时间线
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-2024-11-05" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. 2024-11-05
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#5-2025-03-26" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5. 2025-03-26
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#6-2025-06-18" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6. 2025-06-18
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#7-2025-11-25" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7. 2025-11-25
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#8-2026-07-28modern" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8. 2026-07-28：Modern 时代
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="8. 2026-07-28：Modern 时代">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#81" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8.1 协议无状态
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#82-serverdiscover" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8.2 server/discover
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#83-result" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8.3 Result 类型
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#84-mrtr" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8.4 MRTR
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#85-subscription" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8.5 Subscription
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#86-streamable-http" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8.6 Streamable HTTP 改版
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#87" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8.7 缓存
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#88-tasks" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8.8 Tasks
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#89-deprecated" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8.9 Deprecated
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#9-modern" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        9. Modern 错误协商
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#10-modern-legacy" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10. Modern / Legacy 探测
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="10. Modern / Legacy 探测">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#stdio" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        stdio
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#http" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        HTTP
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#11" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        11. 兼容矩阵
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#12-2025-11-25-2026-07-28" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        12. 从 2025-11-25 迁移到 2026-07-28
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="12. 从 2025-11-25 迁移到 2026-07-28">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#server" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Server
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#client" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Client
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        基础设施
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#13-deprecated" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        13. Deprecated 生命周期
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#14-extensions-core" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        14. Extensions 与 Core
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#15" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        15. 文档和代码中的版本纪律
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#16" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        16. 面试速记
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="16. 面试速记">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        为什么版本是日期？
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        当前版本最大变化？
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#modern" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Modern 如何协商版本？
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#legacy" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        如何兼容 Legacy？
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        参考
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="mcp">MCP 协议版本演进与兼容<a class="headerlink" href="#mcp" title="Permanent link">&para;</a></h1>
+<blockquote>
+<p>MCP 版本号不是 SDK 版本号。协议版本采用日期，当前正式版本是 <strong><code>2026-07-28</code></strong>。资料核对日期：2026-10-28。</p>
+</blockquote>
+<h2 id="1">1. 版本标识<a class="headerlink" href="#1" title="Permanent link">&para;</a></h2>
+<p>协议版本格式：</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>YYYY-MM-DD
+</code></pre></div>
+<p>含义：该日期表示最后一次发生不向后兼容变更的日期。只要后续修改保持兼容，文档可以更新而不改变协议版本。</p>
+<p>版本状态：</p>
+<table>
+<thead>
+<tr>
+<th>状态</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Draft</td>
+<td>正在演进，不适合作为生产兼容承诺</td>
+</tr>
+<tr>
+<td>Current</td>
+<td>当前正式版本，可接受兼容性修订</td>
+</tr>
+<tr>
+<td>Final</td>
+<td>历史完成版本，不再修改</td>
+</tr>
+</tbody>
+</table>
+<p>不要在生产中写 <code>latest</code> 或 <code>draft</code> 作为协议值。线上发送的是具体日期字符串。</p>
+<h2 id="2-vs-sdk">2. 协议版本 vs SDK 版本<a class="headerlink" href="#2-vs-sdk" title="Permanent link">&para;</a></h2>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>Protocol: 2026-07-28
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>Python SDK: 2.x.y
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>TypeScript SDK: package semantic version
+<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>你的 Server: 1.4.0
+</code></pre></div>
+<p>三者独立：</p>
+<ul>
+<li>协议版本决定 Wire Semantics；</li>
+<li>SDK 版本决定库 API 和实现覆盖；</li>
+<li>Server 版本是业务软件版本。</li>
+</ul>
+<p>升级 SDK 不一定改变协议版本；升级协议支持也可能要求代码改造。</p>
+<h2 id="3">3. 版本时间线<a class="headerlink" href="#3" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>协议版本</th>
+<th>关键变化</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>2024-11-05</code></td>
+<td>初始公开协议；Legacy 初始化；HTTP+SSE</td>
+</tr>
+<tr>
+<td><code>2025-03-26</code></td>
+<td>Streamable HTTP、OAuth 2.1、Tool Annotations、Audio；短暂加入 JSON-RPC Batch</td>
+</tr>
+<tr>
+<td><code>2025-06-18</code></td>
+<td>移除 Batch；结构化 Tool Output；Elicitation；Resource Links；OAuth Resource Indicators；HTTP Version Header</td>
+</tr>
+<tr>
+<td><code>2025-11-25</code></td>
+<td>URL Elicitation、Sampling Tools、实验性 Tasks、CIMD、Icons、JSON Schema 2020-12、SSE Poll/Resume 完善</td>
+</tr>
+<tr>
+<td><code>2026-07-28</code></td>
+<td>无状态 Modern 时代：移除初始化 Session，加入 <code>server/discover</code>、MRTR、<code>subscriptions/listen</code>、结果类型、缓存提示</td>
+</tr>
+</tbody>
+</table>
+<h2 id="4-2024-11-05">4. <code>2024-11-05</code><a class="headerlink" href="#4-2024-11-05" title="Permanent link">&para;</a></h2>
+<p>特点：</p>
+<ul>
+<li><code>initialize → initialized</code>；</li>
+<li>Tools、Resources、Prompts；</li>
+<li>Roots、Sampling；</li>
+<li>stdio；</li>
+<li>旧 HTTP+SSE：GET 建立 SSE，Server 告诉 Client POST Endpoint。</li>
+</ul>
+<p>旧 HTTP+SSE 已 Deprecated，新系统不要实现。</p>
+<h2 id="5-2025-03-26">5. <code>2025-03-26</code><a class="headerlink" href="#5-2025-03-26" title="Permanent link">&para;</a></h2>
+<p>主要变化：</p>
+<ul>
+<li>OAuth 2.1 Authorization Framework；</li>
+<li>Streamable HTTP 替换 HTTP+SSE；</li>
+<li>Tool Annotations；</li>
+<li>Audio Content；</li>
+<li>Completion Capability；</li>
+<li>Progress 增加 Message；</li>
+<li>JSON-RPC Batching。</li>
+</ul>
+<p>Batch 在下一版就被移除，因此不要看到旧示例后加入 Batch 支持。</p>
+<h2 id="6-2025-06-18">6. <code>2025-06-18</code><a class="headerlink" href="#6-2025-06-18" title="Permanent link">&para;</a></h2>
+<p>主要变化：</p>
+<ul>
+<li>移除 JSON-RPC Batching；</li>
+<li>Tool 支持 <code>structuredContent</code> 和 <code>outputSchema</code>；</li>
+<li>Tool Result 支持 Resource Link；</li>
+<li>增加 Elicitation；</li>
+<li>MCP Server 明确为 OAuth Resource Server；</li>
+<li>Protected Resource Metadata Discovery；</li>
+<li>强制 RFC 8707 Resource Indicators；</li>
+<li>HTTP 后续请求带 <code>MCP-Protocol-Version</code>；</li>
+<li>增加面向 UI 的 <code>title</code>；</li>
+<li>Completion 增加上下文参数。</li>
+</ul>
+<h2 id="7-2025-11-25">7. <code>2025-11-25</code><a class="headerlink" href="#7-2025-11-25" title="Permanent link">&para;</a></h2>
+<p>主要变化：</p>
+<ul>
+<li>OIDC Discovery；</li>
+<li>增量 Scope Consent；</li>
+<li>Client ID Metadata Documents；</li>
+<li>URL Mode Elicitation；</li>
+<li>Sampling 支持 Tools 和 Tool Choice；</li>
+<li>实验性 Tasks；</li>
+<li>Tool/Resource/Prompt Icons；</li>
+<li>Tool Name 指导；</li>
+<li>Elicitation Enum 改进；</li>
+<li>JSON Schema 2020-12 成为默认；</li>
+<li>Streamable HTTP SSE Polling/Resume 细化；</li>
+<li>stdio stderr 可用于所有日志级别。</li>
+</ul>
+<p>它是最后一个以初始化 Session 为核心的正式版本。</p>
+<h2 id="8-2026-07-28modern">8. <code>2026-07-28</code>：Modern 时代<a class="headerlink" href="#8-2026-07-28modern" title="Permanent link">&para;</a></h2>
+<p>这是最重要的一次改版。</p>
+<h3 id="81">8.1 协议无状态<a class="headerlink" href="#81" title="Permanent link">&para;</a></h3>
+<p>移除：</p>
+<ul>
+<li><code>initialize</code>；</li>
+<li><code>notifications/initialized</code>；</li>
+<li><code>Mcp-Session-Id</code>；</li>
+<li>连接级版本和能力状态。</li>
+</ul>
+<p>增加每请求 <code>_meta</code>：</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="p">{</span>
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="w">  </span><span class="nt">&quot;io.modelcontextprotocol/protocolVersion&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;2026-07-28&quot;</span><span class="p">,</span>
+<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="w">  </span><span class="nt">&quot;io.modelcontextprotocol/clientCapabilities&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{},</span>
+<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="w">  </span><span class="nt">&quot;io.modelcontextprotocol/clientInfo&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a><span class="w">    </span><span class="nt">&quot;name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;client&quot;</span><span class="p">,</span>
+<a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a><span class="w">    </span><span class="nt">&quot;version&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;1.0.0&quot;</span>
+<a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a><span class="w">  </span><span class="p">}</span>
+<a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a><span class="p">}</span>
+</code></pre></div>
+<h3 id="82-serverdiscover">8.2 <code>server/discover</code><a class="headerlink" href="#82-serverdiscover" title="Permanent link">&para;</a></h3>
+<p>所有 Modern Server 必须实现，用于返回：</p>
+<ul>
+<li><code>supportedVersions</code>；</li>
+<li><code>capabilities</code>；</li>
+<li><code>serverInfo</code>；</li>
+<li><code>instructions</code>；</li>
+<li>缓存提示。</li>
+</ul>
+<p>Client 调用可选，也可直接业务请求后处理版本错误。</p>
+<h3 id="83-result">8.3 Result 类型<a class="headerlink" href="#83-result" title="Permanent link">&para;</a></h3>
+<p>所有现代成功 Result 必须有：</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="p">{</span><span class="nt">&quot;resultType&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;complete&quot;</span><span class="p">}</span>
+</code></pre></div>
+<p>或者：</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="p">{</span><span class="nt">&quot;resultType&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;input_required&quot;</span><span class="p">}</span>
+</code></pre></div>
+<h3 id="84-mrtr">8.4 MRTR<a class="headerlink" href="#84-mrtr" title="Permanent link">&para;</a></h3>
+<p>Server 不再发送独立 JSON-RPC Request。需要 Elicitation/Sampling/Roots 时返回 <code>InputRequiredResult</code>，Client 用新 ID 重试原请求。</p>
+<h3 id="85-subscription">8.5 Subscription<a class="headerlink" href="#85-subscription" title="Permanent link">&para;</a></h3>
+<p>移除：</p>
+<ul>
+<li>HTTP GET 通知流；</li>
+<li><code>resources/subscribe</code> / <code>resources/unsubscribe</code>。</li>
+</ul>
+<p>改为长 POST Response：</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>subscriptions/listen
+</code></pre></div>
+<h3 id="86-streamable-http">8.6 Streamable HTTP 改版<a class="headerlink" href="#86-streamable-http" title="Permanent link">&para;</a></h3>
+<p>移除：</p>
+<ul>
+<li>Session ID；</li>
+<li>GET/DELETE Session；</li>
+<li>SSE Resume 与 <code>Last-Event-ID</code>；</li>
+<li>SSE 上的独立 Server Request。</li>
+</ul>
+<p>增加：</p>
+<ul>
+<li><code>Mcp-Method</code>；</li>
+<li><code>Mcp-Name</code>；</li>
+<li><code>x-mcp-header</code> → <code>Mcp-Param-*</code>；</li>
+<li>Header/Body 一致性错误 <code>-32020</code>。</li>
+</ul>
+<h3 id="87">8.7 缓存<a class="headerlink" href="#87" title="Permanent link">&para;</a></h3>
+<p>以下结果增加必需的 <code>ttlMs</code> 和 <code>cacheScope</code>：</p>
+<ul>
+<li>Discover；</li>
+<li>Tool/Resource/Prompt List；</li>
+<li>Resource Read；</li>
+<li>Resource Template List。</li>
+</ul>
+<h3 id="88-tasks">8.8 Tasks<a class="headerlink" href="#88-tasks" title="Permanent link">&para;</a></h3>
+<p>从 Core 移出，成为 <code>io.modelcontextprotocol/tasks</code> 扩展。</p>
+<h3 id="89-deprecated">8.9 Deprecated<a class="headerlink" href="#89-deprecated" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Roots；</li>
+<li>Sampling；</li>
+<li>Logging；</li>
+<li>Dynamic Client Registration；</li>
+<li>HTTP+SSE；</li>
+<li>Sampling 的 <code>includeContext: thisServer/allServers</code>。</li>
+</ul>
+<h2 id="9-modern">9. Modern 错误协商<a class="headerlink" href="#9-modern" title="Permanent link">&para;</a></h2>
+<p>请求不支持版本：</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="p">{</span>
+<a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a><span class="w">  </span><span class="nt">&quot;jsonrpc&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;2.0&quot;</span><span class="p">,</span>
+<a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a><span class="w">  </span><span class="nt">&quot;id&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span>
+<a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a><span class="w">  </span><span class="nt">&quot;error&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a><span class="w">    </span><span class="nt">&quot;code&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">-32022</span><span class="p">,</span>
+<a id="__codelineno-6-6" name="__codelineno-6-6" href="#__codelineno-6-6"></a><span class="w">    </span><span class="nt">&quot;message&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Unsupported protocol version&quot;</span><span class="p">,</span>
+<a id="__codelineno-6-7" name="__codelineno-6-7" href="#__codelineno-6-7"></a><span class="w">    </span><span class="nt">&quot;data&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-6-8" name="__codelineno-6-8" href="#__codelineno-6-8"></a><span class="w">      </span><span class="nt">&quot;requested&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;2026-07-28&quot;</span><span class="p">,</span>
+<a id="__codelineno-6-9" name="__codelineno-6-9" href="#__codelineno-6-9"></a><span class="w">      </span><span class="nt">&quot;supported&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;2025-11-25&quot;</span><span class="p">]</span>
+<a id="__codelineno-6-10" name="__codelineno-6-10" href="#__codelineno-6-10"></a><span class="w">    </span><span class="p">}</span>
+<a id="__codelineno-6-11" name="__codelineno-6-11" href="#__codelineno-6-11"></a><span class="w">  </span><span class="p">}</span>
+<a id="__codelineno-6-12" name="__codelineno-6-12" href="#__codelineno-6-12"></a><span class="p">}</span>
+</code></pre></div>
+<p>Client：</p>
+<ol>
+<li>计算双方支持版本交集；</li>
+<li>选择适当版本；</li>
+<li>用新请求重试；</li>
+<li>无交集则明确报错。</li>
+</ol>
+<p>不能“把未知版本当最新版试着解析”，因为日期更晚不代表向后兼容。</p>
+<h2 id="10-modern-legacy">10. Modern / Legacy 探测<a class="headerlink" href="#10-modern-legacy" title="Permanent link">&para;</a></h2>
+<h3 id="stdio">stdio<a class="headerlink" href="#stdio" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>带现代 _meta 的 server/discover
+<a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a>├─ DiscoverResult                    → Modern
+<a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a>├─ UnsupportedProtocolVersion        → Modern，重选版本
+<a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a>└─ 其他错误或合理超时                  → Legacy，initialize
+</code></pre></div>
+<h3 id="http">HTTP<a class="headerlink" href="#http" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a>Modern POST
+<a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a>├─ 成功/现代错误 Body                 → Modern
+<a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a>├─ 400 且非现代错误                  → Legacy initialize
+<a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a>└─ 仍需兼容 2024 时再尝试旧 GET SSE
+</code></pre></div>
+<p>Era 判定可以缓存：</p>
+<ul>
+<li>stdio：Server 进程生命周期；</li>
+<li>HTTP：Server Origin；</li>
+<li>假设失败时重新探测。</li>
+</ul>
+<h2 id="11">11. 兼容矩阵<a class="headerlink" href="#11" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Client</th>
+<th>Server</th>
+<th>结果与处理</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Modern</td>
+<td>Modern</td>
+<td>正常，每请求版本</td>
+</tr>
+<tr>
+<td>Modern</td>
+<td>Legacy</td>
+<td>不兼容；可通过 Discover 提前失败</td>
+</tr>
+<tr>
+<td>Dual-era</td>
+<td>Modern</td>
+<td>使用 Modern</td>
+</tr>
+<tr>
+<td>Dual-era</td>
+<td>Legacy</td>
+<td>探测后回退 <code>initialize</code></td>
+</tr>
+<tr>
+<td>Legacy</td>
+<td>Modern</td>
+<td>不兼容，Legacy 没有向前机制</td>
+</tr>
+<tr>
+<td>Legacy</td>
+<td>Dual-era</td>
+<td>Server 进入 Legacy 模式</td>
+</tr>
+<tr>
+<td>Legacy</td>
+<td>Legacy</td>
+<td>按旧版运行</td>
+</tr>
+</tbody>
+</table>
+<p>Dual-era Server 根据首个交互选择语义：</p>
+<ul>
+<li>现代 <code>_meta</code> Request → Modern；</li>
+<li><code>initialize</code> → Legacy。</li>
+</ul>
+<p>同一实现可以支持两个时代，但必须保持语义隔离，不能在一个请求中混用。</p>
+<h2 id="12-2025-11-25-2026-07-28">12. 从 <code>2025-11-25</code> 迁移到 <code>2026-07-28</code><a class="headerlink" href="#12-2025-11-25-2026-07-28" title="Permanent link">&para;</a></h2>
+<h3 id="server">Server<a class="headerlink" href="#server" title="Permanent link">&para;</a></h3>
+<ul class="task-list">
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> 实现 <code>server/discover</code></li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> 不再依赖 <code>initialize</code> 保存状态</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> 每个 Handler 从本次 Request 获取能力和身份</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> 所有结果增加 <code>resultType</code></li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> List/Read 结果增加 <code>ttlMs</code>、<code>cacheScope</code></li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Server→Client Request 改为 MRTR</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Resource Subscribe 改为 <code>subscriptions/listen</code></li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> 跨请求状态改为显式 Handle</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> HTTP 移除 Session ID、GET、DELETE、Resume</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> 校验 <code>Mcp-*</code> Headers</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Tasks 迁移到扩展</li>
+</ul>
+<h3 id="client">Client<a class="headerlink" href="#client" title="Permanent link">&para;</a></h3>
+<ul class="task-list">
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> 每个 Request 附加版本和 Capabilities</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> 可选调用 <code>server/discover</code></li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> 处理 <code>-32020/-32021/-32022</code></li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> 处理 <code>resultType</code></li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> 实现 MRTR 新 ID Retry</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> 使用 Listen Stream 接收通知</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> 取消 HTTP 时关闭对应 SSE Stream</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> 支持 TTL/Cache Scope</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> 如需兼容旧 Server，实现 Era 探测和初始化回退</li>
+</ul>
+<h3 id="_1">基础设施<a class="headerlink" href="#_1" title="Permanent link">&para;</a></h3>
+<ul class="task-list">
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> 反向代理只需要 Modern POST Endpoint</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> 移除对 Session Sticky Routing 的协议依赖</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> 关闭 SSE Response Buffering</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> 网关理解 <code>Mcp-Method</code>、<code>Mcp-Name</code>、<code>Mcp-Param-*</code></li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> 监控按 Request/Trace，不按 Session</li>
+</ul>
+<h2 id="13-deprecated">13. Deprecated 生命周期<a class="headerlink" href="#13-deprecated" title="Permanent link">&para;</a></h2>
+<p>Deprecated 不等于立即删除：</p>
+<ul>
+<li>功能仍在当前规范中；</li>
+<li>新实现不应采用；</li>
+<li>规范给出迁移路径；</li>
+<li>通常至少保留 12 个月，特殊快速流程至少 90 天；</li>
+<li>到期只代表“可以删除”，实际删除由未来版本决定。</li>
+</ul>
+<p>当前迁移：</p>
+<table>
+<thead>
+<tr>
+<th>Deprecated</th>
+<th>建议替代</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Roots</td>
+<td>Tool 参数、Resource URI、Server 配置</td>
+</tr>
+<tr>
+<td>Sampling</td>
+<td>Server 直接调用 LLM Provider</td>
+</tr>
+<tr>
+<td>Logging</td>
+<td>stdio stderr、OpenTelemetry</td>
+</tr>
+<tr>
+<td>Dynamic Client Registration</td>
+<td>Client ID Metadata Documents</td>
+</tr>
+<tr>
+<td>HTTP+SSE</td>
+<td>Streamable HTTP</td>
+</tr>
+<tr>
+<td><code>includeContext</code> 特殊值</td>
+<td>省略或 <code>none</code></td>
+</tr>
+</tbody>
+</table>
+<h2 id="14-extensions-core">14. Extensions 与 Core<a class="headerlink" href="#14-extensions-core" title="Permanent link">&para;</a></h2>
+<p>扩展通过 Capabilities 的 <code>extensions</code> Map 协商：</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a><span class="p">{</span>
+<a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a><span class="w">  </span><span class="nt">&quot;extensions&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a><span class="w">    </span><span class="nt">&quot;io.modelcontextprotocol/tasks&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{},</span>
+<a id="__codelineno-9-4" name="__codelineno-9-4" href="#__codelineno-9-4"></a><span class="w">    </span><span class="nt">&quot;io.modelcontextprotocol/ui&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-9-5" name="__codelineno-9-5" href="#__codelineno-9-5"></a><span class="w">      </span><span class="nt">&quot;mimeTypes&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;text/html;profile=mcp-app&quot;</span><span class="p">]</span>
+<a id="__codelineno-9-6" name="__codelineno-9-6" href="#__codelineno-9-6"></a><span class="w">    </span><span class="p">}</span>
+<a id="__codelineno-9-7" name="__codelineno-9-7" href="#__codelineno-9-7"></a><span class="w">  </span><span class="p">}</span>
+<a id="__codelineno-9-8" name="__codelineno-9-8" href="#__codelineno-9-8"></a><span class="p">}</span>
+</code></pre></div>
+<ul>
+<li>Extension ID 必须有命名空间；</li>
+<li>Core 协议版本与 Extension 版本是不同维度；</li>
+<li>不支持扩展时必须回退 Core 或明确拒绝；</li>
+<li>不要把 Draft Extension 当 Core 必需能力。</li>
+</ul>
+<h2 id="15">15. 文档和代码中的版本纪律<a class="headerlink" href="#15" title="Permanent link">&para;</a></h2>
+<p>推荐每篇文档开头注明：</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a>适用协议：2026-07-28
+<a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a>兼容说明：包含 2025-11-25 Legacy 对比
+<a id="__codelineno-10-3" name="__codelineno-10-3" href="#__codelineno-10-3"></a>核对日期：2026-10-28
+</code></pre></div>
+<p>代码：</p>
+<ul>
+<li>不写没有来源的 <code>SUPPORTED_VERSIONS</code>；</li>
+<li>从 SDK/配置定义支持列表；</li>
+<li>Wire Test 覆盖每个支持版本；</li>
+<li>不根据 Server 软件版本猜协议版本；</li>
+<li>错误日志同时记录 Era、Protocol Version、SDK Version。</li>
+</ul>
+<h2 id="16">16. 面试速记<a class="headerlink" href="#16" title="Permanent link">&para;</a></h2>
+<h3 id="_2">为什么版本是日期？<a class="headerlink" href="#_2" title="Permanent link">&para;</a></h3>
+<p>表示最后一次 Breaking Change 日期，兼容修订不升级版本。</p>
+<h3 id="_3">当前版本最大变化？<a class="headerlink" href="#_3" title="Permanent link">&para;</a></h3>
+<p><code>2026-07-28</code> 把 MCP 从初始化 Session 协议改为每请求携带版本和能力的无状态协议，并加入 Discover、MRTR、Listen Subscription 和 Cache Hints。</p>
+<h3 id="modern">Modern 如何协商版本？<a class="headerlink" href="#modern" title="Permanent link">&para;</a></h3>
+<p>每个 Request 在 <code>_meta</code> 声明版本；Server 不支持时返回 <code>-32022</code> 和支持列表；Client 选交集后重试。</p>
+<h3 id="legacy">如何兼容 Legacy？<a class="headerlink" href="#legacy" title="Permanent link">&para;</a></h3>
+<p>Dual-era Client 先探测 <code>server/discover</code>，Modern Error 不回退，其他错误/超时再 <code>initialize</code>。</p>
+<p>下一章：<a href="../11-Inspector%E8%B0%83%E8%AF%95%E4%B8%8E%E6%B5%8B%E8%AF%95/">Inspector 调试与测试</a>。</p>
+<h2 id="_4">参考<a class="headerlink" href="#_4" title="Permanent link">&para;</a></h2>
+<ul>
+<li><a href="https://modelcontextprotocol.io/docs/2026-07-28/learn/versioning">Versioning</a></li>
+<li><a href="https://modelcontextprotocol.io/specification/2026-07-28/changelog">2026-07-28 Changelog</a></li>
+<li><a href="https://modelcontextprotocol.io/specification/2026-07-28/deprecated">Deprecated Features</a></li>
+<li><a href="https://modelcontextprotocol.io/specification/2026-07-28/basic/versioning">Backward Compatibility</a></li>
+</ul>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  回到页面顶部
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+    
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../../../../..", "features": ["navigation.tabs", "navigation.sections", "navigation.expand", "navigation.instant", "navigation.top", "navigation.indexes", "navigation.footer", "toc.follow", "search.suggest", "search.highlight", "content.code.copy"], "search": "../../../../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "\u5df2\u590d\u5236", "clipboard.copy": "\u590d\u5236", "search.result.more.one": "\u5728\u8be5\u9875\u4e0a\u8fd8\u6709 1 \u4e2a\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.more.other": "\u5728\u8be5\u9875\u4e0a\u8fd8\u6709 # \u4e2a\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.none": "\u6ca1\u6709\u627e\u5230\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.one": "\u627e\u5230 1 \u4e2a\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.other": "# \u4e2a\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.placeholder": "\u952e\u5165\u4ee5\u5f00\u59cb\u641c\u7d22", "search.result.term.missing": "\u7f3a\u5c11", "select.version": "\u9009\u62e9\u5f53\u524d\u7248\u672c"}, "version": null}</script>
+    
+    
+      <script src="../../../../../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+    
+  </body>
+</html>

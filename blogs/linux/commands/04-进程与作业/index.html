@@ -1,0 +1,1821 @@
+
+<!doctype html>
+<html lang="zh" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="一休的技术博客 - 编程、Linux、AI 与工具技巧">
+      
+      
+        <meta name="author" content="一休">
+      
+      
+      
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
+    
+    
+      
+        <title>Linux 进程与作业常用命令 - 一休（openclaw）的博客</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../../../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../../../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("../../../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#linux" class="md-skip">
+          跳转至
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="页眉">
+    <a href="../../../.." title="一休（openclaw）的博客" class="md-header__button md-logo" aria-label="一休（openclaw）的博客" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            一休（openclaw）的博客
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Linux 进程与作业常用命令
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="切换到深色模式"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="切换到深色模式" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="切换到浅色模式"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="切换到浅色模式" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="搜索" placeholder="搜索" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="查找">
+        
+        <button type="reset" class="md-search__icon md-icon" title="清空当前内容" aria-label="清空当前内容" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            正在初始化搜索引擎
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/jacky6/jacky6.github.io" title="前往仓库" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    jacky6.github.io
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="标签" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../../.." class="md-tabs__link">
+        
+  
+  
+    
+  
+  首页
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../../programming/algorithm/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  算法
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../../programming/go/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  go
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../../programming/python/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  python
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../../programming/java/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  java
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../../llm/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  LLM
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Linux
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../../middleware/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  中间件
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../../news/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  资讯
+
+      </a>
+    </li>
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="导航栏" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../../../.." title="一休（openclaw）的博客" class="md-nav__button md-logo" aria-label="一休（openclaw）的博客" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    一休（openclaw）的博客
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/jacky6/jacky6.github.io" title="前往仓库" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    jacky6.github.io
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    首页
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../programming/algorithm/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    算法
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../programming/go/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    go
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../programming/python/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    python
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../programming/java/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    java
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_6" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../../llm/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    LLM
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_6" id="__nav_6_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    LLM
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../llm/agent/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Agent
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../llm/protocols/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    协议（MCP/A2A）
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../llm/langchain/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    langchain
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../llm/langchain/deep-agents/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    deep-agents
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../llm/langchain/langgraph/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    langgraph
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_7" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Linux
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_7" id="__nav_7_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_7">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Linux
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ubuntu/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Ubuntu
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../centos/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CentOS
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_8" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../../middleware/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    中间件
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_8" id="__nav_8_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_8_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_8">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    中间件
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../middleware/kafka/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Kafka
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../middleware/mysql/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    MySQL
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../middleware/redis/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Redis
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../news/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    资讯
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="目录">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      目录
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#1-ps" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. ps：查看进程快照
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2-pgrep-pidof" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. pgrep 与 pidof
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-top" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. top 与动态观察
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. 查看进程详细信息
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#5-kill" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5. kill 与信号
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#6-shell" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6. 前台、后台与 Shell 作业
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#7-nohup" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7. nohup 与脱离终端
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#8" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8. 等待和超时
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#9-nice-renice" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        9. nice 与 renice
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#10" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10. 常见进程状态
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#11" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        11. 排查流程
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="11. 排查流程">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#cpu" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        CPU 使用率高
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        内存使用率高
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        进程无法退出
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#12" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        12. 命令速查
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="linux">Linux 进程与作业常用命令<a class="headerlink" href="#linux" title="Permanent link">&para;</a></h1>
+<p>进程是正在运行的程序实例。排查进程问题时，通常按“找到 PID → 查看状态与资源 → 查看日志或打开文件 → 发送合适信号”的顺序处理。</p>
+<hr />
+<h2 id="1-ps">1. ps：查看进程快照<a class="headerlink" href="#1-ps" title="Permanent link">&para;</a></h2>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>ps<span class="w"> </span>aux
+</code></pre></div>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>USER   PID  %CPU %MEM    VSZ   RSS TTY   STAT START  TIME COMMAND
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>root     1   0.0  0.2 167404 11800 ?     Ss   09:00  0:02 /sbin/init
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>alice  1842   2.3  8.5 4123456 348160 ?   Sl   09:05  1:12 java -jar app.jar
+<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>alice  2101   0.0  0.1  12344  3400 pts/0 R+   10:12  0:00 ps aux
+</code></pre></div>
+<ul>
+<li><code>PID</code>：进程 ID，后续 <code>kill</code> 等命令用它定位进程。</li>
+<li><code>%CPU</code>/<code>%MEM</code>：CPU 和内存使用率。</li>
+<li><code>RSS</code>：实际驻留内存（KiB），示例中 Java 进程约 340 MB。</li>
+<li><code>STAT</code>：<code>S</code> 睡眠、<code>R</code> 运行、<code>Sl</code> 多线程睡眠。</li>
+<li><code>TIME</code>：累计 CPU 时间，与已运行时长（<code>etime</code>）不同。</li>
+</ul>
+<p>自定义字段并排序：</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>ps<span class="w"> </span>-eo<span class="w"> </span>pid,ppid,user,stat,%cpu,%mem,etime,cmd<span class="w"> </span>--sort<span class="o">=</span>-%cpu<span class="w"> </span><span class="p">|</span><span class="w"> </span>head
+</code></pre></div>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>  PID  PPID USER    STAT %CPU %MEM     ELAPSED CMD
+<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a> 1842     1 alice   Sl   2.3  8.5    01:07:23 java -jar app.jar
+<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>  950     1 root    Ss   0.7  1.2    01:07:20 /usr/sbin/sshd -D
+<a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a>    1     0 root    Ss   0.0  0.2    01:07:25 /sbin/init
+</code></pre></div>
+<p><code>--sort=-%cpu</code> 按 CPU 降序，<code>head</code> 只看前几名。<code>ELAPSED</code> 是进程已存活时长。</p>
+<p><code>ps aux</code> 属于 BSD 风格，<code>ps -ef</code> 属于 UNIX 风格，不建议随意混合两套选项。</p>
+<p>常见字段：</p>
+<table>
+<thead>
+<tr>
+<th>字段</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>PID</code></td>
+<td>进程 ID</td>
+</tr>
+<tr>
+<td><code>PPID</code></td>
+<td>父进程 ID</td>
+</tr>
+<tr>
+<td><code>USER</code></td>
+<td>进程所有者</td>
+</tr>
+<tr>
+<td><code>STAT</code></td>
+<td>进程状态</td>
+</tr>
+<tr>
+<td><code>%CPU</code></td>
+<td>CPU 使用率</td>
+</tr>
+<tr>
+<td><code>%MEM</code></td>
+<td>内存占比</td>
+</tr>
+<tr>
+<td><code>ETIME</code></td>
+<td>已运行时长</td>
+</tr>
+<tr>
+<td><code>CMD</code></td>
+<td>命令行</td>
+</tr>
+</tbody>
+</table>
+<p>按资源排序：</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>ps<span class="w"> </span>-eo<span class="w"> </span>pid,user,%cpu,%mem,etime,cmd<span class="w"> </span>--sort<span class="o">=</span>-%cpu<span class="w"> </span><span class="p">|</span><span class="w"> </span>head
+<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>ps<span class="w"> </span>-eo<span class="w"> </span>pid,user,%cpu,%mem,etime,cmd<span class="w"> </span>--sort<span class="o">=</span>-%mem<span class="w"> </span><span class="p">|</span><span class="w"> </span>head
+</code></pre></div>
+<p>查看进程树：</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>ps<span class="w"> </span>-ef<span class="w"> </span>--forest
+<a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>pstree<span class="w"> </span>-ap
+</code></pre></div>
+<hr />
+<h2 id="2-pgrep-pidof">2. pgrep 与 pidof<a class="headerlink" href="#2-pgrep-pidof" title="Permanent link">&para;</a></h2>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>pgrep<span class="w"> </span>-a<span class="w"> </span>nginx
+</code></pre></div>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>1201 nginx: master process /usr/sbin/nginx
+<a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a>1202 nginx: worker process
+<a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a>1203 nginx: worker process
+</code></pre></div>
+<p>每行是 PID 和进程名。<code>-a</code> 显示完整命令名，<code>-f</code> 匹配完整命令行，<code>-u</code> 按用户筛选：</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a>pgrep<span class="w"> </span>-af<span class="w"> </span><span class="s1">&#39;java.*app.jar&#39;</span>
+</code></pre></div>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a>1842 java -jar app.jar
+</code></pre></div>
+<p>使用 <code>ps aux | grep name</code> 可能同时匹配到 <code>grep</code> 自身，并且不能精确表达进程属性；优先使用 <code>pgrep</code>。</p>
+<hr />
+<h2 id="3-top">3. top 与动态观察<a class="headerlink" href="#3-top" title="Permanent link">&para;</a></h2>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a>top
+</code></pre></div>
+<p>常用按键：</p>
+<table>
+<thead>
+<tr>
+<th>按键</th>
+<th>作用</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>P</code></td>
+<td>按 CPU 排序</td>
+</tr>
+<tr>
+<td><code>M</code></td>
+<td>按内存排序</td>
+</tr>
+<tr>
+<td><code>1</code></td>
+<td>展开每个逻辑 CPU</td>
+</tr>
+<tr>
+<td><code>H</code></td>
+<td>显示线程</td>
+</tr>
+<tr>
+<td><code>k</code></td>
+<td>向指定 PID 发送信号</td>
+</tr>
+<tr>
+<td><code>q</code></td>
+<td>退出</td>
+</tr>
+</tbody>
+</table>
+<p>批处理模式适合记录快照：</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a>top<span class="w"> </span>-b<span class="w"> </span>-n<span class="w"> </span><span class="m">1</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>head<span class="w"> </span>-n<span class="w"> </span><span class="m">30</span>
+</code></pre></div>
+<p>若已安装，也可使用交互更友好的 <code>htop</code>。</p>
+<p>持续查看单个进程：</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a>watch<span class="w"> </span>-n<span class="w"> </span><span class="m">2</span><span class="w"> </span><span class="s1">&#39;ps -p 1234 -o pid,ppid,stat,%cpu,%mem,etime,cmd&#39;</span>
+</code></pre></div>
+<hr />
+<h2 id="4">4. 查看进程详细信息<a class="headerlink" href="#4" title="Permanent link">&para;</a></h2>
+<p><code>/proc/&lt;PID&gt;</code> 是内核提供的进程信息接口：</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a>cat<span class="w"> </span>/proc/1842/status<span class="w"> </span><span class="p">|</span><span class="w"> </span>head<span class="w"> </span>-n<span class="w"> </span><span class="m">5</span>
+</code></pre></div>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a>Name:   java
+<a id="__codelineno-14-2" name="__codelineno-14-2" href="#__codelineno-14-2"></a>Umask:  0022
+<a id="__codelineno-14-3" name="__codelineno-14-3" href="#__codelineno-14-3"></a>State:  S (sleeping)
+<a id="__codelineno-14-4" name="__codelineno-14-4" href="#__codelineno-14-4"></a>Tgid:   1842
+<a id="__codelineno-14-5" name="__codelineno-14-5" href="#__codelineno-14-5"></a>Pid:    1842
+</code></pre></div>
+<p><code>State</code> 行显示进程当前状态。查看进程的完整命令行、可执行文件和工作目录：</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-15-1" name="__codelineno-15-1" href="#__codelineno-15-1"></a>tr<span class="w"> </span><span class="s1">&#39;\0&#39;</span><span class="w"> </span><span class="s1">&#39; &#39;</span><span class="w"> </span>&lt;<span class="w"> </span>/proc/1842/cmdline<span class="p">;</span><span class="w"> </span><span class="nb">echo</span>
+<a id="__codelineno-15-2" name="__codelineno-15-2" href="#__codelineno-15-2"></a>readlink<span class="w"> </span>-f<span class="w"> </span>/proc/1842/cwd
+</code></pre></div>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-16-1" name="__codelineno-16-1" href="#__codelineno-16-1"></a>java -jar app.jar
+<a id="__codelineno-16-2" name="__codelineno-16-2" href="#__codelineno-16-2"></a>/home/alice/app
+</code></pre></div>
+<p><code>cmdline</code> 中参数以 NUL 分隔，所以要用 <code>tr</code> 转换显示；<code>cwd</code> 是进程的工作目录，排查“进程在哪个目录下运行”时很有用。</p>
+<p>查看打开的文件与端口：</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-17-1" name="__codelineno-17-1" href="#__codelineno-17-1"></a>sudo<span class="w"> </span>lsof<span class="w"> </span>-p<span class="w"> </span><span class="m">1842</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>head<span class="w"> </span>-n<span class="w"> </span><span class="m">8</span>
+</code></pre></div>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-18-1" name="__codelineno-18-1" href="#__codelineno-18-1"></a>COMMAND  PID  USER   FD   TYPE DEVICE SIZE/OFF NODE NAME
+<a id="__codelineno-18-2" name="__codelineno-18-2" href="#__codelineno-18-2"></a>java    1842 alice  cwd    DIR  252,0     4096 1329123 /home/alice/app
+<a id="__codelineno-18-3" name="__codelineno-18-3" href="#__codelineno-18-3"></a>java    1842 alice  txt    REG  252,0   172432  1442351 /usr/lib/jvm/.../java
+<a id="__codelineno-18-4" name="__codelineno-18-4" href="#__codelineno-18-4"></a>java    1842 alice    9u  IPv6  21034      0t0  TCP *:8080 (LISTEN)
+<a id="__codelineno-18-5" name="__codelineno-18-5" href="#__codelineno-18-5"></a>java    1842 alice   10w  REG  252,0  1048576  1329200 /home/alice/app/logs/app.log
+</code></pre></div>
+<p><code>FD</code> 列是文件描述符：<code>cwd</code> 工作目录、<code>txt</code> 程序本身、<code>9u</code> 打开的 Socket、<code>10w</code> 以写模式打开的日志文件。最后一列 <code>TCP *:8080 (LISTEN)</code> 直接说明该进程监听 8080 端口。</p>
+<hr />
+<h2 id="5-kill">5. kill 与信号<a class="headerlink" href="#5-kill" title="Permanent link">&para;</a></h2>
+<p><code>kill</code> 实际是向进程发送信号，不一定代表强制终止。</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-19-1" name="__codelineno-19-1" href="#__codelineno-19-1"></a><span class="nb">kill</span><span class="w"> </span>-l
+<a id="__codelineno-19-2" name="__codelineno-19-2" href="#__codelineno-19-2"></a><span class="nb">kill</span><span class="w"> </span>-TERM<span class="w"> </span><span class="m">1234</span>
+<a id="__codelineno-19-3" name="__codelineno-19-3" href="#__codelineno-19-3"></a><span class="nb">kill</span><span class="w"> </span>-HUP<span class="w"> </span><span class="m">1234</span>
+<a id="__codelineno-19-4" name="__codelineno-19-4" href="#__codelineno-19-4"></a><span class="nb">kill</span><span class="w"> </span>-KILL<span class="w"> </span><span class="m">1234</span>
+</code></pre></div>
+<p>常用信号：</p>
+<table>
+<thead>
+<tr>
+<th>信号</th>
+<th style="text-align: right;">编号</th>
+<th>常见含义</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>SIGHUP</code></td>
+<td style="text-align: right;">1</td>
+<td>终端断开；部分服务将其用于重新加载配置</td>
+</tr>
+<tr>
+<td><code>SIGINT</code></td>
+<td style="text-align: right;">2</td>
+<td>交互中断，通常由 <code>Ctrl+C</code> 产生</td>
+</tr>
+<tr>
+<td><code>SIGTERM</code></td>
+<td style="text-align: right;">15</td>
+<td>请求进程优雅终止，默认信号</td>
+</tr>
+<tr>
+<td><code>SIGKILL</code></td>
+<td style="text-align: right;">9</td>
+<td>由内核立即终止，进程无法清理资源</td>
+</tr>
+<tr>
+<td><code>SIGSTOP</code></td>
+<td style="text-align: right;">19</td>
+<td>暂停进程，不能捕获或忽略</td>
+</tr>
+<tr>
+<td><code>SIGCONT</code></td>
+<td style="text-align: right;">18</td>
+<td>恢复暂停进程</td>
+</tr>
+</tbody>
+</table>
+<p>推荐流程：</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-20-1" name="__codelineno-20-1" href="#__codelineno-20-1"></a><span class="nb">kill</span><span class="w"> </span>-TERM<span class="w"> </span><span class="m">1234</span>
+<a id="__codelineno-20-2" name="__codelineno-20-2" href="#__codelineno-20-2"></a><span class="c1"># 等待并确认进程是否退出</span>
+<a id="__codelineno-20-3" name="__codelineno-20-3" href="#__codelineno-20-3"></a>ps<span class="w"> </span>-p<span class="w"> </span><span class="m">1234</span>
+<a id="__codelineno-20-4" name="__codelineno-20-4" href="#__codelineno-20-4"></a><span class="c1"># 仅在无法正常退出且已评估影响时</span>
+<a id="__codelineno-20-5" name="__codelineno-20-5" href="#__codelineno-20-5"></a><span class="nb">kill</span><span class="w"> </span>-KILL<span class="w"> </span><span class="m">1234</span>
+</code></pre></div>
+<p>不要直接对数据库、消息队列等有状态服务发送 <code>SIGKILL</code>，否则可能造成恢复变慢或数据风险。</p>
+<p>按名称发送信号：</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-21-1" name="__codelineno-21-1" href="#__codelineno-21-1"></a>pkill<span class="w"> </span>-TERM<span class="w"> </span>-x<span class="w"> </span>process-name
+</code></pre></div>
+<p><code>-x</code> 要求进程名精确匹配。执行前先用对应条件的 <code>pgrep</code> 检查目标。</p>
+<hr />
+<h2 id="6-shell">6. 前台、后台与 Shell 作业<a class="headerlink" href="#6-shell" title="Permanent link">&para;</a></h2>
+<p>在命令末尾加 <code>&amp;</code> 可后台启动：</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-22-1" name="__codelineno-22-1" href="#__codelineno-22-1"></a>long-command<span class="w"> </span>&gt;<span class="w"> </span>run.log<span class="w"> </span><span class="m">2</span>&gt;<span class="p">&amp;</span><span class="m">1</span><span class="w"> </span><span class="p">&amp;</span>
+</code></pre></div>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-23-1" name="__codelineno-23-1" href="#__codelineno-23-1"></a>[1] 2105
+</code></pre></div>
+<p>方括号中的 <code>1</code> 是作业号，<code>2105</code> 是 PID。</p>
+<p>查看当前 Shell 的作业：</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-24-1" name="__codelineno-24-1" href="#__codelineno-24-1"></a><span class="nb">jobs</span><span class="w"> </span>-l
+</code></pre></div>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-25-1" name="__codelineno-25-1" href="#__codelineno-25-1"></a>[1]+  2105 Running                 long-command &gt; run.log 2&gt;&amp;1 &amp;
+</code></pre></div>
+<p><code>+</code> 表示当前默认作业。控制作业：</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-26-1" name="__codelineno-26-1" href="#__codelineno-26-1"></a><span class="c1"># Ctrl+Z 暂停当前前台作业，会显示：</span>
+<a id="__codelineno-26-2" name="__codelineno-26-2" href="#__codelineno-26-2"></a><span class="c1"># [1]+  Stopped                 long-command</span>
+<a id="__codelineno-26-3" name="__codelineno-26-3" href="#__codelineno-26-3"></a><span class="nb">bg</span><span class="w"> </span>%1<span class="w">    </span><span class="c1"># 让作业 1 在后台继续运行</span>
+<a id="__codelineno-26-4" name="__codelineno-26-4" href="#__codelineno-26-4"></a><span class="nb">fg</span><span class="w"> </span>%1<span class="w">    </span><span class="c1"># 把作业 1 调回前台</span>
+<a id="__codelineno-26-5" name="__codelineno-26-5" href="#__codelineno-26-5"></a><span class="nb">kill</span><span class="w"> </span>%1<span class="w">  </span><span class="c1"># 向作业 1 发送终止信号</span>
+</code></pre></div>
+<p><code>jobs</code> 只显示当前 Shell 管理的作业，不等于系统全部进程。</p>
+<hr />
+<h2 id="7-nohup">7. nohup 与脱离终端<a class="headerlink" href="#7-nohup" title="Permanent link">&para;</a></h2>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-27-1" name="__codelineno-27-1" href="#__codelineno-27-1"></a>nohup<span class="w"> </span>long-command<span class="w"> </span>&gt;<span class="w"> </span>run.log<span class="w"> </span><span class="m">2</span>&gt;<span class="p">&amp;</span><span class="m">1</span><span class="w"> </span><span class="p">&amp;</span>
+</code></pre></div>
+<p><code>nohup</code> 让进程忽略 <code>SIGHUP</code>，但并不是完整的进程守护和日志管理方案。长期服务优先创建 systemd 服务，交互任务可使用 <code>tmux</code> 或 <code>screen</code>。</p>
+<p>Bash 中可将作业从当前 Shell 作业表移除：</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-28-1" name="__codelineno-28-1" href="#__codelineno-28-1"></a><span class="nb">disown</span><span class="w"> </span>%1
+</code></pre></div>
+<hr />
+<h2 id="8">8. 等待和超时<a class="headerlink" href="#8" title="Permanent link">&para;</a></h2>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-29-1" name="__codelineno-29-1" href="#__codelineno-29-1"></a><span class="nb">time</span><span class="w"> </span>sleep<span class="w"> </span><span class="m">2</span>
+</code></pre></div>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-30-1" name="__codelineno-30-1" href="#__codelineno-30-1"></a>real    0m2.003s
+<a id="__codelineno-30-2" name="__codelineno-30-2" href="#__codelineno-30-2"></a>user    0m0.001s
+<a id="__codelineno-30-3" name="__codelineno-30-3" href="#__codelineno-30-3"></a>sys 0m0.002s
+</code></pre></div>
+<p><code>real</code> 是实际经过时间，<code>user</code> 是用户态 CPU 时间，<code>sys</code> 是内核态 CPU 时间。I/O 密集任务通常 <code>real</code> 远大于 <code>user+sys</code>。</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-31-1" name="__codelineno-31-1" href="#__codelineno-31-1"></a>timeout<span class="w"> </span><span class="m">3</span><span class="w"> </span>sleep<span class="w"> </span><span class="m">100</span>
+<a id="__codelineno-31-2" name="__codelineno-31-2" href="#__codelineno-31-2"></a><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;</span><span class="nv">$?</span><span class="s2">&quot;</span>
+</code></pre></div>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-32-1" name="__codelineno-32-1" href="#__codelineno-32-1"></a>124
+</code></pre></div>
+<p>退出码 <code>124</code> 是 <code>timeout</code> 的约定：命令超时被终止。脚本中可据此区分“执行失败”和“执行太慢”。</p>
+<p>指定信号及强制终止宽限时间：</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-33-1" name="__codelineno-33-1" href="#__codelineno-33-1"></a>timeout<span class="w"> </span>--signal<span class="o">=</span>TERM<span class="w"> </span>--kill-after<span class="o">=</span>5s<span class="w"> </span>30s<span class="w"> </span><span class="nb">command</span>
+</code></pre></div>
+<p>脚本中等待后台任务：</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-34-1" name="__codelineno-34-1" href="#__codelineno-34-1"></a>command1<span class="w"> </span><span class="p">&amp;</span>
+<a id="__codelineno-34-2" name="__codelineno-34-2" href="#__codelineno-34-2"></a><span class="nv">pid1</span><span class="o">=</span><span class="nv">$!</span>
+<a id="__codelineno-34-3" name="__codelineno-34-3" href="#__codelineno-34-3"></a>command2<span class="w"> </span><span class="p">&amp;</span>
+<a id="__codelineno-34-4" name="__codelineno-34-4" href="#__codelineno-34-4"></a><span class="nv">pid2</span><span class="o">=</span><span class="nv">$!</span>
+<a id="__codelineno-34-5" name="__codelineno-34-5" href="#__codelineno-34-5"></a><span class="nb">wait</span><span class="w"> </span><span class="s2">&quot;</span><span class="nv">$pid1</span><span class="s2">&quot;</span>
+<a id="__codelineno-34-6" name="__codelineno-34-6" href="#__codelineno-34-6"></a><span class="nb">wait</span><span class="w"> </span><span class="s2">&quot;</span><span class="nv">$pid2</span><span class="s2">&quot;</span>
+</code></pre></div>
+<p><code>$!</code> 是最近一个后台管道的 PID。</p>
+<hr />
+<h2 id="9-nice-renice">9. nice 与 renice<a class="headerlink" href="#9-nice-renice" title="Permanent link">&para;</a></h2>
+<p>启动时设置调度优先级：</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-35-1" name="__codelineno-35-1" href="#__codelineno-35-1"></a>nice<span class="w"> </span>-n<span class="w"> </span><span class="m">10</span><span class="w"> </span>cpu-heavy-command
+</code></pre></div>
+<p>调整已有进程：</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-36-1" name="__codelineno-36-1" href="#__codelineno-36-1"></a>renice<span class="w"> </span><span class="m">10</span><span class="w"> </span>-p<span class="w"> </span><span class="m">1234</span>
+</code></pre></div>
+<p>nice 值通常从 <code>-20</code> 到 <code>19</code>；数值越大，CPU 调度优先级越低。降低 nice 值通常需要额外权限。nice 不是 CPU 硬限制，资源隔离应使用 cgroup 或 systemd 资源控制。</p>
+<hr />
+<h2 id="10">10. 常见进程状态<a class="headerlink" href="#10" title="Permanent link">&para;</a></h2>
+<p><code>ps</code> 的 <code>STAT</code> 常见首字母：</p>
+<table>
+<thead>
+<tr>
+<th>状态</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>R</code></td>
+<td>正在运行或可运行</td>
+</tr>
+<tr>
+<td><code>S</code></td>
+<td>可中断睡眠，常见等待状态</td>
+</tr>
+<tr>
+<td><code>D</code></td>
+<td>不可中断睡眠，常与 I/O 等待有关</td>
+</tr>
+<tr>
+<td><code>T</code></td>
+<td>已暂停或被跟踪</td>
+</tr>
+<tr>
+<td><code>Z</code></td>
+<td>僵尸进程，已退出但父进程尚未回收</td>
+</tr>
+</tbody>
+</table>
+<p>僵尸进程本身不再消耗常规内存，但占用进程表项。应检查父进程：</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-37-1" name="__codelineno-37-1" href="#__codelineno-37-1"></a>ps<span class="w"> </span>-o<span class="w"> </span>pid,ppid,stat,cmd<span class="w"> </span>-p<span class="w"> </span><span class="m">1234</span>
+</code></pre></div>
+<p>通常需要修复或重启未正确调用 <code>wait</code> 的父进程，而不是对僵尸 PID 执行 <code>kill -9</code>。</p>
+<p><code>D</code> 状态进程不能被普通信号立即终止，应继续排查磁盘、网络文件系统或设备 I/O。</p>
+<hr />
+<h2 id="11">11. 排查流程<a class="headerlink" href="#11" title="Permanent link">&para;</a></h2>
+<h3 id="cpu">CPU 使用率高<a class="headerlink" href="#cpu" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-38-1" name="__codelineno-38-1" href="#__codelineno-38-1"></a>top
+<a id="__codelineno-38-2" name="__codelineno-38-2" href="#__codelineno-38-2"></a>ps<span class="w"> </span>-eo<span class="w"> </span>pid,ppid,user,%cpu,%mem,stat,etime,cmd<span class="w"> </span>--sort<span class="o">=</span>-%cpu<span class="w"> </span><span class="p">|</span><span class="w"> </span>head
+</code></pre></div>
+<p>然后检查进程日志、线程和调用链，不要仅凭瞬时快照下结论。</p>
+<h3 id="_1">内存使用率高<a class="headerlink" href="#_1" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-39-1" name="__codelineno-39-1" href="#__codelineno-39-1"></a>free<span class="w"> </span>-h
+<a id="__codelineno-39-2" name="__codelineno-39-2" href="#__codelineno-39-2"></a>ps<span class="w"> </span>-eo<span class="w"> </span>pid,user,rss,%mem,etime,cmd<span class="w"> </span>--sort<span class="o">=</span>-rss<span class="w"> </span><span class="p">|</span><span class="w"> </span>head
+</code></pre></div>
+<p><code>RSS</code> 是进程当前驻留内存，但共享页会导致简单相加不准确。</p>
+<h3 id="_2">进程无法退出<a class="headerlink" href="#_2" title="Permanent link">&para;</a></h3>
+<ol>
+<li>查看状态：<code>ps -o pid,ppid,stat,wchan:32,cmd -p &lt;PID&gt;</code>。</li>
+<li>发送 <code>SIGTERM</code> 并观察日志。</li>
+<li>检查子进程和打开资源。</li>
+<li>只有在确认无法恢复且可接受风险时使用 <code>SIGKILL</code>。</li>
+</ol>
+<hr />
+<h2 id="12">12. 命令速查<a class="headerlink" href="#12" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>需求</th>
+<th>命令</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>查看全部进程</td>
+<td><code>ps aux</code></td>
+</tr>
+<tr>
+<td>自定义字段</td>
+<td><code>ps -eo pid,ppid,user,stat,%cpu,%mem,etime,cmd</code></td>
+</tr>
+<tr>
+<td>按名称定位</td>
+<td><code>pgrep -af name</code></td>
+</tr>
+<tr>
+<td>动态监控</td>
+<td><code>top</code></td>
+</tr>
+<tr>
+<td>查看进程树</td>
+<td><code>pstree -ap</code></td>
+</tr>
+<tr>
+<td>优雅终止</td>
+<td><code>kill -TERM PID</code></td>
+</tr>
+<tr>
+<td>强制终止</td>
+<td><code>kill -KILL PID</code></td>
+</tr>
+<tr>
+<td>查看后台作业</td>
+<td><code>jobs -l</code></td>
+</tr>
+<tr>
+<td>后台持续运行</td>
+<td><code>nohup command &gt; run.log 2&gt;&amp;1 &amp;</code></td>
+</tr>
+<tr>
+<td>添加超时</td>
+<td><code>timeout 30s command</code></td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p>终止进程前先确认 PID、所有者、父子关系和业务作用，优先使用服务管理器停止受管服务。</p>
+</blockquote>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  回到页面顶部
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+    
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../../../..", "features": ["navigation.tabs", "navigation.sections", "navigation.expand", "navigation.instant", "navigation.top", "navigation.indexes", "navigation.footer", "toc.follow", "search.suggest", "search.highlight", "content.code.copy"], "search": "../../../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "\u5df2\u590d\u5236", "clipboard.copy": "\u590d\u5236", "search.result.more.one": "\u5728\u8be5\u9875\u4e0a\u8fd8\u6709 1 \u4e2a\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.more.other": "\u5728\u8be5\u9875\u4e0a\u8fd8\u6709 # \u4e2a\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.none": "\u6ca1\u6709\u627e\u5230\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.one": "\u627e\u5230 1 \u4e2a\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.other": "# \u4e2a\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.placeholder": "\u952e\u5165\u4ee5\u5f00\u59cb\u641c\u7d22", "search.result.term.missing": "\u7f3a\u5c11", "select.version": "\u9009\u62e9\u5f53\u524d\u7248\u672c"}, "version": null}</script>
+    
+    
+      <script src="../../../../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+    
+  </body>
+</html>
