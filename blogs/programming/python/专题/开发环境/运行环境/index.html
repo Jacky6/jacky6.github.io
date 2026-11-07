@@ -1280,85 +1280,49 @@
 <a id="__codelineno-3-15" name="__codelineno-3-15" href="#__codelineno-3-15"></a>pip<span class="w"> </span>install<span class="w"> </span>django
 </code></pre></div>
 <h1 id="uv">UV<a class="headerlink" href="#uv" title="Permanent link">&para;</a></h1>
-<p><code>uv</code> 是一个<strong>极快的 Python 包安装器、依赖解析器和虚拟环境管理工具</strong>，由 <strong>Astral</strong>（即 Ruff 的开发团队）推出，使用 Rust 编写，目标是替代 <code>pip</code>、<code>pip-tools</code> 和 <code>virtualenv</code> 的部分功能，成为现代 Python 开发中的高效工具链。 </p>
-<hr />
-<h2 id="uv_1">一、什么是 uv<a class="headerlink" href="#uv_1" title="Permanent link">&para;</a></h2>
+<p><code>uv</code> 是由 <strong>Astral</strong>（Ruff 的开发团队）用 Rust 编写的 Python 一体化工具链：既是<strong>极快的包安装器与依赖解析器</strong>，也是<strong>项目管理器、Python 版本管理器、命令行工具管理器</strong>，目标是用一个工具替代 <code>pip</code> + <code>pip-tools</code> + <code>virtualenv</code> + <code>pyenv</code> + <code>pipx</code> + <code>poetry</code> 的组合。</p>
 <ul>
-<li><strong>官方定位</strong>：<em>“The ultrafast Python package installer and resolver”</em></li>
-<li><strong>官网</strong>：https://docs.astral.sh/uv/</li>
-<li><strong>GitHub</strong>：https://github.com/astral-sh/uv</li>
-<li><strong>语言</strong>：Rust（性能极高）</li>
-<li><strong>兼容性</strong>：完全兼容 PyPI、PEP 标准（如 PEP 508, PEP 621, PEP 660 等）</li>
+<li><strong>官方定位</strong>：<em>"An extremely fast Python package and project manager"</em></li>
+<li><strong>官网</strong>：https://docs.astral.sh/uv/ ｜ <strong>GitHub</strong>：https://github.com/astral-sh/uv</li>
+<li><strong>兼容性</strong>：完全兼容 PyPI 与 PEP 标准（PEP 508 依赖声明、PEP 621 pyproject.toml、PEP 735 依赖组等）</li>
+<li>本节命令均基于 <strong>uv 0.9.3</strong> 实机验证</li>
 </ul>
-<h2 id="_1">二、核心功能<a class="headerlink" href="#_1" title="Permanent link">&para;</a></h2>
+<hr />
+<h2 id="_1">一、两套接口：先分清，再使用<a class="headerlink" href="#_1" title="Permanent link">&para;</a></h2>
+<p>理解 uv 最重要的一张图——它内部有<strong>两条命令线</strong>，用途完全不同：</p>
 <table>
 <thead>
 <tr>
-<th>功能</th>
-<th>对应传统工具</th>
+<th>接口</th>
+<th>命令族</th>
+<th>管什么</th>
+<th>适用场景</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td>⚡ 超快安装依赖</td>
-<td>替代 <code>pip install</code></td>
+<td>🏗️ <strong>项目接口</strong></td>
+<td><code>uv init</code> <code>add</code> <code>remove</code> <code>sync</code> <code>lock</code> <code>run</code> <code>tree</code></td>
+<td>同时管理 <code>pyproject.toml</code> + <code>uv.lock</code> + <code>.venv</code> 三件套</td>
+<td><strong>正式项目（推荐）</strong></td>
 </tr>
 <tr>
-<td>🧩 高性能依赖解析</td>
-<td>替代 <code>pip-tools</code> / <code>pip-resolve</code></td>
-</tr>
-<tr>
-<td>🐍 创建虚拟环境</td>
-<td>替代 <code>python -m venv</code> 或 <code>virtualenv</code></td>
-</tr>
-<tr>
-<td>🔁 同步依赖（install/dev/uninstall）</td>
-<td>类似 <code>poetry install</code> 或 <code>pip-sync</code></td>
-</tr>
-<tr>
-<td>📦 支持 <code>requirements.txt</code>, <code>pyproject.toml</code>, <code>setup.py</code></td>
-<td>全格式支持</td>
+<td>🔧 <strong>pip 兼容接口</strong></td>
+<td><code>uv pip install/sync/list ...</code></td>
+<td>只装包，<strong>不碰</strong>任何项目配置文件</td>
+<td>临时环境、脚本、CI、老项目</td>
 </tr>
 </tbody>
 </table>
-<h2 id="uv_2">三、为什么选择 <code>uv</code>？（优势）<a class="headerlink" href="#uv_2" title="Permanent link">&para;</a></h2>
-<table>
-<thead>
-<tr>
-<th>优势</th>
-<th>说明</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>⚡ <strong>速度极快</strong></td>
-<td>比 <code>pip</code> 快 10-100 倍，尤其在解析复杂依赖时</td>
-</tr>
-<tr>
-<td>🧱 <strong>纯 Rust 实现</strong></td>
-<td>启动快、内存安全、无 GIL 限制</td>
-</tr>
-<tr>
-<td>🔁 <strong>确定性解析</strong></td>
-<td>生成可重复的 <code>requirements.lock</code>（类似 Cargo.lock）</td>
-</tr>
-<tr>
-<td>🐍 <strong>无缝集成 Python 生态</strong></td>
-<td>支持 wheels、sdist、editable installs、VCS 依赖等</td>
-</tr>
-<tr>
-<td>🧰 <strong>一体化工具</strong></td>
-<td>不需要额外安装 <code>pip-tools</code>, <code>virtualenv</code> 等</td>
-</tr>
-</tbody>
-</table>
-<h2 id="_2">四、安装<a class="headerlink" href="#_2" title="Permanent link">&para;</a></h2>
+<blockquote>
+<p>⚠️ <strong>新手最大的坑：在 uv 项目里混用两套接口。</strong>
+用 <code>uv pip install xxx</code> 装的包不会写进 <code>pyproject.toml</code> 和 <code>uv.lock</code>，下次执行 <code>uv sync</code> 时会被当作"多余包"<strong>直接清掉</strong>。项目里请始终使用 <code>uv add</code>。</p>
+</blockquote>
+<hr />
+<h2 id="_2">二、安装<a class="headerlink" href="#_2" title="Permanent link">&para;</a></h2>
 <h3 id="1_1">方法 1：使用官方脚本（推荐）<a class="headerlink" href="#1_1" title="Permanent link">&para;</a></h3>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="c1"># Linux/macOS</span>
 <a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>curl<span class="w"> </span>-LsSf<span class="w"> </span>https://astral.sh/uv/install.sh<span class="w"> </span><span class="p">|</span><span class="w"> </span>sh
-<a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a>
-<a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a><span class="c1"># 或仅下载</span>
-<a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a>curl<span class="w"> </span>-L<span class="w"> </span>-o<span class="w"> </span>uv.zip<span class="w"> </span>https://github.com/astral-sh/uv/releases/latest/download/uv-x86_64-unknown-linux-gnu.zip
 </code></pre></div>
 <h3 id="2-pipx">方法 2：通过 pipx（如果已安装）<a class="headerlink" href="#2-pipx" title="Permanent link">&para;</a></h3>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>pipx<span class="w"> </span>install<span class="w"> </span>uv
@@ -1369,192 +1333,316 @@
 <h3 id="_3">验证安装<a class="headerlink" href="#_3" title="Permanent link">&para;</a></h3>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>uv<span class="w"> </span>--version
 </code></pre></div>
-<h2 id="_4">五、基本用法示例<a class="headerlink" href="#_4" title="Permanent link">&para;</a></h2>
-<h3 id="0-uv">0. uv 更换依赖源<a class="headerlink" href="#0-uv" title="Permanent link">&para;</a></h3>
-<div class="codehilite"><pre><span></span><code>UV 支持在项目级别、用户级别和系统级别使用配置文件。
+<hr />
+<h2 id="_4">三、项目管理（核心）<a class="headerlink" href="#_4" title="Permanent link">&para;</a></h2>
+<h3 id="31-uv-init">3.1 项目四件套：<code>uv init</code> 到底生成了什么<a class="headerlink" href="#31-uv-init" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a>uv<span class="w"> </span>init<span class="w"> </span>hello-web<span class="w"> </span>--python<span class="w"> </span><span class="m">3</span>.12
+<a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a><span class="nb">cd</span><span class="w"> </span>hello-web
 </code></pre></div>
-
-<h5 id="_5">用户级别配置文件<a class="headerlink" href="#_5" title="Permanent link">&para;</a></h5>
-<div class="codehilite"><pre><span></span><code>文件路径 `~/.uv/uv.toml`, 在该文件中添加以下内容：
+<p>实测生成的文件：</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a>hello-web/
+<a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a>├── .gitignore          # 已预置 .venv 等忽略项
+<a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a>├── .python-version     # 固定本项目的 Python 版本
+<a id="__codelineno-9-4" name="__codelineno-9-4" href="#__codelineno-9-4"></a>├── README.md
+<a id="__codelineno-9-5" name="__codelineno-9-5" href="#__codelineno-9-5"></a>├── main.py             # 入口示例
+<a id="__codelineno-9-6" name="__codelineno-9-6" href="#__codelineno-9-6"></a>└── pyproject.toml      # 项目配置 + 依赖声明
 </code></pre></div>
-
-<p><code>[[index]]
-url = "https://pypi.tuna.tsinghua.edu.cn/simple"
-default = true</code></p>
-<h5 id="_6">项目级别配置文件：<a class="headerlink" href="#_6" title="Permanent link">&para;</a></h5>
-<div class="codehilite"><pre><span></span><code>文件路径：项目目录下的 `pyproject.toml` 或 `uv.toml`
+<p>首次执行 <code>uv add</code> / <code>uv sync</code> 后会再出现两个：</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a>├── uv.lock             # 锁文件：解析后的精确版本 + 哈希
+<a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a>└── .venv/              # 项目虚拟环境（uv 自动创建）
 </code></pre></div>
-
-<p>在 <code>pyproject.toml</code> 中添加
-<code>[[tool.uv.index]]
-url = "https://pypi.tuna.tsinghua.edu.cn/simple"
-default = true</code>
-或在 <code>uv.toml</code> 中添加
-<code>[[index]]
-url = "https://pypi.tuna.tsinghua.edu.cn/simple"
-default = true</code></p>
-<h5 id="_7">通过命令行临时指定<a class="headerlink" href="#_7" title="Permanent link">&para;</a></h5>
-<div class="codehilite"><pre><span></span><code>在命令行中运行 uv 命令时，可以直接制定镜像源：
+<p><strong>四件套的职责</strong>：</p>
+<table>
+<thead>
+<tr>
+<th>文件</th>
+<th>职责</th>
+<th>提交 Git？</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>pyproject.toml</code></td>
+<td>声明依赖<strong>范围</strong>（如 <code>requests&gt;=2.34.2</code>）与项目元数据</td>
+<td>✅ 提交</td>
+</tr>
+<tr>
+<td><code>uv.lock</code></td>
+<td>锁定<strong>精确版本与哈希</strong>，任何人同步出完全相同的环境</td>
+<td>✅ 提交</td>
+</tr>
+<tr>
+<td><code>.python-version</code></td>
+<td>固定解释器版本（如 <code>3.12</code>）</td>
+<td>✅ 提交</td>
+</tr>
+<tr>
+<td><code>.venv/</code></td>
+<td>实际安装依赖的环境</td>
+<td>❌ 不提交（<code>.gitignore</code> 已包含）</td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p>💡 记忆法：<strong>pyproject 说"要什么"，uv.lock 说"具体是哪批"，.venv 是"装好后的结果"</strong>。</p>
+</blockquote>
+<h3 id="32-uv-init">3.2 <code>uv init</code> 的三种模式<a class="headerlink" href="#32-uv-init" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a>uv<span class="w"> </span>init<span class="w"> </span>hello-web<span class="w">          </span><span class="c1"># 应用（默认）：生成 main.py 入口</span>
+<a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a>uv<span class="w"> </span>init<span class="w"> </span>mylib<span class="w"> </span>--lib<span class="w">        </span><span class="c1"># 库：src/ 布局，可构建发布到 PyPI</span>
+<a id="__codelineno-11-3" name="__codelineno-11-3" href="#__codelineno-11-3"></a><span class="nb">cd</span><span class="w"> </span>已有项目<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span>uv<span class="w"> </span>init<span class="w">      </span><span class="c1"># 不新建目录，直接在当前目录初始化</span>
 </code></pre></div>
-
-<p><code>uv add --default-index https://pypi.tuna.tsinghua.edu.cn/simple requests</code></p>
-<h3 id="1_2">1. 创建虚拟环境<a class="headerlink" href="#1_2" title="Permanent link">&para;</a></h3>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a>uv<span class="w"> </span>venv<span class="w"> </span>&lt;path&gt;<span class="w"> </span>--python<span class="w"> </span>&lt;version-or-path&gt;
-<a id="__codelineno-12-2" name="__codelineno-12-2" href="#__codelineno-12-2"></a>
-<a id="__codelineno-12-3" name="__codelineno-12-3" href="#__codelineno-12-3"></a>uv<span class="w"> </span>venv<span class="w"> </span>myenv
-<a id="__codelineno-12-4" name="__codelineno-12-4" href="#__codelineno-12-4"></a><span class="c1"># 默认创建在当前目录下的 myenv/</span>
+<p><code>--lib</code> 模式的差异（实测）：生成 <code>src/mylib/__init__.py</code> 结构，并在 <code>pyproject.toml</code> 中追加构建配置：</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a><span class="k">[build-system]</span>
+<a id="__codelineno-12-2" name="__codelineno-12-2" href="#__codelineno-12-2"></a><span class="n">requires</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;uv_build&gt;=0.9.3,&lt;0.10.0&quot;</span><span class="p">]</span>
+<a id="__codelineno-12-3" name="__codelineno-12-3" href="#__codelineno-12-3"></a><span class="n">build-backend</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;uv_build&quot;</span>
 </code></pre></div>
-<p>激活环境：</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a><span class="nb">source</span><span class="w"> </span>myenv/bin/activate<span class="w">  </span><span class="c1"># Linux/macOS</span>
-<a id="__codelineno-13-2" name="__codelineno-13-2" href="#__codelineno-13-2"></a><span class="c1"># 或</span>
-<a id="__codelineno-13-3" name="__codelineno-13-3" href="#__codelineno-13-3"></a>myenv<span class="se">\S</span>cripts<span class="se">\a</span>ctivate<span class="w">     </span><span class="c1"># Windows</span>
+<h3 id="33-uv-add">3.3 添加依赖：<code>uv add</code><a class="headerlink" href="#33-uv-add" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a>uv<span class="w"> </span>add<span class="w"> </span>requests<span class="w">                            </span><span class="c1"># 运行时依赖 → [project.dependencies]</span>
+<a id="__codelineno-13-2" name="__codelineno-13-2" href="#__codelineno-13-2"></a>uv<span class="w"> </span>add<span class="w"> </span><span class="s2">&quot;requests&gt;=2.30,&lt;3&quot;</span><span class="w">                 </span><span class="c1"># 带版本约束</span>
+<a id="__codelineno-13-3" name="__codelineno-13-3" href="#__codelineno-13-3"></a>uv<span class="w"> </span>add<span class="w"> </span>--dev<span class="w"> </span>pytest<span class="w"> </span>ruff<span class="w">                   </span><span class="c1"># 开发依赖 → [dependency-groups]（PEP 735）</span>
+<a id="__codelineno-13-4" name="__codelineno-13-4" href="#__codelineno-13-4"></a>uv<span class="w"> </span>add<span class="w"> </span>--group<span class="w"> </span>docs<span class="w"> </span>mkdocs<span class="w">                 </span><span class="c1"># 自定义依赖组</span>
+<a id="__codelineno-13-5" name="__codelineno-13-5" href="#__codelineno-13-5"></a>uv<span class="w"> </span>add<span class="w"> </span><span class="s2">&quot;fastapi[all]&quot;</span><span class="w">                      </span><span class="c1"># 带 extras</span>
+<a id="__codelineno-13-6" name="__codelineno-13-6" href="#__codelineno-13-6"></a>uv<span class="w"> </span>add<span class="w"> </span>git+https://github.com/psf/requests.git<span class="w">   </span><span class="c1"># git 依赖</span>
+</code></pre></div>
+<p>执行 <code>uv add requests</code> 后，<code>pyproject.toml</code> 实测变为：</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a><span class="k">[project]</span>
+<a id="__codelineno-14-2" name="__codelineno-14-2" href="#__codelineno-14-2"></a><span class="n">name</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;hello-web&quot;</span>
+<a id="__codelineno-14-3" name="__codelineno-14-3" href="#__codelineno-14-3"></a><span class="n">version</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;0.1.0&quot;</span>
+<a id="__codelineno-14-4" name="__codelineno-14-4" href="#__codelineno-14-4"></a><span class="n">requires-python</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;&gt;=3.12&quot;</span>
+<a id="__codelineno-14-5" name="__codelineno-14-5" href="#__codelineno-14-5"></a><span class="n">dependencies</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span>
+<a id="__codelineno-14-6" name="__codelineno-14-6" href="#__codelineno-14-6"></a><span class="w">    </span><span class="s2">&quot;requests&gt;=2.34.2&quot;</span><span class="p">,</span>
+<a id="__codelineno-14-7" name="__codelineno-14-7" href="#__codelineno-14-7"></a><span class="p">]</span>
+<a id="__codelineno-14-8" name="__codelineno-14-8" href="#__codelineno-14-8"></a>
+<a id="__codelineno-14-9" name="__codelineno-14-9" href="#__codelineno-14-9"></a><span class="k">[dependency-groups]</span>
+<a id="__codelineno-14-10" name="__codelineno-14-10" href="#__codelineno-14-10"></a><span class="n">dev</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span>
+<a id="__codelineno-14-11" name="__codelineno-14-11" href="#__codelineno-14-11"></a><span class="w">    </span><span class="s2">&quot;pytest&gt;=9.2.0&quot;</span><span class="p">,</span>
+<a id="__codelineno-14-12" name="__codelineno-14-12" href="#__codelineno-14-12"></a><span class="p">]</span>
 </code></pre></div>
 <blockquote>
-<p>💡 <code>uv venv</code> 比 <code>python -m venv</code> 更快，并支持更多选项（如指定 Python 版本）。</p>
+<p>⭐ 一次 <code>uv add</code> 自动完成四件事：<strong>解析版本 → 写入 pyproject.toml → 更新 uv.lock → 安装进 .venv</strong>。</p>
 </blockquote>
-<hr />
-<h3 id="2-pip">2. 安装包（替代 pip）<a class="headerlink" href="#2-pip" title="Permanent link">&para;</a></h3>
-<h4 id="21-uv-pip-install-pip">2.1 uv pip install —— 快速安装依赖（推荐替代 pip）<a class="headerlink" href="#21-uv-pip-install-pip" title="Permanent link">&para;</a></h4>
-<p>用途：</p>
-<ul>
-<li>安装 Python 包到当前环境或虚拟环境中</li>
-<li>兼容 pip 的所有常见用法</li>
-<li>极速安装（基于 Rust 实现，并行下载、智能缓存）</li>
-</ul>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a><span class="c1"># 安装单个包</span>
-<a id="__codelineno-14-2" name="__codelineno-14-2" href="#__codelineno-14-2"></a>uv<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>requests
-<a id="__codelineno-14-3" name="__codelineno-14-3" href="#__codelineno-14-3"></a>
-<a id="__codelineno-14-4" name="__codelineno-14-4" href="#__codelineno-14-4"></a><span class="c1"># 安装多个包</span>
-<a id="__codelineno-14-5" name="__codelineno-14-5" href="#__codelineno-14-5"></a>uv<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>flask<span class="w"> </span>pandas<span class="w"> </span>numpy
-<a id="__codelineno-14-6" name="__codelineno-14-6" href="#__codelineno-14-6"></a>
-<a id="__codelineno-14-7" name="__codelineno-14-7" href="#__codelineno-14-7"></a><span class="c1"># 从 requirements.txt 安装</span>
-<a id="__codelineno-14-8" name="__codelineno-14-8" href="#__codelineno-14-8"></a>uv<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>-r<span class="w"> </span>requirements.txt
-<a id="__codelineno-14-9" name="__codelineno-14-9" href="#__codelineno-14-9"></a>
-<a id="__codelineno-14-10" name="__codelineno-14-10" href="#__codelineno-14-10"></a><span class="c1"># 安装可编辑包（开发模式）</span>
-<a id="__codelineno-14-11" name="__codelineno-14-11" href="#__codelineno-14-11"></a>uv<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </span>.
-<a id="__codelineno-14-12" name="__codelineno-14-12" href="#__codelineno-14-12"></a>
-<a id="__codelineno-14-13" name="__codelineno-14-13" href="#__codelineno-14-13"></a><span class="c1"># 指定 Python 环境或创建 venv 后安装</span>
-<a id="__codelineno-14-14" name="__codelineno-14-14" href="#__codelineno-14-14"></a>uv<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>--python<span class="w"> </span><span class="m">3</span>.11<span class="w"> </span>django
-<a id="__codelineno-14-15" name="__codelineno-14-15" href="#__codelineno-14-15"></a>uv<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>--python<span class="w"> </span>.venv<span class="w"> </span>flask
+<h3 id="34-uv-run">3.4 运行代码：<code>uv run</code>（杀手级特性）<a class="headerlink" href="#34-uv-run" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-15-1" name="__codelineno-15-1" href="#__codelineno-15-1"></a>uv<span class="w"> </span>run<span class="w"> </span>main.py<span class="w">        </span><span class="c1"># 运行项目入口</span>
+<a id="__codelineno-15-2" name="__codelineno-15-2" href="#__codelineno-15-2"></a>uv<span class="w"> </span>run<span class="w"> </span>python<span class="w"> </span>-c<span class="w"> </span><span class="s2">&quot;import requests; print(requests.__version__)&quot;</span>
+<a id="__codelineno-15-3" name="__codelineno-15-3" href="#__codelineno-15-3"></a>uv<span class="w"> </span>run<span class="w"> </span>pytest<span class="w">         </span><span class="c1"># 直接调用开发依赖里的工具</span>
 </code></pre></div>
-<p>✅ 比 <code>pip install</code> 快得多，尤其是首次解析。</p>
-<p>💡 特点：</p>
-<ul>
-<li>不会修改项目的配置文件（如 pyproject.toml）</li>
-<li>更像是“一次性”安装操作</li>
-<li>适合脚本、临时环境、CI/CD 使用</li>
-</ul>
-<h4 id="22-uv-add-npmyarnpoetry">2.2 uv add —— 现代化依赖管理（像 npm/yarn/poetry）<a class="headerlink" href="#22-uv-add-npmyarnpoetry" title="Permanent link">&para;</a></h4>
-<p>用途：</p>
-<ul>
-<li>将包添加为项目的正式依赖</li>
-<li>自动写入 pyproject.toml 文件中的 [project.dependencies]</li>
-<li>使用 <code>uv add --dev</code> 添加开发依赖（写入标准的 <code>[dependency-groups]</code>）</li>
-<li>需要先初始化项目：<code>uv init</code></li>
-</ul>
-<h5 id="_8">示例流程<a class="headerlink" href="#_8" title="Permanent link">&para;</a></h5>
-<ol>
-<li>
-<p>初始化项目
-<div class="highlight"><pre><span></span><code><a id="__codelineno-15-1" name="__codelineno-15-1" href="#__codelineno-15-1"></a>uv<span class="w"> </span>init<span class="w"> </span>myproject
-<a id="__codelineno-15-2" name="__codelineno-15-2" href="#__codelineno-15-2"></a><span class="nb">cd</span><span class="w"> </span>myproject
-</code></pre></div>
-会生成 pyproject.toml：
-<div class="highlight"><pre><span></span><code><a id="__codelineno-16-1" name="__codelineno-16-1" href="#__codelineno-16-1"></a>[project]
-<a id="__codelineno-16-2" name="__codelineno-16-2" href="#__codelineno-16-2"></a>name = &quot;myproject&quot;
-<a id="__codelineno-16-3" name="__codelineno-16-3" href="#__codelineno-16-3"></a>version = &quot;0.1.0&quot;
-<a id="__codelineno-16-4" name="__codelineno-16-4" href="#__codelineno-16-4"></a>dependencies = []
-</code></pre></div></p>
-</li>
-<li>
-<p>添加运行时依赖</p>
-</li>
-</ol>
-<p><div class="highlight"><pre><span></span><code><a id="__codelineno-17-1" name="__codelineno-17-1" href="#__codelineno-17-1"></a>uv<span class="w"> </span>add<span class="w"> </span>requests<span class="w"> </span>httpx
-</code></pre></div>
-更新后的 pyproject.toml：
-<div class="highlight"><pre><span></span><code><a id="__codelineno-18-1" name="__codelineno-18-1" href="#__codelineno-18-1"></a>[project]
-<a id="__codelineno-18-2" name="__codelineno-18-2" href="#__codelineno-18-2"></a>name = &quot;myproject&quot;
-<a id="__codelineno-18-3" name="__codelineno-18-3" href="#__codelineno-18-3"></a>version = &quot;0.1.0&quot;
-<a id="__codelineno-18-4" name="__codelineno-18-4" href="#__codelineno-18-4"></a>dependencies = [
-<a id="__codelineno-18-5" name="__codelineno-18-5" href="#__codelineno-18-5"></a>    &quot;requests&quot;,
-<a id="__codelineno-18-6" name="__codelineno-18-6" href="#__codelineno-18-6"></a>    &quot;httpx&quot;,
-<a id="__codelineno-18-7" name="__codelineno-18-7" href="#__codelineno-18-7"></a>]
-</code></pre></div></p>
-<ol>
-<li>
-<p>添加开发依赖（dev dependencies）
-<div class="highlight"><pre><span></span><code><a id="__codelineno-19-1" name="__codelineno-19-1" href="#__codelineno-19-1"></a>uv<span class="w"> </span>add<span class="w"> </span>--dev<span class="w"> </span>pytest<span class="w"> </span>flake8
-</code></pre></div>
-结果
-<div class="highlight"><pre><span></span><code><a id="__codelineno-20-1" name="__codelineno-20-1" href="#__codelineno-20-1"></a>[dependency-groups]
-<a id="__codelineno-20-2" name="__codelineno-20-2" href="#__codelineno-20-2"></a>dev = [
-<a id="__codelineno-20-3" name="__codelineno-20-3" href="#__codelineno-20-3"></a>    &quot;pytest&quot;,
-<a id="__codelineno-20-4" name="__codelineno-20-4" href="#__codelineno-20-4"></a>    &quot;flake8&quot;,
-<a id="__codelineno-20-5" name="__codelineno-20-5" href="#__codelineno-20-5"></a>]
-</code></pre></div></p>
-</li>
-<li>
-<p>同步所有依赖（安装）
-<div class="highlight"><pre><span></span><code><a id="__codelineno-21-1" name="__codelineno-21-1" href="#__codelineno-21-1"></a>uv<span class="w"> </span>sync
-</code></pre></div>
-<code>uv sync</code> 根据项目的 <code>pyproject.toml</code> 和 <code>uv.lock</code> 同步环境。</p>
-</li>
-</ol>
-<hr />
-<h3 id="3-pip-sync">3. 同步依赖（类似 pip-sync）<a class="headerlink" href="#3-pip-sync" title="Permanent link">&para;</a></h3>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-22-1" name="__codelineno-22-1" href="#__codelineno-22-1"></a>uv<span class="w"> </span>sync
-<a id="__codelineno-22-2" name="__codelineno-22-2" href="#__codelineno-22-2"></a><span class="c1"># 根据 pyproject.toml 和 uv.lock 同步项目环境</span>
-</code></pre></div>
-<p>从 requirements 文件同步时使用：
-<div class="highlight"><pre><span></span><code><a id="__codelineno-23-1" name="__codelineno-23-1" href="#__codelineno-23-1"></a>uv<span class="w"> </span>pip<span class="w"> </span>sync<span class="w"> </span>-r<span class="w"> </span>requirements.txt
-</code></pre></div></p>
-<hr />
-<h3 id="4-lock-file">4. 生成锁文件（lock file）<a class="headerlink" href="#4-lock-file" title="Permanent link">&para;</a></h3>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-24-1" name="__codelineno-24-1" href="#__codelineno-24-1"></a>uv<span class="w"> </span>lock
-</code></pre></div>
-<p>会生成 <code>uv.lock</code>，记录解析后的依赖版本。</p>
-<p>然后你可以：</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-25-1" name="__codelineno-25-1" href="#__codelineno-25-1"></a>uv<span class="w"> </span>sync<span class="w">  </span><span class="c1"># 根据 uv.lock 同步项目环境</span>
-</code></pre></div>
-<hr />
-<h3 id="5">5. 添加开发依赖<a class="headerlink" href="#5" title="Permanent link">&para;</a></h3>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-26-1" name="__codelineno-26-1" href="#__codelineno-26-1"></a>uv<span class="w"> </span>add<span class="w"> </span>pytest<span class="w"> </span>--dev
-<a id="__codelineno-26-2" name="__codelineno-26-2" href="#__codelineno-26-2"></a>uv<span class="w"> </span>add<span class="w"> </span>debugpy<span class="w"> </span>jupyter<span class="w"> </span>--dev
-</code></pre></div>
-<p>会自动更新 <code>pyproject.toml</code>（如果你用的是 Poetry 风格项目结构）。</p>
 <blockquote>
-<p>注意：目前 <code>uv</code> 主要用于“扁平依赖管理”，对 <code>pyproject.toml</code> 的完整支持正在完善中。</p>
+<p>⭐ <strong>完全不需要 <code>source .venv/bin/activate</code>！</strong>
+<code>uv run</code> 自动使用项目的 <code>.venv</code>；发现环境落后于 <code>uv.lock</code> 时还会<strong>先自动同步再运行</strong>。</p>
+</blockquote>
+<h3 id="35-uv-lock-uv-sync">3.5 锁定与同步：<code>uv lock</code> / <code>uv sync</code><a class="headerlink" href="#35-uv-lock-uv-sync" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-16-1" name="__codelineno-16-1" href="#__codelineno-16-1"></a>uv<span class="w"> </span>lock<span class="w">                  </span><span class="c1"># 只解析依赖、生成/更新 uv.lock，不安装</span>
+<a id="__codelineno-16-2" name="__codelineno-16-2" href="#__codelineno-16-2"></a>uv<span class="w"> </span>sync<span class="w">                  </span><span class="c1"># 按 uv.lock 精确重建 .venv</span>
+</code></pre></div>
+<p><strong><code>uv sync</code> 常用选项</strong>：</p>
+<table>
+<thead>
+<tr>
+<th>选项</th>
+<th>行为</th>
+<th>典型场景</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>（无）</td>
+<td>确保 <code>.venv</code> 与 <code>uv.lock</code> 一致</td>
+<td>克隆项目后第一步</td>
+</tr>
+<tr>
+<td><code>--locked</code></td>
+<td>先校验 lock 与 pyproject 一致，不一致则报错</td>
+<td>CI，防止有人忘提交 lock</td>
+</tr>
+<tr>
+<td><code>--frozen</code></td>
+<td>完全使用现成 lock，不检查 pyproject</td>
+<td>部署</td>
+</tr>
+<tr>
+<td><code>--no-dev</code></td>
+<td>不安装 dev 依赖组</td>
+<td>生产环境</td>
+</tr>
+</tbody>
+</table>
+<p><strong>升级依赖</strong>：</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-17-1" name="__codelineno-17-1" href="#__codelineno-17-1"></a>uv<span class="w"> </span>lock<span class="w"> </span>--upgrade<span class="w">                    </span><span class="c1"># 全部依赖升到约束允许的最新版</span>
+<a id="__codelineno-17-2" name="__codelineno-17-2" href="#__codelineno-17-2"></a>uv<span class="w"> </span>lock<span class="w"> </span>--upgrade-package<span class="w"> </span>requests<span class="w">   </span><span class="c1"># 只升级 requests（简写 -P requests）</span>
+<a id="__codelineno-17-3" name="__codelineno-17-3" href="#__codelineno-17-3"></a>uv<span class="w"> </span>sync<span class="w">                              </span><span class="c1"># 升级后同步进环境</span>
+</code></pre></div>
+<h3 id="36-uv-tree">3.6 查看依赖：<code>uv tree</code><a class="headerlink" href="#36-uv-tree" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-18-1" name="__codelineno-18-1" href="#__codelineno-18-1"></a>uv<span class="w"> </span>tree
+</code></pre></div>
+<p>实测输出（一眼看清直接依赖与传递依赖）：</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-19-1" name="__codelineno-19-1" href="#__codelineno-19-1"></a>hello-web v0.1.0
+<a id="__codelineno-19-2" name="__codelineno-19-2" href="#__codelineno-19-2"></a>├── requests v2.34.2
+<a id="__codelineno-19-3" name="__codelineno-19-3" href="#__codelineno-19-3"></a>│   ├── certifi v2026.10.23
+<a id="__codelineno-19-4" name="__codelineno-19-4" href="#__codelineno-19-4"></a>│   ├── charset-normalizer v3.5.2
+<a id="__codelineno-19-5" name="__codelineno-19-5" href="#__codelineno-19-5"></a>│   ├── idna v3.20
+<a id="__codelineno-19-6" name="__codelineno-19-6" href="#__codelineno-19-6"></a>│   └── urllib3 v2.8.0
+<a id="__codelineno-19-7" name="__codelineno-19-7" href="#__codelineno-19-7"></a>└── pytest v9.2.0 (group: dev)
+<a id="__codelineno-19-8" name="__codelineno-19-8" href="#__codelineno-19-8"></a>    ├── iniconfig v2.3.1
+<a id="__codelineno-19-9" name="__codelineno-19-9" href="#__codelineno-19-9"></a>    ├── packaging v26.3
+<a id="__codelineno-19-10" name="__codelineno-19-10" href="#__codelineno-19-10"></a>    ├── pluggy v1.7.0
+<a id="__codelineno-19-11" name="__codelineno-19-11" href="#__codelineno-19-11"></a>    └── pygments v2.21.0
+</code></pre></div>
+<h3 id="37-uv-remove">3.7 移除依赖：<code>uv remove</code><a class="headerlink" href="#37-uv-remove" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-20-1" name="__codelineno-20-1" href="#__codelineno-20-1"></a>uv<span class="w"> </span>remove<span class="w"> </span>requests
+</code></pre></div>
+<p>会从 <code>pyproject.toml</code>、<code>uv.lock</code>、<code>.venv</code> 三处移除，并<strong>级联清理</strong>不再被需要的传递依赖（实测移除 requests 时，<code>urllib3</code> 等孤儿依赖一并清除）。</p>
+<h3 id="38-uv-uv-export">3.8 与非 uv 环境协作：<code>uv export</code><a class="headerlink" href="#38-uv-uv-export" title="Permanent link">&para;</a></h3>
+<p>部署目标机器没有 uv 时，导出标准 <code>requirements.txt</code>（默认带哈希校验）：</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-21-1" name="__codelineno-21-1" href="#__codelineno-21-1"></a>uv<span class="w"> </span><span class="nb">export</span><span class="w"> </span>--no-dev<span class="w"> </span>&gt;<span class="w"> </span>requirements.txt
+<a id="__codelineno-21-2" name="__codelineno-21-2" href="#__codelineno-21-2"></a>uv<span class="w"> </span><span class="nb">export</span><span class="w"> </span>--no-hashes<span class="w"> </span>&gt;<span class="w"> </span>requirements.txt<span class="w">   </span><span class="c1"># 不要哈希（兼容性更好）</span>
+</code></pre></div>
+<h3 id="39">3.9 日常开发循环（速查）<a class="headerlink" href="#39" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-22-1" name="__codelineno-22-1" href="#__codelineno-22-1"></a>克隆项目          uv sync
+<a id="__codelineno-22-2" name="__codelineno-22-2" href="#__codelineno-22-2"></a>加依赖            uv add xxx          （开发工具：uv add --dev xxx）
+<a id="__codelineno-22-3" name="__codelineno-22-3" href="#__codelineno-22-3"></a>跑代码/测试       uv run xxx          （无需激活环境！）
+<a id="__codelineno-22-4" name="__codelineno-22-4" href="#__codelineno-22-4"></a>看依赖结构        uv tree
+<a id="__codelineno-22-5" name="__codelineno-22-5" href="#__codelineno-22-5"></a>删依赖            uv remove xxx
+<a id="__codelineno-22-6" name="__codelineno-22-6" href="#__codelineno-22-6"></a>升级依赖          uv lock --upgrade [-P 包名] &amp;&amp; uv sync
+<a id="__codelineno-22-7" name="__codelineno-22-7" href="#__codelineno-22-7"></a>交付非 uv 环境    uv export &gt; requirements.txt
+</code></pre></div>
+<hr />
+<h2 id="python-pyenv">四、Python 版本管理（可替代 pyenv）<a class="headerlink" href="#python-pyenv" title="Permanent link">&para;</a></h2>
+<p>uv 能自己下载、管理 Python 解释器，<strong>不依赖系统 Python</strong>：</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-23-1" name="__codelineno-23-1" href="#__codelineno-23-1"></a>uv<span class="w"> </span>python<span class="w"> </span>list<span class="w">           </span><span class="c1"># 查看可用版本（含可下载的 3.13 / 3.14 / 3.15.0a1 ...）</span>
+<a id="__codelineno-23-2" name="__codelineno-23-2" href="#__codelineno-23-2"></a>uv<span class="w"> </span>python<span class="w"> </span>install<span class="w"> </span><span class="m">3</span>.13<span class="w">   </span><span class="c1"># 下载安装指定版本</span>
+<a id="__codelineno-23-3" name="__codelineno-23-3" href="#__codelineno-23-3"></a>uv<span class="w"> </span>python<span class="w"> </span>pin<span class="w"> </span><span class="m">3</span>.12<span class="w">       </span><span class="c1"># 把版本写入当前项目的 .python-version</span>
+</code></pre></div>
+<blockquote>
+<p>💡 <code>.python-version</code>（本项目用什么）与 <code>pyproject.toml</code> 里的 <code>requires-python = "&gt;=3.12"</code>（本项目兼容什么）配合工作：前者钉住开发环境，后者声明兼容范围。</p>
 </blockquote>
 <hr />
-<h3 id="6">6. 卸载包<a class="headerlink" href="#6" title="Permanent link">&para;</a></h3>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-27-1" name="__codelineno-27-1" href="#__codelineno-27-1"></a>uv<span class="w"> </span>remove<span class="w"> </span>requests
+<h2 id="pipx">五、命令行工具管理（可替代 pipx）<a class="headerlink" href="#pipx" title="Permanent link">&para;</a></h2>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-24-1" name="__codelineno-24-1" href="#__codelineno-24-1"></a>uvx<span class="w"> </span>ruff<span class="w"> </span>check<span class="w"> </span>.<span class="w">          </span><span class="c1"># 免安装、直接运行工具（uvx 是 uv tool run 的别名）</span>
+<a id="__codelineno-24-2" name="__codelineno-24-2" href="#__codelineno-24-2"></a>uv<span class="w"> </span>tool<span class="w"> </span>install<span class="w"> </span>ruff<span class="w">      </span><span class="c1"># 长期安装（装进 ~/.local/share/uv/tools）</span>
+<a id="__codelineno-24-3" name="__codelineno-24-3" href="#__codelineno-24-3"></a>uv<span class="w"> </span>tool<span class="w"> </span>list<span class="w">              </span><span class="c1"># 查看已安装工具</span>
 </code></pre></div>
-<h2 id="_9">六、最佳实践<a class="headerlink" href="#_9" title="Permanent link">&para;</a></h2>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-28-1" name="__codelineno-28-1" href="#__codelineno-28-1"></a># 1. 创建项目
-<a id="__codelineno-28-2" name="__codelineno-28-2" href="#__codelineno-28-2"></a>uv init hello-web
-<a id="__codelineno-28-3" name="__codelineno-28-3" href="#__codelineno-28-3"></a>cd hello-web
-<a id="__codelineno-28-4" name="__codelineno-28-4" href="#__codelineno-28-4"></a>
-<a id="__codelineno-28-5" name="__codelineno-28-5" href="#__codelineno-28-5"></a># 2. 添加生产依赖
-<a id="__codelineno-28-6" name="__codelineno-28-6" href="#__codelineno-28-6"></a>uv add flask requests
-<a id="__codelineno-28-7" name="__codelineno-28-7" href="#__codelineno-28-7"></a>
-<a id="__codelineno-28-8" name="__codelineno-28-8" href="#__codelineno-28-8"></a># 3. 添加开发依赖
-<a id="__codelineno-28-9" name="__codelineno-28-9" href="#__codelineno-28-9"></a>uv add pytest coverage --dev
-<a id="__codelineno-28-10" name="__codelineno-28-10" href="#__codelineno-28-10"></a>
-<a id="__codelineno-28-11" name="__codelineno-28-11" href="#__codelineno-28-11"></a># 4. 查看当前依赖
-<a id="__codelineno-28-12" name="__codelineno-28-12" href="#__codelineno-28-12"></a>uv project add-list
-<a id="__codelineno-28-13" name="__codelineno-28-13" href="#__codelineno-28-13"></a>
-<a id="__codelineno-28-14" name="__codelineno-28-14" href="#__codelineno-28-14"></a># 5. 安装所有依赖
-<a id="__codelineno-28-15" name="__codelineno-28-15" href="#__codelineno-28-15"></a>uv sync
-<a id="__codelineno-28-16" name="__codelineno-28-16" href="#__codelineno-28-16"></a>
-<a id="__codelineno-28-17" name="__codelineno-28-17" href="#__codelineno-28-17"></a># 6. 激活环境（可选）
-<a id="__codelineno-28-18" name="__codelineno-28-18" href="#__codelineno-28-18"></a>source .venv/bin/activate  # Linux/macOS
-<a id="__codelineno-28-19" name="__codelineno-28-19" href="#__codelineno-28-19"></a># 或
-<a id="__codelineno-28-20" name="__codelineno-28-20" href="#__codelineno-28-20"></a>.venv\Scripts\activate     # Windows
-<a id="__codelineno-28-21" name="__codelineno-28-21" href="#__codelineno-28-21"></a>
-<a id="__codelineno-28-22" name="__codelineno-28-22" href="#__codelineno-28-22"></a># 7. 运行应用
-<a id="__codelineno-28-23" name="__codelineno-28-23" href="#__codelineno-28-23"></a>python app.py
+<hr />
+<h2 id="uv-pip">六、uv pip 兼容接口（临时场景专用）<a class="headerlink" href="#uv-pip" title="Permanent link">&para;</a></h2>
+<p>只在<strong>不管项目配置</strong>的场景使用：临时脚本、老项目、CI 缓存层。</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-25-1" name="__codelineno-25-1" href="#__codelineno-25-1"></a><span class="c1"># 创建虚拟环境（比 python -m venv 快；⚠️ 默认不含 pip，配合 uv pip 使用）</span>
+<a id="__codelineno-25-2" name="__codelineno-25-2" href="#__codelineno-25-2"></a>uv<span class="w"> </span>venv<span class="w"> </span>myenv
+<a id="__codelineno-25-3" name="__codelineno-25-3" href="#__codelineno-25-3"></a><span class="nb">source</span><span class="w"> </span>myenv/bin/activate<span class="w">   </span><span class="c1"># Linux/macOS</span>
+<a id="__codelineno-25-4" name="__codelineno-25-4" href="#__codelineno-25-4"></a>
+<a id="__codelineno-25-5" name="__codelineno-25-5" href="#__codelineno-25-5"></a><span class="c1"># 装包（只进环境，不写 pyproject.toml）</span>
+<a id="__codelineno-25-6" name="__codelineno-25-6" href="#__codelineno-25-6"></a>uv<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>requests
+<a id="__codelineno-25-7" name="__codelineno-25-7" href="#__codelineno-25-7"></a>uv<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>-r<span class="w"> </span>requirements.txt
+<a id="__codelineno-25-8" name="__codelineno-25-8" href="#__codelineno-25-8"></a>uv<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </span>.<span class="w">          </span><span class="c1"># 可编辑安装</span>
+<a id="__codelineno-25-9" name="__codelineno-25-9" href="#__codelineno-25-9"></a>
+<a id="__codelineno-25-10" name="__codelineno-25-10" href="#__codelineno-25-10"></a><span class="c1"># 按 requirements 精确同步环境</span>
+<a id="__codelineno-25-11" name="__codelineno-25-11" href="#__codelineno-25-11"></a>uv<span class="w"> </span>pip<span class="w"> </span>sync<span class="w"> </span>-r<span class="w"> </span>requirements.txt
+<a id="__codelineno-25-12" name="__codelineno-25-12" href="#__codelineno-25-12"></a>
+<a id="__codelineno-25-13" name="__codelineno-25-13" href="#__codelineno-25-13"></a><span class="c1"># 指定目标环境</span>
+<a id="__codelineno-25-14" name="__codelineno-25-14" href="#__codelineno-25-14"></a>uv<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>--python<span class="w"> </span><span class="m">3</span>.11<span class="w"> </span>django
+<a id="__codelineno-25-15" name="__codelineno-25-15" href="#__codelineno-25-15"></a>uv<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>--python<span class="w"> </span>.venv<span class="w"> </span>flask
 </code></pre></div>
+<blockquote>
+<p>⚠️ 再次提醒：uv 项目里请用 <code>uv add</code>，<code>uv pip install</code> 装的包会在下次 <code>uv sync</code> 时被清除。</p>
+</blockquote>
+<hr />
+<h2 id="_5">七、镜像源配置<a class="headerlink" href="#_5" title="Permanent link">&para;</a></h2>
+<p>uv 支持在用户级、项目级配置镜像源，或命令行临时指定。</p>
+<h5 id="_6">用户级别配置文件<a class="headerlink" href="#_6" title="Permanent link">&para;</a></h5>
+<p>文件路径 <code>~/.config/uv/uv.toml</code>（遵循 XDG 规范；即 <code>$XDG_CONFIG_HOME/uv/uv.toml</code>，已经 uv 0.9.3 实测验证）：</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-26-1" name="__codelineno-26-1" href="#__codelineno-26-1"></a><span class="k">[[index]]</span>
+<a id="__codelineno-26-2" name="__codelineno-26-2" href="#__codelineno-26-2"></a><span class="n">url</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;https://pypi.tuna.tsinghua.edu.cn/simple&quot;</span>
+<a id="__codelineno-26-3" name="__codelineno-26-3" href="#__codelineno-26-3"></a><span class="n">default</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">true</span>
+</code></pre></div>
+<h5 id="_7">项目级别配置文件<a class="headerlink" href="#_7" title="Permanent link">&para;</a></h5>
+<p>在项目 <code>pyproject.toml</code> 中：</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-27-1" name="__codelineno-27-1" href="#__codelineno-27-1"></a><span class="k">[[tool.uv.index]]</span>
+<a id="__codelineno-27-2" name="__codelineno-27-2" href="#__codelineno-27-2"></a><span class="n">url</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;https://pypi.tuna.tsinghua.edu.cn/simple&quot;</span>
+<a id="__codelineno-27-3" name="__codelineno-27-3" href="#__codelineno-27-3"></a><span class="n">default</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">true</span>
+</code></pre></div>
+<p>或在项目根的 <code>uv.toml</code> 中（写法同用户级）。</p>
+<h5 id="_8">命令行临时指定<a class="headerlink" href="#_8" title="Permanent link">&para;</a></h5>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-28-1" name="__codelineno-28-1" href="#__codelineno-28-1"></a>uv<span class="w"> </span>add<span class="w"> </span>--default-index<span class="w"> </span>https://pypi.tuna.tsinghua.edu.cn/simple<span class="w"> </span>requests
+</code></pre></div>
+<p>常用镜像：清华 <code>https://pypi.tuna.tsinghua.edu.cn/simple</code>、阿里云 <code>https://mirrors.aliyun.com/pypi/simple/</code>。</p>
+<hr />
+<h2 id="_9">八、传统工具迁移对照表<a class="headerlink" href="#_9" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>传统做法</th>
+<th>uv 等价命令</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>python -m venv .venv</code></td>
+<td><code>uv sync</code>（自动创建）或 <code>uv venv</code></td>
+</tr>
+<tr>
+<td><code>pip install xxx</code></td>
+<td>项目里 <code>uv add xxx</code>；临时用 <code>uv pip install xxx</code></td>
+</tr>
+<tr>
+<td><code>pip uninstall xxx</code></td>
+<td><code>uv remove xxx</code></td>
+</tr>
+<tr>
+<td><code>pip freeze &gt; requirements.txt</code></td>
+<td><code>uv export &gt; requirements.txt</code></td>
+</tr>
+<tr>
+<td><code>pip list</code></td>
+<td><code>uv tree</code>（看结构）/ <code>uv pip list</code>（看清单）</td>
+</tr>
+<tr>
+<td><code>pip-compile</code> + <code>pip-sync</code>（pip-tools）</td>
+<td><code>uv lock</code> + <code>uv sync</code></td>
+</tr>
+<tr>
+<td><code>pyenv install/local</code></td>
+<td><code>uv python install</code> / <code>uv python pin</code></td>
+</tr>
+<tr>
+<td><code>pipx install xxx</code></td>
+<td><code>uv tool install xxx</code>；一次性运行用 <code>uvx xxx</code></td>
+</tr>
+<tr>
+<td><code>poetry add/install</code></td>
+<td><code>uv add</code> / <code>uv sync</code></td>
+</tr>
+<tr>
+<td><code>python xxx.py</code>（激活环境后）</td>
+<td><code>uv run xxx.py</code>（免激活）</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="_10">九、最佳实践：完整项目流程<a class="headerlink" href="#_10" title="Permanent link">&para;</a></h2>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-29-1" name="__codelineno-29-1" href="#__codelineno-29-1"></a><span class="c1"># 1. 创建项目</span>
+<a id="__codelineno-29-2" name="__codelineno-29-2" href="#__codelineno-29-2"></a>uv<span class="w"> </span>init<span class="w"> </span>hello-web<span class="w"> </span>--python<span class="w"> </span><span class="m">3</span>.12
+<a id="__codelineno-29-3" name="__codelineno-29-3" href="#__codelineno-29-3"></a><span class="nb">cd</span><span class="w"> </span>hello-web
+<a id="__codelineno-29-4" name="__codelineno-29-4" href="#__codelineno-29-4"></a>
+<a id="__codelineno-29-5" name="__codelineno-29-5" href="#__codelineno-29-5"></a><span class="c1"># 2. 添加生产依赖</span>
+<a id="__codelineno-29-6" name="__codelineno-29-6" href="#__codelineno-29-6"></a>uv<span class="w"> </span>add<span class="w"> </span>flask<span class="w"> </span>requests
+<a id="__codelineno-29-7" name="__codelineno-29-7" href="#__codelineno-29-7"></a>
+<a id="__codelineno-29-8" name="__codelineno-29-8" href="#__codelineno-29-8"></a><span class="c1"># 3. 添加开发依赖</span>
+<a id="__codelineno-29-9" name="__codelineno-29-9" href="#__codelineno-29-9"></a>uv<span class="w"> </span>add<span class="w"> </span>--dev<span class="w"> </span>pytest<span class="w"> </span>ruff
+<a id="__codelineno-29-10" name="__codelineno-29-10" href="#__codelineno-29-10"></a>
+<a id="__codelineno-29-11" name="__codelineno-29-11" href="#__codelineno-29-11"></a><span class="c1"># 4. 查看依赖结构</span>
+<a id="__codelineno-29-12" name="__codelineno-29-12" href="#__codelineno-29-12"></a>uv<span class="w"> </span>tree
+<a id="__codelineno-29-13" name="__codelineno-29-13" href="#__codelineno-29-13"></a>
+<a id="__codelineno-29-14" name="__codelineno-29-14" href="#__codelineno-29-14"></a><span class="c1"># 5. 运行与测试（全程无需激活环境）</span>
+<a id="__codelineno-29-15" name="__codelineno-29-15" href="#__codelineno-29-15"></a>uv<span class="w"> </span>run<span class="w"> </span>python<span class="w"> </span>app.py
+<a id="__codelineno-29-16" name="__codelineno-29-16" href="#__codelineno-29-16"></a>uv<span class="w"> </span>run<span class="w"> </span>pytest
+<a id="__codelineno-29-17" name="__codelineno-29-17" href="#__codelineno-29-17"></a>
+<a id="__codelineno-29-18" name="__codelineno-29-18" href="#__codelineno-29-18"></a><span class="c1"># 6. 提交四件套中的三个（.venv 已在 .gitignore 中）</span>
+<a id="__codelineno-29-19" name="__codelineno-29-19" href="#__codelineno-29-19"></a>git<span class="w"> </span>add<span class="w"> </span>pyproject.toml<span class="w"> </span>uv.lock<span class="w"> </span>.python-version
+<a id="__codelineno-29-20" name="__codelineno-29-20" href="#__codelineno-29-20"></a>
+<a id="__codelineno-29-21" name="__codelineno-29-21" href="#__codelineno-29-21"></a><span class="c1"># 7. 队友克隆后一条命令还原环境</span>
+<a id="__codelineno-29-22" name="__codelineno-29-22" href="#__codelineno-29-22"></a>uv<span class="w"> </span>sync
+</code></pre></div>
+<blockquote>
+<p>💡 团队协作要点：<code>pyproject.toml</code> 与 <code>uv.lock</code> <strong>必须一起提交</strong>；CI 里用 <code>uv sync --locked</code> 防止 lock 过期。</p>
+</blockquote>
 <h1 id="conda">conda<a class="headerlink" href="#conda" title="Permanent link">&para;</a></h1>
 
 
