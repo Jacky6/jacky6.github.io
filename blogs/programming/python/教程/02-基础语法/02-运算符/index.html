@@ -1405,7 +1405,7 @@
 <tr>
 <td>1</td>
 <td>算术运算符</td>
-<td>/ 永远返回 float，// 整除，** 幂运算</td>
+<td>/ 永远返回 float，// 整除（负数向下取整），% 符号跟随除数，** 幂运算</td>
 <td>⭐⭐⭐⭐</td>
 </tr>
 <tr>
@@ -1417,7 +1417,7 @@
 <tr>
 <td>3</td>
 <td>逻辑运算符</td>
-<td>and/or 短路求值，name or "Guest" 取默认值</td>
+<td>and/or 返回操作数本身并短路求值，name or "Guest" 取默认值</td>
 <td>⭐⭐⭐⭐</td>
 </tr>
 <tr>
@@ -1473,6 +1473,10 @@
 <p><strong>知识点</strong>：</p>
 <ul>
 <li>⭐ / 真除法永远返回 float；// 整除返回整数部分；% 取余；** 幂运算</li>
+<li>⚠️ 负数整除是<strong>向下取整</strong>（往 −∞ 方向）：-10 // 3 == -4，不是 -3</li>
+<li>⚠️ % 的结果符号<strong>跟随除数</strong>：-10 % 3 == 2，10 % -3 == -2</li>
+<li>⚠️ ** 负指数返回 float：2 ** -1 == 0.5</li>
+<li>浮点数有精度误差：0.1 + 0.2 != 0.3（详见 2.1 浮点章节）</li>
 <li>典型应用：// 和 % 组合做时间转换，% 2 判断奇偶</li>
 <li>括号可改变运算顺序：(a + b) * 2</li>
 </ul>
@@ -1500,8 +1504,15 @@
 <a id="__codelineno-1-22" name="__codelineno-1-22" href="#__codelineno-1-22"></a><span class="c1"># 幂运算</span>
 <a id="__codelineno-1-23" name="__codelineno-1-23" href="#__codelineno-1-23"></a><span class="nb">print</span><span class="p">(</span><span class="n">a</span> <span class="o">**</span> <span class="n">b</span><span class="p">)</span>  <span class="c1"># 1000 (10 的 3 次方)</span>
 <a id="__codelineno-1-24" name="__codelineno-1-24" href="#__codelineno-1-24"></a>
-<a id="__codelineno-1-25" name="__codelineno-1-25" href="#__codelineno-1-25"></a><span class="c1"># 混合运算</span>
-<a id="__codelineno-1-26" name="__codelineno-1-26" href="#__codelineno-1-26"></a><span class="n">result</span> <span class="o">=</span> <span class="p">(</span><span class="n">a</span> <span class="o">+</span> <span class="n">b</span><span class="p">)</span> <span class="o">*</span> <span class="mi">2</span>  <span class="c1"># 26</span>
+<a id="__codelineno-1-25" name="__codelineno-1-25" href="#__codelineno-1-25"></a><span class="c1"># 负数整除：向下取整（往 -∞ 方向），不是截断</span>
+<a id="__codelineno-1-26" name="__codelineno-1-26" href="#__codelineno-1-26"></a><span class="nb">print</span><span class="p">(</span><span class="o">-</span><span class="mi">10</span> <span class="o">//</span> <span class="mi">3</span><span class="p">)</span>  <span class="c1"># -4, 不是 -3</span>
+<a id="__codelineno-1-27" name="__codelineno-1-27" href="#__codelineno-1-27"></a><span class="nb">print</span><span class="p">(</span><span class="o">-</span><span class="mi">10</span> <span class="o">%</span> <span class="mi">3</span><span class="p">)</span>   <span class="c1"># 2, 余数符号跟随除数</span>
+<a id="__codelineno-1-28" name="__codelineno-1-28" href="#__codelineno-1-28"></a>
+<a id="__codelineno-1-29" name="__codelineno-1-29" href="#__codelineno-1-29"></a><span class="c1"># 负指数返回 float</span>
+<a id="__codelineno-1-30" name="__codelineno-1-30" href="#__codelineno-1-30"></a><span class="nb">print</span><span class="p">(</span><span class="mi">2</span> <span class="o">**</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>   <span class="c1"># 0.5</span>
+<a id="__codelineno-1-31" name="__codelineno-1-31" href="#__codelineno-1-31"></a>
+<a id="__codelineno-1-32" name="__codelineno-1-32" href="#__codelineno-1-32"></a><span class="c1"># 混合运算</span>
+<a id="__codelineno-1-33" name="__codelineno-1-33" href="#__codelineno-1-33"></a><span class="n">result</span> <span class="o">=</span> <span class="p">(</span><span class="n">a</span> <span class="o">+</span> <span class="n">b</span><span class="p">)</span> <span class="o">*</span> <span class="mi">2</span>  <span class="c1"># 26</span>
 </code></pre></div>
 <h3 id="_4">实际应用<a class="headerlink" href="#_4" title="Permanent link">&para;</a></h3>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="c1"># 计算圆的面积</span>
@@ -1571,8 +1582,9 @@
 <p><strong>知识点</strong>：</p>
 <ul>
 <li>and 全真才真，or 一真即真，not 取反</li>
-<li>⭐ 短路求值：and 首项为 False、or 首项为 True 时不再计算后续表达式</li>
-<li>⭐ 实用技巧：name or "Guest" 为空时取默认值</li>
+<li>⭐ 关键机制：and/or <strong>返回的是操作数本身</strong>，不是 True/False——<code>1 and 2</code> 得 <code>2</code>，<code>0 or "x"</code> 得 <code>"x"</code></li>
+<li>⭐ 短路求值：and 首项为假值、or 首项为真值时不再计算后续表达式</li>
+<li>⭐ 实用技巧：<code>name or "Guest"</code> 利用上述两点实现"为空时取默认值"</li>
 </ul>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="n">a</span> <span class="o">=</span> <span class="kc">True</span>
 <a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="n">b</span> <span class="o">=</span> <span class="kc">False</span>
@@ -1599,6 +1611,11 @@
 <a id="__codelineno-5-23" name="__codelineno-5-23" href="#__codelineno-5-23"></a>
 <a id="__codelineno-5-24" name="__codelineno-5-24" href="#__codelineno-5-24"></a><span class="nb">print</span><span class="p">(</span><span class="kc">False</span> <span class="ow">and</span> <span class="n">test</span><span class="p">())</span>  <span class="c1"># 不会调用 test()</span>
 <a id="__codelineno-5-25" name="__codelineno-5-25" href="#__codelineno-5-25"></a><span class="nb">print</span><span class="p">(</span><span class="kc">True</span> <span class="ow">or</span> <span class="n">test</span><span class="p">())</span>    <span class="c1"># 不会调用 test()</span>
+<a id="__codelineno-5-26" name="__codelineno-5-26" href="#__codelineno-5-26"></a>
+<a id="__codelineno-5-27" name="__codelineno-5-27" href="#__codelineno-5-27"></a><span class="c1"># and/or 返回操作数本身（不是 True/False）</span>
+<a id="__codelineno-5-28" name="__codelineno-5-28" href="#__codelineno-5-28"></a><span class="nb">print</span><span class="p">(</span><span class="mi">1</span> <span class="ow">and</span> <span class="mi">2</span><span class="p">)</span>           <span class="c1"># 2</span>
+<a id="__codelineno-5-29" name="__codelineno-5-29" href="#__codelineno-5-29"></a><span class="nb">print</span><span class="p">(</span><span class="mi">0</span> <span class="ow">or</span> <span class="s2">&quot;x&quot;</span><span class="p">)</span>          <span class="c1"># &quot;x&quot;</span>
+<a id="__codelineno-5-30" name="__codelineno-5-30" href="#__codelineno-5-30"></a><span class="nb">print</span><span class="p">(</span><span class="s2">&quot;&quot;</span> <span class="ow">or</span> <span class="s2">&quot;Guest&quot;</span><span class="p">)</span>     <span class="c1"># &quot;Guest&quot;</span>
 </code></pre></div>
 <h3 id="_8">实际应用<a class="headerlink" href="#_8" title="Permanent link">&para;</a></h3>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="n">age</span> <span class="o">=</span> <span class="mi">25</span>
@@ -1809,10 +1826,15 @@
 <a id="__codelineno-13-5" name="__codelineno-13-5" href="#__codelineno-13-5"></a><span class="n">num</span> <span class="o">=</span> <span class="mi">15</span>
 <a id="__codelineno-13-6" name="__codelineno-13-6" href="#__codelineno-13-6"></a><span class="nb">print</span><span class="p">(</span><span class="n">num</span> <span class="o">%</span> <span class="mi">3</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">num</span> <span class="o">%</span> <span class="mi">5</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span>
 <a id="__codelineno-13-7" name="__codelineno-13-7" href="#__codelineno-13-7"></a>
-<a id="__codelineno-13-8" name="__codelineno-13-8" href="#__codelineno-13-8"></a><span class="c1"># 练习 4</span>
-<a id="__codelineno-13-9" name="__codelineno-13-9" href="#__codelineno-13-9"></a><span class="n">year</span> <span class="o">=</span> <span class="mi">2024</span>
-<a id="__codelineno-13-10" name="__codelineno-13-10" href="#__codelineno-13-10"></a><span class="n">is_leap</span> <span class="o">=</span> <span class="p">(</span><span class="n">year</span> <span class="o">%</span> <span class="mi">4</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">year</span> <span class="o">%</span> <span class="mi">100</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">)</span> <span class="ow">or</span> <span class="p">(</span><span class="n">year</span> <span class="o">%</span> <span class="mi">400</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span>
-<a id="__codelineno-13-11" name="__codelineno-13-11" href="#__codelineno-13-11"></a><span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">year</span><span class="si">}</span><span class="s2"> 是闰年：</span><span class="si">{</span><span class="n">is_leap</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<a id="__codelineno-13-8" name="__codelineno-13-8" href="#__codelineno-13-8"></a><span class="c1"># 练习 3</span>
+<a id="__codelineno-13-9" name="__codelineno-13-9" href="#__codelineno-13-9"></a><span class="n">a</span><span class="p">,</span> <span class="n">b</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span>
+<a id="__codelineno-13-10" name="__codelineno-13-10" href="#__codelineno-13-10"></a><span class="n">a</span><span class="p">,</span> <span class="n">b</span> <span class="o">=</span> <span class="n">b</span><span class="p">,</span> <span class="n">a</span>  <span class="c1"># 利用元组打包/解包，无需临时变量</span>
+<a id="__codelineno-13-11" name="__codelineno-13-11" href="#__codelineno-13-11"></a><span class="nb">print</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">)</span>  <span class="c1"># 2 1</span>
+<a id="__codelineno-13-12" name="__codelineno-13-12" href="#__codelineno-13-12"></a>
+<a id="__codelineno-13-13" name="__codelineno-13-13" href="#__codelineno-13-13"></a><span class="c1"># 练习 4</span>
+<a id="__codelineno-13-14" name="__codelineno-13-14" href="#__codelineno-13-14"></a><span class="n">year</span> <span class="o">=</span> <span class="mi">2024</span>
+<a id="__codelineno-13-15" name="__codelineno-13-15" href="#__codelineno-13-15"></a><span class="n">is_leap</span> <span class="o">=</span> <span class="p">(</span><span class="n">year</span> <span class="o">%</span> <span class="mi">4</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">year</span> <span class="o">%</span> <span class="mi">100</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">)</span> <span class="ow">or</span> <span class="p">(</span><span class="n">year</span> <span class="o">%</span> <span class="mi">400</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span>
+<a id="__codelineno-13-16" name="__codelineno-13-16" href="#__codelineno-13-16"></a><span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">year</span><span class="si">}</span><span class="s2"> 是闰年：</span><span class="si">{</span><span class="n">is_leap</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 </code></pre></div></p>
 <h2 id="_14">本章小结<a class="headerlink" href="#_14" title="Permanent link">&para;</a></h2>
 <h3 id="_15">核心知识点<a class="headerlink" href="#_15" title="Permanent link">&para;</a></h3>
